@@ -49,7 +49,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-bg-base">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
       <ParticleBackground />
       
       {/* Gradient orbs to match Hero */}
