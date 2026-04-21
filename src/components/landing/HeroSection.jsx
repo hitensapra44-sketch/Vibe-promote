@@ -126,7 +126,7 @@ export default function HeroSection({ joined, onJoined, onValidateEmail }) {
                     disabled={submitting}
                     className="px-6 py-4 text-white font-semibold text-base bg-primary hover:bg-primary-hover transition-all duration-200 sm:whitespace-nowrap"
                   >
-                    {submitting ? '...' : 'Join the Hype List'}
+                    {submitting ? '...' : 'Start Free'}
                   </button>
                 </div>
               </motion.div>

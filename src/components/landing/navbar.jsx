@@ -76,7 +76,7 @@ export default function Navbar({ joined, onJoinWaitlist }) {
                         onClick={() => scrollTo('waitlist')}
                         className="px-5 py-2 text-sm font-semibold text-white rounded-md hover:bg-primary-hover transition-all bg-bg-base"
                       >
-                        Join Waitlist
+                        Start Free
                       </button>
                     </div>
                   </motion.div>
@@ -162,7 +162,7 @@ export default function Navbar({ joined, onJoinWaitlist }) {
                   onClick={() => { setMobileOpen(false); scrollTo('waitlist'); }}
                   className="px-6 py-3 text-base font-semibold text-white rounded-lg text-center bg-primary hover:bg-primary-hover transition-all duration-200"
                 >
-                  Join Waitlist
+                  Start Free
                 </button>
               ) : (
                 <Link

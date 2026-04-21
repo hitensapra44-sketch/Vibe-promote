@@ -80,7 +80,7 @@ export default function FooterSection({ joined, onJoined, onValidateEmail }) {
                   disabled={submitting}
                   className="flex items-center justify-center gap-2 px-6 py-3.5 font-semibold text-white rounded-lg bg-primary hover:bg-primary-hover transition-all duration-200 hover:-translate-y-0.5"
                 >
-                  {submitting ? '...' : 'Join the Hype List'}
+                  {submitting ? '...' : 'Start Free'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
