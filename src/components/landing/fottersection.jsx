@@ -2,51 +2,21 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/supabaseClient';
-import { toast } from 'sonner';
+import SignupModal from './SignupModal';
 
 export default function FooterSection({ joined, onJoined, onValidateEmail }) {
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    // Enhanced Validation
-    const finalEmail = onValidateEmail ? onValidateEmail(email) : email;
-    if (!finalEmail) return;
-
-    setSubmitting(true);
-    try {
-      // Use signInWithOtp for waitlist signup.
-      const { error } = await supabase.auth.signInWithOtp({
-        email: finalEmail,
-        options: {
-          emailRedirectTo: window.location.origin,
-        }
-      });
-
-      if (error) {
-        if (error.status === 429) {
-          toast.error('Too many attempts. Please try again later.');
-        } else {
-          toast.error(error.message || 'Failed to join waitlist. Please try again.');
-        }
-        return;
-      }
-
-      toast.success('You\'re on the hype list! Check your email to confirm. 🔥');
-      setEmail('');
-      if (onJoined) onJoined();
-    } catch (err) {
-      console.error('Waitlist error:', err);
-      toast.error('An unexpected error occurred. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <footer id="waitlist" className="font-poppins bg-transparent">
-      {/* Email Signup */}
+      <SignupModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onJoined={onJoined}
+        onValidateEmail={onValidateEmail}
+      />
+      
+      {/* CTA Section */}
       <div className="py-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto text-center">
           <motion.div
@@ -66,24 +36,15 @@ export default function FooterSection({ joined, onJoined, onValidateEmail }) {
             </p>
 
             {!joined && (
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                  placeholder="your@email.com"
-                  className="flex-1 px-5 py-3.5 rounded-lg bg-bg-surface border border-border-muted text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 text-base transition-colors"
-                />
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="flex items-center justify-center gap-2 px-6 py-3.5 font-semibold text-white rounded-lg bg-primary hover:bg-primary-hover transition-all duration-200 hover:-translate-y-0.5"
-                >
-                  {submitting ? '...' : 'Start Free'}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsModalOpen(true)}
+                className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto"
+              >
+                Start Free
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
             )}
           </motion.div>
         </div>
@@ -106,8 +67,8 @@ export default function FooterSection({ joined, onJoined, onValidateEmail }) {
             <button onClick={() => document.getElementById('howitworks')?.scrollIntoView({ behavior: 'smooth' })}>
               How it Works
             </button>
-            <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
-              Pricing
+            <button onClick={() => document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' })}>
+              Benefits
             </button>
           </div>
 

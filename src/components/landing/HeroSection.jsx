@@ -3,53 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, ArrowRight } from 'lucide-react';
 import ParticleBackground from './particlebackground';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/supabaseClient';
-import { toast } from 'sonner';
+import SignupModal from './SignupModal';
 
 export default function HeroSection({ joined, onJoined, onValidateEmail }) {
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleJoinWaitlist = async () => {
-    // Enhanced Validation
-    const finalEmail = onValidateEmail ? onValidateEmail(email) : email;
-    if (!finalEmail) return;
-
-    setSubmitting(true);
-    try {
-      // The user wants to insert into auth.users. 
-      // signInWithOtp is the most secure way to handle this on the client.
-      // It handles duplicate checking and insertion automatically.
-      const { error } = await supabase.auth.signInWithOtp({
-        email: finalEmail,
-        options: {
-          emailRedirectTo: window.location.origin,
-        }
-      });
-
-      if (error) {
-        if (error.status === 429) {
-          toast.error('Too many attempts. Please try again later.');
-        } else {
-          toast.error(error.message || 'Failed to join waitlist. Please try again.');
-        }
-        return;
-      }
-
-      toast.success('You\'re on the hype list! Check your email to confirm. 🔥');
-      setEmail('');
-      if (onJoined) onJoined();
-    } catch (err) {
-      console.error('Waitlist error:', err);
-      toast.error('An unexpected error occurred. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
       <ParticleBackground />
+      <SignupModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onJoined={onJoined}
+        onValidateEmail={onValidateEmail}
+      />
 
       {/* Gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
@@ -104,32 +71,16 @@ export default function HeroSection({ joined, onJoined, onValidateEmail }) {
         >
           <AnimatePresence mode="wait">
             {!joined ? (
-              <motion.div
-                key="email-input"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="relative p-[1px] rounded-xl w-full max-w-md bg-border-muted overflow-hidden shadow-lg shadow-primary/10"
+              <motion.button
+                key="start-free-btn"
+                whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsModalOpen(true)}
+                className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2"
               >
-                <div className="flex flex-col sm:flex-row items-stretch gap-0 rounded-[10px] overflow-hidden bg-bg-surface border border-border-muted">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1 px-4 py-4 bg-transparent text-text-primary placeholder-text-secondary/50 focus:outline-none text-base min-w-0"
-                    onKeyDown={(e) => e.key === 'Enter' && handleJoinWaitlist()}
-                  />
-                  <button
-                    onClick={handleJoinWaitlist}
-                    disabled={submitting}
-                    className="px-6 py-4 text-white font-semibold text-base bg-primary hover:bg-primary-hover transition-all duration-200 sm:whitespace-nowrap"
-                  >
-                    {submitting ? '...' : 'Start Free'}
-                  </button>
-                </div>
-              </motion.div>
+                Start Free
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
              ) : (
                <motion.div
                  key="survey-btn"
@@ -142,11 +93,8 @@ export default function HeroSection({ joined, onJoined, onValidateEmail }) {
                    to="/survey"
                    className="inline-flex items-center gap-2 px-8 py-4 text-white font-semibold text-base rounded-xl bg-primary hover:bg-primary-hover transition-all duration-200 hover:-translate-y-0.5 shadow-lg shadow-primary/20"
                  >
-                    {typeof window !== 'undefined' && localStorage.getItem('pre_purchase_email_confirmed') === 'true' ? (
-                      <><span>Do Survey(takes 32sec)</span><ArrowRight className="w-4 h-4"/></>
-                    ) : (
-                      <><span>Do Survey (34s)</span><ArrowRight className="w-4 h-4" /></>
-                    )}
+                    <span>Do Survey (34s)</span>
+                    <ArrowRight className="w-4 h-4" />
                  </Link>
                </motion.div>
              )}
