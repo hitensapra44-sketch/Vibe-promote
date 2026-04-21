@@ -122,10 +122,10 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 mt-4"
+              className="w-full py-5 rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] hover:opacity-90 text-white font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 mt-4"
             >
               {loading ? 'Processing...' : "Let's go"}
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-6 h-6" />
             </button>
           </form>
 
