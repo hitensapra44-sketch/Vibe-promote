@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'sonner';
 import ParticleBackground from '@/components/landing/particlebackground';
+import WelcomeScreen from '@/components/auth/WelcomeScreen';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -13,6 +14,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
@@ -36,7 +38,8 @@ export default function Auth() {
       if (!isSignIn && data?.user?.identities?.length === 0) {
         toast.error("Email already registered. Try signing in.");
       } else if (!isSignIn) {
-        toast.success("Check your email for the confirmation link!");
+        // For signup, show welcome screen immediately
+        setShowWelcome(true);
       } else {
         localStorage.setItem('joined_waitlist', 'true');
         navigate('/');
@@ -47,6 +50,13 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  if (showWelcome) {
+    return <WelcomeScreen onComplete={() => {
+      localStorage.setItem('joined_waitlist', 'true');
+      navigate('/');
+    }} />;
+  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
