@@ -64,14 +64,6 @@ export default function WelcomeScreen({ onComplete }) {
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white leading-tight whitespace-nowrap">
           Welcome To Vibe <span className="text-primary">Promote</span>
         </h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 text-text-secondary text-lg sm:text-xl"
-        >
-          Preparing your marketing cockpit...
-        </motion.p>
       </motion.div>
     </div>
   );
