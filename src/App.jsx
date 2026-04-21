@@ -9,6 +9,7 @@ import PageNotFound from './lib/PageNotFound';
 import Home from './pages/Home';
 import Survey from './pages/Survey';
 import PrePurchase from './pages/PrePurchase';
+import Auth from './pages/Auth';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -16,13 +17,10 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Initialize GA4
     initGA();
   }, []);
 
   useEffect(() => {
-    // Track page views on route change
-    // This will also fire on initial load after initGA()
     logPageView(location.pathname + location.search);
   }, [location]);
 
@@ -34,6 +32,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/survey" element={<Survey />} />
           <Route path="/pre-purchase" element={<PrePurchase />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>

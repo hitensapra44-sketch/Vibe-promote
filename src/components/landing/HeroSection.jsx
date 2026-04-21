@@ -1,22 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, ArrowRight } from 'lucide-react';
 import ParticleBackground from './particlebackground';
-import { Link } from 'react-router-dom';
-import SignupModal from './SignupModal';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function HeroSection({ joined, onJoined, onValidateEmail }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function HeroSection({ joined }) {
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
       <ParticleBackground />
-      <SignupModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onJoined={onJoined}
-        onValidateEmail={onValidateEmail}
-      />
 
       {/* Gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
@@ -75,7 +68,7 @@ export default function HeroSection({ joined, onJoined, onValidateEmail }) {
                 key="start-free-btn"
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => navigate('/auth')}
                 className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2"
               >
                 Start Free

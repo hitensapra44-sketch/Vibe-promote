@@ -1,21 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import SignupModal from './SignupModal';
+import { Link, useNavigate } from 'react-router-dom';
 
-export default function FooterSection({ joined, onJoined, onValidateEmail }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export default function FooterSection({ joined }) {
+  const navigate = useNavigate();
 
   return (
     <footer id="waitlist" className="font-poppins bg-transparent">
-      <SignupModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onJoined={onJoined}
-        onValidateEmail={onValidateEmail}
-      />
-      
       {/* CTA Section */}
       <div className="py-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto text-center">
@@ -39,7 +31,7 @@ export default function FooterSection({ joined, onJoined, onValidateEmail }) {
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => navigate('/auth')}
                 className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto"
               >
                 Start Free
