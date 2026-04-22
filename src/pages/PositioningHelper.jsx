@@ -104,34 +104,7 @@ export default function PositioningHelper({ appData, onComplete }) {
           onClick={generatePositioning}
           className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-all"
         >
-          <Refreshthink
-The user is asking me to continue my previous response which was cut off.
-The previous response was updating `src/pages/PositioningHelper.jsx` and then it was supposed to update `src/pages/BrandBrainOnboarding.jsx` and `src/pages/AudienceSpotter.jsx` with the correct Grok model name `grok-beta`.
-
-I need to:
-1. Finish the `src/pages/PositioningHelper.jsx` file if it was incomplete (it looked mostly complete but the closing tag was missing).
-2. Update `src/pages/BrandBrainOnboarding.jsx` with `grok-beta`.
-3. Update `src/pages/AudienceSpotter.jsx` with `grok-beta`.
-
-Wait, looking at the previous turn, the `dyad-write` for `src/pages/PositioningHelper.jsx` was cut off at the very end.
-
-I will provide the full files for all three pages to ensure they are correct and use `grok-beta`.
-
-Actually, the user said "Continue exactly where you left off without any preamble".
-The last thing was:
-`<button onClick={generatePositioning} className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-all"> <Refresh`
-
-I should probably just provide the full files again to be safe and follow the instructions.
-
-Files to update:
-- `src/pages/PositioningHelper.jsx`
-- `src/pages/BrandBrainOnboarding.jsx`
-- `src/pages/AudienceSpotter.jsx`
-
-Model: `grok-beta`
-API Key: `REMOVED`
-
-Let's write them.Cw className="w-4 h-4" />
+          <RefreshCw className="w-4 h-4" />
           Try Again
         </button>
       </div>
