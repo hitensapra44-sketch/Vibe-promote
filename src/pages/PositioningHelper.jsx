@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
 
-const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GROK_API_KEY = "REMOVED";
+const GROK_MODEL = "grok-beta";
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);
@@ -41,34 +41,31 @@ export default function PositioningHelper({ appData, onComplete }) {
     `;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROK_API_KEY}`
+        },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\nUser Input:\n${userMessage}`
-            }]
-          }],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
+          model: GROK_MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("AI API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+        console.error("Grok API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from Grok service');
       }
 
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        throw new Error('Invalid AI response format');
-      }
-      
-      let textResponse = data.candidates[0].content.parts[0].text;
-      const parsed = JSON.parse(textResponse);
+      const parsed = JSON.parse(data.choices[0].message.content);
       setAiPositioning(parsed);
     } catch (err) {
       console.error("Generation failed:", err);

@@ -4,8 +4,8 @@ import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-r
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
-const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GROK_API_KEY = "REMOVED";
+const GROK_MODEL = "grok-beta";
 
 export default function BrandBrainOnboarding({ onComplete }) {
   const [appName, setAppName] = useState('');
@@ -32,34 +32,31 @@ export default function BrandBrainOnboarding({ onComplete }) {
     const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch("https://api.x.ai/v1/chat/completions", {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROK_API_KEY}`
+        },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\nExtract positioning data from this URL: ${url}`
-            }]
-          }],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
+          model: GROK_MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Extract positioning data from this URL: ${url}` }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("AI API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+        console.error("Grok API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from Grok service');
       }
 
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        throw new Error('Invalid AI response format');
-      }
-
-      let textResponse = data.candidates[0].content.parts[0].text;
-      const parsed = JSON.parse(textResponse);
+      const parsed = JSON.parse(data.choices[0].message.content);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
