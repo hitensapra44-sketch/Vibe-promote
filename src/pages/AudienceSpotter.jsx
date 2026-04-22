@@ -17,7 +17,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 
 const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-2-1212";
+const GROK_MODEL = "grok-beta";
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
@@ -25,7 +25,7 @@ export default function AudienceSpotter() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState(null);
-  navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchBrain() {
