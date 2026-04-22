@@ -1,141 +1,168 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Check, ArrowRight, RefreshCw } from 'lucide-react';
+import { Sparkles, Loader2, Check, ArrowRight } from 'lucide-react';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);
-  const [positioning, setPositioning] = useState(null);
+  const [aiPositioning, setAiPositioning] = useState(null);
   const [error, setError] = useState(null);
 
   const generatePositioning = async () => {
     setLoading(true);
     setError(null);
 
-    const prompt = `You are a world-class SaaS marketing strategist. Based on the following app data, generate a sharp, high-converting positioning strategy.
-    
-    App Name: ${appData.app_name}
-    Description: ${appData.app_description}
-    Target Customer: ${appData.target_customer}
-    Core Problem: ${appData.core_problem}
+    const systemPrompt = `You are a world-class SaaS positioning strategist. You have been given raw input from a founder about their app. Your job is to generate the sharpest, most specific positioning output possible. Use the audience's exact language. Never use generic phrases like "game-changing" or "revolutionary". Be specific about who the customer is, where they are online, what words they actually use, and what makes this app concretely better than the alternative. Return only valid JSON, no explanation, no markdown.`;
 
-    Return a JSON object with exactly these fields:
-    - hook: A one-sentence "scroll-stopping" hook for social media.
-    - value_prop: A clear, punchy unique value proposition (max 10 words).
-    - elevator_pitch: A 2-sentence pitch that explains the "vibe" and the result.
-    - vibe_check: A short phrase describing the brand's personality (e.g., "Bold & Disruptive", "Calm & Efficient").
-
-    Return valid JSON only. No markdown. No explanation.`;
+    const userMessage = `
+      App Name: ${appData.app_name}
+      App Description: ${appData.app_description}
+      Target Customer: ${appData.target_customer}
+      Core Problem: ${appData.core_problem}
+      Unique Differentiator: ${appData.unique_differentiator}
+      Audience Awareness: ${appData.audience_awareness}
+      Pain Phrases: ${appData.pain_phrases}
+      Brand Tone: ${appData.brand_tone}
+      Writing Style: ${appData.writing_style}
+      Primary CTA: ${appData.primary_cta}
+      Primary Platform: ${appData.primary_platform}
+    `;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nUser Input:\n${userMessage}\n\nReturn JSON with: one_liner, target_audience, where_they_are (array of 3), pain_points (array of 3), how_they_describe_it (array of 3), why_youre_better.` }] }],
           generationConfig: { response_mime_type: "application/json" }
         })
       });
 
       const data = await response.json();
       const textResponse = data.candidates[0].content.parts[0].text;
-      setPositioning(JSON.parse(textResponse));
+      setAiPositioning(JSON.parse(textResponse));
     } catch (err) {
       console.error("Generation failed:", err);
-      setError("Failed to generate your strategy. Let's try again.");
+      setError("Failed to analyze positioning. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    generatePositioning();
+    if (appData) generatePositioning();
   }, [appData]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full mb-6"
-        />
-        <h2 className="text-2xl font-bold text-white mb-2">Sharpening your vibe...</h2>
-        <p className="text-zinc-400">Our AI is crafting your unique positioning strategy.</p>
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
+          <Loader2 className="w-12 h-12 text-violet-500 mb-6" />
+        </motion.div>
+        <h2 className="text-2xl font-bold text-white mb-2">Analyzing your positioning...</h2>
+        <p className="text-zinc-400">Our AI is crafting your unique vibe strategy.</p>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
-        <p className="text-red-400 mb-6">{error}</p>
-        <button
-          onClick={generatePositioning}
-          className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" /> Retry
-        </button>
-      </div>
-    );
-  }
+  const Section = ({ label, children }) => (
+    <div className="py-4 border-b border-zinc-800 last:border-0">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 block">{label}</label>
+      <div className="text-white text-sm leading-relaxed">{children}</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-violet-500/30">
-      <div className="max-w-lg mx-auto px-6 py-12">
-        <header className="mb-12">
-          <div className="mb-4">
-            <span className="text-violet-400 text-xs font-medium tracking-widest uppercase">Step 2 of 3</span>
-            <div className="h-1 bg-zinc-800 rounded-full w-full mt-2 overflow-hidden">
-              <div className="h-full bg-violet-600 rounded-full w-2/3 transition-all duration-500" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-white">Your Vibe Strategy is ready.</h1>
-          <p className="text-zinc-400 text-sm mt-1">This is how we'll position {appData.app_name} to win.</p>
+    <div className="min-h-screen bg-zinc-950 text-white font-poppins py-12 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
+        <header className="text-center mb-16">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+            Here's how your positioning looks right now — and how it could look.
+          </h1>
+          <p className="text-zinc-400 max-w-2xl mx-auto">
+            The AI version uses your audience's exact language and speaks directly to why they would pay.
+          </p>
         </header>
 
-        <div className="space-y-6">
-          {/* Hook Card */}
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-            <label className="text-violet-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">The Hook</label>
-            <p className="text-lg font-medium leading-relaxed">"{positioning.hook}"</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+          {/* Left Card: User Version */}
+          <div className="flex flex-col">
+            <div className="text-center mb-4">
+              <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Your Current Positioning</span>
+            </div>
+            <div className="flex-1 bg-zinc-900/30 border border-zinc-800 rounded-2xl p-8 flex flex-col">
+              <div className="flex-1 space-y-2">
+                <Section label="One-liner">{appData.app_description}</Section>
+                <Section label="Target Audience">{appData.target_customer}</Section>
+                <Section label="Where They Are">{appData.primary_platform}</Section>
+                <Section label="Their Pain Points">{appData.core_problem}</Section>
+                <Section label="How They Describe It">{appData.pain_phrases || "Not specified"}</Section>
+                <Section label="Why You're Better">{appData.unique_differentiator || "Not specified"}</Section>
+              </div>
+              <button
+                onClick={() => onComplete({ type: 'user', data: appData })}
+                className="mt-8 w-full py-4 rounded-xl border border-zinc-700 text-zinc-400 font-bold hover:bg-zinc-800 transition-all"
+              >
+                Keep mine
+              </button>
+            </div>
           </div>
 
-          {/* Value Prop Card */}
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-            <label className="text-violet-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Value Proposition</label>
-            <p className="text-xl font-bold text-white">{positioning.value_prop}</p>
-          </div>
+          {/* Right Card: AI Version */}
+          <div className="flex flex-col">
+            <div className="text-center mb-4">
+              <span className="text-xs font-bold text-violet-400 uppercase tracking-widest">Your Best Positioning</span>
+            </div>
+            <div 
+              className="flex-1 bg-zinc-900/50 border border-violet-500 rounded-2xl p-8 flex flex-col relative"
+              style={{ boxShadow: '0 0 40px rgba(139, 92, 246, 0.2)' }}
+            >
+              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-violet-600 text-[10px] font-bold text-white uppercase tracking-tighter">
+                AI Generated
+              </div>
+              
+              <div className="flex-1 space-y-2">
+                <Section label="One-liner">{aiPositioning.one_liner}</Section>
+                <Section label="Target Audience">{aiPositioning.target_audience}</Section>
+                <Section label="Where They Are">
+                  <ul className="space-y-1">
+                    {aiPositioning.where_they_are.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-violet-500 mt-1">•</span> {item}
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+                <Section label="Their Pain Points">
+                  <ul className="space-y-1">
+                    {aiPositioning.pain_points.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-violet-500 mt-1">•</span> {item}
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
+                <Section label="How They Describe It">
+                  <div className="flex flex-wrap gap-2">
+                    {aiPositioning.how_they_describe_it.map((item, i) => (
+                      <span key={i} className="italic text-zinc-300">"{item}"</span>
+                    ))}
+                  </div>
+                </Section>
+                <Section label="Why You're Better">{aiPositioning.why_youre_better}</Section>
+              </div>
 
-          {/* Pitch Card */}
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-            <label className="text-violet-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Elevator Pitch</label>
-            <p className="text-zinc-400 leading-relaxed">{positioning.elevator_pitch}</p>
-          </div>
-
-          {/* Vibe Check */}
-          <div className="flex items-center justify-between bg-violet-600/10 border border-violet-500/20 rounded-2xl p-4">
-            <span className="text-xs font-medium text-violet-300">Brand Personality:</span>
-            <span className="text-sm font-bold text-violet-400">{positioning.vibe_check}</span>
+              <button
+                onClick={() => onComplete({ type: 'ai', data: aiPositioning })}
+                className="mt-8 w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-violet-600/20"
+              >
+                Use AI version <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-
-        <button
-          onClick={() => onComplete(positioning)}
-          className="bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl px-6 py-4 w-full text-sm transition-colors mt-10 shadow-lg shadow-violet-600/10 flex items-center justify-center gap-2"
-        >
-          Lock it in & Continue
-          <ArrowRight className="w-4 h-4" />
-        </button>
-        
-        <button
-          onClick={generatePositioning}
-          className="w-full text-zinc-500 text-xs mt-4 hover:text-zinc-300 transition-colors flex items-center justify-center gap-1"
-        >
-          <RefreshCw className="w-3 h-3" /> Not feeling it? Regenerate.
-        </button>
       </div>
     </div>
   );

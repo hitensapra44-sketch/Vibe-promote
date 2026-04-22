@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
@@ -8,14 +8,22 @@ const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
 
 export default function BrandBrainOnboarding({ onComplete }) {
-  const [appName, setAppName] = useState('');
-  const [appDescription, setAppDescription] = useState('');
-  const [targetCustomer, setTargetCustomer] = useState('');
-  const [coreProblem, setCoreProblem] = useState('');
-  const [url, setUrl] = useState('');
+  const [formData, setFormData] = useState({
+    app_name: '',
+    app_description: '',
+    target_customer: '',
+    core_problem: '',
+    unique_differentiator: '',
+    audience_awareness: 'Problem Aware',
+    pain_phrases: '',
+    brand_tone: 'Direct & no-BS',
+    writing_style: 'Short & punchy',
+    primary_cta: 'Sign up for free',
+    primary_platform: 'X (Twitter)'
+  });
   
+  const [url, setUrl] = useState('');
   const [extracting, setExtracting] = useState(false);
-  const [extracted, setExtracted] = useState(false);
   const [extractError, setExtractError] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -27,38 +35,24 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
     setExtracting(true);
     setExtractError(null);
-    setExtracted(false);
 
-    const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation and no markdown.`;
+    const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. Return a JSON object with these fields: app_name, app_description, target_customer, core_problem, unique_differentiator, pain_phrases. Return valid JSON only.`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\nExtract positioning data from this URL: ${url}`
-            }]
-          }],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nExtract from: ${url}` }] }],
+          generationConfig: { response_mime_type: "application/json" }
         })
       });
 
       const data = await response.json();
-      const textResponse = data.candidates[0].content.parts[0].text;
-      const parsed = JSON.parse(textResponse);
+      const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
 
-      setAppName(parsed.app_name || '');
-      setAppDescription(parsed.app_description || '');
-      setTargetCustomer(parsed.target_customer || '');
-      setCoreProblem(parsed.core_problem || '');
-      
-      setExtracted(true);
+      setFormData(prev => ({ ...prev, ...parsed }));
     } catch (err) {
-      console.error("Extraction failed:", err);
       setExtractError("Couldn't read that URL. Fill in the questions below instead.");
     } finally {
       setExtracting(false);
@@ -67,154 +61,132 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!appName.trim()) newErrors.app_name = "Required";
-    if (!appDescription.trim()) newErrors.app_description = "Required";
-    if (!targetCustomer.trim()) newErrors.target_customer = "Required";
-    if (!coreProblem.trim()) newErrors.core_problem = "Required";
-
+    ['app_name', 'app_description', 'target_customer', 'core_problem'].forEach(field => {
+      if (!formData[field].trim()) newErrors[field] = "Required";
+    });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleContinue = () => {
     if (validate()) {
-      onComplete({
-        app_name: appName,
-        app_description: appDescription,
-        target_customer: targetCustomer,
-        core_problem: coreProblem
-      });
+      onComplete(formData);
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-bg-base text-white font-poppins overflow-hidden">
+    <div className="relative min-h-screen bg-zinc-950 text-white font-poppins overflow-y-auto">
       <GridBackground />
       <ParticleBackground />
 
-      {/* Gradient orbs matching HeroSection */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
-        style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl"
-        style={{ background: 'radial-gradient(circle, #9e4a2a 0%, transparent 70%)' }} />
-
-      {/* Top Navigation */}
-      <div className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-12">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1.5">
-            <div className="w-6 h-2 rounded-full bg-primary" />
-            <div className="w-2 h-2 rounded-full bg-white/10" />
-            <div className="w-2 h-2 rounded-full bg-white/10" />
-            <div className="w-2 h-2 rounded-full bg-white/10" />
-            <div className="w-2 h-2 rounded-full bg-white/10" />
-          </div>
-        </div>
-        <button className="text-sm font-medium text-text-secondary hover:text-white transition-colors">
-          Skip
-        </button>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-8 pb-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-          
-          {/* Left Side: Form */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-10"
-          >
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
             <div>
               <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 1</span>
               <h1 className="text-4xl sm:text-6xl font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-2px' }}>
-                Tell us about your <br />
-                <span className="text-primary">app.</span>
+                Build your <span className="text-primary">Brand Brain.</span>
               </h1>
             </div>
 
-            {/* URL Extraction Section */}
             <div className="space-y-4">
               <label className="text-sm font-bold text-white block">Have a landing page?</label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-                  <input
-                    type="url"
-                    placeholder="e.g. https://vibepromote.app"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-bg-surface/50 border border-border-muted text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30"
-                  />
-                </div>
-                <button
-                  onClick={handleExtract}
-                  disabled={extracting}
-                  className="px-8 py-4 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {extracting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Extract →'}
+              <div className="flex gap-3">
+                <input
+                  type="url"
+                  placeholder="https://yourapp.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="flex-1 pl-4 pr-4 py-4 rounded-2xl bg-zinc-900/50 border border-zinc-800 text-white focus:outline-none focus:border-primary/50 transition-all"
+                />
+                <button onClick={handleExtract} disabled={extracting} className="px-8 py-4 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50">
+                  {extracting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Extract'}
                 </button>
               </div>
               {extractError && <p className="text-red-400 text-xs">{extractError}</p>}
             </div>
 
-            <div className="relative flex items-center py-4">
-              <div className="flex-grow border-t border-border-muted"></div>
-              <span className="flex-shrink mx-4 text-text-secondary/40 text-[10px] uppercase tracking-widest font-bold">or fill it manually</span>
-              <div className="flex-grow border-t border-border-muted"></div>
-            </div>
-
             <div className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">App Name</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">App Name</label>
+                  <input
+                    type="text"
+                    value={formData.app_name}
+                    onChange={(e) => setFormData({ ...formData, app_name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">Primary Platform</label>
+                  <select
+                    value={formData.primary_platform}
+                    onChange={(e) => setFormData({ ...formData, primary_platform: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
+                  >
+                    <option>X (Twitter)</option>
+                    <option>LinkedIn</option>
+                    <option>Reddit</option>
+                    <option>TikTok</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase">Tell us about your app</label>
+                <textarea
+                  rows={2}
+                  value={formData.app_description}
+                  onChange={(e) => setFormData({ ...formData, app_description: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">Target Audience</label>
+                  <input
+                    type="text"
+                    value={formData.target_customer}
+                    onChange={(e) => setFormData({ ...formData, target_customer: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase">What problem your app solves</label>
+                  <input
+                    type="text"
+                    value={formData.core_problem}
+                    onChange={(e) => setFormData({ ...formData, core_problem: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase">Pain Phrases (What they actually say)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Vibe Promote"
-                  value={appName}
-                  onChange={(e) => setAppName(e.target.value)}
-                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_name ? 'border-red-500' : 'border-border-muted'} text-xl font-bold text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                  placeholder="e.g. 'I'm tired of manual posting', 'Marketing is a headache'"
+                  value={formData.pain_phrases}
+                  onChange={(e) => setFormData({ ...formData, pain_phrases: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
                 />
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">Tell us about your app</label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. AI marketing co-pilot that automates growth for solo founders"
-                  value={appDescription}
-                  onChange={(e) => setAppDescription(e.target.value)}
-                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase">What makes you different?</label>
+                <input
+                  type="text"
+                  value={formData.unique_differentiator}
+                  onChange={(e) => setFormData({ ...formData, unique_differentiator: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 text-white focus:border-primary/50 outline-none"
                 />
-                <div className="flex justify-end">
-                  <span className="text-[10px] text-text-secondary/40 font-bold uppercase tracking-widest">{appDescription.length}/200</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <label className="text-sm font-bold text-white block">Target Audience</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Solo founders building SaaS"
-                    value={targetCustomer}
-                    onChange={(e) => setTargetCustomer(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
-                  />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-sm font-bold text-white block">What problem your app solves</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Spending too much time on manual marketing"
-                    value={coreProblem}
-                    onChange={(e) => setCoreProblem(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
-                  />
-                </div>
               </div>
 
               <button
                 onClick={handleContinue}
-                className="group inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20"
+                className="group w-full py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
               >
                 Get better positioning
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -222,67 +194,33 @@ export default function BrandBrainOnboarding({ onComplete }) {
             </div>
           </motion.div>
 
-          {/* Right Side: Preview Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="hidden lg:block sticky top-32"
-          >
-            <div className="relative p-1 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-transparent">
-              <div className="bg-bg-surface rounded-[2.4rem] p-10 min-h-[500px] flex flex-col border border-white/5 shadow-2xl">
-                <div className="flex items-center gap-4 mb-12">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <Brain className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">Your App Brain</span>
-                    <h3 className="text-lg font-bold text-white">Building live</h3>
-                  </div>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="hidden lg:block sticky top-12">
+            <div className="bg-zinc-900/50 rounded-[2.5rem] p-10 border border-zinc-800 shadow-2xl">
+              <div className="flex items-center gap-4 mb-12">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-primary" />
                 </div>
-
-                <div className="flex-1 space-y-8">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">App Name</span>
-                    <h2 className={`text-4xl font-bold transition-all duration-300 ${appName ? 'text-white' : 'text-white/10'}`}>
-                      {appName || 'Your app name'}
-                    </h2>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Description</span>
-                    <p className={`text-xl leading-relaxed transition-all duration-300 ${appDescription ? 'text-text-secondary' : 'text-white/5'}`}>
-                      {appDescription || 'Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.'}
-                    </p>
-                  </div>
-
-                  {targetCustomer && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Target Audience</span>
-                      <p className="text-sm text-text-secondary/80">{targetCustomer}</p>
-                    </div>
-                  )}
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Your App Brain</span>
+                  <h3 className="text-lg font-bold text-white">Building live</h3>
                 </div>
-
-                <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/40">Syncing with AI</span>
-                  </div>
-                  <Rocket className="w-5 h-5 text-white/10" />
+              </div>
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">App Name</span>
+                  <h2 className={`text-4xl font-bold transition-all ${formData.app_name ? 'text-white' : 'text-white/10'}`}>
+                    {formData.app_name || 'Your app name'}
+                  </h2>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Description</span>
+                  <p className={`text-xl leading-relaxed transition-all ${formData.app_description ? 'text-zinc-400' : 'text-white/5'}`}>
+                    {formData.app_description || 'Your description will appear here...'}
+                  </p>
                 </div>
               </div>
             </div>
-
-            {/* Subtle Note */}
-            <div className="mt-8 flex items-center justify-between px-4 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-              <p className="text-[11px] text-text-secondary/60 leading-relaxed">
-                <span className="text-primary font-bold">Early Access</span> — some features may not work as expected. We appreciate your patience as we continue to improve.
-              </p>
-              <X className="w-4 h-4 text-text-secondary/40 cursor-pointer hover:text-white transition-colors" />
-            </div>
           </motion.div>
-
         </div>
       </div>
     </div>
