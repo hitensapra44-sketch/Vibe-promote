@@ -12,6 +12,7 @@ import PrePurchase from './pages/PrePurchase';
 import Auth from './pages/Auth';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
+import AudienceSpotter from './pages/AudienceSpotter';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/audience-spotter" element={<AudienceSpotter />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>

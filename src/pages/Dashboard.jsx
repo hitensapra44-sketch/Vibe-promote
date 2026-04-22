@@ -42,6 +42,14 @@ export default function Dashboard() {
     navigate('/');
   };
 
+  const menuItems = [
+    { icon: LayoutDashboard, label: 'Overview', active: true, path: '/dashboard' },
+    { icon: Search, label: 'Audience Spotter', path: '/audience-spotter' },
+    { icon: PenTool, label: 'Hook Maker', path: '/hook-maker' },
+    { icon: Calendar, label: 'Content Planner', path: '/planner' },
+    { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-bg-base flex items-center justify-center">
@@ -49,14 +57,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Overview', active: true },
-    { icon: Search, label: 'Audience Spotter' },
-    { icon: PenTool, label: 'Hook Maker' },
-    { icon: Calendar, label: 'Content Planner' },
-    { icon: BarChart3, label: 'Analytics' },
-  ];
 
   return (
     <div className="min-h-screen bg-bg-base text-white font-poppins flex">
@@ -75,6 +75,7 @@ export default function Dashboard() {
           {menuItems.map((item) => (
             <button
               key={item.label}
+              onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 item.active 
                 ? 'bg-primary/10 text-primary border border-primary/20' 
@@ -153,7 +154,10 @@ export default function Dashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-bg-surface border border-border-muted rounded-3xl p-6 hover:border-primary/30 transition-all group cursor-pointer">
+              <div 
+                onClick={() => navigate('/audience-spotter')}
+                className="bg-bg-surface border border-border-muted rounded-3xl p-6 hover:border-primary/30 transition-all group cursor-pointer"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-4">
                   <Search className="w-6 h-6 text-indigo-400" />
                 </div>
@@ -164,7 +168,10 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="bg-bg-surface border border-border-muted rounded-3xl p-6 hover:border-primary/30 transition-all group cursor-pointer">
+              <div 
+                onClick={() => navigate('/hook-maker')}
+                className="bg-bg-surface border border-border-muted rounded-3xl p-6 hover:border-primary/30 transition-all group cursor-pointer"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-4">
                   <PenTool className="w-6 h-6 text-orange-400" />
                 </div>
