@@ -201,7 +201,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-sm font-bold text-white block">Core Problem</label>
+                  <label className="text-sm font-bold text-white block">What problem your app solves</label>
                   <input
                     type="text"
                     placeholder="e.g. Spending too much time on manual marketing"
