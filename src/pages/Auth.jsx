@@ -6,6 +6,7 @@ import { supabase } from '@/supabaseClient';
 import { toast } from 'sonner';
 import ParticleBackground from '@/components/landing/particlebackground';
 import WelcomeScreen from '@/components/auth/WelcomeScreen';
+import StartScreen from '@/components/auth/StartScreen';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showStart, setShowStart] = useState(false);
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
@@ -38,7 +40,6 @@ export default function Auth() {
       if (!isSignIn && data?.user?.identities?.length === 0) {
         toast.error("Email already registered. Try signing in.");
       } else if (!isSignIn) {
-        // For signup, show welcome screen immediately
         setShowWelcome(true);
       } else {
         localStorage.setItem('joined_waitlist', 'true');
@@ -53,6 +54,13 @@ export default function Auth() {
 
   if (showWelcome) {
     return <WelcomeScreen onComplete={() => {
+      setShowWelcome(false);
+      setShowStart(true);
+    }} />;
+  }
+
+  if (showStart) {
+    return <StartScreen onStart={() => {
       localStorage.setItem('joined_waitlist', 'true');
       navigate('/');
     }} />;
@@ -62,7 +70,6 @@ export default function Auth() {
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
       <ParticleBackground />
       
-      {/* Gradient orbs to match Hero */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl bg-primary" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl bg-primary" />
 
