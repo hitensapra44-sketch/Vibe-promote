@@ -41,7 +41,7 @@ export default function PositioningHelper({ appData, onComplete }) {
     `;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -49,7 +49,10 @@ export default function PositioningHelper({ appData, onComplete }) {
             parts: [{
               text: `${systemPrompt}\n\nUser Input:\n${userMessage}`
             }]
-          }]
+          }],
+          generationConfig: {
+            response_mime_type: "application/json"
+          }
         })
       });
 
@@ -65,9 +68,6 @@ export default function PositioningHelper({ appData, onComplete }) {
       }
       
       let textResponse = data.candidates[0].content.parts[0].text;
-      // Clean up potential markdown backticks if AI includes them
-      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-      
       const parsed = JSON.parse(textResponse);
       setAiPositioning(parsed);
     } catch (err) {

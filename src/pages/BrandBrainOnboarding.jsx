@@ -32,7 +32,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
     const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -40,7 +40,10 @@ export default function BrandBrainOnboarding({ onComplete }) {
             parts: [{
               text: `${systemPrompt}\n\nExtract positioning data from this URL: ${url}`
             }]
-          }]
+          }],
+          generationConfig: {
+            response_mime_type: "application/json"
+          }
         })
       });
 
@@ -56,9 +59,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
       }
 
       let textResponse = data.candidates[0].content.parts[0].text;
-      // Clean up potential markdown backticks if AI includes them
-      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-      
       const parsed = JSON.parse(textResponse);
 
       setAppName(parsed.app_name || '');
