@@ -1,37 +1,41 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(undefined);
 
 export const AuthProvider = ({ children }) => {
-  // Simplified AuthProvider for a no-login experience
-  const [user] = useState({ id: 'anonymous', email: 'anonymous@vibehype.app' });
-  const [isAuthenticated] = useState(true);
-  const [isLoadingAuth] = useState(false);
-  const [isLoadingPublicSettings] = useState(false);
-  const [authError] = useState(null);
-  const [appPublicSettings] = useState({});
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
-  const logout = () => {
-    console.log('Logout called in no-login mode');
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session?.user);
+      setIsLoadingAuth(false);
+    });
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session?.user);
+      setIsLoadingAuth(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
-
-  const navigateToLogin = () => {
-    console.log('Login navigation requested in no-login mode');
-  };
-
-  const checkAppState = () => {};
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       isAuthenticated, 
       isLoadingAuth,
-      isLoadingPublicSettings,
-      authError,
-      appPublicSettings,
-      logout,
-      navigateToLogin,
-      checkAppState
+      logout
     }}>
       {children}
     </AuthContext.Provider>
