@@ -216,7 +216,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                 onClick={handleContinue}
                 className="group inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20"
               >
-                See what Vibe Promote writes for you
+                Get better positioning
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
