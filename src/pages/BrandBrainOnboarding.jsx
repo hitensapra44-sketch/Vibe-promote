@@ -42,7 +42,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
             }]
           }],
           generationConfig: {
-            response_mime_type: "application/json"
+            responseMimeType: "application/json"
           }
         })
       });

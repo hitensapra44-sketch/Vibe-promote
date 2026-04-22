@@ -72,7 +72,9 @@ export default function AudienceSpotter() {
               text: `${systemPrompt}\n\nBrand Brain:\n${JSON.stringify(brain)}`
             }]
           }],
-          generationConfig: { response_mime_type: "application/json" }
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
         })
       });
 

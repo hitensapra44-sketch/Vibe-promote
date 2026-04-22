@@ -51,7 +51,7 @@ export default function PositioningHelper({ appData, onComplete }) {
             }]
           }],
           generationConfig: {
-            response_mime_type: "application/json"
+            responseMimeType: "application/json"
           }
         })
       });
