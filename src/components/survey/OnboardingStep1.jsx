@@ -52,7 +52,7 @@ export default function OnboardingStep1({
               Tell us about your <br />
               <span className="text-white">app.</span>
             </h1>
-            <p className="text-gray-400 text-lg mt-4">One time. Vibe Hype remembers forever.</p>
+            <p className="text-gray-400 text-lg mt-4">One time. Vibe Promote remembers forever.</p>
           </div>
 
           <div className="space-y-6">
