@@ -130,18 +130,17 @@ export default function BrandBrainOnboarding({ onComplete }) {
                 Tell us about your <br />
                 <span className="text-primary">app.</span>
               </h1>
-              <p className="text-lg text-text-secondary">One time. Vibe Promote remembers forever.</p>
             </div>
 
             {/* URL Extraction Section */}
             <div className="space-y-4">
-              <label className="text-sm font-semibold text-white/80 block">Have a landing page?</label>
+              <label className="text-sm font-bold text-white block">Have a landing page?</label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                   <input
                     type="url"
-                    placeholder="https://yourapp.com"
+                    placeholder="e.g. https://vibepromote.app"
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     className="w-full pl-11 pr-4 py-4 rounded-2xl bg-bg-surface/50 border border-border-muted text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30"
@@ -165,20 +164,22 @@ export default function BrandBrainOnboarding({ onComplete }) {
             </div>
 
             <div className="space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-white block">App Name</label>
                 <input
                   type="text"
-                  placeholder="What's it called?"
+                  placeholder="e.g. Vibe Promote"
                   value={appName}
                   onChange={(e) => setAppName(e.target.value)}
                   className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_name ? 'border-red-500' : 'border-border-muted'} text-xl font-bold text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-white block">One-line Description</label>
                 <textarea
                   rows={3}
-                  placeholder="Describe it in one sentence. e.g. Vibe Promote automates marketing for solo founders"
+                  placeholder="e.g. AI marketing co-pilot that automates growth for solo founders"
                   value={appDescription}
                   onChange={(e) => setAppDescription(e.target.value)}
                   className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
@@ -188,21 +189,27 @@ export default function BrandBrainOnboarding({ onComplete }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Who is it for?"
-                  value={targetCustomer}
-                  onChange={(e) => setTargetCustomer(e.target.value)}
-                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
-                />
-                <input
-                  type="text"
-                  placeholder="What problem do you solve?"
-                  value={coreProblem}
-                  onChange={(e) => setCoreProblem(e.target.value)}
-                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-white block">Target Audience</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Solo founders building SaaS"
+                    value={targetCustomer}
+                    onChange={(e) => setTargetCustomer(e.target.value)}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-white block">Core Problem</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Spending too much time on manual marketing"
+                    value={coreProblem}
+                    onChange={(e) => setCoreProblem(e.target.value)}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                  />
+                </div>
               </div>
 
               <button
