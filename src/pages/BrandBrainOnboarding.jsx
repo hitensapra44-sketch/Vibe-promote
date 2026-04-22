@@ -5,7 +5,7 @@ import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
-const GEMINI_MODEL = "gemini-1.5-pro";
+const GEMINI_MODEL = "gemini-2.0-flash";
 
 export default function BrandBrainOnboarding({ onComplete }) {
   const [appName, setAppName] = useState('');
