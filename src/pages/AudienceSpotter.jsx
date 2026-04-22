@@ -17,7 +17,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 
 const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-beta";
+const GROK_MODEL = "grok-2";
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
