@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
-import GridBackground from '../ui/grid-background';
+import GridBackground from '../components/ui/grid-background';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
