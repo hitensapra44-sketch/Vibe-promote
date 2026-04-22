@@ -176,7 +176,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">One-line Description</label>
+                <label className="text-sm font-bold text-white block">Tell us about your app</label>
                 <textarea
                   rows={3}
                   placeholder="e.g. AI marketing co-pilot that automates growth for solo founders"
