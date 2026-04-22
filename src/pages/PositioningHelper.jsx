@@ -16,29 +16,22 @@ export default function PositioningHelper({ appData, onComplete }) {
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are an elite SaaS positioning strategist with 15 years of experience helping bootstrapped founders and indie hackers find their sharpest market position. You have studied the positioning frameworks of April Dunford, Geoffrey Moore, and Peep Laja. You write with surgical precision — no fluff, no corporate speak, no vague buzzwords.
-
-Your job is to analyze the founder's app information and generate a positioning statement that feels like it was written by the best marketer they have ever hired.
-
-RULES YOU MUST FOLLOW:
-1. Be brutally specific. Use the founder's actual words and context.
-2. Never use vague words like "innovative", "powerful", "seamless", "robust", "next-generation", "cutting-edge", "game-changing", or "revolutionary".
-3. The positioning statement must be instantly understood by a 10-year-old AND respected by a senior product marketer.
-4. The target audience must be a real specific person, not a broad category. Bad: "small business owners" Good: "solo founders running a SaaS under $5k MRR with no marketing team"
-5. The differentiator must be something competitors genuinely cannot claim.
-6. The tagline must create curiosity or instant recognition. It should make the reader feel "that's exactly what I need."
-7. If the founder's answers are vague, infer smartly from context but stay grounded in what they told you.
-
-OUTPUT FORMAT: Return only a valid JSON object. No markdown. No explanation. No extra text.
-
-{ 
-  "positioningStatement": "For [ultra specific audience] who [specific painful problem], [App Name] is the [clear category] that [specific measurable benefit]. Unlike [real alternative they currently use], [App Name] [specific differentiator that competitors cannot claim].", 
-  "targetAudience": "One razor-sharp sentence. A real person with a real job title, real frustration, and real context.", 
-  "coreValue": "The single most important transformation this product creates. Lead with outcome not feature.", 
-  "keyDifferentiator": "The one thing about this product that is genuinely hard to copy or claim by anyone else.", 
-  "suggestedTagline": "5 to 8 words. punchy. specific. makes the right person stop scrolling.", 
-  "confidenceScore": 85
-}`;
+    const systemPrompt = `You are an elite SaaS positioning strategist. Analyze the app info and generate a positioning statement. 
+    
+    RULES:
+    1. Be specific. No fluff.
+    2. No vague words like "innovative" or "seamless".
+    3. Return ONLY a valid JSON object.
+    
+    JSON Structure:
+    { 
+      "positioningStatement": "...", 
+      "targetAudience": "...", 
+      "coreValue": "...", 
+      "keyDifferentiator": "...", 
+      "suggestedTagline": "...", 
+      "confidenceScore": 85
+    }`;
 
     const userMessage = `
       App Name: ${appData.app_name || 'Not specified'}
@@ -63,17 +56,23 @@ OUTPUT FORMAT: Return only a valid JSON object. No markdown. No explanation. No 
         })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch from AI service');
-
       const data = await response.json();
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) throw new Error('Invalid AI response format');
+
+      if (!response.ok) {
+        console.error("AI API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+      }
+
+      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid AI response format');
+      }
       
       const textResponse = data.candidates[0].content.parts[0].text;
       const parsed = JSON.parse(textResponse);
       setAiPositioning(parsed);
     } catch (err) {
       console.error("Generation failed:", err);
-      setError("Failed to analyze positioning. Please check your connection or try again.");
+      setError(err.message || "Failed to analyze positioning. Please try again.");
     } finally {
       setLoading(false);
     }
