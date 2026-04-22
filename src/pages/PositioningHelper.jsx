@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote } from 'lucide-react';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
@@ -16,20 +16,35 @@ export default function PositioningHelper({ appData, onComplete }) {
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are a world-class SaaS positioning strategist. You have been given raw input from a founder about their app. Your job is to generate the sharpest, most specific positioning output possible. Use the audience's exact language. Never use generic phrases like "game-changing" or "revolutionary". Be specific about who the customer is, where they are online, what words they actually use, and what makes this app concretely better than the alternative. Return only valid JSON, no explanation, no markdown.`;
+    const systemPrompt = `You are an elite SaaS positioning strategist with 15 years of experience helping bootstrapped founders and indie hackers find their sharpest market position. You have studied the positioning frameworks of April Dunford, Geoffrey Moore, and Peep Laja. You write with surgical precision — no fluff, no corporate speak, no vague buzzwords.
+
+Your job is to analyze the founder's app information and generate a positioning statement that feels like it was written by the best marketer they have ever hired.
+
+RULES YOU MUST FOLLOW:
+1. Be brutally specific. Use the founder's actual words and context.
+2. Never use vague words like "innovative", "powerful", "seamless", "robust", "next-generation", "cutting-edge", "game-changing", or "revolutionary".
+3. The positioning statement must be instantly understood by a 10-year-old AND respected by a senior product marketer.
+4. The target audience must be a real specific person, not a broad category. Bad: "small business owners" Good: "solo founders running a SaaS under $5k MRR with no marketing team"
+5. The differentiator must be something competitors genuinely cannot claim.
+6. The tagline must create curiosity or instant recognition. It should make the reader feel "that's exactly what I need."
+7. If the founder's answers are vague, infer smartly from context but stay grounded in what they told you.
+
+OUTPUT FORMAT: Return only a valid JSON object. No markdown. No explanation. No extra text.
+
+{ 
+  "positioningStatement": "For [ultra specific audience] who [specific painful problem], [App Name] is the [clear category] that [specific measurable benefit]. Unlike [real alternative they currently use], [App Name] [specific differentiator that competitors cannot claim].", 
+  "targetAudience": "One razor-sharp sentence. A real person with a real job title, real frustration, and real context.", 
+  "coreValue": "The single most important transformation this product creates. Lead with outcome not feature.", 
+  "keyDifferentiator": "The one thing about this product that is genuinely hard to copy or claim by anyone else.", 
+  "suggestedTagline": "5 to 8 words. punchy. specific. makes the right person stop scrolling.", 
+  "confidenceScore": 85
+}`;
 
     const userMessage = `
       App Name: ${appData.app_name || 'Not specified'}
       App Description: ${appData.app_description || 'Not specified'}
       Target Customer: ${appData.target_customer || 'Not specified'}
       Core Problem: ${appData.core_problem || 'Not specified'}
-      Unique Differentiator: ${appData.unique_differentiator || 'Not specified'}
-      Audience Awareness: ${appData.audience_awareness || 'Not specified'}
-      Pain Phrases: ${appData.pain_phrases || 'Not specified'}
-      Brand Tone: ${appData.brand_tone || 'Not specified'}
-      Writing Style: ${appData.writing_style || 'Not specified'}
-      Primary CTA: ${appData.primary_cta || 'Not specified'}
-      Primary Platform: ${appData.primary_platform || 'Not specified'}
     `;
 
     try {
@@ -39,15 +54,7 @@ export default function PositioningHelper({ appData, onComplete }) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `${systemPrompt}\n\nUser Input:\n${userMessage}\n\nReturn a JSON object with exactly these fields:
-              {
-                "one_liner": "string",
-                "target_audience": "string",
-                "where_they_are": ["platform 1 + why", "platform 2 + why", "platform 3 + why"],
-                "pain_points": ["pain 1", "pain 2", "pain 3"],
-                "how_they_describe_it": ["exact phrase 1", "exact phrase 2", "exact phrase 3"],
-                "why_youre_better": "string — one sentence comparing to alternatives"
-              }`
+              text: `${systemPrompt}\n\nUser Input:\n${userMessage}`
             }]
           }],
           generationConfig: {
@@ -78,23 +85,28 @@ export default function PositioningHelper({ appData, onComplete }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center font-poppins">
-        <Loader2 className="w-12 h-12 text-violet-500 animate-spin mb-6" />
+      <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center p-6 text-center font-poppins">
+        <div className="relative w-20 h-20 mb-8">
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+          <div className="relative w-20 h-20 rounded-full bg-bg-surface border border-primary/30 flex items-center justify-center">
+            <Brain className="w-10 h-10 text-primary animate-pulse" />
+          </div>
+        </div>
         <h2 className="text-2xl font-bold text-white mb-2">Analyzing your positioning...</h2>
-        <p className="text-zinc-400">Our AI is crafting your unique positioning strategy.</p>
+        <p className="text-text-secondary">Our elite strategist is crafting your unique market position.</p>
       </div>
     );
   }
 
   if (error || !aiPositioning) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center font-poppins">
+      <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center p-6 text-center font-poppins">
         <AlertCircle className="w-12 h-12 text-red-500 mb-6" />
         <h2 className="text-2xl font-bold text-white mb-2">Something went wrong</h2>
-        <p className="text-zinc-400 mb-8">{error || "We couldn't generate your positioning at this time."}</p>
+        <p className="text-text-secondary mb-8">{error || "We couldn't generate your positioning at this time."}</p>
         <button 
           onClick={generatePositioning}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-bold hover:bg-zinc-200 transition-all"
+          className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-all"
         >
           <RefreshCw className="w-4 h-4" />
           Try Again
@@ -103,103 +115,108 @@ export default function PositioningHelper({ appData, onComplete }) {
     );
   }
 
-  const Section = ({ label, children }) => (
-    <div className="py-4 border-b border-zinc-800 last:border-0">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2 block">
-        {label}
-      </label>
-      <div className="text-white text-sm leading-relaxed">
+  const Section = ({ label, icon: Icon, children, color = "text-primary" }) => (
+    <div className="py-6 border-b border-white/5 last:border-0">
+      <div className="flex items-center gap-2 mb-3">
+        {Icon && <Icon className={`w-4 h-4 ${color}`} />}
+        <label className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/60">
+          {label}
+        </label>
+      </div>
+      <div className="text-white text-base leading-relaxed">
         {children}
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-poppins py-16 px-4 sm:px-6">
+    <div className="min-h-screen bg-bg-base text-white font-poppins py-16 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-16">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Here's how your positioning looks right now — and how it could look.
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+          >
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">Expert Analysis Complete</span>
+          </motion.div>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4" style={{ letterSpacing: '-1px' }}>
+            Your Sharpest Market Position
           </h1>
-          <p className="text-zinc-400 max-w-2xl mx-auto">
-            The AI version uses your audience's exact language and speaks directly to why they would pay.
+          <p className="text-text-secondary max-w-2xl mx-auto text-lg">
+            We've stripped away the fluff to find the exact words that make your audience pay attention.
           </p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* Left Card: User Version */}
+          {/* Left Card: Original Input */}
           <div className="flex flex-col">
             <div className="text-center mb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Your Current Positioning</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-text-secondary/40">Your Original Input</span>
             </div>
-            <div className="flex-1 bg-zinc-900/30 border border-zinc-700 rounded-2xl p-8 flex flex-col">
+            <div className="flex-1 bg-bg-surface/30 border border-border-muted rounded-3xl p-8 flex flex-col">
               <div className="flex-1">
-                <Section label="One-liner">{appData.app_description || 'Not specified'}</Section>
-                <Section label="Target Audience">{appData.target_customer || 'Not specified'}</Section>
-                <Section label="Where They Are">{appData.primary_platform || 'Not specified'}</Section>
-                <Section label="Their Pain Points">{appData.core_problem || 'Not specified'}</Section>
-                <Section label="How They Describe It">{appData.pain_phrases || 'Not specified'}</Section>
-                <Section label="Why You're Better">{appData.unique_differentiator || 'Not specified'}</Section>
+                <Section label="App Name">{appData.app_name}</Section>
+                <Section label="Description">{appData.app_description}</Section>
+                <Section label="Target Audience">{appData.target_customer}</Section>
+                <Section label="Core Problem">{appData.core_problem}</Section>
               </div>
               <button
                 onClick={() => onComplete({ type: 'user', data: appData })}
-                className="mt-8 w-full py-4 rounded-xl border border-zinc-700 text-zinc-400 font-bold hover:bg-zinc-800 transition-all"
+                className="mt-8 w-full py-4 rounded-xl border border-border-muted text-text-secondary font-bold hover:bg-bg-elevated transition-all"
               >
-                Keep mine
+                Keep my version
               </button>
             </div>
           </div>
 
-          {/* Right Card: AI Version */}
+          {/* Right Card: AI Expert Version */}
           <div className="flex flex-col">
             <div className="text-center mb-4">
-              <span className="text-xs font-bold uppercase tracking-widest text-violet-400">Your Best Positioning</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Expert Positioning</span>
             </div>
-            <div className="flex-1 bg-zinc-900/50 border border-violet-500 rounded-2xl p-8 flex flex-col relative shadow-[0_0_40px_rgba(139,92,246,0.4)]">
-              <div className="absolute top-6 right-6">
-                <span className="px-3 py-1 rounded-full bg-violet-600 text-[10px] font-bold text-white uppercase tracking-wider">
-                  AI Generated
-                </span>
+            <div className="flex-1 bg-bg-surface border border-primary/30 rounded-3xl p-8 flex flex-col relative shadow-2xl shadow-primary/10">
+              <div className="absolute top-6 right-6 flex items-center gap-2">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-text-secondary/40 uppercase tracking-widest">Confidence</span>
+                  <span className="text-sm font-bold text-primary">{aiPositioning.confidenceScore}%</span>
+                </div>
               </div>
               
               <div className="flex-1">
-                <Section label="One-liner">{aiPositioning.one_liner}</Section>
-                <Section label="Target Audience">{aiPositioning.target_audience}</Section>
-                <Section label="Where They Are">
-                  <ul className="space-y-1">
-                    {aiPositioning.where_they_are.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-violet-500 mt-1">•</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </Section>
-                <Section label="Their Pain Points">
-                  <ul className="space-y-1">
-                    {aiPositioning.pain_points.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-violet-500 mt-1">•</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </Section>
-                <Section label="How They Describe It">
-                  <div className="flex flex-wrap gap-2">
-                    {aiPositioning.how_they_describe_it.map((phrase, i) => (
-                      <span key={i} className="italic text-zinc-300">"{phrase}"{i < aiPositioning.how_they_describe_it.length - 1 ? ',' : ''}</span>
-                    ))}
+                <div className="mb-8 p-6 rounded-2xl bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Quote className="w-4 h-4 text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Suggested Tagline</span>
                   </div>
+                  <h3 className="text-2xl font-bold text-white italic">
+                    "{aiPositioning.suggestedTagline}"
+                  </h3>
+                </div>
+
+                <Section label="Positioning Statement" icon={Target}>
+                  {aiPositioning.positioningStatement}
                 </Section>
-                <Section label="Why You're Better">{aiPositioning.why_youre_better}</Section>
+                
+                <Section label="The Real Audience" icon={Zap}>
+                  {aiPositioning.targetAudience}
+                </Section>
+
+                <Section label="Core Value" icon={ShieldCheck}>
+                  {aiPositioning.coreValue}
+                </Section>
+
+                <Section label="Unfair Advantage" icon={Sparkles}>
+                  {aiPositioning.keyDifferentiator}
+                </Section>
               </div>
 
               <button
                 onClick={() => onComplete({ type: 'ai', data: aiPositioning })}
-                className="mt-8 w-full py-4 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-violet-600/20"
+                className="mt-8 w-full py-5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
               >
-                Use AI version →
+                Adopt this position →
               </button>
             </div>
           </div>
