@@ -21,7 +21,7 @@ export default function PositioningHelper({ appData, onComplete }) {
     RULES:
     1. Be specific. No fluff.
     2. No vague words like "innovative" or "seamless".
-    3. Return ONLY a valid JSON object.
+    3. Return ONLY a valid JSON object. No markdown, no backticks, no explanation.
     
     JSON Structure:
     { 
@@ -49,10 +49,7 @@ export default function PositioningHelper({ appData, onComplete }) {
             parts: [{
               text: `${systemPrompt}\n\nUser Input:\n${userMessage}`
             }]
-          }],
-          generationConfig: {
-            responseMimeType: "application/json"
-          }
+          }]
         })
       });
 
@@ -67,7 +64,10 @@ export default function PositioningHelper({ appData, onComplete }) {
         throw new Error('Invalid AI response format');
       }
       
-      const textResponse = data.candidates[0].content.parts[0].text;
+      let textResponse = data.candidates[0].content.parts[0].text;
+      // Clean up potential markdown backticks if AI includes them
+      textResponse = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+      
       const parsed = JSON.parse(textResponse);
       setAiPositioning(parsed);
     } catch (err) {
