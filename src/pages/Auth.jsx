@@ -43,7 +43,7 @@ export default function Auth() {
         setShowWelcome(true);
       } else {
         localStorage.setItem('joined_waitlist', 'true');
-        navigate('/');
+        navigate('/onboarding');
       }
     } catch (error) {
       toast.error(error.message);
@@ -62,7 +62,7 @@ export default function Auth() {
   if (showStart) {
     return <StartScreen onStart={() => {
       localStorage.setItem('joined_waitlist', 'true');
-      navigate('/');
+      navigate('/onboarding');
     }} />;
   }
 

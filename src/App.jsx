@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Survey from './pages/Survey';
 import PrePurchase from './pages/PrePurchase';
 import Auth from './pages/Auth';
+import Onboarding from './pages/Onboarding';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/survey" element={<Survey />} />
           <Route path="/pre-purchase" element={<PrePurchase />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>
