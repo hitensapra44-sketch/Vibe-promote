@@ -1,4 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
+import ParticleBackground from '../components/landing/particlebackground';
+import GridBackground from '../ui/grid-background';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
@@ -14,14 +18,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
   const [extracted, setExtracted] = useState(false);
   const [extractError, setExtractError] = useState(null);
   const [errors, setErrors] = useState({});
-
-  const formRef = useRef(null);
-  const fieldRefs = {
-    app_name: useRef(null),
-    app_description: useRef(null),
-    target_customer: useRef(null),
-    core_problem: useRef(null),
-  };
 
   const handleExtract = async () => {
     if (!url) {
@@ -71,19 +67,13 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!appName.trim()) newErrors.app_name = "This field is required";
-    if (!appDescription.trim()) newErrors.app_description = "This field is required";
-    if (!targetCustomer.trim()) newErrors.target_customer = "This field is required";
-    if (!coreProblem.trim()) newErrors.core_problem = "This field is required";
+    if (!appName.trim()) newErrors.app_name = "Required";
+    if (!appDescription.trim()) newErrors.app_description = "Required";
+    if (!targetCustomer.trim()) newErrors.target_customer = "Required";
+    if (!coreProblem.trim()) newErrors.core_problem = "Required";
 
     setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      const firstErrorField = Object.keys(newErrors)[0];
-      fieldRefs[firstErrorField].current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return false;
-    }
-    return true;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleContinue = () => {
@@ -98,151 +88,188 @@ export default function BrandBrainOnboarding({ onComplete }) {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-violet-500/30">
-      <div className="max-w-lg mx-auto px-6 py-12">
-        
-        {/* Header */}
-        <header className="mb-12">
-          <div className="mb-4">
-            <span className="text-violet-400 text-xs font-medium tracking-widest uppercase">Step 1 of 3</span>
-            <div className="h-1 bg-zinc-800 rounded-full w-full mt-2 overflow-hidden">
-              <div className="h-full bg-violet-600 rounded-full w-1/3 transition-all duration-500" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-white">Let's understand your app.</h1>
-          <p className="text-zinc-400 text-sm mt-1">Answer 4 quick questions or paste your URL and we'll figure it out.</p>
-        </header>
+    <div className="relative min-h-screen bg-bg-base text-white font-poppins overflow-hidden">
+      <GridBackground />
+      <ParticleBackground />
 
-        {/* URL Mode */}
-        <section className="mb-8">
-          <label className="text-white text-sm font-medium block mb-1">Have a landing page or website?</label>
-          <p className="text-zinc-400 text-sm mb-3">Paste your URL and we'll skip the questions entirely.</p>
-          
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="url"
-              placeholder="https://yourapp.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors placeholder-zinc-600"
-            />
-            <button
-              onClick={handleExtract}
-              disabled={extracting}
-              className="bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-xl px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap"
-            >
-              {extracting ? 'Extracting...' : 'Extract →'}
-            </button>
+      {/* Top Navigation */}
+      <div className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-12">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="w-6 h-2 rounded-full bg-primary" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
           </div>
-          
-          {extractError && (
-            <p className="text-red-400 text-sm mt-2">{extractError}</p>
-          )}
-        </section>
-
-        {/* Divider */}
-        <div className="relative flex items-center py-8">
-          <div className="flex-grow border-t border-zinc-800"></div>
-          <span className="flex-shrink mx-4 text-zinc-600 text-xs uppercase tracking-widest">or fill it in yourself</span>
-          <div className="flex-grow border-t border-zinc-800"></div>
         </div>
+        <button className="text-sm font-medium text-text-secondary hover:text-white transition-colors">
+          Skip
+        </button>
+      </div>
 
-        {/* Form Section */}
-        <div ref={formRef} className="relative">
-          {extracting ? (
-            <div className="py-20 text-center">
-              <p className="text-white text-lg font-medium mb-4">Reading your website...</p>
-              <div className="flex justify-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
-                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse [animation-delay:0.2s]" />
-                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse [animation-delay:0.4s]" />
-              </div>
-              <p className="text-zinc-500 text-xs">This takes about 10 seconds</p>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-8 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          
+          {/* Left Side: Form */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-10"
+          >
+            <div>
+              <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 1</span>
+              <h1 className="text-4xl sm:text-6xl font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-2px' }}>
+                Tell us about your <br />
+                <span className="text-primary">app.</span>
+              </h1>
+              <p className="text-lg text-text-secondary">One time. Vibe Promote remembers forever.</p>
             </div>
-          ) : (
-            <div className="space-y-8">
-              {extracted && (
-                <div className="bg-violet-900/20 border border-violet-700/50 rounded-xl px-4 py-3 text-violet-300 text-sm animate-in fade-in slide-in-from-top-2 duration-500">
-                  We extracted your info. Review and edit anything before continuing.
-                </div>
-              )}
 
-              {/* Q1 */}
-              <div ref={fieldRefs.app_name}>
-                <label className="text-white text-sm font-medium block mb-1">What's your app called?</label>
+            {/* URL Extraction Section */}
+            <div className="space-y-4">
+              <label className="text-sm font-semibold text-white/80 block">Have a landing page?</label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                  <input
+                    type="url"
+                    placeholder="https://yourapp.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-bg-surface/50 border border-border-muted text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30"
+                  />
+                </div>
+                <button
+                  onClick={handleExtract}
+                  disabled={extracting}
+                  className="px-8 py-4 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {extracting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Extract →'}
+                </button>
+              </div>
+              {extractError && <p className="text-red-400 text-xs">{extractError}</p>}
+            </div>
+
+            <div className="relative flex items-center py-4">
+              <div className="flex-grow border-t border-border-muted"></div>
+              <span className="flex-shrink mx-4 text-text-secondary/40 text-[10px] uppercase tracking-widest font-bold">or fill it manually</span>
+              <div className="flex-grow border-t border-border-muted"></div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
                 <input
                   type="text"
-                  placeholder="Vibe Hype"
+                  placeholder="What's it called?"
                   value={appName}
-                  onChange={(e) => {
-                    setAppName(e.target.value);
-                    if (errors.app_name) setErrors({...errors, app_name: null});
-                  }}
-                  className={`bg-zinc-900 border ${errors.app_name ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600`}
+                  onChange={(e) => setAppName(e.target.value)}
+                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_name ? 'border-red-500' : 'border-border-muted'} text-xl font-bold text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                 />
-                {errors.app_name && <p className="text-red-400 text-xs mt-1">{errors.app_name}</p>}
               </div>
 
-              {/* Q2 */}
-              <div ref={fieldRefs.app_description}>
-                <label className="text-white text-sm font-medium block mb-1">What does it do? Your words, not marketing speak.</label>
-                <p className="text-zinc-500 text-xs mb-2">Be honest and raw. The AI will sharpen this — but needs your version first.</p>
+              <div className="space-y-2">
                 <textarea
                   rows={3}
-                  placeholder="e.g. Vibe Hype helps bootstrapped founders stop posting into the void by finding their exact audience and telling them what to say."
+                  placeholder="Describe it in one sentence. e.g. Vibe Promote automates marketing for solo founders"
                   value={appDescription}
-                  onChange={(e) => {
-                    setAppDescription(e.target.value);
-                    if (errors.app_description) setErrors({...errors, app_description: null});
-                  }}
-                  className={`bg-zinc-900 border ${errors.app_description ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600 resize-none`}
+                  onChange={(e) => setAppDescription(e.target.value)}
+                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                 />
-                {errors.app_description && <p className="text-red-400 text-xs mt-1">{errors.app_description}</p>}
+                <div className="flex justify-end">
+                  <span className="text-[10px] text-text-secondary/40 font-bold uppercase tracking-widest">{appDescription.length}/200</span>
+                </div>
               </div>
 
-              {/* Q3 */}
-              <div ref={fieldRefs.target_customer}>
-                <label className="text-white text-sm font-medium block mb-1">Who exactly is this for?</label>
-                <p className="text-zinc-500 text-xs mb-2">Not 'marketers'. Get specific — role, situation, frustration level.</p>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Solo SaaS founders with under 10 customers who feel invisible on social media"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Who is it for?"
                   value={targetCustomer}
-                  onChange={(e) => {
-                    setTargetCustomer(e.target.value);
-                    if (errors.target_customer) setErrors({...errors, target_customer: null});
-                  }}
-                  className={`bg-zinc-900 border ${errors.target_customer ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600 resize-none`}
+                  onChange={(e) => setTargetCustomer(e.target.value)}
+                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                 />
-                {errors.target_customer && <p className="text-red-400 text-xs mt-1">{errors.target_customer}</p>}
-              </div>
-
-              {/* Q4 */}
-              <div ref={fieldRefs.core_problem}>
-                <label className="text-white text-sm font-medium block mb-1">What's the #1 problem you solve?</label>
-                <p className="text-zinc-500 text-xs mb-2">The thing your customer complains about at 11pm.</p>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Founders spend hours writing posts that get zero engagement because they don't know who their audience is"
+                <input
+                  type="text"
+                  placeholder="What problem do you solve?"
                   value={coreProblem}
-                  onChange={(e) => {
-                    setCoreProblem(e.target.value);
-                    if (errors.core_problem) setErrors({...errors, core_problem: null});
-                  }}
-                  className={`bg-zinc-900 border ${errors.core_problem ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600 resize-none`}
+                  onChange={(e) => setCoreProblem(e.target.value)}
+                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                 />
-                {errors.core_problem && <p className="text-red-400 text-xs mt-1">{errors.core_problem}</p>}
               </div>
 
-              {/* Continue Button */}
               <button
                 onClick={handleContinue}
-                className="bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl px-6 py-4 w-full text-sm transition-colors mt-8 shadow-lg shadow-violet-600/10"
+                className="group inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20"
               >
-                See your positioning →
+                See what Vibe Promote writes for you
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
-          )}
+          </motion.div>
+
+          {/* Right Side: Preview Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="hidden lg:block sticky top-32"
+          >
+            <div className="relative p-1 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-transparent">
+              <div className="bg-bg-surface rounded-[2.4rem] p-10 min-h-[500px] flex flex-col border border-white/5 shadow-2xl">
+                <div className="flex items-center gap-4 mb-12">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">Your App Brain</span>
+                    <h3 className="text-lg font-bold text-white">Building live</h3>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-8">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">App Name</span>
+                    <h2 className={`text-4xl font-bold transition-all duration-300 ${appName ? 'text-white' : 'text-white/10'}`}>
+                      {appName || 'Your app name'}
+                    </h2>
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Description</span>
+                    <p className={`text-xl leading-relaxed transition-all duration-300 ${appDescription ? 'text-text-secondary' : 'text-white/5'}`}>
+                      {appDescription || 'Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.'}
+                    </p>
+                  </div>
+
+                  {targetCustomer && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Target Audience</span>
+                      <p className="text-sm text-text-secondary/80">{targetCustomer}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/40">Syncing with AI</span>
+                  </div>
+                  <Rocket className="w-5 h-5 text-white/10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Subtle Note */}
+            <div className="mt-8 flex items-center justify-between px-4 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+              <p className="text-[11px] text-text-secondary/60 leading-relaxed">
+                <span className="text-primary font-bold">Early Access</span> — some features may not work as expected. We appreciate your patience as we continue to improve.
+              </p>
+              <X className="w-4 h-4 text-text-secondary/40 cursor-pointer hover:text-white transition-colors" />
+            </div>
+          </motion.div>
+
         </div>
       </div>
     </div>
