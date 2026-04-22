@@ -92,6 +92,12 @@ export default function BrandBrainOnboarding({ onComplete }) {
       <GridBackground />
       <ParticleBackground />
 
+      {/* Gradient orbs matching HeroSection */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #9e4a2a 0%, transparent 70%)' }} />
+
       {/* Top Navigation */}
       <div className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-12">
         <div className="flex items-center gap-2">
