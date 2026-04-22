@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
 
 const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-2";
+const GROK_MODEL = "grok-4-1-fast-reasoning";
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);

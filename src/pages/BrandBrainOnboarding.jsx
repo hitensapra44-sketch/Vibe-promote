@@ -5,7 +5,7 @@ import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
 const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-2";
+const GROK_MODEL = "grok-4-1-fast-reasoning";
 
 export default function BrandBrainOnboarding({ onComplete }) {
   const [appName, setAppName] = useState('');
