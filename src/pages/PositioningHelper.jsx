@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
