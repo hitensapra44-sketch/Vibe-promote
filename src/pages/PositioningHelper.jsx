@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Loader2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 
 const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
 const GEMINI_MODEL = "gemini-1.5-flash";
@@ -11,6 +11,8 @@ export default function PositioningHelper({ appData, onComplete }) {
   const [error, setError] = useState(null);
 
   const generatePositioning = async () => {
+    if (!appData) return;
+    
     setLoading(true);
     setError(null);
 
@@ -54,12 +56,17 @@ export default function PositioningHelper({ appData, onComplete }) {
         })
       });
 
+      if (!response.ok) throw new Error('Failed to fetch from AI service');
+
       const data = await response.json();
+      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) throw new Error('Invalid AI response format');
+      
       const textResponse = data.candidates[0].content.parts[0].text;
-      setAiPositioning(JSON.parse(textResponse));
+      const parsed = JSON.parse(textResponse);
+      setAiPositioning(parsed);
     } catch (err) {
       console.error("Generation failed:", err);
-      setError("Failed to analyze positioning. Please try again.");
+      setError("Failed to analyze positioning. Please check your connection or try again.");
     } finally {
       setLoading(false);
     }
@@ -75,6 +82,23 @@ export default function PositioningHelper({ appData, onComplete }) {
         <Loader2 className="w-12 h-12 text-violet-500 animate-spin mb-6" />
         <h2 className="text-2xl font-bold text-white mb-2">Analyzing your positioning...</h2>
         <p className="text-zinc-400">Our AI is crafting your unique positioning strategy.</p>
+      </div>
+    );
+  }
+
+  if (error || !aiPositioning) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center font-poppins">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-6" />
+        <h2 className="text-2xl font-bold text-white mb-2">Something went wrong</h2>
+        <p className="text-zinc-400 mb-8">{error || "We couldn't generate your positioning at this time."}</p>
+        <button 
+          onClick={generatePositioning}
+          className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-bold hover:bg-zinc-200 transition-all"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </button>
       </div>
     );
   }
