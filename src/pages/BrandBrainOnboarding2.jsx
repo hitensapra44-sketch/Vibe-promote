@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, X, MessageSquare, Zap, Target, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Brain, Zap, Check, ArrowRight } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
@@ -21,13 +21,17 @@ const WritingStyleOptions = [
   { name: "Humor & wit", desc: "Make them laugh" }
 ];
 
-const CurrentStageOptions = [
-  { name: "Pre-launch", desc: "Collecting waitlist signups" },
-  { name: "Just launched", desc: "Finding first customers" },
-  { name: "Early traction", desc: "Focused on growth" }
+const AwarenessOptions = [
+  { name: "Low", desc: "They don't know this problem can be solved" },
+  { name: "Medium", desc: "They are looking for solutions" },
+  { name: "High", desc: "They've tried other tools and are frustrated" }
 ];
 
-const PostingFrequencyOptions = ["1-2x", "3-4x", "5-7x", "Daily+"];
+const PlatformOptions = [
+  { name: "Twitter / X", desc: "Short, viral, high-energy" },
+  { name: "LinkedIn", desc: "Professional, value-driven" },
+  { name: "Reddit", desc: "Community-focused, raw" }
+];
 
 const PrimaryCTAOptions = [
   { name: "Visit my landing page", desc: "Drive traffic to your site" },
@@ -41,8 +45,8 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
   const [pain_phrases, setPainPhrases] = useState('');
   const [brand_tone, setBrandTone] = useState('');
   const [writing_style, setWritingStyle] = useState('');
-  const [current_stage, setCurrentStage] = useState('');
-  const [posting_frequency, setPostingFrequency] = useState('');
+  const [audience_awareness, setAudienceAwareness] = useState('High');
+  const [primary_platform, setPrimaryPlatform] = useState('Twitter / X');
   const [primary_cta, setPrimaryCTA] = useState('');
   const [custom_cta, setCustomCTA] = useState('');
   const [errors, setErrors] = useState({});
@@ -53,8 +57,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
     if (!pain_phrases.trim()) newErrors.pain_phrases = "Required";
     if (!brand_tone) newErrors.brand_tone = "Required";
     if (!writing_style) newErrors.writing_style = "Required";
-    if (!current_stage) newErrors.current_stage = "Required";
-    if (!posting_frequency) newErrors.posting_frequency = "Required";
     if (!primary_cta) newErrors.primary_cta = "Required";
 
     setErrors(newErrors);
@@ -68,8 +70,8 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
         pain_phrases,
         brand_tone,
         writing_style,
-        current_stage,
-        posting_frequency,
+        audience_awareness,
+        primary_platform,
         primary_cta: primary_cta === "Something else" ? custom_cta : primary_cta
       });
     }
@@ -111,9 +113,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
             <div className="w-2 h-2 rounded-full bg-white/10" />
           </div>
         </div>
-        <button className="text-sm font-medium text-text-secondary hover:text-white transition-colors">
-          Skip
-        </button>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-8 pb-20">
@@ -133,7 +132,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
             </div>
 
             <div className="space-y-8">
-              {/* Unique Differentiator */}
               <div className="space-y-3">
                 <label className="text-sm font-bold text-white block">Why your product is better</label>
                 <textarea
@@ -145,7 +143,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                 />
               </div>
 
-              {/* Pain Phrases */}
               <div className="space-y-3">
                 <label className="text-sm font-bold text-white block">Your targeted user pain</label>
                 <textarea
@@ -157,38 +154,95 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                 />
               </div>
 
-              {/* Brand Tone */}
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-white block">Brand Tone</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {BrandToneOptions.map((opt) => (
-                    <OptionCard 
-                      key={opt.name} 
-                      title={opt.name} 
-                      desc={opt.desc} 
-                      selected={brand_tone === opt.name}
-                      onClick={() => setBrandTone(opt.name)}
-                      error={errors.brand_tone}
-                    />
-                  ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <label className="text-sm font-bold text-white block">Brand Tone</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {BrandToneOptions.slice(0, 3).map((opt) => (
+                      <OptionCard 
+                        key={opt.name} 
+                        title={opt.name} 
+                        desc={opt.desc} 
+                        selected={brand_tone === opt.name}
+                        onClick={() => setBrandTone(opt.name)}
+                        error={errors.brand_tone}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-sm font-bold text-white block">Writing Style</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {WritingStyleOptions.map((opt) => (
+                      <OptionCard 
+                        key={opt.name} 
+                        title={opt.name} 
+                        desc={opt.desc} 
+                        selected={writing_style === opt.name}
+                        onClick={() => setWritingStyle(opt.name)}
+                        error={errors.writing_style}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Writing Style */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <label className="text-sm font-bold text-white block">Audience Awareness</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {AwarenessOptions.map((opt) => (
+                      <OptionCard 
+                        key={opt.name} 
+                        title={opt.name} 
+                        desc={opt.desc} 
+                        selected={audience_awareness === opt.name}
+                        onClick={() => setAudienceAwareness(opt.name)}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-sm font-bold text-white block">Primary Platform</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PlatformOptions.map((opt) => (
+                      <OptionCard 
+                        key={opt.name} 
+                        title={opt.name} 
+                        desc={opt.desc} 
+                        selected={primary_platform === opt.name}
+                        onClick={() => setPrimaryPlatform(opt.name)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-4">
-                <label className="text-sm font-bold text-white block">Writing Style</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {WritingStyleOptions.map((opt) => (
+                <label className="text-sm font-bold text-white block">Primary Call to Action</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {PrimaryCTAOptions.map((opt) => (
                     <OptionCard 
                       key={opt.name} 
                       title={opt.name} 
                       desc={opt.desc} 
-                      selected={writing_style === opt.name}
-                      onClick={() => setWritingStyle(opt.name)}
-                      error={errors.writing_style}
+                      selected={primary_cta === opt.name}
+                      onClick={() => setPrimaryCTA(opt.name)}
+                      error={errors.primary_cta}
                     />
                   ))}
                 </div>
+                {primary_cta === "Something else" && (
+                  <input
+                    type="text"
+                    placeholder="Type your custom CTA..."
+                    value={custom_cta}
+                    onChange={(e) => setCustomCTA(e.target.value)}
+                    className="w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border border-primary/50 text-sm text-white focus:outline-none transition-all"
+                  />
+                )}
               </div>
 
               <button
@@ -201,14 +255,13 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
             </div>
           </motion.div>
 
-          {/* Live Preview Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="hidden lg:block sticky top-32"
           >
             <div className="relative p-1 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-transparent">
-              <div className="bg-bg-surface rounded-[2.4rem] p-10 min-h-[500px] flex flex-col border border-white/5 shadow-2xl">
+              <div className="bg-bg-surface rounded-[2.4rem] p-10 min-h-[600px] flex flex-col border border-white/5 shadow-2xl">
                 <div className="flex items-center gap-4 mb-12">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <Brain className="w-6 h-6 text-primary" />
@@ -233,22 +286,20 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Style</span>
-                      <p className={`text-sm font-bold transition-all duration-300 ${writing_style ? 'text-white' : 'text-white/10'}`}>
-                        {writing_style || 'Not selected'}
-                      </p>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Platform</span>
+                      <p className="text-sm font-bold text-white">{primary_platform}</p>
                     </div>
                   </div>
 
                   {unique_differentiator && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="space-y-2">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Unfair Advantage</span>
                       <p className="text-sm text-text-secondary/80 leading-relaxed">{unique_differentiator}</p>
                     </div>
                   )}
 
                   {pain_phrases && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <div className="space-y-2">
                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Pain Points</span>
                       <div className="flex flex-wrap gap-2">
                         {pain_phrases.split(',').map((p, i) => (
