@@ -10,9 +10,7 @@ const BrandToneOptions = [
   { name: "Professional & credible", desc: "Trust me immediately" },
   { name: "Conversational & relatable", desc: "Sound like a real person" },
   { name: "Edgy & bold", desc: "Make people react" },
-  { name: "Friendly & encouraging", desc: "Warm and approachable" },
-  { name: "Direct & no-BS", desc: "Cut to the point" },
-  { name: "Casual & authentic", desc: "Like talking to a friend" }
+  { name: "Direct & no-BS", desc: "Cut to the point" }
 ];
 
 const WritingStyleOptions = [
@@ -42,10 +40,18 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
   const [pain_phrases, setPainPhrases] = useState('');
   const [brand_tone, setBrandTone] = useState('');
   const [writing_style, setWritingStyle] = useState('');
-  const [primary_platform, setPrimaryPlatform] = useState('Twitter / X');
+  const [primary_platforms, setPrimaryPlatforms] = useState(['Twitter / X']);
   const [primary_cta, setPrimaryCTA] = useState('');
   const [custom_cta, setCustomCTA] = useState('');
   const [errors, setErrors] = useState({});
+
+  const togglePlatform = (platform) => {
+    if (primary_platforms.includes(platform)) {
+      setPrimaryPlatforms(primary_platforms.filter(p => p !== platform));
+    } else {
+      setPrimaryPlatforms([...primary_platforms, platform]);
+    }
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -66,7 +72,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
         pain_phrases,
         brand_tone,
         writing_style,
-        primary_platform,
+        primary_platform: primary_platforms.join(', '),
         primary_cta: primary_cta === "Something else" ? custom_cta : primary_cta
       });
     }
@@ -79,6 +85,25 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
         selected 
           ? 'bg-primary/10 border-primary shadow-lg shadow-primary/5' 
           : error ? 'bg-red-500/5 border-red-500/50' : 'bg-bg-surface/50 border-border-muted hover:border-primary/30'
+      }`}
+    >
+      {selected && (
+        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+          <Check className="w-3 h-3 text-white" />
+        </div>
+      )}
+      <p className={`text-sm font-bold mb-1 ${selected ? 'text-white' : 'text-text-secondary'}`}>{title}</p>
+      <p className="text-[10px] text-text-secondary/60 leading-tight">{desc}</p>
+    </button>
+  );
+
+  const PlatformCard = ({ title, desc, selected, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`relative p-4 rounded-2xl border text-left transition-all duration-200 ${
+        selected 
+          ? 'bg-primary/10 border-primary shadow-lg shadow-primary/5' 
+          : 'bg-bg-surface/50 border-border-muted hover:border-primary/30'
       }`}
     >
       {selected && (
@@ -139,10 +164,10 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">Your targeted user pain they are facing</label>
+                <label className="text-sm font-bold text-white block">Your targeted user pain phrases</label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I have no idea who my audience is', 'marketing takes too long', 'can't write content', 'no time for social media'"
+                  placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'marketing takes too long'"
                   value={pain_phrases}
                   onChange={(e) => setPainPhrases(e.target.value)}
                   className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.pain_phrases ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
@@ -153,8 +178,8 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <label className="text-sm font-bold text-white block">Brand Tone</label>
-                  <div className="grid grid-cols-1 gap-3">
-                    {BrandToneOptions.slice(0, 3).map((opt) => (
+                  <div className="grid grid-cols-2 gap-3">
+                    {BrandToneOptions.map((opt) => (
                       <OptionCard 
                         key={opt.name} 
                         title={opt.name} 
@@ -169,7 +194,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
 
                 <div className="space-y-4">
                   <label className="text-sm font-bold text-white block">Writing Style</label>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {WritingStyleOptions.map((opt) => (
                       <OptionCard 
                         key={opt.name} 
@@ -184,36 +209,18 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <label className="text-sm font-bold text-white block">Brand Tone (continued)</label>
-                  <div className="grid grid-cols-1 gap-3">
-                    {BrandToneOptions.slice(3).map((opt) => (
-                      <OptionCard 
-                        key={opt.name} 
-                        title={opt.name} 
-                        desc={opt.desc} 
-                        selected={brand_tone === opt.name}
-                        onClick={() => setBrandTone(opt.name)}
-                        error={errors.brand_tone}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-sm font-bold text-white block">Primary Platform</label>
-                  <div className="grid grid-cols-1 gap-3">
-                    {PlatformOptions.map((opt) => (
-                      <OptionCard 
-                        key={opt.name} 
-                        title={opt.name} 
-                        desc={opt.desc} 
-                        selected={primary_platform === opt.name}
-                        onClick={() => setPrimaryPlatform(opt.name)}
-                      />
-                    ))}
-                  </div>
+              <div className="space-y-4">
+                <label className="text-sm font-bold text-white block">Primary Platform (choose multiple)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {PlatformOptions.map((opt) => (
+                    <PlatformCard 
+                      key={opt.name} 
+                      title={opt.name} 
+                      desc={opt.desc} 
+                      selected={primary_platforms.includes(opt.name)}
+                      onClick={() => togglePlatform(opt.name)}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -283,8 +290,8 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Platform</span>
-                      <p className="text-sm font-bold text-white">{primary_platform}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Platforms</span>
+                      <p className="text-sm font-bold text-white">{primary_platforms.join(', ')}</p>
                     </div>
                   </div>
 
