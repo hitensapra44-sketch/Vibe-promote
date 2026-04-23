@@ -8,7 +8,7 @@ const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(INVOKE_URL);
 export const generateAICall = async (systemPrompt, userMessage) => {
   const controller = new AbortController();
   // Set a 2-minute timeout (120,000ms)
-  const timeoutId = setTimeout(() => controller.abort(), 120000);
+  const timeoutId = setTimeout(() => controller.abort(), 320000);
 
   try {
     const response = await fetch(PROXY_URL, {
