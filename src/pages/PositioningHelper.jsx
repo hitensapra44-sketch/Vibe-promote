@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
+import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain, Share2 } from 'lucide-react';
 import { generateAICall } from '../lib/ai';
 
 export default function PositioningHelper({ appData, onComplete }) {
@@ -30,6 +30,7 @@ export default function PositioningHelper({ appData, onComplete }) {
       "coreValue": "...", 
       "keyDifferentiator": "...", 
       "suggestedTagline": "...", 
+      "bestPlatform": "...",
       "confidenceScore": 85
     }`;
 
@@ -175,6 +176,10 @@ export default function PositioningHelper({ appData, onComplete }) {
 
                 <Section label="Core Value" icon={ShieldCheck}>
                   {aiPositioning.coreValue}
+                </Section>
+
+                <Section label="Best social media platform to use" icon={Share2}>
+                  {aiPositioning.bestPlatform}
                 </Section>
 
                 <Section label="Unfair Advantage" icon={Sparkles}>
