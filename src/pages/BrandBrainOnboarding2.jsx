@@ -135,7 +135,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
             <div className="space-y-8">
               {/* Unique Differentiator */}
               <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">What makes you different?</label>
+                <label className="text-sm font-bold text-white block">Why your product is better</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Unlike Buffer, we find where your exact audience is and tell you what to say."
@@ -147,7 +147,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
 
               {/* Pain Phrases */}
               <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">What do your customers complain about?</label>
+                <label className="text-sm font-bold text-white block">Your targeted user pain</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I have no idea who my audience is'"
