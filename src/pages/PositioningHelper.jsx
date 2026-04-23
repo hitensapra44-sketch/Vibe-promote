@@ -21,7 +21,8 @@ export default function PositioningHelper({ appData, onComplete }) {
     RULES:
     1. Be specific. No fluff.
     2. No vague words like "innovative" or "seamless".
-    3. Return ONLY a valid JSON object. No markdown, no backticks, no explanation.
+    3. For the "bestPlatform" field, choose one or more from this list: Reddit, Facebook, Instagram, Indie Hackers, Product Hunt, X. Base the choice strictly on the app's niche and target audience.
+    4. Return ONLY a valid JSON object. No markdown, no backticks, no explanation.
     
     JSON Structure:
     { 
