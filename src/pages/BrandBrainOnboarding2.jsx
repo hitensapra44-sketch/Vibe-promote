@@ -1,38 +1,38 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Brain, Rocket, X, MessageSquare, Zap, Target, Check } from 'lucide-react';
+import ParticleBackground from '../components/landing/particlebackground';
+import GridBackground from '../components/ui/grid-background';
 
 const BrandToneOptions = [
-  { name: "Professional & credible", desc: "I want people to trust me immediately" },
-  { name: "Conversational & relatable", desc: "I want to sound like a real person, not a company" },
-  { name: "Edgy & bold", desc: "I want to make people stop and react" },
-  { name: "Friendly & encouraging", desc: "I want to feel warm and approachable" },
-  { name: "Direct & no-BS", desc: "Cut to the point, no fluff" }
+  { name: "Professional & credible", desc: "Trust me immediately" },
+  { name: "Conversational & relatable", desc: "Sound like a real person" },
+  { name: "Edgy & bold", desc: "Make people react" },
+  { name: "Friendly & encouraging", desc: "Warm and approachable" },
+  { name: "Direct & no-BS", desc: "Cut to the point" }
 ];
 
 const WritingStyleOptions = [
-  { name: "Short & punchy", desc: "Bullets, short sentences, Twitter-brained" },
-  { name: "Long-form storytelling", desc: "Build context, take them on a journey" },
-  { name: "Data & proof first", desc: "Lead with numbers and results" },
-  { name: "Humor & wit", desc: "Make them laugh, then make the point" },
-  { name: "Mix it up", desc: "Different every post, whatever fits the moment" }
+  { name: "Short & punchy", desc: "Twitter-brained" },
+  { name: "Long-form storytelling", desc: "Take them on a journey" },
+  { name: "Data & proof first", desc: "Lead with numbers" },
+  { name: "Humor & wit", desc: "Make them laugh" }
 ];
 
 const CurrentStageOptions = [
-  { name: "Pre-launch", desc: "Building and collecting waitlist signups" },
-  { name: "Just launched", desc: "Live but still finding my first customers" },
-  { name: "Early traction", desc: "Have some users, working toward growth" },
-  { name: "Growing", desc: "Scaling up, focused on getting more customers" }
+  { name: "Pre-launch", desc: "Collecting waitlist signups" },
+  { name: "Just launched", desc: "Finding first customers" },
+  { name: "Early traction", desc: "Focused on growth" }
 ];
 
 const PostingFrequencyOptions = ["1-2x", "3-4x", "5-7x", "Daily+"];
 
 const PrimaryCTAOptions = [
-  { name: "Visit my landing page", desc: "Drive traffic to your site or sign up page" },
-  { name: "Join my waitlist", desc: "Build your list before launch" },
-  { name: "Follow me for more", desc: "Grow your audience first" },
-  { name: "Reply and start a conversation", desc: "Build relationships, not just followers" },
-  { name: "Book a demo", desc: "Get on calls with potential customers" },
+  { name: "Visit my landing page", desc: "Drive traffic to your site" },
+  { name: "Join my waitlist", desc: "Build your list" },
+  { name: "Follow me for more", desc: "Grow your audience" },
   { name: "Something else", desc: "I'll type my own" }
 ];
 
@@ -47,34 +47,17 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
   const [custom_cta, setCustomCTA] = useState('');
   const [errors, setErrors] = useState({});
 
-  const refs = {
-    unique_differentiator: useRef(null),
-    pain_phrases: useRef(null),
-    brand_tone: useRef(null),
-    writing_style: useRef(null),
-    current_stage: useRef(null),
-    posting_frequency: useRef(null),
-    primary_cta: useRef(null)
-  };
-
   const validate = () => {
     const newErrors = {};
-    if (!unique_differentiator.trim()) newErrors.unique_differentiator = "This field is required";
-    if (!pain_phrases.trim()) newErrors.pain_phrases = "This field is required";
-    if (!brand_tone) newErrors.brand_tone = "Please select an option";
-    if (!writing_style) newErrors.writing_style = "Please select an option";
-    if (!current_stage) newErrors.current_stage = "Please select an option";
-    if (!posting_frequency) newErrors.posting_frequency = "Please select an option";
-    if (!primary_cta) newErrors.primary_cta = "Please select an option";
-    if (primary_cta === "Something else" && !custom_cta.trim()) newErrors.custom_cta = "This field is required";
+    if (!unique_differentiator.trim()) newErrors.unique_differentiator = "Required";
+    if (!pain_phrases.trim()) newErrors.pain_phrases = "Required";
+    if (!brand_tone) newErrors.brand_tone = "Required";
+    if (!writing_style) newErrors.writing_style = "Required";
+    if (!current_stage) newErrors.current_stage = "Required";
+    if (!posting_frequency) newErrors.posting_frequency = "Required";
+    if (!primary_cta) newErrors.primary_cta = "Required";
 
     setErrors(newErrors);
-
-    const firstError = Object.keys(newErrors)[0];
-    if (firstError && refs[firstError]?.current) {
-      refs[firstError].current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -92,162 +75,202 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
     }
   };
 
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white font-poppins py-12 px-6">
-      <div className="max-w-lg mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <span className="text-violet-400 text-xs font-medium tracking-widest uppercase block mb-2">Step 2 of 3</span>
-          <div className="h-1 bg-zinc-800 rounded-full w-full mb-6">
-            <div className="h-full bg-violet-600 rounded-full w-2/3 transition-all duration-500" />
-          </div>
-          <h1 className="text-2xl font-bold">Now let's build your voice.</h1>
-          <p className="text-zinc-400 text-sm mt-1">This is what stops the AI from sounding like every other GPT output.</p>
+  const OptionCard = ({ title, desc, selected, onClick, error }) => (
+    <button
+      onClick={onClick}
+      className={`relative p-4 rounded-2xl border text-left transition-all duration-200 ${
+        selected 
+          ? 'bg-primary/10 border-primary shadow-lg shadow-primary/5' 
+          : error ? 'bg-red-500/5 border-red-500/50' : 'bg-bg-surface/50 border-border-muted hover:border-primary/30'
+      }`}
+    >
+      {selected && (
+        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+          <Check className="w-3 h-3 text-white" />
         </div>
+      )}
+      <p className={`text-sm font-bold mb-1 ${selected ? 'text-white' : 'text-text-secondary'}`}>{title}</p>
+      <p className="text-[10px] text-text-secondary/60 leading-tight">{desc}</p>
+    </button>
+  );
 
-        {/* Questions */}
-        <div className="space-y-12">
-          {/* Q5 */}
-          <div ref={refs.unique_differentiator} className="space-y-2">
-            <label className="text-white text-sm font-medium block">What makes you different from everything else out there?</label>
-            <p className="text-zinc-500 text-xs">Don't say 'easier to use'. Say what you actually do that nothing else does.</p>
-            <textarea
-              rows={2}
-              value={unique_differentiator}
-              onChange={(e) => setUniqueDifferentiator(e.target.value)}
-              placeholder="e.g. Unlike Buffer, we don't just schedule posts — we find where your exact audience already is and tell you what to say to them."
-              className={`bg-zinc-900 border ${errors.unique_differentiator ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600 resize-none`}
-            />
-            {errors.unique_differentiator && <p className="text-red-400 text-xs">{errors.unique_differentiator}</p>}
+  return (
+    <div className="relative min-h-screen bg-bg-base text-white font-poppins overflow-hidden">
+      <GridBackground />
+      <ParticleBackground />
+
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
+      
+      <div className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-12">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-primary/40" />
+            <div className="w-6 h-2 rounded-full bg-primary" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
+            <div className="w-2 h-2 rounded-full bg-white/10" />
           </div>
+        </div>
+        <button className="text-sm font-medium text-text-secondary hover:text-white transition-colors">
+          Skip
+        </button>
+      </div>
 
-          {/* Q6 */}
-          <div ref={refs.pain_phrases} className="space-y-2">
-            <label className="text-white text-sm font-medium block">What do your customers say when they complain about this problem?</label>
-            <p className="text-zinc-500 text-xs">Exact words. The phrases they actually use — not how you'd describe it.</p>
-            <textarea
-              rows={3}
-              value={pain_phrases}
-              onChange={(e) => setPainPhrases(e.target.value)}
-              placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I tried Twitter and got nothing', 'I have no idea who my audience is'"
-              className={`bg-zinc-900 border ${errors.pain_phrases ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600 resize-none`}
-            />
-            {errors.pain_phrases && <p className="text-red-400 text-xs">{errors.pain_phrases}</p>}
-          </div>
-
-          {/* Q7 */}
-          <div ref={refs.brand_tone} className="space-y-2">
-            <label className="text-white text-sm font-medium block">What's your brand tone?</label>
-            <p className="text-zinc-500 text-xs">This gets injected into every piece of content we write for you.</p>
-            <div className="grid grid-cols-1 gap-2 mt-2">
-              {BrandToneOptions.map((opt) => (
-                <div
-                  key={opt.name}
-                  onClick={() => setBrandTone(opt.name)}
-                  className={`${brand_tone === opt.name ? 'bg-violet-600/20 border-violet-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'} border rounded-xl px-4 py-3 cursor-pointer transition-all`}
-                >
-                  <p className="text-white text-sm font-medium">{opt.name}</p>
-                  <p className="text-zinc-400 text-xs">{opt.desc}</p>
-                </div>
-              ))}
-            </div>
-            {errors.brand_tone && <p className="text-red-400 text-xs">{errors.brand_tone}</p>}
-          </div>
-
-          {/* Q8 */}
-          <div ref={refs.writing_style} className="space-y-2">
-            <label className="text-white text-sm font-medium block">How do you write?</label>
-            <p className="text-zinc-500 text-xs">Controls the structure and length of every post we generate.</p>
-            <div className="grid grid-cols-1 gap-2 mt-2">
-              {WritingStyleOptions.map((opt) => (
-                <div
-                  key={opt.name}
-                  onClick={() => setWritingStyle(opt.name)}
-                  className={`${writing_style === opt.name ? 'bg-violet-600/20 border-violet-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'} border rounded-xl px-4 py-3 cursor-pointer transition-all`}
-                >
-                  <p className="text-white text-sm font-medium">{opt.name}</p>
-                  <p className="text-zinc-400 text-xs">{opt.desc}</p>
-                </div>
-              ))}
-            </div>
-            {errors.writing_style && <p className="text-red-400 text-xs">{errors.writing_style}</p>}
-          </div>
-
-          {/* Q9 */}
-          <div ref={refs.current_stage} className="space-y-2">
-            <label className="text-white text-sm font-medium block">Where are you right now?</label>
-            <p className="text-zinc-500 text-xs">This changes the tone and CTA of everything we write.</p>
-            <div className="grid grid-cols-1 gap-2 mt-2">
-              {CurrentStageOptions.map((opt) => (
-                <div
-                  key={opt.name}
-                  onClick={() => setCurrentStage(opt.name)}
-                  className={`${current_stage === opt.name ? 'bg-violet-600/20 border-violet-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'} border rounded-xl px-4 py-3 cursor-pointer transition-all`}
-                >
-                  <p className="text-white text-sm font-medium">{opt.name}</p>
-                  <p className="text-zinc-400 text-xs">{opt.desc}</p>
-                </div>
-              ))}
-            </div>
-            {errors.current_stage && <p className="text-red-400 text-xs">{errors.current_stage}</p>}
-          </div>
-
-          {/* Q10 */}
-          <div ref={refs.posting_frequency} className="space-y-2">
-            <label className="text-white text-sm font-medium block">How often do you want to post per week?</label>
-            <p className="text-zinc-500 text-xs">Be honest. Consistency beats volume.</p>
-            <div className="grid grid-cols-4 gap-2 mt-2">
-              {PostingFrequencyOptions.map((opt) => (
-                <div
-                  key={opt}
-                  onClick={() => setPostingFrequency(opt)}
-                  className={`${posting_frequency === opt ? 'bg-violet-600/20 border-violet-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'} border rounded-xl py-3 text-center text-white text-sm cursor-pointer transition-all`}
-                >
-                  {opt}
-                </div>
-              ))}
-            </div>
-            {errors.posting_frequency && <p className="text-red-400 text-xs">{errors.posting_frequency}</p>}
-          </div>
-
-          {/* Q11 */}
-          <div ref={refs.primary_cta} className="space-y-2">
-            <label className="text-white text-sm font-medium block">What do you want people to do after seeing your content?</label>
-            <p className="text-zinc-500 text-xs">Every post ends with this. Pick the one that matches where you are right now.</p>
-            <div className="grid grid-cols-1 gap-2 mt-2">
-              {PrimaryCTAOptions.map((opt) => (
-                <div
-                  key={opt.name}
-                  onClick={() => setPrimaryCTA(opt.name)}
-                  className={`${primary_cta === opt.name ? 'bg-violet-600/20 border-violet-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'} border rounded-xl px-4 py-3 cursor-pointer transition-all`}
-                >
-                  <p className="text-white text-sm font-medium">{opt.name}</p>
-                  <p className="text-zinc-400 text-xs">{opt.desc}</p>
-                </div>
-              ))}
-            </div>
-            {primary_cta === "Something else" && (
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={custom_cta}
-                  onChange={(e) => setCustomCTA(e.target.value)}
-                  placeholder="Describe your CTA..."
-                  className={`bg-zinc-900 border ${errors.custom_cta ? 'border-red-500' : 'border-zinc-800'} rounded-xl px-4 py-3 text-white text-sm w-full focus:outline-none focus:border-violet-500 focus:bg-zinc-800 transition-all placeholder-zinc-600`}
-                />
-                {errors.custom_cta && <p className="text-red-400 text-xs mt-1">{errors.custom_cta}</p>}
-              </div>
-            )}
-            {errors.primary_cta && <p className="text-red-400 text-xs">{errors.primary_cta}</p>}
-          </div>
-
-          {/* Continue Button */}
-          <button
-            onClick={handleContinue}
-            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl px-6 py-4 w-full text-sm transition-colors mt-8"
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-8 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-10"
           >
-            Generate my post →
-          </button>
+            <div>
+              <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 2</span>
+              <h1 className="text-4xl sm:text-6xl font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-2px' }}>
+                Now let's build <br />
+                <span className="text-primary">your voice.</span>
+              </h1>
+              <p className="text-text-secondary text-lg">This is what stops the AI from sounding like every other bot.</p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Unique Differentiator */}
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-white block">What makes you different?</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Unlike Buffer, we find where your exact audience is and tell you what to say."
+                  value={unique_differentiator}
+                  onChange={(e) => setUniqueDifferentiator(e.target.value)}
+                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.unique_differentiator ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
+                />
+              </div>
+
+              {/* Pain Phrases */}
+              <div className="space-y-3">
+                <label className="text-sm font-bold text-white block">What do your customers complain about?</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I have no idea who my audience is'"
+                  value={pain_phrases}
+                  onChange={(e) => setPainPhrases(e.target.value)}
+                  className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.pain_phrases ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
+                />
+              </div>
+
+              {/* Brand Tone */}
+              <div className="space-y-4">
+                <label className="text-sm font-bold text-white block">Brand Tone</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {BrandToneOptions.map((opt) => (
+                    <OptionCard 
+                      key={opt.name} 
+                      title={opt.name} 
+                      desc={opt.desc} 
+                      selected={brand_tone === opt.name}
+                      onClick={() => setBrandTone(opt.name)}
+                      error={errors.brand_tone}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Writing Style */}
+              <div className="space-y-4">
+                <label className="text-sm font-bold text-white block">Writing Style</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {WritingStyleOptions.map((opt) => (
+                    <OptionCard 
+                      key={opt.name} 
+                      title={opt.name} 
+                      desc={opt.desc} 
+                      selected={writing_style === opt.name}
+                      onClick={() => setWritingStyle(opt.name)}
+                      error={errors.writing_style}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={handleContinue}
+                className="group inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-primary/20"
+              >
+                Generate my first post
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Live Preview Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="hidden lg:block sticky top-32"
+          >
+            <div className="relative p-1 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-transparent">
+              <div className="bg-bg-surface rounded-[2.4rem] p-10 min-h-[500px] flex flex-col border border-white/5 shadow-2xl">
+                <div className="flex items-center gap-4 mb-12">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">Your Brand Voice</span>
+                    <h3 className="text-lg font-bold text-white">Shaping energy</h3>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-8">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">App</span>
+                    <h2 className="text-2xl font-bold text-white">{app_name}</h2>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Tone</span>
+                      <p className={`text-sm font-bold transition-all duration-300 ${brand_tone ? 'text-white' : 'text-white/10'}`}>
+                        {brand_tone || 'Not selected'}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Style</span>
+                      <p className={`text-sm font-bold transition-all duration-300 ${writing_style ? 'text-white' : 'text-white/10'}`}>
+                        {writing_style || 'Not selected'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {unique_differentiator && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Unfair Advantage</span>
+                      <p className="text-sm text-text-secondary/80 leading-relaxed">{unique_differentiator}</p>
+                    </div>
+                  )}
+
+                  {pain_phrases && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Pain Points</span>
+                      <div className="flex flex-wrap gap-2">
+                        {pain_phrases.split(',').map((p, i) => (
+                          <span key={i} className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] text-text-secondary">
+                            {p.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/40">Syncing with AI</span>
+                  </div>
+                  <Zap className="w-5 h-5 text-white/10" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
