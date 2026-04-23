@@ -11,7 +11,8 @@ const BrandToneOptions = [
   { name: "Conversational & relatable", desc: "Sound like a real person" },
   { name: "Edgy & bold", desc: "Make people react" },
   { name: "Friendly & encouraging", desc: "Warm and approachable" },
-  { name: "Direct & no-BS", desc: "Cut to the point" }
+  { name: "Direct & no-BS", desc: "Cut to the point" },
+  { name: "Casual & authentic", desc: "Like talking to a friend" }
 ];
 
 const WritingStyleOptions = [
@@ -21,16 +22,12 @@ const WritingStyleOptions = [
   { name: "Humor & wit", desc: "Make them laugh" }
 ];
 
-const AwarenessOptions = [
-  { name: "Low", desc: "They don't know this problem can be solved" },
-  { name: "Medium", desc: "They are looking for solutions" },
-  { name: "High", desc: "They've tried other tools and are frustrated" }
-];
-
 const PlatformOptions = [
   { name: "Twitter / X", desc: "Short, viral, high-energy" },
   { name: "LinkedIn", desc: "Professional, value-driven" },
-  { name: "Reddit", desc: "Community-focused, raw" }
+  { name: "Reddit", desc: "Community-focused, raw" },
+  { name: "Indie Hackers", desc: "Founder-focused, technical" },
+  { name: "Product Hunt", desc: "Product launches, early adopters" }
 ];
 
 const PrimaryCTAOptions = [
@@ -45,7 +42,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
   const [pain_phrases, setPainPhrases] = useState('');
   const [brand_tone, setBrandTone] = useState('');
   const [writing_style, setWritingStyle] = useState('');
-  const [audience_awareness, setAudienceAwareness] = useState('High');
   const [primary_platform, setPrimaryPlatform] = useState('Twitter / X');
   const [primary_cta, setPrimaryCTA] = useState('');
   const [custom_cta, setCustomCTA] = useState('');
@@ -70,7 +66,6 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
         pain_phrases,
         brand_tone,
         writing_style,
-        audience_awareness,
         primary_platform,
         primary_cta: primary_cta === "Something else" ? custom_cta : primary_cta
       });
@@ -126,7 +121,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
               <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 2</span>
               <h1 className="text-4xl sm:text-6xl font-bold text-white leading-tight mb-4" style={{ letterSpacing: '-2px' }}>
                 Now let's build <br />
-                <span className="text-primary">your voice.</span>
+                <span className="text-primary">your Brand voice.</span>
               </h1>
               <p className="text-text-secondary text-lg">This is what stops the AI from sounding like every other bot.</p>
             </div>
@@ -144,14 +139,15 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-bold text-white block">Your targeted user pain</label>
+                <label className="text-sm font-bold text-white block">Your targeted user pain they are facing</label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I have no idea who my audience is'"
+                  placeholder="e.g. 'posting into the void', 'nobody sees my stuff', 'I have no idea who my audience is', 'marketing takes too long', 'can't write content', 'no time for social media'"
                   value={pain_phrases}
                   onChange={(e) => setPainPhrases(e.target.value)}
                   className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.pain_phrases ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                 />
+                <p className="text-xs text-text-secondary/60">Add unlimited pain phrases separated by commas</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -190,15 +186,16 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <label className="text-sm font-bold text-white block">Audience Awareness</label>
+                  <label className="text-sm font-bold text-white block">Brand Tone (continued)</label>
                   <div className="grid grid-cols-1 gap-3">
-                    {AwarenessOptions.map((opt) => (
+                    {BrandToneOptions.slice(3).map((opt) => (
                       <OptionCard 
                         key={opt.name} 
                         title={opt.name} 
                         desc={opt.desc} 
-                        selected={audience_awareness === opt.name}
-                        onClick={() => setAudienceAwareness(opt.name)}
+                        selected={brand_tone === opt.name}
+                        onClick={() => setBrandTone(opt.name)}
+                        error={errors.brand_tone}
                       />
                     ))}
                   </div>
