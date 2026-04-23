@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2, Share2 } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
@@ -12,6 +12,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
   const [appDescription, setAppDescription] = useState('');
   const [targetCustomer, setTargetCustomer] = useState('');
   const [coreProblem, setCoreProblem] = useState('');
+  const [topSocialPlatform, setTopSocialPlatform] = useState('');
   const [url, setUrl] = useState('');
   
   const [extracting, setExtracting] = useState(false);
@@ -29,15 +30,33 @@ export default function BrandBrainOnboarding({ onComplete }) {
     setExtractError(null);
     setExtracted(false);
 
-    const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
+    const systemPrompt = `You are an expert SaaS analyst and marketing strategist. You deeply understand products, customers, and where those customers spend their time online.
+
+The user will give you a URL. Analyze the product at that URL and return a JSON object with EXACTLY these five fields:
+
+- app_name: The product's name. Keep it clean, exactly as shown on the site.
+
+- app_description: Explain what this product does in 1-2 simple sentences. Write like you're texting a friend — no jargon, no buzzwords. Make it so clear that someone with zero context gets it instantly.
+
+- target_customer: Paint a picture of the exact person this is built for. Don't just say their job title — mention their situation, their goals, and their daily reality. Example: "A solo founder who just launched their first SaaS product, has no marketing budget, and is trying to get their first 100 users without hiring an agency."
+
+- core_problem: Describe the ONE main pain this product fixes — but make it feel real. Write it from the customer's perspective, like something they'd actually say out loud. Example: "I spend hours every week writing social posts and still get zero engagement. I have no idea what's working or who I'm even talking to."
+
+- top_social_platform: Name the single platform where this target customer is most active and most reachable. Then explain in 1-2 sentences: where they hang out, what kind of content they engage with there, and why that platform beats the others for this specific audience. Be specific and confident — no wishy-washy answers.
+
+Rules:
+- If exact info isn't available, make a sharp, well-reasoned inference based on the URL, domain, and your knowledge of that product space. Never guess randomly.
+- Every field must feel like it was written by someone who actually understands the product and its customers — not a generic AI summary.
+- Return ONLY valid JSON. No explanation, no markdown, no backticks, no extra text outside the JSON.`;
 
     try {
-      const parsed = await generateAICall(systemPrompt, `Extract positioning data from this URL: ${url}`);
+      const parsed = await generateAICall(systemPrompt, `Analyze the product at this URL: ${url}`);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
       setTargetCustomer(parsed.target_customer || '');
       setCoreProblem(parsed.core_problem || '');
+      setTopSocialPlatform(parsed.top_social_platform || '');
       
       setExtracted(true);
     } catch (err) {
@@ -65,7 +84,8 @@ export default function BrandBrainOnboarding({ onComplete }) {
         app_name: appName,
         app_description: appDescription,
         target_customer: targetCustomer,
-        core_problem: coreProblem
+        core_problem: coreProblem,
+        top_social_platform: topSocialPlatform
       });
     }
   };
@@ -84,7 +104,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
             <div className="w-6 h-2 rounded-full bg-primary" />
-            <div className="w-2 h-2 rounded-full bg-white/10" />
             <div className="w-2 h-2 rounded-full bg-white/10" />
             <div className="w-2 h-2 rounded-full bg-white/10" />
             <div className="w-2 h-2 rounded-full bg-white/10" />
@@ -162,33 +181,42 @@ export default function BrandBrainOnboarding({ onComplete }) {
                   onChange={(e) => setAppDescription(e.target.value)}
                   className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                 />
-                <div className="flex justify-end">
-                  <span className="text-[10px] text-text-secondary/40 font-bold uppercase tracking-widest">{appDescription.length}/200</span>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-white block">Target Audience</label>
-                  <input
-                    type="text"
+                  <textarea
+                    rows={2}
                     placeholder="e.g. Solo founders building SaaS"
                     value={targetCustomer}
                     onChange={(e) => setTargetCustomer(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                   />
                 </div>
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-white block">What problem your app solves</label>
-                  <input
-                    type="text"
+                  <textarea
+                    rows={2}
                     placeholder="e.g. Spending too much time on manual marketing"
                     value={coreProblem}
                     onChange={(e) => setCoreProblem(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                   />
                 </div>
               </div>
+
+              {topSocialPlatform && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <label className="text-sm font-bold text-white block">Top Social Platform</label>
+                  <textarea
+                    rows={2}
+                    value={topSocialPlatform}
+                    onChange={(e) => setTopSocialPlatform(e.target.value)}
+                    className="w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border border-border-muted text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none"
+                  />
+                </div>
+              )}
 
               <button
                 onClick={handleContinue}
@@ -233,10 +261,13 @@ export default function BrandBrainOnboarding({ onComplete }) {
                     </p>
                   </div>
 
-                  {targetCustomer && (
+                  {topSocialPlatform && (
                     <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Target Audience</span>
-                      <p className="text-sm text-text-secondary/80">{targetCustomer}</p>
+                      <div className="flex items-center gap-2">
+                        <Share2 className="w-3 h-3 text-primary" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Top Platform</span>
+                      </div>
+                      <p className="text-sm text-text-secondary/80 leading-relaxed">{topSocialPlatform}</p>
                     </div>
                   )}
                 </div>
@@ -253,7 +284,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
             <div className="mt-8 flex items-center justify-between px-4 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
               <p className="text-[11px] text-text-secondary/60 leading-relaxed">
-                <span className="text-primary font-bold">Early Access</span> — some features may not work as expected. We appreciate your patience as we continue to improve.
+                <span className="text-primary font-bold">Expert Analysis</span> — Our AI is analyzing your product's market position and audience behavior in real-time.
               </p>
               <X className="w-4 h-4 text-text-secondary/40 cursor-pointer hover:text-white transition-colors" />
             </div>
