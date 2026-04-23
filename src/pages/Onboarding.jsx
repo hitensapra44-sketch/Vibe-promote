@@ -4,42 +4,49 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { toast } from 'sonner';
 import BrandBrainOnboarding from './BrandBrainOnboarding';
-import PositioningHelper from './PositioningHelper';
+import BrandBrainOnboarding2 from './BrandBrainOnboarding2';
+import PostPreview from './PostPreview';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
-  const [appData, setAppData] = useState(null);
+  const [step1Data, setStep1Data] = useState(null);
+  const [step2Data, setStep2Data] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleStep1Complete = (data) => {
-    setAppData(data);
+    setStep1Data(data);
     setStep(2);
   };
 
-  const handleStep2Complete = async (positioningResult) => {
+  const handleStep2Complete = (data) => {
+    setStep2Data(data);
+    setStep(3);
+  };
+
+  const handleFinalComplete = async () => {
     if (!user) {
       toast.error("You must be logged in to save your progress.");
+      navigate('/auth');
       return;
     }
 
     const loadingToast = toast.loading("Saving your Brand Brain...");
 
     try {
-      const { data: positioningData } = positioningResult;
-      
       const brainData = {
         user_id: user.id,
-        app_name: appData.app_name,
-        app_description: appData.app_description,
-        target_customer: appData.target_customer,
-        core_problem: appData.core_problem,
-        // If AI version was chosen, we use those fields
-        positioning_statement: positioningData.positioningStatement || '',
-        suggested_tagline: positioningData.suggestedTagline || '',
-        core_value: positioningData.coreValue || '',
-        key_differentiator: positioningData.keyDifferentiator || '',
-        confidence_score: positioningData.confidenceScore || 0
+        app_name: step1Data.app_name,
+        app_description: step1Data.app_description,
+        target_customer: step1Data.target_customer,
+        core_problem: step1Data.core_problem,
+        unique_differentiator: step2Data.unique_differentiator,
+        pain_phrases: step2Data.pain_phrases,
+        brand_tone: step2Data.brand_tone,
+        writing_style: step2Data.writing_style,
+        current_stage: step2Data.current_stage,
+        posting_frequency: step2Data.posting_frequency,
+        primary_cta: step2Data.primary_cta
       };
 
       const { error } = await supabase
@@ -62,7 +69,17 @@ export default function Onboarding() {
         <BrandBrainOnboarding onComplete={handleStep1Complete} />
       )}
       {step === 2 && (
-        <PositioningHelper appData={appData} onComplete={handleStep2Complete} />
+        <BrandBrainOnboarding2 
+          {...step1Data} 
+          onComplete={handleStep2Complete} 
+        />
+      )}
+      {step === 3 && (
+        <PostPreview 
+          {...step1Data} 
+          {...step2Data} 
+          onComplete={handleFinalComplete} 
+        />
       )}
     </div>
   );
