@@ -198,7 +198,7 @@ Rules:
                   <label className="text-sm font-bold text-white block">What problem your app solves</label>
                   <textarea
                     rows={2}
-                    placeholder="e.g. Spending too much time on manual marketing"
+                    placeholder="e.g. Marketing takes too long"
                     value={coreProblem}
                     onChange={(e) => setCoreProblem(e.target.value)}
                     className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
