@@ -260,16 +260,6 @@ Rules:
                       {appDescription || 'Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.'}
                     </p>
                   </div>
-
-                  {topSocialPlatform && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                      <div className="flex items-center gap-2">
-                        <Share2 className="w-3 h-3 text-primary" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Top Platform</span>
-                      </div>
-                      <p className="text-sm text-text-secondary/80 leading-relaxed">{topSocialPlatform}</p>
-                    </div>
-                  )}
                 </div>
 
                 <div className="mt-auto pt-10 flex items-center justify-between border-t border-white/5">
