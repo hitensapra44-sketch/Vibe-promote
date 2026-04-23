@@ -4,18 +4,34 @@ import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { toast } from 'sonner';
 import BrandBrainOnboarding from './BrandBrainOnboarding';
+import PositioningHelper from './PositioningHelper';
 import BrandBrainOnboarding2 from './BrandBrainOnboarding2';
 import PostPreview from './PostPreview';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [step1Data, setStep1Data] = useState(null);
+  const [positioningData, setPositioningData] = useState(null);
   const [step2Data, setStep2Data] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleStep1Complete = (data) => {
     setStep1Data(data);
+    setStep(1.5); // Move to Positioning Helper
+  };
+
+  const handlePositioningComplete = (result) => {
+    // If they chose AI, we update the core fields with AI's improved versions
+    if (result.type === 'ai') {
+      setStep1Data({
+        ...step1Data,
+        app_description: result.data.positioningStatement,
+        target_customer: result.data.targetAudience,
+        suggested_tagline: result.data.suggestedTagline,
+        core_value: result.data.coreValue
+      });
+    }
     setStep(2);
   };
 
@@ -40,6 +56,8 @@ export default function Onboarding() {
         app_description: step1Data.app_description,
         target_customer: step1Data.target_customer,
         core_problem: step1Data.core_problem,
+        suggested_tagline: step1Data.suggested_tagline || '',
+        core_value: step1Data.core_value || '',
         unique_differentiator: step2Data.unique_differentiator,
         pain_phrases: step2Data.pain_phrases,
         brand_tone: step2Data.brand_tone,
@@ -67,6 +85,12 @@ export default function Onboarding() {
     <div className="min-h-screen bg-bg-base">
       {step === 1 && (
         <BrandBrainOnboarding onComplete={handleStep1Complete} />
+      )}
+      {step === 1.5 && (
+        <PositioningHelper 
+          appData={step1Data} 
+          onComplete={handlePositioningComplete} 
+        />
       )}
       {step === 2 && (
         <BrandBrainOnboarding2 
