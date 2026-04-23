@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
@@ -66,13 +68,12 @@ export default function PositioningHelper({ appData, onComplete }) {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("NVIDIA API Error Status:", response.status, errorData);
-        throw new Error(errorData.error?.message || \`API Error: \${response.status}\`);
+        throw new Error(errorData.error?.message || `API Error: ${response.status}`);
       }
 
       const data = await response.json();
       let content = data.choices[0].message.content;
       
-      // Clean up response (remove thinking blocks and markdown)
       content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
       content = content.replace(/```json\n?|```/g, '').trim();
 
@@ -99,7 +100,8 @@ export default function PositioningHelper({ appData, onComplete }) {
           <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
           <div className="relative w-20 h-20 rounded-full bg-bg-surface border border-primary/30 flex items-center justify-center">
             <Brain className="w-10 h-10 text-primary animate-pulse" />
-          </div>        </div>
+          </div>
+        </div>
         <h2 className="text-2xl font-bold text-white mb-2">Analyzing your positioning...</h2>
         <p className="text-text-secondary">Our elite strategist is crafting your unique market position.</p>
       </div>
@@ -158,7 +160,6 @@ export default function PositioningHelper({ appData, onComplete }) {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          {/* Left Card: Original Input */}
           <div className="flex flex-col">
             <div className="text-center mb-4">
               <span className="text-xs font-bold uppercase tracking-widest text-text-secondary/40">Your Original Input</span>
@@ -179,7 +180,6 @@ export default function PositioningHelper({ appData, onComplete }) {
             </div>
           </div>
 
-          {/* Right Card: AI Expert Version */}
           <div className="flex flex-col">
             <div className="text-center mb-4">
               <span className="text-xs font-bold uppercase tracking-widest text-primary">Expert Positioning</span>

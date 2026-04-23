@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -44,7 +46,7 @@ export default function AudienceSpotter() {
   const startScan = async () => {
     setScanning(true);
     
-    const systemPrompt = \`You are a social listening and market research expert. Your job is to find the exact "watering holes" where a specific target audience hangs out online. 
+    const systemPrompt = `You are a social listening and market research expert. Your job is to find the exact "watering holes" where a specific target audience hangs out online. 
     
     Based on the provided Brand Brain, identify:
     1. 5 specific Subreddits (e.g., r/SaaS, r/IndieHackers).
@@ -61,21 +63,21 @@ export default function AudienceSpotter() {
       "reddit": [{ "name": "r/...", "vibe": "...", "angle": "..." }],
       "twitter": [{ "tag": "#...", "vibe": "...", "angle": "..." }],
       "forums": [{ "name": "...", "vibe": "...", "angle": "..." }]
-    }\`;
+    }`;
 
     try {
       const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': \`Bearer \${NVIDIA_API_KEY}\`,
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({
           model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: \`Brand Brain:\\n\${JSON.stringify(brain)}\` }
+            { role: "user", content: `Brand Brain:\n${JSON.stringify(brain)}` }
           ],
           max_tokens: 16384,
           temperature: 0.60,
@@ -87,7 +89,7 @@ export default function AudienceSpotter() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || \`API Error: \${response.status}\`);
+        throw new Error(errorData.error?.message || `API Error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -150,7 +152,6 @@ export default function AudienceSpotter() {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="grid grid-cols-1 lg:grid-cols-3 gap-8"
             >
-              {/* Reddit Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF4500]/10 border border-[#FF4500]/20 w-fit">
                   <MessageSquare className="w-4 h-4 text-[#FF4500]" />
@@ -171,7 +172,6 @@ export default function AudienceSpotter() {
                 ))}
               </div>
 
-              {/* X Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 w-fit">
                   <Twitter className="w-4 h-4 text-white" />
@@ -192,7 +192,6 @@ export default function AudienceSpotter() {
                 ))}
               </div>
 
-              {/* Forums Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 w-fit">
                   <Globe className="w-4 h-4 text-indigo-400" />

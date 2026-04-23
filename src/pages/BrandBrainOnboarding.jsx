@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
@@ -30,21 +32,21 @@ export default function BrandBrainOnboarding({ onComplete }) {
     setExtractError(null);
     setExtracted(false);
 
-    const systemPrompt = \`You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.\`;
+    const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
 
     try {
       const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': \`Bearer \${NVIDIA_API_KEY}\`,
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({
           model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: \`Extract positioning data from this URL: \${url}\` }
+            { role: "user", content: `Extract positioning data from this URL: ${url}` }
           ],
           max_tokens: 16384,
           temperature: 0.60,
@@ -56,7 +58,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || \`API Error: \${response.status}\`);
+        throw new Error(errorData.error?.message || `API Error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -109,13 +111,11 @@ export default function BrandBrainOnboarding({ onComplete }) {
       <GridBackground />
       <ParticleBackground />
 
-      {/* Gradient orbs matching HeroSection */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
         style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl"
         style={{ background: 'radial-gradient(circle, #9e4a2a 0%, transparent 70%)' }} />
 
-      {/* Top Navigation */}
       <div className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-12">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
@@ -133,8 +133,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 pt-8 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-          
-          {/* Left Side: Form */}
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -149,7 +147,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
               </h1>
             </div>
 
-            {/* URL Extraction Section */}
             <div className="space-y-4">
               <label className="text-sm font-bold text-white block">Have a landing page?</label>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -188,7 +185,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                   placeholder="e.g. Vibe Promote"
                   value={appName}
                   onChange={(e) => setAppName(e.target.value)}
-                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border \${errors.app_name ? 'border-red-500' : 'border-border-muted'} text-xl font-bold text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_name ? 'border-red-500' : 'border-border-muted'} text-xl font-bold text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                 />
               </div>
 
@@ -199,7 +196,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                   placeholder="e.g. AI marketing co-pilot that automates growth for solo founders"
                   value={appDescription}
                   onChange={(e) => setAppDescription(e.target.value)}
-                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border \${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
+                  className={`w-full px-6 py-5 rounded-2xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-border-muted'} text-base text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30 resize-none`}
                 />
                 <div className="flex justify-end">
                   <span className="text-[10px] text-text-secondary/40 font-bold uppercase tracking-widest">{appDescription.length}/200</span>
@@ -214,7 +211,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                     placeholder="e.g. Solo founders building SaaS"
                     value={targetCustomer}
                     onChange={(e) => setTargetCustomer(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border \${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                   />
                 </div>
                 <div className="space-y-3">
@@ -224,7 +221,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
                     placeholder="e.g. Spending too much time on manual marketing"
                     value={coreProblem}
                     onChange={(e) => setCoreProblem(e.target.value)}
-                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border \${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
+                    className={`w-full px-6 py-4 rounded-2xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-border-muted'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder-text-secondary/30`}
                   />
                 </div>
               </div>
@@ -239,7 +236,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
             </div>
           </motion.div>
 
-          {/* Right Side: Preview Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -261,14 +257,14 @@ export default function BrandBrainOnboarding({ onComplete }) {
                 <div className="flex-1 space-y-8">
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-primary">App Name</span>
-                    <h2 className={`text-4xl font-bold transition-all duration-300 \${appName ? 'text-white' : 'text-white/10'}`}>
+                    <h2 className={`text-4xl font-bold transition-all duration-300 ${appName ? 'text-white' : 'text-white/10'}`}>
                       {appName || 'Your app name'}
                     </h2>
                   </div>
 
                   <div className="space-y-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Description</span>
-                    <p className={`text-xl leading-relaxed transition-all duration-300 \${appDescription ? 'text-text-secondary' : 'text-white/5'}`}>
+                    <p className={`text-xl leading-relaxed transition-all duration-300 ${appDescription ? 'text-text-secondary' : 'text-white/5'}`}>
                       {appDescription || 'Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.'}
                     </p>
                   </div>
@@ -291,7 +287,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
               </div>
             </div>
 
-            {/* Subtle Note */}
             <div className="mt-8 flex items-center justify-between px-4 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
               <p className="text-[11px] text-text-secondary/60 leading-relaxed">
                 <span className="text-primary font-bold">Early Access</span> — some features may not work as expected. We appreciate your patience as we continue to improve.
@@ -299,7 +294,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
               <X className="w-4 h-4 text-text-secondary/40 cursor-pointer hover:text-white transition-colors" />
             </div>
           </motion.div>
-
         </div>
       </div>
     </div>
