@@ -9,11 +9,12 @@ export default function PostPreview({
   target_customer, 
   core_problem, 
   unique_differentiator, 
+  audience_awareness = "High", 
+  pain_phrases, 
   brand_tone, 
   writing_style, 
-  current_stage, 
-  posting_frequency, 
   primary_cta,
+  primary_platform = "Twitter / X",
   onComplete 
 }) {
   const [post, setPost] = useState('');
@@ -29,7 +30,7 @@ export default function PostPreview({
 
     const systemPrompt = `You are a founder writing a single raw, human post on Twitter/X. You are not a marketer. You are a real person who found a real solution to a painful problem and you want to share it honestly. You write like someone who is done with corporate fluff and just wants to say something true that helps people exactly like them.
 
-You must write ONE post following this exact 6-part structure. Each part is a separate short paragraph with a line break between them. Do not label the parts. Do not add any explanation before or after the post. Return only the post text and nothing else.
+You must write ONE post following this exact 6-part structure. Each part is a separate short paragraph with a line break between them. Do not label the parts. Do not add any explanation before or after the post. 
 
 Part 1 — HOOK: The very first line. This is the most important line in the entire post. It must use one of the exact pain phrases the founder provided in their own words. It must name the specific frustration so precisely that the target customer reads it and thinks someone wrote this about them personally. Maximum 12 words. No full stop at the end. No question mark unless it genuinely creates more tension. No hashtags. No emojis unless the brand tone is casual.
 
@@ -52,7 +53,9 @@ Hard rules for the entire post:
 - Total post length must be between 180 and 280 words
 - Must sound like one specific human wrote it, not a content team
 - The writing style and tone passed in by the founder must be respected throughout
-- If the audience awareness level is low (they do not know a solution exists), the post must educate gently before pitching. If awareness is high (they have tried other tools), the post must differentiate immediately and skip the education.`;
+- If the audience awareness level is low (they do not know a solution exists), the post must educate gently before pitching. If awareness is high (they have tried other tools), the post must differentiate immediately and skip the education.
+
+Return the post in this JSON format: { "post": "..." }`;
 
     const userMessage = `Here is everything you need to write the post:
 
@@ -61,23 +64,17 @@ What the app does: ${app_description}
 Target customer: ${target_customer}
 Core problem the app solves: ${core_problem}
 What makes it different from alternatives: ${unique_differentiator}
-How aware the audience is of solutions like this: High
-Exact words the audience uses to describe their pain: ${core_problem}
+How aware the audience is of solutions like this: ${audience_awareness}
+Exact words the audience uses to describe their pain: ${pain_phrases}
 Brand tone: ${brand_tone}
 Writing style: ${writing_style}
 Primary CTA: ${primary_cta}
-Platform: Twitter / X
+Platform: ${primary_platform}
 
 Write the post now. Return only the post. Nothing else.`;
 
     try {
-      // We use a simpler prompt for the utility to ensure it returns just text
-      const response = await generateAICall(systemPrompt, userMessage);
-      // The utility returns a parsed JSON, but here we expect a string if we change the prompt
-      // Actually, our utility expects JSON. Let's wrap the prompt to ask for JSON.
-      
-      const jsonSystemPrompt = systemPrompt + "\n\nReturn the post in this JSON format: { \"post\": \"...\" }";
-      const result = await generateAICall(jsonSystemPrompt, userMessage);
+      const result = await generateAICall(systemPrompt, userMessage);
       setPost(result.post);
     } catch (err) {
       console.error("Generation failed:", err);
@@ -102,10 +99,10 @@ Write the post now. Return only the post. Nothing else.`;
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950 font-poppins">
         <p className="text-white font-medium text-lg mb-4">Writing your post...</p>
-        <div className="flex gap-1 mb-4">
-          <span className="w-2 h-2 bg-violet-600 rounded-full animate-pulse" />
-          <span className="w-2 h-2 bg-violet-600 rounded-full animate-pulse delay-75" />
-          <span className="w-2 h-2 bg-violet-600 rounded-full animate-pulse delay-150" />
+        <div className="flex gap-2 mb-4">
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse [animation-delay:200ms]" />
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse [animation-delay:400ms]" />
         </div>
         <p className="text-zinc-500 text-sm">Using your audience's exact words</p>
       </div>
