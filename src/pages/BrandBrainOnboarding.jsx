@@ -5,10 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
-
-const NVIDIA_API_KEY = "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";
-const NVIDIA_MODEL = "qwen/qwen3.5-397b-a17b";
-const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+import { generateAICall } from '../lib/ai';
 
 export default function BrandBrainOnboarding({ onComplete }) {
   const [appName, setAppName] = useState('');
@@ -35,38 +32,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
     const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
 
     try {
-      const response = await fetch(INVOKE_URL, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          model: NVIDIA_MODEL,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Extract positioning data from this URL: ${url}` }
-          ],
-          max_tokens: 16384,
-          temperature: 0.60,
-          top_p: 0.95,
-          stream: false,
-          chat_template_kwargs: { enable_thinking: true }
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      let content = data.choices[0].message.content;
-      content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
-      content = content.replace(/```json\n?|```/g, '').trim();
-
-      const parsed = JSON.parse(content);
+      const parsed = await generateAICall(systemPrompt, `Extract positioning data from this URL: ${url}`);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
@@ -76,9 +42,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
       setExtracted(true);
     } catch (err) {
       console.error("Extraction failed:", err);
-      setExtractError(err.message === 'Failed to fetch' 
-        ? "Connection blocked by API provider (CORS)." 
-        : "Couldn't read that URL. Fill in the questions below instead.");
+      setExtractError("Couldn't read that URL. Fill in the questions below instead.");
     } finally {
       setExtracting(false);
     }
