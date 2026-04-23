@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Loader2, AlertCircle, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain } from 'lucide-react';
 
-const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-4-1-fast-reasoning";
+const NVIDIA_API_KEY = "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";
+const NVIDIA_MODEL = "qwen/qwen3.5-397b-a17b";
+const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);
@@ -41,31 +42,42 @@ export default function PositioningHelper({ appData, onComplete }) {
     `;
 
     try {
-      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROK_API_KEY}`
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
-          model: GROK_MODEL,
+          model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userMessage }
           ],
-          response_format: { type: "json_object" },
-          temperature: 0
+          max_tokens: 16384,
+          temperature: 0.60,
+          top_p: 0.95,
+          stream: false,
+          chat_template_kwargs: { enable_thinking: true }
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("Grok API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from Grok service');
+        console.error("NVIDIA API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from AI service');
       }
 
-      const parsed = JSON.parse(data.choices[0].message.content);
+      // Handle potential thinking block or markdown in response
+      let content = data.choices[0].message.content;
+      // Remove thinking blocks if present <thought>...</thought>
+      content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
+      // Remove markdown code blocks if present
+      content = content.replace(/```json\n?|```/g, '').trim();
+
+      const parsed = JSON.parse(content);
       setAiPositioning(parsed);
     } catch (err) {
       console.error("Generation failed:", err);

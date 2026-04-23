@@ -4,8 +4,9 @@ import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-r
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
-const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-4-1-fast-reasoning";
+const NVIDIA_API_KEY = "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";
+const NVIDIA_MODEL = "qwen/qwen3.5-397b-a17b";
+const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 export default function BrandBrainOnboarding({ onComplete }) {
   const [appName, setAppName] = useState('');
@@ -32,31 +33,39 @@ export default function BrandBrainOnboarding({ onComplete }) {
     const systemPrompt = `You are an expert at reading SaaS landing pages and extracting positioning data. The user will give you a URL. You must return a JSON object with exactly these four fields extracted from what you know or can infer about the product at that URL: app_name (the product name), app_description (one sentence describing what it does in plain language, not marketing speak), target_customer (the specific type of person this is built for, as specific as possible), core_problem (the single biggest problem this product solves for that customer). If you cannot find specific information, make a reasonable inference based on the URL domain name and any context clues. Never return empty fields. Always return valid JSON only with no explanation, no backticks, and no markdown.`;
 
     try {
-      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROK_API_KEY}`
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
-          model: GROK_MODEL,
+          model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Extract positioning data from this URL: ${url}` }
           ],
-          response_format: { type: "json_object" },
-          temperature: 0
+          max_tokens: 16384,
+          temperature: 0.60,
+          top_p: 0.95,
+          stream: false,
+          chat_template_kwargs: { enable_thinking: true }
         })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("Grok API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from Grok service');
+        console.error("NVIDIA API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from AI service');
       }
 
-      const parsed = JSON.parse(data.choices[0].message.content);
+      let content = data.choices[0].message.content;
+      content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
+      content = content.replace(/```json\n?|```/g, '').trim();
+
+      const parsed = JSON.parse(content);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');

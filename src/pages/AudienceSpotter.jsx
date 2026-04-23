@@ -16,8 +16,9 @@ import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 
-const GROK_API_KEY = "REMOVED";
-const GROK_MODEL = "grok-4-1-fast-reasoning";
+const NVIDIA_API_KEY = "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";
+const NVIDIA_MODEL = "qwen/qwen3.5-397b-a17b";
+const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
@@ -63,25 +64,39 @@ export default function AudienceSpotter() {
     }`;
 
     try {
-      const response = await fetch("https://api.x.ai/v1/chat/completions", {
+      const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROK_API_KEY}`
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
-          model: GROK_MODEL,
+          model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Brand Brain:\n${JSON.stringify(brain)}` }
           ],
-          response_format: { type: "json_object" },
-          temperature: 0
+          max_tokens: 16384,
+          temperature: 0.60,
+          top_p: 0.95,
+          stream: false,
+          chat_template_kwargs: { enable_thinking: true }
         })
       });
 
       const data = await response.json();
-      const parsed = JSON.parse(data.choices[0].message.content);
+
+      if (!response.ok) {
+        console.error("NVIDIA API Error:", data);
+        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+      }
+
+      let content = data.choices[0].message.content;
+      content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
+      content = content.replace(/```json\n?|```/g, '').trim();
+
+      const parsed = JSON.parse(content);
       setResults(parsed);
     } catch (err) {
       console.error("Scan failed:", err);
