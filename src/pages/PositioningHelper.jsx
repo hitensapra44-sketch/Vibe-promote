@@ -63,25 +63,26 @@ export default function PositioningHelper({ appData, onComplete }) {
         })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("NVIDIA API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+        const errorData = await response.json().catch(() => ({}));
+        console.error("NVIDIA API Error Status:", response.status, errorData);
+        throw new Error(errorData.error?.message || \`API Error: \${response.status}\`);
       }
 
-      // Handle potential thinking block or markdown in response
+      const data = await response.json();
       let content = data.choices[0].message.content;
-      // Remove thinking blocks if present <thought>...</thought>
+      
+      // Clean up response (remove thinking blocks and markdown)
       content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
-      // Remove markdown code blocks if present
       content = content.replace(/```json\n?|```/g, '').trim();
 
       const parsed = JSON.parse(content);
       setAiPositioning(parsed);
     } catch (err) {
-      console.error("Generation failed:", err);
-      setError(err.message || "Failed to analyze positioning. Please try again.");
+      console.error("Detailed Generation Error:", err);
+      setError(err.message === 'Failed to fetch' 
+        ? "Connection blocked by API provider (CORS). This API usually requires a backend proxy." 
+        : err.message || "Failed to analyze positioning.");
     } finally {
       setLoading(false);
     }
@@ -98,8 +99,7 @@ export default function PositioningHelper({ appData, onComplete }) {
           <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
           <div className="relative w-20 h-20 rounded-full bg-bg-surface border border-primary/30 flex items-center justify-center">
             <Brain className="w-10 h-10 text-primary animate-pulse" />
-          </div>
-        </div>
+          </div>        </div>
         <h2 className="text-2xl font-bold text-white mb-2">Analyzing your positioning...</h2>
         <p className="text-text-secondary">Our elite strategist is crafting your unique market position.</p>
       </div>

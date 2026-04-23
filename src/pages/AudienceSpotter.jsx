@@ -44,7 +44,7 @@ export default function AudienceSpotter() {
   const startScan = async () => {
     setScanning(true);
     
-    const systemPrompt = `You are a social listening and market research expert. Your job is to find the exact "watering holes" where a specific target audience hangs out online. 
+    const systemPrompt = \`You are a social listening and market research expert. Your job is to find the exact "watering holes" where a specific target audience hangs out online. 
     
     Based on the provided Brand Brain, identify:
     1. 5 specific Subreddits (e.g., r/SaaS, r/IndieHackers).
@@ -61,21 +61,21 @@ export default function AudienceSpotter() {
       "reddit": [{ "name": "r/...", "vibe": "...", "angle": "..." }],
       "twitter": [{ "tag": "#...", "vibe": "...", "angle": "..." }],
       "forums": [{ "name": "...", "vibe": "...", "angle": "..." }]
-    }`;
+    }\`;
 
     try {
       const response = await fetch(INVOKE_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Authorization': \`Bearer \${NVIDIA_API_KEY}\`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({
           model: NVIDIA_MODEL,
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: `Brand Brain:\n${JSON.stringify(brain)}` }
+            { role: "user", content: \`Brand Brain:\\n\${JSON.stringify(brain)}\` }
           ],
           max_tokens: 16384,
           temperature: 0.60,
@@ -85,13 +85,12 @@ export default function AudienceSpotter() {
         })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("NVIDIA API Error:", data);
-        throw new Error(data.error?.message || 'Failed to fetch from AI service');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || \`API Error: \${response.status}\`);
       }
 
+      const data = await response.json();
       let content = data.choices[0].message.content;
       content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
       content = content.replace(/```json\n?|```/g, '').trim();
