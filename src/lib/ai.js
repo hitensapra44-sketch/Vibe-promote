@@ -7,7 +7,7 @@ const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(INVOKE_URL);
 
 export const generateAICall = async (systemPrompt, userMessage) => {
   const controller = new AbortController();
-  // Set a 2-minute timeout (120,000ms)
+  // Set a generous timeout, though the proxy will likely limit us to 30-60s
   const timeoutId = setTimeout(() => controller.abort(), 320000);
 
   try {
@@ -25,13 +25,12 @@ export const generateAICall = async (systemPrompt, userMessage) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
-        // Reduced max_tokens to speed up generation and avoid timeouts
-        max_tokens: 4096, 
-        temperature: 0.60,
-        top_p: 0.95,
+        max_tokens: 2048, 
+        temperature: 0.5,
+        top_p: 0.9,
         stream: false,
-        // Keeping thinking enabled but the lower token limit will help
-        chat_template_kwargs: { enable_thinking: true }
+        // Disabled thinking to stay under proxy timeout limits
+        chat_template_kwargs: { enable_thinking: false }
       })
     });
 
@@ -45,15 +44,14 @@ export const generateAICall = async (systemPrompt, userMessage) => {
     const data = await response.json();
     let content = data.choices[0].message.content;
     
-    // Clean up response (remove thinking blocks and markdown)
-    content = content.replace(/<thought>[\s\S]*?<\/thought>/g, '').trim();
+    // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
 
     return JSON.parse(content);
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      throw new Error("The request took too long and timed out. Please try again.");
+      throw new Error("The request took too long. Please try again.");
     }
     throw error;
   }
