@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { generateAICall } from '../lib/ai';
+import { motion } from 'framer-motion';
+import { MessageCircle, Repeat2, Heart, Eye, Copy, RefreshCw, Check, ArrowRight } from 'lucide-react';
 
 export default function PostPreview({ 
   app_name, 
@@ -14,7 +16,6 @@ export default function PostPreview({
   brand_tone, 
   writing_style, 
   primary_cta,
-  primary_platform = "Twitter / X",
   onComplete 
 }) {
   const [post, setPost] = useState('');
@@ -22,40 +23,112 @@ export default function PostPreview({
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
+  const [engagement, setEngagement] = useState({
+    comments: Math.floor(Math.random() * 500) + 50,
+    reposts: Math.floor(Math.random() * 300) + 30,
+    likes: Math.floor(Math.random() * 1000) + 100,
+    views: Math.floor(Math.random() * 5000) + 1000
+  });
+  const [countedEngagement, setCountedEngagement] = useState({
+    comments: 0,
+    reposts: 0,
+    likes: 0,
+    views: 0
+  });
+  const [heartPulse, setHeartPulse] = useState(false);
+  const hasAnimated = useRef(false);
+
+  const formatNumber = (num) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace('.0', '') + 'K';
+    }
+    return num.toString();
+  };
+
+  useEffect(() => {
+    if (!hasAnimated.current && post) {
+      hasAnimated.current = true;
+      
+      // Animate engagement counters
+      const duration = 1800;
+      const stagger = 200;
+      
+      const animateCounter = (key, target, delay) => {
+        const startTime = Date.now();
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const current = Math.floor(target * easeOut);
+          
+          setCountedEngagement(prev => ({
+            ...prev,
+            [key]: current
+          }));
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else if (key === 'likes') {
+            setHeartPulse(true);
+            setTimeout(() => setHeartPulse(false), 300);
+          }
+        };
+        
+        setTimeout(animate, delay);
+      };
+      
+      animateCounter('comments', engagement.comments, 0);
+      animateCounter('reposts', engagement.reposts, stagger);
+      animateCounter('likes', engagement.likes, stagger * 2);
+      animateCounter('views', engagement.views, stagger * 3);
+    }
+  }, [post, engagement]);
 
   const generatePost = async (isRegen = false) => {
     if (isRegen) setRegenerating(true);
     else setLoading(true);
     setError(null);
+    hasAnimated.current = false;
 
-    const systemPrompt = `You are a founder writing a single raw, human post on Twitter/X. You are not a marketer. You are a real person who found a real solution to a painful problem and you want to share it honestly. You write like someone who is done with corporate fluff and just wants to say something true that helps people exactly like them.
+    const systemPrompt = `You are a real founder. Not a marketer. Not a content strategist. A person who built or found something that genuinely helped them, and now wants to tell other people about it in plain, honest words.
 
-You must write ONE post following this exact 6-part structure. Each part is a separate short paragraph with a line break between them. Do not label the parts. Do not add any explanation before or after the post. 
+You are writing ONE post for Twitter/X. It must feel like something a real human typed on their phone after a long day — not something that came out of a content calendar. Raw. Direct. True.
 
-Part 1 — HOOK: The very first line. This is the most important line in the entire post. It must use one of the exact pain phrases the founder provided in their own words. It must name the specific frustration so precisely that the target customer reads it and thinks someone wrote this about them personally. Maximum 12 words. No full stop at the end. No question mark unless it genuinely creates more tension. No hashtags. No emojis unless the brand tone is casual.
+Follow this exact 6-part structure. Each part is its own short paragraph. One blank line between each part. Do not label the parts. Do not add anything before or after the post. Return only the post text.
 
-Part 2 — RELATE: One sentence that makes the hook personal. The founder is saying I know this because I lived it or I see this every single day. This builds immediate trust. It confirms the reader is in the right place.
+---
 
-Part 3 — TURN: One line. The shift from the problem to the discovery. Something changed. Something was found. Something clicked. Do not reveal the solution yet. Leave a small open loop that makes the reader want to keep reading.
+PART 1 — HOOK
+This is the only line that decides if anyone reads the rest. Use one of the exact pain phrases the founder gave you, in their own words or very close to it. Name the frustration so specifically that the right person reads it and feels like someone finally said it out loud. Maximum 12 words. No period at the end. No hashtags. No emojis unless the founder's tone is genuinely casual. If a question adds real tension, use it — otherwise don't.
 
-Part 4 — PROOF: One to two sentences. Introduce the app and the unique differentiator. Do not use the app name like an ad. Use it like a founder casually mentioning what they built or found. The differentiator must be stated as a concrete fact not a vague claim. Never say game-changing, revolutionary, powerful, robust, seamless, or cutting-edge.
+PART 2 — RELATE
+One sentence. The founder is saying: I know this pain because I lived it, or I see it every day in the people I talk to. This is not sympathy — it is proof that the founder is one of them. It makes the reader feel like they are in the right place.
 
-Part 5 — SPECIFICITY: One line with a concrete detail. A number, a timeframe, a specific outcome, or a before and after stat. This makes the post feel real and not theoretical. If the founder did not provide a specific number, invent a believable small one that fits the context. Keep it realistic for an early-stage product.
+PART 3 — TURN
+One line only. Something shifted. Something was discovered. Do not name the solution yet. Just signal that a door opened. This creates a small open loop that pulls the reader forward. It should feel like the moment before a reveal, not the reveal itself.
 
-Part 6 — CTA: The final line. One sentence only. Use the founder's primary CTA exactly as they described it. Direct. No exclamation mark. No emoji. No asking for likes or follows.
+PART 4 — PROOF
+One to two sentences. Now introduce the product — but casually, the way a founder mentions something they built or stumbled onto, not the way an ad talks about a product. State the single biggest differentiator as a plain fact. Concrete and specific beats vague and impressive every time. Do not use any of these words: game-changing, revolutionary, powerful, robust, seamless, cutting-edge, innovative, disruptive, supercharge, unlock, leverage, synergy, crushing it, hustle.
 
-Hard rules for the entire post:
-- No hashtags anywhere in the post
+PART 5 — SPECIFICITY
+One line. Drop one real, concrete detail — a number, a timeframe, a before-and-after, a specific result. This is what makes the post feel like a true story and not a pitch. If the founder did not provide a specific number, create a believable, modest one that fits an early-stage product. Do not exaggerate. Small and real is better than big and suspicious.
+
+PART 6 — CTA
+One sentence. Use the founder's call to action exactly as they described it. Keep it direct and low-pressure. No exclamation mark. No emoji. No asking for likes, shares, or follows. Just tell them what to do next.
+
+---
+
+HARD RULES — these apply to every word in the post:
+
+- No hashtags anywhere
 - No em dashes
-- No words: game-changing, revolutionary, disruptive, powerful, robust, seamless, leverage, synergy, unlock, supercharge, cutting-edge, innovative, crushing it, hustle
-- No corporate language of any kind
-- No more than 3 sentences per paragraph
-- Total post length must be between 180 and 280 words
-- Must sound like one specific human wrote it, not a content team
-- The writing style and tone passed in by the founder must be respected throughout
-- If the audience awareness level is low (they do not know a solution exists), the post must educate gently before pitching. If awareness is high (they have tried other tools), the post must differentiate immediately and skip the education.
-
-Return the post in this JSON format: { "post": "..." }`;
+- No corporate or hype language of any kind
+- No more than 3 sentences in any paragraph
+- Total word count must be between 180 and 280 words
+- The entire post must sound like one specific person wrote it — not a team, not a tool
+- Fully respect the writing tone and style the founder described
+- If the target audience has LOW awareness (they do not yet know a solution like this exists): educate them gently in Parts 2 and 3 before introducing the product
+- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried`;
 
     const userMessage = `Here is everything you need to write the post:
 
@@ -69,13 +142,12 @@ Exact words the audience uses to describe their pain: ${pain_phrases}
 Brand tone: ${brand_tone}
 Writing style: ${writing_style}
 Primary CTA: ${primary_cta}
-Platform: ${primary_platform}
 
 Write the post now. Return only the post. Nothing else.`;
 
     try {
       const result = await generateAICall(systemPrompt, userMessage);
-      setPost(result.post);
+      setPost(result.post || result);
     } catch (err) {
       console.error("Generation failed:", err);
       setError("Something went wrong generating your post.");
@@ -97,105 +169,143 @@ Write the post now. Return only the post. Nothing else.`;
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950 font-poppins">
-        <p className="text-white font-medium text-lg mb-4">Writing your post...</p>
-        <div className="flex gap-2 mb-4">
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse [animation-delay:200ms]" />
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse [animation-delay:400ms]" />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black font-poppins">
+        <div className="relative w-20 h-20 mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary/20 rounded-full animate-pulse" />
+          </div>
         </div>
-        <p className="text-zinc-500 text-sm">Using your audience's exact words</p>
+        <p className="text-white font-medium text-lg mb-2">Writing your post...</p>
+        <p className="text-gray-500 text-sm">Using your exact pain phrases and brand voice</p>
       </div>
     );
   }
 
-  const handle = `@${app_name.toLowerCase().replace(/\s+/g, '')}`;
+  const handle = `@${app_name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+  const timestamp = "2h ago";
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-poppins pt-12 pb-20 px-6">
-      <div className="max-w-xl mx-auto text-center">
-        <h1 className="text-3xl font-bold">Here's your first post.</h1>
-        <p className="text-zinc-400 text-sm mt-2 max-w-md mx-auto">
-          Written in your voice. Using your audience's exact language. Ready to copy and post right now.
-        </p>
+    <div className="min-h-screen bg-black text-white font-poppins pt-12 pb-20 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold mb-2">Here's your first post.</h1>
+          <p className="text-gray-500 text-sm">
+            Written in your voice. Using your audience's exact language. Ready to copy and post right now.
+          </p>
+        </div>
 
-        {/* Tweet Card */}
-        <div className="mt-8 relative">
-          <div className={`bg-zinc-900 rounded-2xl border border-zinc-700 p-6 text-left transition-opacity duration-300 ${regenerating ? 'opacity-40' : 'opacity-100'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-700" />
-                <div>
-                  <p className="text-white font-semibold text-sm">{app_name}</p>
-                  <p className="text-zinc-500 text-sm">{handle}</p>
+        {/* Twitter/X Post Card */}
+        <div className="relative mb-8">
+          <div className={`bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden transition-opacity duration-300 ${regenerating ? 'opacity-40' : 'opacity-100'}`}>
+            {/* Profile Header */}
+            <div className="p-4 border-b border-[#2f3336]">
+              <div className="flex items-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mr-3" />
+                <div className="flex-1">
+                  <div className="flex items-center">
+                    <span className="font-bold text-white text-base">{app_name}</span>
+                    <svg className="w-5 h-5 text-[#1d9bf0] ml-1" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.66 2.19-1.91 2.19-3.34z" />
+                    </svg>
+                  </div>
+                  <div className="text-[#71767b] text-sm">{handle}</div>
                 </div>
               </div>
-              <span className="bg-zinc-800 text-zinc-500 text-xs rounded-full px-3 py-1">Twitter / X</span>
             </div>
 
-            {error ? (
-              <div className="py-10 text-center">
-                <p className="text-red-400 text-sm mb-4">{error}</p>
-                <button 
-                  onClick={() => generatePost()}
-                  className="border border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white rounded-xl px-6 py-2 text-sm transition-colors"
-                >
-                  Try again
-                </button>
-              </div>
-            ) : (
-              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">
-                {post}
-              </p>
-            )}
+            {/* Post Content */}
+            <div className="p-4">
+              {error ? (
+                <div className="py-10 text-center">
+                  <p className="text-red-400 text-sm mb-4">{error}</p>
+                  <button 
+                    onClick={() => generatePost()}
+                    className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-2 text-sm transition-colors"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-white text-[15px] leading-[1.5] whitespace-pre-wrap font-[system-ui,-apple-system]">
+                    {post}
+                  </p>
+                  <div className="text-[#71767b] text-sm">{timestamp}</div>
+                </div>
+              )}
+            </div>
 
-            <div className="mt-6 pt-4 border-t border-zinc-800 flex items-center justify-between text-zinc-600 text-sm">
-              <span>💬 0</span>
-              <span>🔁 0</span>
-              <span>♡ 0</span>
-              <span>👁 0</span>
+            {/* Engagement Bar */}
+            <div className="px-4 py-3 border-t border-[#2f3336]">
+              <div className="flex justify-between max-w-md">
+                <div className="flex items-center space-x-2">
+                  <MessageCircle className="w-5 h-5 text-[#71767b]" />
+                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.comments)}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Repeat2 className="w-5 h-5 text-[#71767b]" />
+                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.reposts)}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <motion.div
+                    animate={heartPulse ? { scale: [1, 1.2, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Heart className={`w-5 h-5 ${countedEngagement.likes > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
+                  </motion.div>
+                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.likes)}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Eye className="w-5 h-5 text-[#71767b]" />
+                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.views)}</span>
+                </div>
+              </div>
             </div>
           </div>
 
           {regenerating && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
 
         {/* Context Strip */}
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <span className="bg-zinc-800 text-zinc-300 text-xs rounded-full px-3 py-1">🎯 Hook: Pain recognition</span>
-          <span className="bg-zinc-800 text-zinc-300 text-xs rounded-full px-3 py-1">🗣️ Tone: {brand_tone}</span>
-          <span className="bg-zinc-800 text-zinc-300 text-xs rounded-full px-3 py-1">📍 Platform: Twitter / X</span>
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          <span className="bg-[#1d9bf0]/10 text-[#1d9bf0] text-xs rounded-full px-3 py-1">🎯 Hook: Pain recognition</span>
+          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">🗣️ Tone: {brand_tone}</span>
+          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">📍 Platform: Twitter / X</span>
+          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">📝 Style: {writing_style}</span>
         </div>
-        <p className="text-zinc-500 text-xs mt-3">
+        <p className="text-gray-500 text-xs text-center mb-10">
           First line uses your audience's exact language. Built to stop a founder mid-scroll.
         </p>
 
         {/* Buttons */}
-        <div className="mt-8 flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex gap-3">
             <button
               onClick={handleCopy}
-              className="bg-violet-600 hover:bg-violet-500 text-white font-medium rounded-xl px-6 py-3 text-sm transition-colors min-w-[120px]"
+              className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium rounded-xl px-6 py-3 text-sm transition-colors min-w-[120px] flex items-center justify-center gap-2"
             >
-              {copied ? "Copied ✓" : "Copy post"}
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? "Copied" : "Copy post"}
             </button>
             <button
               onClick={() => generatePost(true)}
               disabled={regenerating}
-              className="border border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white rounded-xl px-6 py-3 text-sm transition-colors"
+              className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-3 text-sm transition-colors flex items-center justify-center gap-2"
             >
+              <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
               Regenerate
             </button>
           </div>
           <button
             onClick={onComplete}
-            className="text-zinc-500 hover:text-zinc-300 text-sm underline underline-offset-4 transition-colors block"
+            className="text-[#1d9bf0] hover:text-[#1a8cd8] text-sm underline underline-offset-4 transition-colors flex items-center gap-1"
           >
-            Continue to dashboard →
+            Continue to dashboard <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </div>
