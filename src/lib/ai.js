@@ -1,5 +1,6 @@
 const NVIDIA_API_KEY = "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";
-const NVIDIA_MODEL = "qwen/qwen3.5-397b-a17b";
+// Switching to a faster, highly capable model to avoid proxy timeouts
+const NVIDIA_MODEL = "meta/llama-3.3-70b-instruct";
 const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 // Using a CORS proxy to bypass browser restrictions
@@ -7,8 +8,8 @@ const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(INVOKE_URL);
 
 export const generateAICall = async (systemPrompt, userMessage) => {
   const controller = new AbortController();
-  // Set a generous timeout, though the proxy will likely limit us to 30-60s
-  const timeoutId = setTimeout(() => controller.abort(), 320000);
+  // Set a timeout that aligns better with proxy limits (approx 30s)
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
 
   try {
     const response = await fetch(PROXY_URL, {
@@ -25,20 +26,25 @@ export const generateAICall = async (systemPrompt, userMessage) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
-        max_tokens: 2048, 
+        max_tokens: 1024, 
         temperature: 0.5,
         top_p: 0.9,
-        stream: false,
-        // Disabled thinking to stay under proxy timeout limits
-        chat_template_kwargs: { enable_thinking: false }
+        stream: false
       })
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `API Error: ${response.status}`);
+      const errorText = await response.text();
+      let errorMessage = `API Error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error?.message || errorMessage;
+      } catch (e) {
+        // Not JSON, use status text
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -47,7 +53,12 @@ export const generateAICall = async (systemPrompt, userMessage) => {
     // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
 
-    return JSON.parse(content);
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error("Failed to parse AI response as JSON:", content);
+      throw new Error("The AI returned an invalid format. Please try again.");
+    }
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
