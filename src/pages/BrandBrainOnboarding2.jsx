@@ -175,7 +175,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, targe
                 <p className="text-xs text-text-secondary/60">Add unlimited pain phrases separated by commas</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div className="space-y-4">
                   <label className="text-sm font-bold text-white block">Brand Tone</label>
                   <div className="grid grid-cols-2 gap-3">
