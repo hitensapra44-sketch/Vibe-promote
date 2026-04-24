@@ -50,7 +50,18 @@ Rules:
 - Return ONLY valid JSON. No explanation, no markdown, no backticks, no extra text outside the JSON.`;
 
     try {
-      const parsed = await generateAICall(systemPrompt, `Analyze the product at this URL: ${url}`);
+      const result = await generateAICall(systemPrompt, `Analyze the product at this URL: ${url}`);
+      
+      // Parse the JSON response
+      let parsed;
+      try {
+        // Clean the response first
+        const cleaned = result.replace(/```json\n?|```/g, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", result);
+        throw new Error("Couldn't parse the website analysis. Please fill in the fields manually.");
+      }
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
@@ -61,7 +72,7 @@ Rules:
       setExtracted(true);
     } catch (err) {
       console.error("Extraction failed:", err);
-      setExtractError("Couldn't read that URL. Fill in the questions below instead.");
+      setExtractError(err.message || "Couldn't read that URL. Fill in the questions below instead.");
     } finally {
       setExtracting(false);
     }

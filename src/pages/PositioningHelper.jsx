@@ -43,7 +43,19 @@ export default function PositioningHelper({ appData, onComplete }) {
     `;
 
     try {
-      const parsed = await generateAICall(systemPrompt, userMessage);
+      const result = await generateAICall(systemPrompt, userMessage);
+      
+      // Parse the JSON response
+      let parsed;
+      try {
+        // Clean the response first
+        const cleaned = result.replace(/```json\n?|```/g, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", result);
+        throw new Error("Couldn't generate positioning analysis. Please try again.");
+      }
+      
       setAiPositioning(parsed);
     } catch (err) {
       console.error("Detailed Generation Error:", err);
