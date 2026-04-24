@@ -1,66 +1,41 @@
-const NVIDIA_API_KEY = "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";
-// Switching to a faster, highly capable model to avoid proxy timeouts
-const NVIDIA_MODEL = "meta/llama-3.3-70b-instruct";
-const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
-
-// Using a CORS proxy to bypass browser restrictions
-const PROXY_URL = "https://corsproxy.io/?" + encodeURIComponent(INVOKE_URL);
+const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
+const GEMINI_MODEL = "gemini-1.5-flash";
+const INVOKE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 export const generateAICall = async (systemPrompt, userMessage) => {
-  const controller = new AbortController();
-  // Set a timeout that aligns better with proxy limits (approx 30s)
-  const timeoutId = setTimeout(() => controller.abort(), 45000);
-
   try {
-    const response = await fetch(PROXY_URL, {
+    const response = await fetch(INVOKE_URL, {
       method: 'POST',
-      signal: controller.signal,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-        'Accept': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: NVIDIA_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `System Instructions: ${systemPrompt}\n\nUser Input: ${userMessage}` }]
+          }
         ],
-        max_tokens: 1024, 
-        temperature: 0.5,
-        top_p: 0.9,
-        stream: false
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
       })
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = `API Error: ${response.status}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error?.message || errorMessage;
-      } catch (e) {
-        // Not JSON, use status text
-      }
-      throw new Error(errorMessage);
+      const error = await response.json();
+      throw new Error(error.error?.message || "Gemini API Error");
     }
 
     const data = await response.json();
-    let content = data.choices[0].message.content;
+    let content = data.candidates[0].content.parts[0].text;
     
     // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
-
-    // For PostPreview, we expect plain text, not JSON
-    // Just return the cleaned content directly
     return content;
   } catch (err) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error("The request took too long. Please try again.");
-    }
+    console.error("AI Call Error:", err);
     throw err;
   }
 };

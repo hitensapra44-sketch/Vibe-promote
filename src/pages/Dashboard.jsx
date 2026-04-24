@@ -8,7 +8,6 @@ import {
   PenTool, 
   LogOut,
   Sparkles,
-  ArrowRight,
   Zap,
   Lock,
   CheckCircle2,
@@ -19,12 +18,12 @@ import {
   Rocket,
   TrendingUp,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
-import GridBackground from "@/components/ui/grid-background";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -58,11 +57,10 @@ export default function Dashboard() {
 
         if (answers && answers.length > 0) {
           const mappedData = {
-            role: answers.find(a => a.question_id === 2)?.answer || 'Not set',
-            channels: answers.find(a => a.question_id === 4)?.answer || 'Not set',
-            productType: answers.find(a => a.question_id === 5)?.answer || 'Not set',
-            focus: answers.find(a => a.question_id === 6)?.answer || 'Not set',
-            appInfo: answers.find(a => a.question_id === 1)?.answer || 'Not set'
+            role: answers.find(a => a.question_id === 2)?.answer || '—',
+            channels: answers.find(a => a.question_id === 4)?.answer || '—',
+            productType: answers.find(a => a.question_id === 5)?.answer || '—',
+            focus: answers.find(a => a.question_id === 6)?.answer || '—',
           };
           setProfileData(mappedData);
         }
@@ -81,10 +79,11 @@ export default function Dashboard() {
   };
 
   const navLinks = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', active: true },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', active: true, available: true },
     { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
     { icon: PenTool, label: 'Post Maker', path: '/post-maker', available: true },
     { icon: TrendingUp, label: 'Viral Post Analyzer', path: '#', available: false },
+    { icon: Settings, label: 'Settings', path: '#', available: true },
   ];
 
   const tools = [
@@ -115,16 +114,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#F97316] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-bg-base text-white font-poppins flex relative overflow-hidden">
-      <GridBackground />
-
+    <div className="min-h-screen bg-[#0A0A0A] text-[#FAFAFA] font-poppins flex relative overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -140,73 +137,57 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 bg-bg-surface/80 backdrop-blur-xl border-r border-border-muted z-50 transition-all duration-300",
+        "fixed lg:static inset-y-0 left-0 bg-[#111111] border-r border-[#1F1F1F] z-50 transition-all duration-300",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        sidebarCollapsed ? "lg:w-20" : "lg:w-64"
+        sidebarCollapsed ? "lg:w-20" : "lg:w-[220px]"
       )}>
         <div className="flex flex-col h-full">
           <div className="p-6 flex items-center justify-between">
             {!sidebarCollapsed && (
               <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-white font-bold text-xl tracking-tight">Vibe Promote</span>
+                <Sparkles className="w-4 h-4 text-[#F97316]" />
+                <span className="text-[#FAFAFA] font-semibold text-lg tracking-tight">Vibe Hype</span>
               </Link>
             )}
             {sidebarCollapsed && (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary mx-auto">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
+              <Sparkles className="w-5 h-5 text-[#F97316] mx-auto" />
             )}
             <button className="lg:hidden" onClick={() => setMobileMenuOpen(false)}>
-              <X className="w-6 h-6 text-text-secondary" />
+              <X className="w-5 h-5 text-[#71717A]" />
             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-3 py-4 space-y-1">
             {navLinks.map((link) => (
               <button
                 key={link.label}
                 onClick={() => link.available && navigate(link.path)}
                 className={cn(
-                  "w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all group",
+                  "w-full flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all group",
                   link.active 
-                    ? "bg-primary/10 text-primary border border-primary/20" 
-                    : "text-text-secondary hover:text-white hover:bg-white/5",
+                    ? "bg-[#1A1A1A] text-[#FAFAFA] border-l-2 border-[#F97316] rounded-l-none" 
+                    : "text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#161616]",
                   sidebarCollapsed ? "justify-center" : "justify-between"
                 )}
               >
                 <div className="flex items-center gap-3">
-                  <link.icon className="w-4 h-4" />
+                  <link.icon className={cn("w-4 h-4", link.active ? "text-[#FAFAFA]" : "text-[#71717A]")} />
                   {!sidebarCollapsed && link.label}
                 </div>
-                {!sidebarCollapsed && !link.available && <Lock className="w-3 h-3 opacity-40" />}
+                {!sidebarCollapsed && !link.available && <Lock className="w-3 h-3 text-[#3F3F46]" />}
               </button>
             ))}
           </nav>
 
-          <div className="p-4 border-t border-border-muted space-y-4">
-            <button 
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden lg:flex w-full items-center justify-center p-2 rounded-xl hover:bg-white/5 text-text-secondary transition-all"
-            >
-              {sidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-            </button>
-            
+          <div className="p-4 border-t border-[#1F1F1F] space-y-4">
             {!sidebarCollapsed && (
-              <div className="px-4 py-2">
-                <p className="text-[10px] font-bold text-text-secondary/40 uppercase tracking-widest mb-1">Account</p>
-                <p className="text-xs text-text-secondary truncate mb-2">{user?.email}</p>
+              <div className="px-2">
+                <p className="text-[12px] text-[#71717A] truncate">{user?.email}</p>
                 <div className={cn(
-                  "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                  isPaid ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"
+                  "mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                  isPaid ? "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20" : "bg-[#1F1F1F] text-[#71717A] border-[#2F2F2F]"
                 )}>
-                  {isPaid ? (
-                    <><CheckCircle2 className="w-3 h-3" /> Lifetime Access 🟢</>
-                  ) : (
-                    <><Lock className="w-3 h-3" /> Free Preview 🔒</>
-                  )}
+                  {isPaid ? "Lifetime Access" : "Free Preview"}
                 </div>
               </div>
             )}
@@ -214,7 +195,7 @@ export default function Dashboard() {
             <button 
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-400/10 transition-all",
+                "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-[#71717A] hover:text-[#FAFAFA] transition-all",
                 sidebarCollapsed ? "justify-center" : ""
               )}
             >
@@ -226,225 +207,167 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative z-10">
-        {/* Zone 1: Header Bar */}
-        <header className="h-16 sm:h-20 border-b border-border-muted bg-bg-base/50 backdrop-blur-md flex items-center justify-between px-6 sm:px-10 sticky top-0 z-30">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header className="h-16 sm:h-20 border-b border-[#1F1F1F] flex items-center justify-between px-8 sticky top-0 bg-[#0A0A0A]/80 backdrop-blur-md z-30">
           <div className="flex items-center gap-4">
             <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileMenuOpen(true)}>
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold">Dashboard</h1>
+            <h1 className="text-xl font-semibold text-[#FAFAFA]">Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
             {!isPaid && (
               <button 
                 onClick={() => navigate('/pre-purchase')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-all shadow-lg shadow-primary/20"
+                className="px-3 py-1.5 rounded-md border border-[#F97316] text-[#F97316] text-[12px] font-medium hover:bg-[#F97316]/5 transition-all"
               >
-                <Zap className="w-4 h-4" />
-                Unlock Full Access
+                Upgrade
               </button>
             )}
-            <div className="flex items-center gap-3 pl-4 border-l border-border-muted">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-white">{user?.email?.split('@')[0]}</p>
-                <p className="text-[10px] text-text-secondary">Founder</p>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-bg-elevated border border-border-muted flex items-center justify-center text-sm font-bold text-primary">
-                {user?.email?.substring(0, 2).toUpperCase()}
-              </div>
+            <div className="w-8 h-8 rounded-full bg-[#1F1F1F] border border-[#2F2F2F] flex items-center justify-center text-[12px] font-medium text-[#FAFAFA]">
+              {user?.email?.substring(0, 2).toUpperCase()}
             </div>
           </div>
         </header>
 
-        <div className="p-6 sm:p-10 space-y-10 max-w-7xl mx-auto w-full">
-          {/* Zone 2: Welcome Banner */}
-          <section className={cn(
-            "relative rounded-3xl p-8 overflow-hidden border border-primary/30 bg-transparent"
-          )}>
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-            <div className="relative z-10">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                Welcome back, {user?.email?.split('@')[0]}
-              </h2>
-              <p className="text-text-secondary">Your AI marketing co-pilot for bootstrapped founders.</p>
-              {!isPaid && (
-                <p className="mt-4 text-amber-500 text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  You're on free preview. Unlock all tools with lifetime access.
-                </p>
-              )}
-            </div>
+        <div className="p-8 space-y-10 max-w-6xl mx-auto w-full">
+          <section>
+            <h2 className="text-2xl font-semibold text-[#FAFAFA]">Good morning, {user?.email?.split('@')[0]}.</h2>
+            <p className="text-[#71717A] text-sm mt-1">Here's where your marketing stands today.</p>
+            {!isPaid && (
+              <div className="mt-4 flex items-center gap-2 text-[#F59E0B] text-[13px]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+                Free preview — 2 tools locked
+              </div>
+            )}
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Zone 4: Your Profile Snapshot */}
-            <section className="bg-transparent border border-primary/30 rounded-3xl p-8 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <User className="w-5 h-5 text-primary" />
-                    Your Marketing Profile
-                  </h3>
-                  <Link to="/survey" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                    Retake Survey
-                  </Link>
-                </div>
-                
-                <div className="space-y-6">
-                  {[
-                    { label: 'Stage', value: profileData?.focus },
-                    { label: 'Main Channel', value: profileData?.channels },
-                    { label: 'Product Type', value: profileData?.productType },
-                    { label: 'Role', value: profileData?.role },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
-                      <span className="text-sm text-text-secondary">{item.label}</span>
-                      <span className="text-sm font-bold text-white">{item.value || 'Not set'}</span>
-                    </div>
-                  ))}
-                </div>
+          {/* Stats Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: 'ACCOUNT STATUS', value: isPaid ? 'Lifetime Access ✓' : 'Free Preview' },
+              { label: 'TOOLS UNLOCKED', value: isPaid ? '6 of 6' : '1 of 6' },
+              { label: 'SURVEY', value: profileData ? 'Completed' : 'Pending' },
+              { label: 'MEMBER SINCE', value: new Date(user?.created_at).toLocaleDateString() },
+            ].map((stat, i) => (
+              <div key={i} className="bg-[#141414] border border-[#1F1F1F] rounded-lg p-4 px-5">
+                <p className="text-[11px] font-medium text-[#71717A] uppercase tracking-[0.08em]">{stat.label}</p>
+                <p className="text-base font-medium text-[#FAFAFA] mt-1">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {/* Profile Card */}
+            <section className="bg-[#141414] border border-[#1F1F1F] rounded-lg p-6">
+              <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-[0.08em] mb-6">MARKETING PROFILE</h3>
+              <div className="space-y-0">
+                {[
+                  { label: 'Stage', value: profileData?.focus },
+                  { label: 'Main Channel', value: profileData?.channels },
+                  { label: 'Product Type', value: profileData?.productType },
+                  { label: 'Role', value: profileData?.role },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b border-[#1F1F1F] last:border-0">
+                    <span className="text-sm text-[#71717A]">{item.label}</span>
+                    <span className="text-sm font-medium text-[#FAFAFA]">{item.value}</span>
+                  </div>
+                ))}
               </div>
             </section>
 
-            {/* Zone 5: Onboarding Checklist */}
-            <section className="bg-transparent border border-primary/30 rounded-3xl p-8 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold flex items-center gap-2">
-                    <Rocket className="w-5 h-5 text-primary" />
-                    Getting Started
-                  </h3>
-                  <span className="text-xs font-bold text-text-secondary/60">
-                    {profileData ? (isPaid ? '4 of 5' : '3 of 5') : '1 of 5'} steps complete
-                  </span>
-                </div>
+            {/* Checklist Card */}
+            <section className="bg-[#141414] border border-[#1F1F1F] rounded-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-[0.08em]">GETTING STARTED</h3>
+                <span className="text-[12px] text-[#71717A]">
+                  {profileData ? (isPaid ? '4 of 5' : '3 of 5') : '1 of 5'} complete
+                </span>
+              </div>
 
-                <div className="w-full h-1.5 bg-white/5 rounded-full mb-8 overflow-hidden">
-                  <div 
-                    className="h-full bg-primary transition-all duration-500" 
-                    style={{ width: profileData ? (isPaid ? '80%' : '60%') : '20%' }} 
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  {[
-                    { label: 'Joined the waitlist', done: true },
-                    { label: 'Completed the survey', done: !!profileData },
-                    { label: 'Created your account', done: true },
-                    { label: 'Unlock lifetime access', done: isPaid, highlight: !isPaid },
-                    { label: 'Run your first tool', done: false },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      {item.done ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Circle className={cn("w-5 h-5", item.highlight ? "text-amber-500" : "text-text-secondary/20")} />
-                      )}
-                      <span className={cn(
-                        "text-sm font-medium",
-                        item.done ? "text-text-secondary line-through" : "text-white",
-                        item.highlight && "text-amber-500"
-                      )}>
-                        {item.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-4">
+                {[
+                  { label: 'Joined the waitlist', done: true },
+                  { label: 'Completed the survey', done: !!profileData },
+                  { label: 'Created your account', done: true },
+                  { label: 'Unlock lifetime access', done: isPaid, current: !isPaid },
+                  { label: 'Run your first tool', done: false, future: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.done ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#22C55E]" />
+                    ) : (
+                      <Circle className={cn("w-4 h-4", item.current ? "text-[#F97316]" : "text-[#3F3F46]")} />
+                    )}
+                    <span className={cn(
+                      "text-sm",
+                      item.done ? "text-[#71717A] line-through" : item.current ? "text-[#FAFAFA] font-medium" : "text-[#52525B]"
+                    )}>
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </section>
           </div>
 
-          {/* Zone 6: AI Tools Grid */}
-          <section className="space-y-8">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <Zap className="w-6 h-6 text-primary" />
-              Your AI Marketing Tools
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* AI Tools Grid */}
+          <section className="space-y-6">
+            <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-[0.08em]">AI MARKETING TOOLS</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {tools.map((tool) => (
                 <div 
                   key={tool.id} 
-                  className={cn(
-                    "group relative p-6 rounded-3xl border transition-all duration-300 bg-transparent border-primary/30 hover:border-primary hover:-translate-y-1 overflow-hidden"
-                  )}
+                  className="group bg-[#141414] border border-[#1F1F1F] rounded-lg p-5 flex flex-col hover:bg-[#161616] hover:border-[#2F2F2F] transition-all"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-                  
-                  {/* Lock Overlay for Unpaid */}
-                  {!isPaid && tool.available && (
-                    <div className="absolute inset-0 z-10 bg-bg-base/40 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center p-6 text-center">
-                      <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center mb-3">
-                        <Lock className="w-5 h-5 text-amber-500" />
-                      </div>
-                      <p className="text-xs font-bold text-white mb-1">Locked</p>
-                      <p className="text-[10px] text-text-secondary">Purchase lifetime access to unlock</p>
-                    </div>
-                  )}
-
-                  <div className="relative z-0">
-                    <div className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center mb-4",
-                      tool.available ? "bg-primary/10 text-primary" : "bg-white/5 text-text-secondary/40"
+                  <div className="flex items-center justify-between mb-4">
+                    <tool.icon className="w-4 h-4 text-[#71717A]" />
+                    <span className={cn(
+                      "text-[10px] font-medium uppercase tracking-widest",
+                      tool.available ? "text-[#22C55E]" : "text-[#3F3F46]"
                     )}>
-                      <tool.icon className="w-6 h-6" />
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-white">{tool.name}</h4>
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md",
-                        tool.available ? "bg-green-500/10 text-green-500" : "bg-white/5 text-text-secondary/40"
-                      )}>
-                        {tool.available ? 'Available' : 'Coming Soon'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-text-secondary mb-6 leading-relaxed">
-                      {tool.desc}
-                    </p>
-                    <button
-                      disabled={!tool.available}
-                      onClick={() => isPaid ? navigate(tool.path) : navigate('/pre-purchase')}
-                      className={cn(
-                        "w-full py-3 rounded-xl text-sm font-bold transition-all",
-                        tool.available 
-                          ? "bg-primary/10 text-primary hover:bg-primary hover:text-white" 
-                          : "bg-white/5 text-text-secondary/40 cursor-not-allowed"
-                      )}
-                    >
-                      {!tool.available ? 'Coming Soon' : (isPaid ? 'Open Tool' : 'Unlock to Access')}
-                    </button>
+                      {tool.available ? 'AVAILABLE' : 'COMING SOON'}
+                    </span>
                   </div>
+                  <h4 className="text-[15px] font-semibold text-[#FAFAFA] flex items-center gap-2">
+                    {tool.name}
+                    {!isPaid && tool.available && <Lock className="w-3 h-3 text-[#3F3F46]" />}
+                  </h4>
+                  <p className="text-[13px] text-[#71717A] mt-1 mb-6 line-clamp-2">
+                    {tool.desc}
+                  </p>
+                  <button
+                    disabled={!tool.available}
+                    onClick={() => isPaid ? navigate(tool.path) : navigate('/pre-purchase')}
+                    className={cn(
+                      "w-full py-2 rounded-md text-sm font-medium transition-all mt-auto",
+                      !tool.available 
+                        ? "bg-[#111111] border border-[#1F1F1F] text-[#3F3F46] cursor-not-allowed"
+                        : isPaid 
+                          ? "bg-[#1F1F1F] border border-[#2F2F2F] text-[#FAFAFA] hover:bg-[#2F2F2F]" 
+                          : "bg-transparent border border-[#2A1F14] text-[#F97316] hover:bg-[#F97316]/5"
+                    )}
+                  >
+                    {!tool.available ? 'Coming Soon' : (isPaid ? 'Open Tool' : 'Unlock to Access')}
+                  </button>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Zone 7: Recent Activity Feed */}
-          <section className="bg-transparent border border-primary/30 rounded-3xl p-10 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-            <div className="relative z-10">
-              <h3 className="text-xl font-bold mb-8 text-left">Recent Activity</h3>
-              <div className="flex flex-col items-center justify-center py-10">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                  <TrendingUp className="w-8 h-8 text-text-secondary/20" />
-                </div>
-                <p className="text-text-secondary font-medium">No activity yet.</p>
-                <p className="text-sm text-text-secondary/60">Open a tool above to get started.</p>
-              </div>
+          {/* Recent Activity */}
+          <section>
+            <h3 className="text-[11px] font-medium text-[#71717A] uppercase tracking-[0.08em] mb-4">RECENT ACTIVITY</h3>
+            <div className="h-20 flex items-center justify-center border border-[#1F1F1F] rounded-lg bg-transparent">
+              <p className="text-[14px] text-[#52525B]">No activity yet. Open a tool to get started.</p>
             </div>
           </section>
 
-          {/* Zone 8: Bottom Footer Strip */}
-          <footer className="pt-10 pb-6 border-t border-border-muted flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-text-secondary/40 font-medium">
-              Vibe Promote © 2026
-            </p>
+          <footer className="pt-10 pb-6 border-t border-[#1F1F1F] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[12px] text-[#71717A]">Vibe Hype © 2026</p>
             <div className="flex items-center gap-6">
-              <button className="text-xs text-text-secondary/60 hover:text-white transition-colors">Support</button>
-              <button className="text-xs text-text-secondary/60 hover:text-white transition-colors">Give Feedback</button>
+              <button className="text-[12px] text-[#71717A] hover:text-[#FAFAFA] transition-colors">Support</button>
+              <button className="text-[12px] text-[#71717A] hover:text-[#FAFAFA] transition-colors">Feedback</button>
             </div>
           </footer>
         </div>
