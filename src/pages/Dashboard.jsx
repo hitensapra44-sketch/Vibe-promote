@@ -18,8 +18,6 @@ import {
   User,
   Rocket,
   TrendingUp,
-  ChevronLeft,
-  ChevronRight,
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
@@ -147,23 +145,10 @@ export default function Dashboard() {
         sidebarCollapsed ? "lg:w-20" : "lg:w-64"
       )}>
         <div className="flex flex-col h-full">
-          <div className="p-6 flex items-center justify-between">
-            {!sidebarCollapsed && (
-              <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-white font-bold text-xl tracking-tight">Vibe Promote</span>
-              </Link>
-            )}
-            {sidebarCollapsed && (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary mx-auto">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-            )}
+          <div className="p-6 flex items-center justify-end">
             <button 
               className="p-2 rounded-lg hover:bg-white/5 text-text-secondary transition-all"
-              onClick={() => sidebarCollapsed ? setSidebarCollapsed(false) : setSidebarCollapsed(true)}
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
             </button>
@@ -266,12 +251,6 @@ export default function Dashboard() {
                 Welcome, {user?.email?.split('@')[0]}
               </h2>
               <p className="text-text-secondary">Your marketing co-pilot is ready</p>
-              {!isPaid && (
-                <p className="mt-4 text-amber-500 text-sm font-medium flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  You're on free tier. Unlock all tools with lifetime access.
-                </p>
-              )}
             </div>
           </section>
 
