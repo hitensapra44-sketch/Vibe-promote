@@ -145,7 +145,9 @@ HARD RULES — these apply to every word in the post:
 - The entire post must sound like one specific person wrote it — not a team, not a tool
 - Fully respect the writing tone and style the founder described
 - If the target audience has LOW awareness (they do not yet know a solution like this exists): educate them gently in Parts 2 and 3 before introducing the product
-- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried`;
+- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried
+
+- make the post in 190 words`;
 
     const userMessage = `Here is everything you need to write the post:
 
