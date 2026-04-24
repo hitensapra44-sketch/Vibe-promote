@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateAICall } from '../lib/ai';
 import { motion } from 'framer-motion';
-import { MessageCircle, Repeat2, Heart, Eye, RefreshCw, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { MessageCircle, Repeat2, Heart, Eye, LayoutDashboard } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 
@@ -22,78 +22,47 @@ export default function PostPreview({
 }) {
   const [post, setPost] = useState('');
   const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState(null);
-  const [engagement, setEngagement] = useState({
-    comments: Math.floor(Math.random() * 500) + 50,
-    reposts: Math.floor(Math.random() * 300) + 30,
-    likes: Math.floor(Math.random() * 1000) + 100,
-    views: Math.floor(Math.random() * 5000) + 1000
-  });
-  const [countedEngagement, setCountedEngagement] = useState({
-    comments: 0,
-    reposts: 0,
-    likes: 0,
-    views: 0
-  });
+  
+  // Single source of truth for the increasing count
+  const [baseCount, setBaseCount] = useState(0);
   const [heartPulse, setHeartPulse] = useState(false);
+  
   const animationRef = useRef(null);
-  const hasAnimated = useRef(false);
+  const lastTimeRef = useRef(null);
 
   const formatNumber = (num) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1).replace('.0', '') + 'K';
+    const rounded = Math.floor(num);
+    if (rounded >= 1000000) return "1M+";
+    if (rounded >= 1000) {
+      return (rounded / 1000).toFixed(1).replace('.0', '') + 'K';
     }
-    return num.toString();
+    return rounded.toString();
   };
 
-  const startContinuousAnimation = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-
-    const duration = 4000; // Longer duration for continuous feel
-    const startTime = Date.now();
-    
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Smooth easing function
-      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-      const easedProgress = easeOutCubic(progress);
-      
-      setCountedEngagement({
-        comments: Math.floor(engagement.comments * easedProgress),
-        reposts: Math.floor(engagement.reposts * easedProgress),
-        likes: Math.floor(engagement.likes * easedProgress),
-        views: Math.floor(engagement.views * easedProgress)
-      });
-
-      // Pulse heart when likes reach certain thresholds
-      const currentLikes = Math.floor(engagement.likes * easedProgress);
-      if (currentLikes > 0 && currentLikes % 250 === 0) {
-        setHeartPulse(true);
-        setTimeout(() => setHeartPulse(false), 300);
-      }
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      } else {
-        // When animation completes, restart it for continuous effect
-        setTimeout(() => {
-          startContinuousAnimation();
-        }, 500);
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
+  // Animation logic: 0 to 100 in 3 seconds = 33.33 units per second
+  const INCREMENT_PER_SECOND = 100 / 3;
 
   useEffect(() => {
-    if (post && !hasAnimated.current) {
-      hasAnimated.current = true;
-      startContinuousAnimation();
+    if (post && !loading) {
+      const animate = (time) => {
+        if (lastTimeRef.current !== null) {
+          const deltaTime = (time - lastTimeRef.current) / 1000; // in seconds
+          setBaseCount(prev => {
+            const next = prev + (INCREMENT_PER_SECOND * deltaTime);
+            // Pulse heart every 50 units
+            if (Math.floor(next / 50) > Math.floor(prev / 50)) {
+              setHeartPulse(true);
+              setTimeout(() => setHeartPulse(false), 300);
+            }
+            return next > 1000000 ? 1000000 : next;
+          });
+        }
+        lastTimeRef.current = time;
+        animationRef.current = requestAnimationFrame(animate);
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
     }
 
     return () => {
@@ -101,18 +70,11 @@ export default function PostPreview({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [post, engagement]);
+  }, [post, loading]);
 
-  const generatePost = async (isRegen = false) => {
-    if (isRegen) setRegenerating(true);
-    else setLoading(true);
+  const generatePost = async () => {
+    setLoading(true);
     setError(null);
-    hasAnimated.current = false;
-
-    // Reset animation when regenerating
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
 
     const systemPrompt = `You are a real founder. Not a marketer. Not a content strategist. A person who built or found something that genuinely helped them, and now wants to tell other people about it in plain, honest words.
 
@@ -161,7 +123,6 @@ What the app does: ${app_description}
 Target customer: ${target_customer}
 Core problem the app solves: ${core_problem}
 What makes it different from alternatives: ${unique_differentiator}
-How aware the audience is of solutions like this: ${audience_awareness}
 Exact words the audience uses to describe their pain: ${pain_phrases}
 Brand tone: ${brand_tone}
 Writing style: ${writing_style}
@@ -171,22 +132,12 @@ Write the post now. Return only the post. Nothing else.`;
 
     try {
       const result = await generateAICall(systemPrompt, userMessage);
-      // The AI returns plain text, not JSON
       setPost(result);
-      
-      // Generate new random engagement numbers
-      setEngagement({
-        comments: Math.floor(Math.random() * 500) + 50,
-        reposts: Math.floor(Math.random() * 300) + 30,
-        likes: Math.floor(Math.random() * 1000) + 100,
-        views: Math.floor(Math.random() * 5000) + 1000
-      });
     } catch (err) {
       console.error("Generation failed:", err);
       setError("Something went wrong generating your post.");
     } finally {
       setLoading(false);
-      setRegenerating(false);
     }
   };
 
@@ -210,7 +161,7 @@ Write the post now. Return only the post. Nothing else.`;
   }
 
   const handle = `@${app_name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-  const timestamp = "2h ago";
+  const timestamp = "Just now";
 
   return (
     <div className="relative min-h-screen bg-transparent text-white font-poppins overflow-hidden">
@@ -231,7 +182,7 @@ Write the post now. Return only the post. Nothing else.`;
 
           {/* Twitter/X Post Card */}
           <div className="relative mb-8">
-            <div className={`bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden transition-opacity duration-300 ${regenerating ? 'opacity-40' : 'opacity-100'}`}>
+            <div className="bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden">
               {/* Profile Header */}
               <div className="p-4 border-b border-[#2f3336]">
                 <div className="flex items-center">
@@ -253,12 +204,6 @@ Write the post now. Return only the post. Nothing else.`;
                 {error ? (
                   <div className="py-10 text-center">
                     <p className="text-red-400 text-sm mb-4">{error}</p>
-                    <button 
-                      onClick={() => generatePost()}
-                      className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-2 text-sm transition-colors"
-                    >
-                      Try again
-                    </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -275,53 +220,37 @@ Write the post now. Return only the post. Nothing else.`;
                 <div className="flex justify-between max-w-md">
                   <div className="flex items-center space-x-2">
                     <MessageCircle className="w-5 h-5 text-[#71767b]" />
-                    <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.comments)}</span>
+                    <span className="text-[#71767b] text-sm">{formatNumber(baseCount * 0.4)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Repeat2 className="w-5 h-5 text-[#71767b]" />
-                    <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.reposts)}</span>
+                    <span className="text-[#71767b] text-sm">{formatNumber(baseCount * 0.2)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <motion.div
                       animate={heartPulse ? { scale: [1, 1.4, 1] } : {}}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.3 }}
                     >
-                      <Heart className={`w-5 h-5 ${countedEngagement.likes > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
+                      <Heart className={`w-5 h-5 ${baseCount > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
                     </motion.div>
-                    <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.likes)}</span>
+                    <span className="text-[#71767b] text-sm">{formatNumber(baseCount)}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Eye className="w-5 h-5 text-[#71767b]" />
-                    <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.views)}</span>
+                    <span className="text-[#71767b] text-sm">{formatNumber(baseCount * 12)}</span>
                   </div>
                 </div>
               </div>
             </div>
-
-            {regenerating && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
           </div>
 
-          {/* Buttons */}
-          <div className="flex flex-col items-center gap-4">
-            <button
-              onClick={() => generatePost(true)}
-              disabled={regenerating}
-              className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-8 py-3 text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
-              Regenerate
-            </button>
-            
-            {/* Gradient Dashboard Button */}
+          {/* Dashboard Button */}
+          <div className="flex flex-col items-center">
             <motion.button
               onClick={onComplete}
               whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
               whileTap={{ scale: 0.95 }}
-              className="mt-6 px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2"
+              className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2"
             >
               <LayoutDashboard className="w-5 h-5" />
               Go to Dashboard
