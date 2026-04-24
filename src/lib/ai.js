@@ -53,17 +53,14 @@ export const generateAICall = async (systemPrompt, userMessage) => {
     // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
 
-    try {
-      return JSON.parse(content);
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", content);
-      throw new Error("The AI returned an invalid format. Please try again.");
-    }
-  } catch (error) {
+    // For PostPreview, we expect plain text, not JSON
+    // Just return the cleaned content directly
+    return content;
+  } catch (err) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
       throw new Error("The request took too long. Please try again.");
     }
-    throw error;
+    throw err;
   }
 };

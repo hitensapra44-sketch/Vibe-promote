@@ -36,6 +36,7 @@ export default function PostPreview({
     views: 0
   });
   const [heartPulse, setHeartPulse] = useState(false);
+  const [counterFinished, setCounterFinished] = useState(false);
   const hasAnimated = useRef(false);
 
   const formatNumber = (num) => {
@@ -48,29 +49,47 @@ export default function PostPreview({
   useEffect(() => {
     if (!hasAnimated.current && post) {
       hasAnimated.current = true;
+      setCounterFinished(false);
       
-      // Animate engagement counters
-      const duration = 1800;
-      const stagger = 200;
+      // Animate engagement counters with improved easing
+      const duration = 2000;
+      const stagger = 300;
+      let finishedCounters = 0;
       
       const animateCounter = (key, target, delay) => {
         const startTime = Date.now();
         const animate = () => {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          const easeOut = 1 - Math.pow(1 - progress, 3);
-          const current = Math.floor(target * easeOut);
+          
+          // Improved easing function (easeOutBack)
+          const easeOutBack = (x) => {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+          };
+          
+          const easedProgress = easeOutBack(progress);
+          const current = Math.floor(target * easedProgress);
           
           setCountedEngagement(prev => ({
             ...prev,
-            [key]: current
+            [key]: Math.min(current, target)
           }));
           
           if (progress < 1) {
             requestAnimationFrame(animate);
-          } else if (key === 'likes') {
-            setHeartPulse(true);
-            setTimeout(() => setHeartPulse(false), 300);
+          } else {
+            finishedCounters++;
+            if (key === 'likes') {
+              setHeartPulse(true);
+              setTimeout(() => setHeartPulse(false), 500);
+            }
+            
+            // All counters finished
+            if (finishedCounters === 4) {
+              setCounterFinished(true);
+            }
           }
         };
         
@@ -89,6 +108,7 @@ export default function PostPreview({
     else setLoading(true);
     setError(null);
     hasAnimated.current = false;
+    setCounterFinished(false);
 
     const systemPrompt = `You are a real founder. Not a marketer. Not a content strategist. A person who built or found something that genuinely helped them, and now wants to tell other people about it in plain, honest words.
 
@@ -147,7 +167,8 @@ Write the post now. Return only the post. Nothing else.`;
 
     try {
       const result = await generateAICall(systemPrompt, userMessage);
-      setPost(result.post || result);
+      // The AI returns plain text, not JSON
+      setPost(result);
     } catch (err) {
       console.error("Generation failed:", err);
       setError("Something went wrong generating your post.");
@@ -241,24 +262,48 @@ Write the post now. Return only the post. Nothing else.`;
               <div className="flex justify-between max-w-md">
                 <div className="flex items-center space-x-2">
                   <MessageCircle className="w-5 h-5 text-[#71767b]" />
-                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.comments)}</span>
+                  <motion.span 
+                    className="text-[#71767b] text-sm"
+                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                  >
+                    {formatNumber(countedEngagement.comments)}
+                  </motion.span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Repeat2 className="w-5 h-5 text-[#71767b]" />
-                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.reposts)}</span>
+                  <motion.span 
+                    className="text-[#71767b] text-sm"
+                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  >
+                    {formatNumber(countedEngagement.reposts)}
+                  </motion.span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <motion.div
-                    animate={heartPulse ? { scale: [1, 1.2, 1] } : {}}
-                    transition={{ duration: 0.3 }}
+                    animate={heartPulse ? { scale: [1, 1.4, 1] } : {}}
+                    transition={{ duration: 0.5 }}
                   >
                     <Heart className={`w-5 h-5 ${countedEngagement.likes > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
                   </motion.div>
-                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.likes)}</span>
+                  <motion.span 
+                    className="text-[#71767b] text-sm"
+                    animate={counterFinished ? { scale: [1, 1.2, 1] } : {}}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                  >
+                    {formatNumber(countedEngagement.likes)}
+                  </motion.span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Eye className="w-5 h-5 text-[#71767b]" />
-                  <span className="text-[#71767b] text-sm">{formatNumber(countedEngagement.views)}</span>
+                  <motion.span 
+                    className="text-[#71767b] text-sm"
+                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 0.3, delay: 0.4 }}
+                  >
+                    {formatNumber(countedEngagement.views)}
+                  </motion.span>
                 </div>
               </div>
             </div>
