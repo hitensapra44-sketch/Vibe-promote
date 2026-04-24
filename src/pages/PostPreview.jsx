@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateAICall } from '../lib/ai';
 import { motion } from 'framer-motion';
-import { MessageCircle, Repeat2, Heart, Eye, Copy, RefreshCw, Check, ArrowRight } from 'lucide-react';
+import { MessageCircle, Repeat2, Heart, Eye, Copy, RefreshCw, Check, ArrowRight, LayoutDashboard } from 'lucide-react';
+import ParticleBackground from '../components/landing/particlebackground';
+import GridBackground from '../components/ui/grid-background';
 
 export default function PostPreview({ 
   app_name, 
@@ -51,7 +53,7 @@ export default function PostPreview({
       hasAnimated.current = true;
       setCounterFinished(false);
       
-      // Animate engagement counters with improved easing
+      // Animate engagement counters with smooth growth
       const duration = 2000;
       const stagger = 300;
       let finishedCounters = 0;
@@ -62,14 +64,9 @@ export default function PostPreview({
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
           
-          // Improved easing function (easeOutBack)
-          const easeOutBack = (x) => {
-            const c1 = 1.70158;
-            const c3 = c1 + 1;
-            return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-          };
-          
-          const easedProgress = easeOutBack(progress);
+          // Smooth easing function
+          const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+          const easedProgress = easeOutCubic(progress);
           const current = Math.floor(target * easedProgress);
           
           setCountedEngagement(prev => ({
@@ -148,9 +145,7 @@ HARD RULES — these apply to every word in the post:
 - The entire post must sound like one specific person wrote it — not a team, not a tool
 - Fully respect the writing tone and style the founder described
 - If the target audience has LOW awareness (they do not yet know a solution like this exists): educate them gently in Parts 2 and 3 before introducing the product
-- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried
-
-- make the post under 280 words`;
+- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried`;
 
     const userMessage = `Here is everything you need to write the post:
 
@@ -209,151 +204,156 @@ Write the post now. Return only the post. Nothing else.`;
   const timestamp = "2h ago";
 
   return (
-    <div className="min-h-screen bg-black text-white font-poppins pt-12 pb-20 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold mb-2">Here's your first post.</h1>
-          <p className="text-gray-500 text-sm">
-            Written in your voice. Using your audience's exact language. Ready to copy and post right now.
-          </p>
-        </div>
+    <div className="relative min-h-screen bg-transparent text-white font-poppins overflow-hidden">
+      <GridBackground />
+      <ParticleBackground />
+      
+      {/* Gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl"
+        style={{ background: 'radial-gradient(circle, #9e4a2a 0%, transparent 70%)' }} />
 
-        {/* Twitter/X Post Card */}
-        <div className="relative mb-8">
-          <div className={`bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden transition-opacity duration-300 ${regenerating ? 'opacity-40' : 'opacity-100'}`}>
-            {/* Profile Header */}
-            <div className="p-4 border-b border-[#2f3336]">
-              <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mr-3" />
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <span className="font-bold text-white text-base">{app_name}</span>
-                    <svg className="w-5 h-5 text-[#1d9bf0] ml-1" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.66 2.19-1.91 2.19-3.34z" />
-                    </svg>
+      <div className="relative z-10 pt-12 pb-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold mb-2">Here's your first post.</h1>
+            <p className="text-text-secondary">
+              Written in your voice. Using your audience's exact language. Ready to copy and post right now.
+            </p>
+          </div>
+
+          {/* Twitter/X Post Card */}
+          <div className="relative mb-8">
+            <div className={`bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden transition-opacity duration-300 ${regenerating ? 'opacity-40' : 'opacity-100'}`}>
+              {/* Profile Header */}
+              <div className="p-4 border-b border-[#2f3336]">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mr-3" />
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <span className="font-bold text-white text-base">{app_name}</span>
+                      <svg className="w-5 h-5 text-[#1d9bf0] ml-1" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.66 2.19-1.91 2.19-3.34z" />
+                      </svg>
+                    </div>
+                    <div className="text-[#71767b] text-sm">{handle}</div>
                   </div>
-                  <div className="text-[#71767b] text-sm">{handle}</div>
+                </div>
+              </div>
+
+              {/* Post Content */}
+              <div className="p-4">
+                {error ? (
+                  <div className="py-10 text-center">
+                    <p className="text-red-400 text-sm mb-4">{error}</p>
+                    <button 
+                      onClick={() => generatePost()}
+                      className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-2 text-sm transition-colors"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-white text-[15px] leading-[1.5] whitespace-pre-wrap font-[system-ui,-apple-system]">
+                      {post}
+                    </p>
+                    <div className="text-[#71767b] text-sm">{timestamp}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Engagement Bar */}
+              <div className="px-4 py-3 border-t border-[#2f3336]">
+                <div className="flex justify-between max-w-md">
+                  <div className="flex items-center space-x-2">
+                    <MessageCircle className="w-5 h-5 text-[#71767b]" />
+                    <motion.span 
+                      className="text-[#71767b] text-sm"
+                      animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                    >
+                      {formatNumber(countedEngagement.comments)}
+                    </motion.span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Repeat2 className="w-5 h-5 text-[#71767b]" />
+                    <motion.span 
+                      className="text-[#71767b] text-sm"
+                      animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    >
+                      {formatNumber(countedEngagement.reposts)}
+                    </motion.span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <motion.div
+                      animate={heartPulse ? { scale: [1, 1.4, 1] } : {}}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Heart className={`w-5 h-5 ${countedEngagement.likes > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
+                    </motion.div>
+                    <motion.span 
+                      className="text-[#71767b] text-sm"
+                      animate={counterFinished ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                    >
+                      {formatNumber(countedEngagement.likes)}
+                    </motion.span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Eye className="w-5 h-5 text-[#71767b]" />
+                    <motion.span 
+                      className="text-[#71767b] text-sm"
+                      animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
+                      transition={{ duration: 0.3, delay: 0.4 }}
+                    >
+                      {formatNumber(countedEngagement.views)}
+                    </motion.span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Post Content */}
-            <div className="p-4">
-              {error ? (
-                <div className="py-10 text-center">
-                  <p className="text-red-400 text-sm mb-4">{error}</p>
-                  <button 
-                    onClick={() => generatePost()}
-                    className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-2 text-sm transition-colors"
-                  >
-                    Try again
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-white text-[15px] leading-[1.5] whitespace-pre-wrap font-[system-ui,-apple-system]">
-                    {post}
-                  </p>
-                  <div className="text-[#71767b] text-sm">{timestamp}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Engagement Bar */}
-            <div className="px-4 py-3 border-t border-[#2f3336]">
-              <div className="flex justify-between max-w-md">
-                <div className="flex items-center space-x-2">
-                  <MessageCircle className="w-5 h-5 text-[#71767b]" />
-                  <motion.span 
-                    className="text-[#71767b] text-sm"
-                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.3, delay: 0.1 }}
-                  >
-                    {formatNumber(countedEngagement.comments)}
-                  </motion.span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Repeat2 className="w-5 h-5 text-[#71767b]" />
-                  <motion.span 
-                    className="text-[#71767b] text-sm"
-                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                  >
-                    {formatNumber(countedEngagement.reposts)}
-                  </motion.span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <motion.div
-                    animate={heartPulse ? { scale: [1, 1.4, 1] } : {}}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <Heart className={`w-5 h-5 ${countedEngagement.likes > 0 ? 'text-[#f91880] fill-[#f91880]' : 'text-[#71767b]'}`} />
-                  </motion.div>
-                  <motion.span 
-                    className="text-[#71767b] text-sm"
-                    animate={counterFinished ? { scale: [1, 1.2, 1] } : {}}
-                    transition={{ duration: 0.3, delay: 0.3 }}
-                  >
-                    {formatNumber(countedEngagement.likes)}
-                  </motion.span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Eye className="w-5 h-5 text-[#71767b]" />
-                  <motion.span 
-                    className="text-[#71767b] text-sm"
-                    animate={counterFinished ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                  >
-                    {formatNumber(countedEngagement.views)}
-                  </motion.span>
-                </div>
+            {regenerating && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin" />
               </div>
-            </div>
+            )}
           </div>
 
-          {regenerating && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-[#1d9bf0] border-t-transparent rounded-full animate-spin" />
+          {/* Buttons */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex gap-3">
+              <button
+                onClick={handleCopy}
+                className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium rounded-xl px-6 py-3 text-sm transition-colors min-w-[120px] flex items-center justify-center gap-2"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Copied" : "Copy post"}
+              </button>
+              <button
+                onClick={() => generatePost(true)}
+                disabled={regenerating}
+                className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-3 text-sm transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
+                Regenerate
+              </button>
             </div>
-          )}
-        </div>
-
-        {/* Context Strip */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          <span className="bg-[#1d9bf0]/10 text-[#1d9bf0] text-xs rounded-full px-3 py-1">🎯 Hook: Pain recognition</span>
-          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">🗣️ Tone: {brand_tone}</span>
-          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">📍 Platform: Twitter / X</span>
-          <span className="bg-[#2f3336] text-gray-300 text-xs rounded-full px-3 py-1">📝 Style: {writing_style}</span>
-        </div>
-        <p className="text-gray-500 text-xs text-center mb-10">
-          First line uses your audience's exact language. Built to stop a founder mid-scroll.
-        </p>
-
-        {/* Buttons */}
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex gap-3">
-            <button
-              onClick={handleCopy}
-              className="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-medium rounded-xl px-6 py-3 text-sm transition-colors min-w-[120px] flex items-center justify-center gap-2"
+            
+            {/* Gradient Dashboard Button */}
+            <motion.button
+              onClick={onComplete}
+              whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.6)" }}
+              whileTap={{ scale: 0.95 }}
+              className="mt-6 px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2"
             >
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copied" : "Copy post"}
-            </button>
-            <button
-              onClick={() => generatePost(true)}
-              disabled={regenerating}
-              className="border border-[#2f3336] text-gray-400 hover:border-[#1d9bf0] hover:text-white rounded-xl px-6 py-3 text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`} />
-              Regenerate
-            </button>
+              <LayoutDashboard className="w-5 h-5" />
+              Go to Dashboard
+            </motion.button>
           </div>
-          <button
-            onClick={onComplete}
-            className="text-[#1d9bf0] hover:text-[#1a8cd8] text-sm underline underline-offset-4 transition-colors flex items-center gap-1"
-          >
-            Continue to dashboard <ArrowRight className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </div>
