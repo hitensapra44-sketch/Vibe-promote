@@ -21,8 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   PanelLeftClose,
-  PanelLeftOpen,
-  Brain
+  PanelLeftOpen
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -262,52 +261,19 @@ export default function Dashboard() {
             "relative rounded-3xl p-8 overflow-hidden border border-primary/30 bg-transparent"
           )}>
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                  Welcome, {user?.email?.split('@')[0]}
-                </h2>
-                <p className="text-text-secondary">Your marketing co-pilot is ready</p>
-                {!isPaid && (
-                  <p className="mt-4 text-amber-500 text-sm font-medium flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    You're on free tier. Unlock all tools with lifetime access.
-                  </p>
-                )}
-              </div>
-              <button 
-                onClick={() => navigate(isPaid ? '/audience-spotter' : '/pre-purchase')}
-                className={cn(
-                  "px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2",
-                  isPaid ? "bg-primary text-white hover:bg-primary-hover" : "bg-amber-500 text-black hover:bg-amber-600"
-                )}
-              >
-                {isPaid ? "Start with Audience Spotter" : "Unlock Now"}
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="relative z-10">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                Welcome, {user?.email?.split('@')[0]}
+              </h2>
+              <p className="text-text-secondary">Your marketing co-pilot is ready</p>
+              {!isPaid && (
+                <p className="mt-4 text-amber-500 text-sm font-medium flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  You're on free tier. Unlock all tools with lifetime access.
+                </p>
+              )}
             </div>
           </section>
-
-          {/* Zone 3: Quick Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: 'Account Status', value: isPaid ? 'Paid' : 'Free Tier', icon: isPaid ? CheckCircle2 : Lock, color: isPaid ? 'text-green-500' : 'text-amber-500' },
-              { label: 'Tools Available', value: isPaid ? '4 of 4' : '2 of 4', icon: Zap, color: 'text-primary' },
-              { label: 'Survey Completed', value: profileData ? 'Yes ✅' : 'No ❌', icon: Brain, color: 'text-indigo-400' },
-              { label: 'Member Since', value: new Date(user?.created_at).toLocaleDateString(), icon: User, color: 'text-blue-400' },
-            ].map((stat, i) => (
-              <div key={i} className="bg-transparent border border-primary/30 rounded-2xl p-5 flex items-center gap-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-                <div className={cn("w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center relative z-10", stat.color)}>
-                  <stat.icon className="w-5 h-5" />
-                </div>
-                <div className="relative z-10">
-                  <p className="text-[10px] font-bold text-text-secondary/40 uppercase tracking-widest">{stat.label}</p>
-                  <p className="text-sm font-bold text-white">{stat.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Zone 4: Your Profile Snapshot */}
