@@ -251,6 +251,12 @@ export default function Dashboard() {
                 Welcome, {user?.email?.split('@')[0]}
               </h2>
               <p className="text-text-secondary">Your marketing co-pilot is ready</p>
+              {!isPaid && (
+                <p className="mt-4 text-amber-500 text-sm font-medium flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  You're on free tier.
+                </p>
+              )}
             </div>
           </section>
 

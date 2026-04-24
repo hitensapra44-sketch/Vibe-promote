@@ -11,31 +11,26 @@ export const generateAICall = async (systemPrompt, userMessage) => {
       })
     });
 
-    const text = await response.text();
-    let data;
-    
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error(`Invalid server response: ${text.substring(0, 100)}`);
+    if (response.status === 404) {
+      throw new Error("AI Proxy not found (404). Please restart the app server.");
     }
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(data.error || data.details || "AI Proxy Error");
+      throw new Error(data.error?.message || data.details || `Server error: ${response.status}`);
     }
 
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error("AI returned an empty or malformed response.");
+      throw new Error("AI returned an empty response.");
     }
 
     let content = data.choices[0].message.content;
-    
-    // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
     
     return content;
   } catch (err) {
-    console.error("AI Call Error:", err);
+    console.error("AI Call Error:", err.message);
     throw err;
   }
 };

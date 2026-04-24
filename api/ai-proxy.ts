@@ -1,4 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { OpenAI } from 'openai';
+
+const client = new OpenAI({
+  apiKey: "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",
+  baseURL: "https://integrate.api.nvidia.com/v1",
+});
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -12,49 +17,23 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer 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`
-      },
-      body: JSON.stringify({
-        model: "moonshotai/kimi-k2-thinking",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        temperature: 1,
-        top_p: 0.9,
-        max_tokens: 16384,
-        stream: false // Explicitly disable streaming to get a standard JSON response
-      })
+    const completion = await client.chat.completions.create({
+      model: "moonshotai/kimi-k2-thinking",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage }
+      ],
+      temperature: 1,
+      top_p: 0.9,
+      max_tokens: 16384,
+      stream: false
     });
 
-    const text = await response.text();
-    
-    if (!response.ok) {
-      console.error("Upstream Error:", text);
-      return res.status(response.status).json({ 
-        error: 'Upstream API Error', 
-        details: text 
-      });
-    }
-
-    try {
-      const data = JSON.parse(text);
-      return res.status(200).json(data);
-    } catch (parseErr) {
-      console.error("JSON Parse Error on upstream response:", text);
-      return res.status(500).json({ 
-        error: 'Invalid JSON from upstream', 
-        details: text.substring(0, 200) 
-      });
-    }
+    return res.status(200).json(completion);
   } catch (error: any) {
-    console.error("AI Proxy Exception:", error);
+    console.error("AI Proxy Error:", error);
     return res.status(500).json({ 
-      error: 'Internal Server Error', 
+      error: 'AI Proxy Error', 
       details: error.message 
     });
   }
