@@ -1,10 +1,10 @@
 import { OpenAI } from 'openai';
 
-// Initializing the client directly on the frontend to bypass the 404 proxy issue
+// We now point the baseURL to our local proxy defined in vite.config.js
 const client = new OpenAI({
   apiKey: "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",
-  baseURL: "https://integrate.api.nvidia.com/v1",
-  dangerouslyAllowBrowser: true // Required for client-side usage
+  baseURL: window.location.origin + '/api/ai',
+  dangerouslyAllowBrowser: true 
 });
 
 export const generateAICall = async (systemPrompt, userMessage) => {
@@ -26,13 +26,15 @@ export const generateAICall = async (systemPrompt, userMessage) => {
     }
 
     let content = completion.choices[0].message.content;
-    
-    // Clean up response (remove markdown blocks if present)
     content = content.replace(/```json\n?|```/g, '').trim();
     
     return content;
   } catch (err) {
     console.error("AI Call Error:", err.message);
+    // If we still get a 404, it means the Vite proxy hasn't kicked in yet
+    if (err.message.includes('404')) {
+      throw new Error("Proxy not active. Please click the 'Restart' button above.");
+    }
     throw err;
   }
 };
