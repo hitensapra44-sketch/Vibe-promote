@@ -13,7 +13,7 @@ import Auth from './pages/Auth';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import AudienceSpotter from './pages/AudienceSpotter';
-import HookMaker from './pages/HookMaker';
+import PostMaker from './pages/PostMaker';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -40,7 +40,7 @@ function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/audience-spotter" element={<AudienceSpotter />} />
-          <Route path="/hook-maker" element={<HookMaker />} />
+          <Route path="/post-maker" element={<PostMaker />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>

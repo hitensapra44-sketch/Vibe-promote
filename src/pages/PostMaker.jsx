@@ -9,12 +9,10 @@ import {
   Sparkles, 
   Copy, 
   Check, 
-  RefreshCw,
   Zap,
-  MessageSquare,
-  Target,
   AlertTriangle,
-  Lightbulb
+  Lightbulb,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -22,7 +20,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { generateAICall } from '../lib/ai';
 import { toast } from 'sonner';
 
-export default function HookMaker() {
+export default function PostMaker() {
   const { user } = useAuth();
   const [brain, setBrain] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,15 +46,13 @@ export default function HookMaker() {
     if (!brain) return;
     setGenerating(true);
     
-    const systemPrompt = `You are a viral content strategist for Twitter/X. Your goal is to generate 5 high-converting hooks for a SaaS product.
-    A hook is the first line of a post that stops the scroll.
+    const systemPrompt = `You are a viral content strategist for Twitter/X. Your goal is to generate 5 high-converting posts for a SaaS product.
     
     Rules:
     1. Use the founder's 'pain phrases' and 'brand tone'.
-    2. Each hook must be under 15 words.
+    2. Each post must be engaging and stop the scroll.
     3. No hashtags.
     4. No emojis unless the tone is casual.
-    5. Variety: One question, one bold statement, one 'how-to' angle, one 'mistake' angle, one 'secret' angle.
     
     Return ONLY a valid JSON object:
     {
@@ -72,10 +68,10 @@ export default function HookMaker() {
     try {
       const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
       setHooks(result.hooks);
-      toast.success("5 fresh hooks generated! 🔥");
+      toast.success("5 fresh posts generated! 🔥");
     } catch (err) {
       console.error("Generation failed:", err);
-      toast.error("Failed to generate hooks. Try again.");
+      toast.error("Failed to generate posts. Try again.");
     } finally {
       setGenerating(false);
     }
@@ -99,8 +95,8 @@ export default function HookMaker() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold">Hook Maker</h1>
-              <p className="text-text-secondary">Stop the scroll with AI-powered viral openers.</p>
+              <h1 className="text-3xl font-bold">Post Maker</h1>
+              <p className="text-text-secondary">Stop the scroll with AI-powered viral content.</p>
             </div>
           </div>
           {brain && (
@@ -110,7 +106,7 @@ export default function HookMaker() {
               className="px-8 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
             >
               {generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-              {hooks.length > 0 ? 'Regenerate Hooks' : 'Generate Hooks'}
+              {hooks.length > 0 ? 'Regenerate Posts' : 'Generate Posts'}
             </button>
           )}
         </header>
@@ -119,7 +115,7 @@ export default function HookMaker() {
           <div className="text-center py-20 bg-bg-surface border border-border-muted rounded-[2.5rem]">
             <AlertTriangle className="w-12 h-12 text-orange-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Brand Brain Missing</h2>
-            <p className="text-text-secondary mb-8">You need to complete onboarding to use the Hook Maker.</p>
+            <p className="text-text-secondary mb-8">You need to complete onboarding to use the Post Maker.</p>
             <Link to="/onboarding" className="px-6 py-3 bg-primary rounded-xl font-bold">Start Onboarding</Link>
           </div>
         ) : (
@@ -134,7 +130,7 @@ export default function HookMaker() {
                     <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
                     <PenTool className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
                   </div>
-                  <h2 className="text-xl font-bold">Writing viral hooks...</h2>
+                  <h2 className="text-xl font-bold">Writing viral posts...</h2>
                   <p className="text-text-secondary">Matching your brand voice and audience pain points.</p>
                 </motion.div>
               ) : hooks.length > 0 ? (
@@ -145,9 +141,10 @@ export default function HookMaker() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="group bg-bg-surface border border-border-muted rounded-2xl p-6 hover:border-primary/30 transition-all"
+                      className="group bg-transparent border border-primary/30 rounded-2xl p-6 hover:border-primary transition-all relative overflow-hidden"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
+                      <div className="flex items-start justify-between gap-4 relative z-10">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-3">
                             <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
@@ -178,13 +175,13 @@ export default function HookMaker() {
                   </div>
                   <h2 className="text-xl font-bold mb-2">Ready to go viral?</h2>
                   <p className="text-text-secondary max-w-xs mx-auto mb-8">
-                    We'll use your brand voice to write 5 hooks that actually get clicks.
+                    We'll use your brand voice to write 5 posts that actually get clicks.
                   </p>
                   <button 
                     onClick={generateHooks}
                     className="flex items-center gap-2 text-primary font-bold hover:underline"
                   >
-                    Generate my first hooks <ArrowRight className="w-4 h-4" />
+                    Generate my first posts <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -195,9 +192,3 @@ export default function HookMaker() {
     </div>
   );
 }
-
-const ArrowRight = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-  </svg>
-);
