@@ -1,38 +1,40 @@
-const GEMINI_API_KEY = "AIzaSyDtgfOfUDIC_0lBMg3MhiABigDZHT0XGVM";
-const GEMINI_MODEL = "gemini-1.5-flash";
-const INVOKE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const NVIDIA_API_KEY = "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";
+const NVIDIA_MODEL = "moonshotai/kimi-k2-thinking";
+const INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
 export const generateAICall = async (systemPrompt, userMessage) => {
   try {
     const response = await fetch(INVOKE_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${NVIDIA_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `System Instructions: ${systemPrompt}\n\nUser Input: ${userMessage}` }]
-          }
+        model: NVIDIA_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
         ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
+        temperature: 1,
+        top_p: 0.9,
+        max_tokens: 16384
       })
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error?.message || "Gemini API Error");
+      throw new Error(error.error?.message || "NVIDIA API Error");
     }
 
     const data = await response.json();
-    let content = data.candidates[0].content.parts[0].text;
+    let content = data.choices[0].message.content;
     
     // Clean up response (remove markdown blocks)
     content = content.replace(/```json\n?|```/g, '').trim();
+    
+    // If the model returns a string that is meant to be JSON, we return it as is
+    // The calling components handle the JSON.parse
     return content;
   } catch (err) {
     console.error("AI Call Error:", err);

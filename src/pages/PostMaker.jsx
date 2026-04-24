@@ -67,7 +67,8 @@ export default function PostMaker() {
 
     try {
       const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
-      setHooks(result.hooks);
+      const parsed = JSON.parse(result);
+      setHooks(parsed.hooks);
       toast.success("5 fresh posts generated! 🔥");
     } catch (err) {
       console.error("Generation failed:", err);
