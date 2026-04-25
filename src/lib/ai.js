@@ -1,9 +1,9 @@
 import { OpenAI } from 'openai';
 
-// We now point the baseURL to our local proxy defined in vite.config.js
+// Using a relative path allows the Vite proxy to intercept the request correctly
 const client = new OpenAI({
   apiKey: "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",
-  baseURL: window.location.origin + '/api/ai',
+  baseURL: '/api/ai',
   dangerouslyAllowBrowser: true 
 });
 
@@ -26,6 +26,7 @@ export const generateAICall = async (systemPrompt, userMessage) => {
     }
 
     let content = completion.choices[0].message.content;
+    // Clean up any potential markdown formatting
     content = content.replace(/```json\n?|```/g, '').trim();
     
     return content;
