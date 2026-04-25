@@ -18,7 +18,8 @@ import {
   Clock,
   Calendar,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [isPaid, setIsPaid] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -166,7 +168,7 @@ export default function Dashboard() {
               </div>
             )}
             <button 
-              className="p-1.5 rounded-md hover:bg-white/5 text-gray-500 transition-all"
+              className="p-1.5 rounded-md hover:bg-white/5 text-gray-500 transition-all bg-transparent"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -179,7 +181,7 @@ export default function Dashboard() {
                 key={link.label}
                 onClick={() => link.available && navigate(link.path)}
                 className={cn(
-                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group",
+                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent",
                   link.active 
                     ? "bg-white/5 text-white" 
                     : "text-gray-500 hover:text-white hover:bg-white/5",
@@ -218,7 +220,7 @@ export default function Dashboard() {
             <button 
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-red-400 hover:bg-red-400/5 transition-all",
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-red-400 hover:bg-red-400/5 transition-all bg-transparent",
                 sidebarCollapsed ? "justify-center" : ""
               )}
             >
@@ -233,7 +235,7 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header className="h-14 border-b border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
-            <button className="lg:hidden p-2 -ml-2" onClick={() => setMobileMenuOpen(true)}>
+            <button className="lg:hidden p-2 -ml-2 bg-transparent" onClick={() => setMobileMenuOpen(true)}>
               <Menu className="w-5 h-5" />
             </button>
             <h1 className="text-sm font-bold text-white">Dashboard</h1>
@@ -242,7 +244,7 @@ export default function Dashboard() {
             {!isPaid && (
               <button 
                 onClick={() => navigate('/pre-purchase')}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all bg-transparent"
               >
                 <Zap className="w-3 h-3" />
                 Unlock Full Access
@@ -267,7 +269,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/audience-spotter')}
-              className="px-4 py-2 rounded-lg border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all flex items-center gap-2 bg-transparent"
             >
               Start Audience finder
               <ArrowRight className="w-3 h-3" />
@@ -301,11 +303,28 @@ export default function Dashboard() {
             </div>
           </section>
 
+          {/* Recent Posts Section */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-gray-400" />
+              Recent Posts
+            </h3>
+            {recentPosts.length === 0 ? (
+              <div className="p-8 rounded-2xl border border-white/5 bg-white/[0.02] text-center">
+                <p className="text-xs text-gray-500">No posts generated yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {/* Posts would be mapped here */}
+              </div>
+            )}
+          </section>
+
           {/* Tools Grid */}
           <section className="space-y-6">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-gray-400" />
-              AI Marketing Tools
+              Marketing Tools
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -327,7 +346,7 @@ export default function Dashboard() {
                     disabled={!tool.available}
                     onClick={() => isPaid ? navigate(tool.path) : navigate('/pre-purchase')}
                     className={cn(
-                      "w-full py-2.5 rounded-lg text-xs font-bold transition-all border",
+                      "w-full py-2.5 rounded-lg text-xs font-bold transition-all border bg-transparent",
                       tool.available 
                         ? "border-white/10 text-white hover:bg-white/5" 
                         : "border-white/5 text-gray-700 cursor-not-allowed"
@@ -345,8 +364,8 @@ export default function Dashboard() {
               Vibe Promote © 2026
             </p>
             <div className="flex items-center gap-4">
-              <button className="text-[10px] text-gray-700 hover:text-white transition-colors">Support</button>
-              <button className="text-[10px] text-gray-700 hover:text-white transition-colors">Feedback</button>
+              <button className="text-[10px] text-gray-700 hover:text-white transition-colors bg-transparent">Support</button>
+              <button className="text-[10px] text-gray-700 hover:text-white transition-colors bg-transparent">Feedback</button>
             </div>
           </footer>
         </div>
