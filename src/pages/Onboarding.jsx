@@ -62,8 +62,9 @@ export default function Onboarding() {
         pain_phrases: step2Data.pain_phrases,
         brand_tone: step2Data.brand_tone,
         writing_style: step2Data.writing_style,
-        current_stage: step2Data.current_stage,
-        posting_frequency: step2Data.posting_frequency,
+        primary_platform: step2Data.primary_platform,
+        current_stage: step2Data.current_stage || 'MVP',
+        posting_frequency: step2Data.posting_frequency || 'Daily',
         primary_cta: step2Data.primary_cta
       };
 
