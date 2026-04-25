@@ -10,14 +10,14 @@ const client = new OpenAI({
 export const generateAICall = async (systemPrompt, userMessage) => {
   try {
     const completion = await client.chat.completions.create({
-      model: "moonshotai/kimi-k2-thinking",
+      model: "nvidia/llama-3.1-nemotron-70b-instruct",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage }
       ],
-      temperature: 1,
+      temperature: 0.7,
       top_p: 0.9,
-      max_tokens: 16384,
+      max_tokens: 4096,
       stream: false
     });
 
