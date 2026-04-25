@@ -14,7 +14,8 @@ import {
   Target,
   Activity,
   Link as LinkIcon,
-  Flame
+  Flame,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
