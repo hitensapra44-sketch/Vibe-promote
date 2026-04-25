@@ -15,9 +15,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: true,
-    // This proxy tells Vite to intercept any request to /api/ai 
-    // and forward it to NVIDIA's servers, bypassing CORS.
     proxy: {
       '/api/ai': {
         target: 'https://integrate.api.nvidia.com/v1',

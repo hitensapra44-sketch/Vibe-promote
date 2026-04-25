@@ -1,9 +1,9 @@
 import { OpenAI } from 'openai';
 
-// We use window.location.origin to ensure the URL is valid and absolute for the browser
+// Using a relative path to trigger the Vite proxy
 const client = new OpenAI({
   apiKey: "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",
-  baseURL: `${window.location.origin}/api/ai`,
+  baseURL: '/api/ai',
   dangerouslyAllowBrowser: true 
 });
 
