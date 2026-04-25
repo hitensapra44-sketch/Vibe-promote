@@ -9,15 +9,16 @@ import {
   LogOut,
   Sparkles,
   Zap,
-  Lock,
-  CheckCircle2,
-  Circle,
   Menu,
   User,
-  Rocket,
   TrendingUp,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Brain,
+  Clock,
+  Calendar,
+  MessageSquare,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -79,6 +80,7 @@ export default function Dashboard() {
 
   const navLinks = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', active: true },
+    { icon: Brain, label: 'Brand Brain', path: '/onboarding', available: true },
     { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
     { icon: PenTool, label: 'Post Maker', path: '/post-maker', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false },
@@ -102,12 +104,32 @@ export default function Dashboard() {
       path: '/post-maker'
     },
     { 
+      id: 'poster', 
+      icon: Calendar, 
+      name: 'Auto Poster/Scheduler', 
+      desc: 'Schedule and automate your content across all platforms.', 
+      available: false 
+    },
+    { 
+      id: 'helper', 
+      icon: MessageSquare, 
+      name: 'Agentic Helper', 
+      desc: 'Your 24/7 AI marketing assistant for strategy and ideas.', 
+      available: false 
+    },
+    { 
       id: 'viral', 
       icon: TrendingUp, 
       name: 'Virality Finder', 
       desc: 'Analyze what makes posts go viral in your niche.', 
       available: false 
     },
+  ];
+
+  const recentActivity = [
+    { type: 'Survey', detail: 'Onboarding completed', time: '2 hours ago' },
+    { type: 'Account', detail: 'Brand Brain initialized', time: '2 hours ago' },
+    { type: 'System', detail: 'Welcome to Vibe Promote', time: '3 hours ago' },
   ];
 
   if (loading) {
@@ -172,7 +194,6 @@ export default function Dashboard() {
                   <link.icon className="w-4 h-4" />
                   {!sidebarCollapsed && link.label}
                 </div>
-                {!sidebarCollapsed && !link.available && <Lock className="w-3 h-3 opacity-30" />}
               </button>
             ))}
           </nav>
@@ -234,11 +255,20 @@ export default function Dashboard() {
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
           {/* Welcome Banner */}
-          <section className="rounded-2xl p-6 border border-orange-500/40 bg-[#111111]">
-            <h2 className="text-xl font-bold text-white mb-1">
-              Welcome, {user?.email?.split('@')[0]}
-            </h2>
-            <p className="text-sm text-gray-500">Your marketing co-pilot is ready.</p>
+          <section className="rounded-2xl p-6 border border-orange-500/40 bg-[#111111] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">
+                Welcome, {user?.email?.split('@')[0]}
+              </h2>
+              <p className="text-sm text-gray-500">Your marketing co-pilot is ready.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/audience-spotter')}
+              className="px-4 py-2 rounded-lg border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all flex items-center gap-2"
+            >
+              Start Audience finder
+              <ArrowRight className="w-3 h-3" />
+            </button>
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -269,45 +299,23 @@ export default function Dashboard() {
               </div>
             </section>
 
-            {/* Onboarding Checklist */}
+            {/* Recent Activity */}
             <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Rocket className="w-4 h-4 text-gray-400" />
-                  Getting Started
+                  <Clock className="w-4 h-4 text-gray-400" />
+                  Recent Activity
                 </h3>
-                <span className="text-[10px] font-bold text-gray-600">
-                  {profileData ? (isPaid ? '4/5' : '3/5') : '1/5'}
-                </span>
               </div>
 
-              <div className="w-full h-1 bg-white/5 rounded-full mb-6 overflow-hidden">
-                <div 
-                  className="h-full bg-white transition-all duration-500" 
-                  style={{ width: profileData ? (isPaid ? '80%' : '60%') : '20%' }} 
-                />
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { label: 'Joined the waitlist', done: true },
-                  { label: 'Completed the survey', done: !!profileData },
-                  { label: 'Created your account', done: true },
-                  { label: 'Unlock lifetime access', done: isPaid },
-                  { label: 'Run your first tool', done: false },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    {item.done ? (
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-gray-800" />
-                    )}
-                    <span className={cn(
-                      "text-xs font-medium",
-                      item.done ? "text-gray-600 line-through" : "text-gray-400"
-                    )}>
-                      {item.label}
-                    </span>
+              <div className="space-y-4">
+                {recentActivity.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{item.type}</span>
+                      <span className="text-xs text-white">{item.detail}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">{item.time}</span>
                   </div>
                 ))}
               </div>
@@ -332,7 +340,6 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-bold text-white">{tool.name}</h4>
-                    {!tool.available && <Lock className="w-3 h-3 text-gray-700" />}
                   </div>
                   <p className="text-xs text-gray-500 mb-6 leading-relaxed">
                     {tool.desc}
