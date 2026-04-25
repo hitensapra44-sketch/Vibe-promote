@@ -1,21 +1,21 @@
 import { OpenAI } from 'openai';
 
-// Using a relative path to trigger the Vite proxy
+// We use an absolute URL to satisfy the OpenAI client's validation while still using our proxy
 const client = new OpenAI({
   apiKey: "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",
-  baseURL: '/api/ai',
+  baseURL: `${window.location.origin}/api/ai`,
   dangerouslyAllowBrowser: true 
 });
 
 export const generateAICall = async (systemPrompt, userMessage) => {
   try {
     const completion = await client.chat.completions.create({
-      model: "nvidia/llama-3.1-nemotron-70b-instruct",
+      model: "moonshotai/kimi-k2-thinking",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage }
       ],
-      temperature: 0.7,
+      temperature: 1,
       top_p: 0.9,
       max_tokens: 4096,
       stream: false
