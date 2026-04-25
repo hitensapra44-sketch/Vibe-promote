@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'mramer-motion';
 import { 
   LayoutDashboard, 
   Search, 
@@ -83,7 +83,9 @@ export default function Dashboard() {
     { icon: Brain, label: 'Brand Brain', path: '/onboarding', available: true },
     { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
     { icon: PenTool, label: 'Post Maker', path: '/post-maker', available: true },
-    { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false },
+    { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
+    { icon: MessageSquare, label: 'Agentic Helper', path: '#', available: false, comingSoon: true },
+    { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
   ];
 
   const tools = [
@@ -124,12 +126,6 @@ export default function Dashboard() {
       desc: 'Analyze what makes posts go viral in your niche.', 
       available: false 
     },
-  ];
-
-  const recentActivity = [
-    { type: 'Survey', detail: 'Onboarding completed', time: '2 hours ago' },
-    { type: 'Account', detail: 'Brand Brain initialized', time: '2 hours ago' },
-    { type: 'System', detail: 'Welcome to Vibe Promote', time: '3 hours ago' },
   ];
 
   if (loading) {
@@ -192,7 +188,14 @@ export default function Dashboard() {
               >
                 <div className="flex items-center gap-3">
                   <link.icon className="w-4 h-4" />
-                  {!sidebarCollapsed && link.label}
+                  {!sidebarCollapsed && (
+                    <div className="flex flex-col items-start">
+                      <span>{link.label}</span>
+                      {link.comingSoon && (
+                        <span className="text-[8px] text-orange-500/60 font-bold uppercase tracking-tighter">Coming Soon</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
@@ -271,56 +274,32 @@ export default function Dashboard() {
             </button>
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Profile Snapshot */}
-            <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <User className="w-4 h-4 text-gray-400" />
-                  Marketing Profile
-                </h3>
-                <Link to="/survey" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">
-                  Retake Survey
-                </Link>
-              </div>
-              
-              <div className="space-y-4">
-                {[
-                  { label: 'Stage', value: profileData?.focus },
-                  { label: 'Main Channel', value: profileData?.channels },
-                  { label: 'Product Type', value: profileData?.productType },
-                  { label: 'Role', value: profileData?.role },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                    <span className="text-xs text-gray-500">{item.label}</span>
-                    <span className="text-xs font-bold text-white">{item.value || 'Not set'}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Recent Activity */}
-            <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  Recent Activity
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {recentActivity.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{item.type}</span>
-                      <span className="text-xs text-white">{item.detail}</span>
-                    </div>
-                    <span className="text-[10px] text-gray-500">{item.time}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+          {/* Your Profile Snapshot - Expanded */}
+          <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <User className="w-4 h-4 text-gray-400" />
+                Your Profile
+              </h3>
+              <Link to="/survey" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">
+                Retake Survey
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { label: 'Stage', value: profileData?.focus },
+                { label: 'Main Channel', value: profileData?.channels },
+                { label: 'Product Type', value: profileData?.productType },
+                { label: 'Role', value: profileData?.role },
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">{item.label}</span>
+                  <span className="text-sm font-bold text-white">{item.value || 'Not set'}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Tools Grid */}
           <section className="space-y-6">
