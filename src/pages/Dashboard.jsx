@@ -15,7 +15,8 @@ import {
   Sparkles,
   Flame,
   Share2,
-  Users
+  Users,
+  Target
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
