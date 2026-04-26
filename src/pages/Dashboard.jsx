@@ -13,9 +13,6 @@ import {
   Activity,
   Link as LinkIcon,
   Sparkles,
-  Flame,
-  Share2,
-  Users,
   Target
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
@@ -177,24 +174,6 @@ export default function Dashboard() {
               Start Audience finder
               <ArrowRight className="w-3 h-3" />
             </button>
-          </section>
-
-          {/* Growth Stats */}
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: 'Posts Generated', value: stats.posts_generated, icon: PenTool, color: 'text-blue-400' },
-              { label: 'Posting Streak', value: `${stats.posting_streak} days`, icon: Flame, color: 'text-orange-500' },
-              { label: 'Connected Channels', value: stats.connected_channels, icon: Share2, color: 'text-purple-400' },
-              { label: 'Audience Found', value: stats.audience_found, icon: Users, color: 'text-green-400' },
-            ].map((stat, i) => (
-              <div key={i} className="bg-[#111111] border border-white/5 rounded-2xl p-5 flex flex-col">
-                <div className="flex items-center gap-2 mb-3">
-                  <stat.icon className={cn("w-4 h-4", stat.color)} />
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</span>
-                </div>
-                <span className="text-2xl font-bold text-white">{stat.value}</span>
-              </div>
-            ))}
           </section>
 
           {/* Brand Brain */}
