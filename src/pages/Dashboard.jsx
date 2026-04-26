@@ -227,6 +227,31 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* Your Status Section */}
+              <div className="mt-10 pt-8 border-t border-white/5">
+                <h3 className="text-sm font-bold text-white mb-6">
+                  Your Status
+                </h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Posts Generated</p>
+                    <p className="text-xl font-bold text-white">{stats.posts_generated}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Posting Streak</p>
+                    <p className="text-xl font-bold text-white">{stats.posting_streak} days</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Connected Channels</p>
+                    <p className="text-xl font-bold text-white">{stats.connected_channels}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Audience Found</p>
+                    <p className="text-xl font-bold text-white">{stats.audience_found}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
