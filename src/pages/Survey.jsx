@@ -6,23 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Sparkles, Rocket, Brain, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { logEvent } from "../lib/analytics";
-
-const saveSurveyData = async (payload) => {
-  const records = payload.map(item => ({
-    user_id: null,
-    question_id: item.question_id,
-    answer: item.answer
-  }));
-
-  const { error } = await supabase
-    .from('user_answers')
-    .insert(records);
-
-  if (error) {
-    console.error('❌ Supabase save error:', error);
-    throw error;
-  }
-};
+import { useAuth } from '../lib/AuthContext';
 
 const surveyConfig = [
   {
@@ -95,6 +79,7 @@ const surveyConfig = [
 ];
 
 export default function Survey() {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState({
     app_name: '',
@@ -132,6 +117,7 @@ export default function Survey() {
         const payload = surveyConfig.map(c => {
           if (c.id === 1) {
             return { 
+              user_id: user?.id || null,
               question_id: c.id, 
               answer: `Name: ${answers.app_name} | Desc: ${answers.app_description}` 
             };
@@ -139,14 +125,24 @@ export default function Survey() {
           const val = answers[c.field];
           let text = Array.isArray(val) ? val.join(', ') : (val || '');
           if (c.otherField && answers[c.otherField]) text += ` (Other: ${answers[c.otherField]})`;
-          return { question_id: c.id, answer: text.trim() };
+          return { 
+            user_id: user?.id || null,
+            question_id: c.id, 
+            answer: text.trim() 
+          };
         }).filter(p => p.answer !== '');
 
-        await saveSurveyData(payload);
+        const { error } = await supabase
+          .from('user_answers')
+          .insert(payload);
+
+        if (error) throw error;
+
         toast.success('Survey submitted successfully! 🔥');
         logEvent("survey", "completed", "user finished survey");
         navigate('/pre-purchase');
       } catch (err) {
+        console.error('❌ Survey save error:', err);
         toast.error('Failed to save answers. Please try again.');
       } finally {
         setSubmitting(false);
