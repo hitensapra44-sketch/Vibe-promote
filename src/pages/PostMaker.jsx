@@ -10,7 +10,13 @@ import {
   Check, 
   AlertTriangle,
   Lightbulb,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  MessageSquare,
+  Twitter,
+  Globe,
+  Layout
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -18,15 +24,57 @@ import { useNavigate, Link } from 'react-router-dom';
 import { generateAICall } from '../lib/ai';
 import { toast } from 'sonner';
 import Sidebar from '../components/Sidebar';
+import { cn } from "@/lib/utils";
+
+const platforms = [
+  { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
+  { id: 'twitter', name: 'X (Twitter)', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#FFFFFF', available: false, comingSoon: true },
+  { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: MessageSquare, color: '#FFFFFF', available: false, comingSoon: true },
+  { id: 'ih', name: 'Indie Hackers', desc: 'Founder stories win here.', icon: Globe, color: '#0073b1', available: true },
+  { id: 'ph', name: 'Product Hunt', desc: 'Make your launch land.', icon: Zap, color: '#da552f', available: true },
+  { id: 'linkedin', name: 'LinkedIn', desc: 'Professional + personal mix.', icon: Layout, color: '#0077b5', available: true },
+];
+
+const formats = [
+  { 
+    id: 'struggle', 
+    name: 'The Relatable Struggle', 
+    desc: 'I was X, until I did Y', 
+    traction: 'High', 
+    engagement: 78,
+    why: 'People comment because they\'ve been there too'
+  },
+  { 
+    id: 'hot-take', 
+    name: 'Hot Take + Proof', 
+    desc: 'Unpopular opinion: [your insight]', 
+    traction: 'High', 
+    engagement: 85,
+    why: 'Controversial hooks drive 3x more replies'
+  },
+  { 
+    id: 'learned', 
+    name: 'What I Learned After Z', 
+    desc: 'After [milestone], here\'s what actually worked', 
+    traction: 'Medium', 
+    engagement: 62,
+    why: 'Authority + story = shares'
+  },
+];
 
 export default function PostMaker() {
   const { user } = useAuth();
   const [brain, setBrain] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState('platform'); // 'platform', 'format', 'output'
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+  const [selectedFormat, setSelectedFormat] = useState(null);
   const [generating, setGenerating] = useState(false);
-  const [hooks, setHooks] = useState([]);
-  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [post, setPost] = useState(null);
+  const [tone, setTone] = useState('Authentic Founder');
+  const [context, setContext] = useState('');
   const [isPaid, setIsPaid] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,153 +102,274 @@ export default function PostMaker() {
     fetchData();
   }, [user]);
 
-  const generateHooks = async () => {
-    if (!brain) return;
+  const generatePost = async () => {
+    setStep('output');
     setGenerating(true);
     
-    const systemPrompt = `You are a viral content strategist for Twitter/X. Your goal is to generate 5 high-converting posts for a SaaS product.
+    const systemPrompt = `You are a viral content strategist for ${selectedPlatform.name}. 
+    Format: ${selectedFormat.name}. Tone: ${tone}.
+    Context: ${context}.
     
-    Rules:
-    1. Use the founder's 'pain phrases' and 'brand tone'.
-    2. Each post must be engaging and stop the scroll.
-    3. No hashtags.
-    4. No emojis unless the tone is casual.
+    Brand Brain: ${JSON.stringify(brain)}
     
     Return ONLY a valid JSON object:
     {
-      "hooks": [
-        { "text": "...", "type": "The Question", "why": "Creates immediate curiosity" },
-        { "text": "...", "type": "The Bold Claim", "why": "Challenges the status quo" },
-        { "text": "...", "type": "The How-To", "why": "Promises a specific result" },
-        { "text": "...", "type": "The Mistake", "why": "Triggers fear of missing out or failure" },
-        { "text": "...", "type": "The Secret", "why": "Offers exclusive knowledge" }
-      ]
+      "title": "...",
+      "body": "..."
     }`;
 
     try {
-      const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
+      const result = await generateAICall(systemPrompt, "Generate the post now.");
       const parsed = JSON.parse(result);
-      setHooks(parsed.hooks);
-      
-      // Increment posts_generated stat
-      await supabase.rpc('increment_posts_generated', { user_uuid: user.id });
-      
-      toast.success("5 fresh posts generated! 🔥");
+      setPost(parsed);
+      supabase.rpc('increment_posts_generated', { user_uuid: user.id });
     } catch (err) {
       console.error("Generation failed:", err);
-      toast.error("Failed to generate posts. Try again.");
+      toast.error("Failed to generate post.");
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleCopy = (text, index) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-    toast.success("Copied to clipboard!");
-  };
-
-  if (loading) return <div className="min-h-screen bg-bg-base flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-bg-base text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
-        <div className="max-w-4xl mx-auto w-full">
-          <header className="flex items-center justify-between mb-12">
-            <div>
-              <h1 className="text-3xl font-bold">Post Maker</h1>
-              <p className="text-text-secondary">Stop the scroll with AI-powered viral content.</p>
-            </div>
-            {brain && (
-              <button 
-                onClick={generateHooks}
-                disabled={generating}
-                className="px-8 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
-              >
-                {generating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                {hooks.length > 0 ? 'Regenerate Posts' : 'Generate Posts'}
-              </button>
-            )}
-          </header>
+        <div className="max-w-[720px] mx-auto w-full">
+          
+          {step === 'platform' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-12">
+                <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
+                <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
+              </div>
 
-          {!brain ? (
-            <div className="text-center py-20 bg-bg-surface border border-border-muted rounded-[2.5rem]">
-              <AlertTriangle className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-              <h2 className="text-xl font-bold mb-2">Brand Brain Missing</h2>
-              <p className="text-text-secondary mb-8">You need to complete onboarding to use the Post Maker.</p>
-              <Link to="/onboarding" className="px-6 py-3 bg-primary rounded-xl font-bold">Start Onboarding</Link>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <AnimatePresence mode="wait">
-                {generating ? (
-                  <motion.div 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="flex flex-col items-center justify-center py-20 text-center"
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                {platforms.map((p) => (
+                  <button
+                    key={p.id}
+                    disabled={p.comingSoon}
+                    onClick={() => setSelectedPlatform(p)}
+                    className={cn(
+                      "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3",
+                      p.comingSoon ? "opacity-40 cursor-not-allowed bg-[#111111] border-[#1F1F1F]" : 
+                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                    )}
                   >
-                    <div className="relative w-20 h-20 mb-6">
-                      <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                      <PenTool className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
+                    {p.comingSoon && (
+                      <span className="absolute top-2 right-2 bg-[#1F1F1F] text-[#52525B] text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
+                    )}
+                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
+                    <div>
+                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                      <p className="text-[#A1A1AA] text-[10px] mt-1">{p.desc}</p>
                     </div>
-                    <h2 className="text-xl font-bold">Writing viral posts...</h2>
-                    <p className="text-text-secondary">Matching your brand voice and audience pain points.</p>
-                  </motion.div>
-                ) : hooks.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {hooks.map((hook, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="group bg-transparent border border-primary/30 rounded-2xl p-6 hover:border-primary transition-all relative overflow-hidden"
+                  </button>
+                ))}
+              </div>
+
+              {selectedPlatform && (
+                <button
+                  onClick={() => setStep('format')}
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  Continue with {selectedPlatform.name} →
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'format' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <button onClick={() => setStep('platform')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-white">What's working on {selectedPlatform.name} right now</h2>
+                <p className="text-[#A1A1AA] text-sm">Formats getting traction in your niche</p>
+              </div>
+
+              <div className="space-y-4 mb-12">
+                {formats.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFormat(f)}
+                    className={cn(
+                      "w-full p-5 rounded-xl border text-left transition-all flex flex-col lg:flex-row justify-between gap-6",
+                      selectedFormat?.id === f.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-base font-bold text-white">{f.name}</h3>
+                        <span className={cn(
+                          "text-[10px] font-bold px-2 py-0.5 rounded-md border",
+                          f.traction === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-[#1F1F1F] text-[#A1A1AA] border-[#1F1F1F]"
+                        )}>
+                          {f.traction === 'High' ? '🔥 High Traction' : '👀 Medium'}
+                        </span>
+                      </div>
+                      <p className="text-[#A1A1AA] text-sm mb-4">{f.why}</p>
+                      
+                      {/* Skeleton Preview */}
+                      <div className="bg-[#1A1A1A] rounded-lg p-4 space-y-2 border border-[#1F1F1F]">
+                        <div className="h-2 bg-[#1F1F1F] rounded w-3/4" />
+                        <div className="h-2 bg-[#1F1F1F] rounded w-full" />
+                        <div className="h-2 bg-[#1F1F1F] rounded w-1/2" />
+                      </div>
+                    </div>
+                    
+                    <div className="lg:w-32 flex flex-col justify-center">
+                      <p className="text-[10px] text-[#52525B] font-bold uppercase tracking-widest mb-2">Engagement</p>
+                      <div className="w-full h-1 bg-[#1F1F1F] rounded-full overflow-hidden mb-1">
+                        <div className="h-full bg-[#F97316]" style={{ width: `${f.engagement}%` }} />
+                      </div>
+                      <p className="text-xs font-bold text-white">{f.engagement}%</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {selectedFormat && (
+                <button
+                  onClick={generatePost}
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  Generate My Post →
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'output' && (
+            <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* Left Column - Controls */}
+              <div className="lg:w-[280px] space-y-8">
+                <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-4">
+                  <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Brand Context</p>
+                  <p className="text-white text-xs font-bold truncate">{brain?.app_name}</p>
+                  <p className="text-[#A1A1AA] text-[10px] mt-1 line-clamp-2">{brain?.core_problem}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">Tone</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Authentic Founder', 'Educational', 'Punchy / Bold', 'Conversational'].map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setTone(t)}
+                        className={cn(
+                          "py-2.5 text-[10px] font-bold rounded-lg border transition-all",
+                          tone === t ? "border-[#F97316] text-[#F97316] bg-[#F97316]/5" : "border-[#1F1F1F] text-[#A1A1AA] hover:border-[#52525B]"
+                        )}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 pointer-events-none" />
-                        <div className="flex items-start justify-between gap-4 relative z-10">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
-                                {hook.type}
-                              </span>
-                              <span className="text-[10px] text-text-secondary/60 font-medium italic">
-                                — {hook.why}
-                              </span>
-                            </div>
-                            <p className="text-lg font-medium text-white leading-relaxed">
-                              "{hook.text}"
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleCopy(hook.text, i)}
-                            className="p-3 rounded-xl bg-bg-elevated border border-border-muted hover:border-primary/50 text-text-secondary hover:text-primary transition-all"
-                          >
-                            {copiedIndex === i ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
-                          </button>
-                        </div>
-                      </motion.div>
+                        {t}
+                      </button>
                     ))}
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-border-muted rounded-[2.5rem]">
-                    <div className="w-16 h-16 rounded-2xl bg-bg-surface flex items-center justify-center mb-6">
-                      <Lightbulb className="w-8 h-8 text-text-secondary/20" />
-                    </div>
-                    <h2 className="text-xl font-bold mb-2">Ready to go viral?</h2>
-                    <p className="text-text-secondary max-w-xs mx-auto mb-8">
-                      We'll use your brand voice to write 5 posts that actually get clicks.
-                    </p>
-                    <button 
-                      onClick={generateHooks}
-                      className="flex items-center gap-2 text-primary font-bold hover:underline"
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">Anything to highlight?</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 'just hit 100 users'..."
+                    value={context}
+                    onChange={(e) => setContext(e.target.value)}
+                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#F97316]/50 placeholder-[#52525B]"
+                  />
+                </div>
+
+                <button
+                  onClick={generatePost}
+                  disabled={generating}
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate Post
+                </button>
+              </div>
+
+              {/* Right Column - Output */}
+              <div className="flex-1 space-y-6">
+                <AnimatePresence mode="wait">
+                  {generating ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px]"
                     >
-                      Generate my first posts <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </AnimatePresence>
+                      <Loader2 className="w-8 h-8 text-[#F97316] animate-spin mb-4" />
+                      <h3 className="text-lg font-bold">Writing your post...</h3>
+                      <p className="text-[#A1A1AA] text-sm">Matching your brand voice and {selectedPlatform.name} vibe.</p>
+                    </motion.div>
+                  ) : post ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      {/* Platform Preview Card */}
+                      <div className={cn(
+                        "bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden border-l-2",
+                        selectedPlatform.id === 'reddit' ? "border-l-[#FF4500]" : 
+                        selectedPlatform.id === 'ih' ? "border-l-[#0073b1]" : "border-l-[#da552f]"
+                      )}>
+                        <div className="p-4 border-b border-[#1F1F1F] flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-[#1F1F1F] flex items-center justify-center">
+                            <selectedPlatform.icon className="w-3 h-3 text-[#52525B]" />
+                          </div>
+                          <span className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">
+                            {selectedPlatform.id === 'reddit' ? 'r/SaaS' : selectedPlatform.name} • Posted by u/you
+                          </span>
+                        </div>
+                        <div className="p-6 space-y-4">
+                          <h3 className="text-lg font-bold text-white">{post.title}</h3>
+                          <p className="text-[#A1A1AA] text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
+                        </div>
+                        <div className="px-6 py-3 bg-[#1A1A1A] flex items-center gap-4 text-[#52525B] text-[10px] font-bold">
+                          <span>▲ 0</span>
+                          <span>💬 0 comments</span>
+                          <span>🔗 Share</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+                          <span className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">{post.body.length} chars</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#111111] border border-[#1F1F1F] border-l-2 border-l-[#F97316] p-4 rounded-lg">
+                        <p className="text-[#A1A1AA] text-xs leading-relaxed">
+                          <span className="text-white font-bold">💡 Tip:</span> Post between 9–11AM EST Tuesday for best reach. Don't add your link in the post — put it in the first comment after posting.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${post.title}\n\n${post.body}`);
+                            toast.success("Post copied!");
+                          }}
+                          className="flex-1 h-11 bg-[#F97316] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2"
+                        >
+                          <Copy className="w-4 h-4" /> Copy Post
+                        </button>
+                        <button onClick={generatePost} className="flex-1 h-11 border border-[#1F1F1F] text-white font-bold rounded-lg text-xs hover:bg-[#111111]">
+                          Regenerate ↺
+                        </button>
+                        <button onClick={() => setStep('format')} className="flex-1 h-11 border border-[#1F1F1F] text-white font-bold rounded-lg text-xs hover:bg-[#111111]">
+                          Try Different Format
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
             </div>
           )}
         </div>
