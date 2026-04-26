@@ -10,12 +10,12 @@ import {
   Calendar,
   MessageSquare,
   ArrowRight,
-  FileText,
-  Target,
   Activity,
   Link as LinkIcon,
+  Sparkles,
   Flame,
-  Sparkles
+  Share2,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -27,6 +27,12 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [isPaid, setIsPaid] = useState(false);
   const [profileData, setProfileData] = useState(null);
+  const [stats, setStats] = useState({
+    posts_generated: 0,
+    posting_streak: 0,
+    connected_channels: 0,
+    audience_found: 0
+  });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -46,6 +52,17 @@ export default function Dashboard() {
           setIsPaid(true);
         }
 
+        // Fetch Stats
+        const { data: statsData } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (statsData) {
+          setStats(statsData);
+        }
+
         // Fetch Brand Brain
         const { data: brain, error: brainError } = await supabase
           .from('brand_brains')
@@ -62,7 +79,6 @@ export default function Dashboard() {
             marketingGoal: brain.primary_cta || 'Drive Traffic'
           });
         } else if (!brainError) {
-          // If no brain found, redirect to onboarding
           navigate('/onboarding');
         }
       } catch (err) {
@@ -145,6 +161,7 @@ export default function Dashboard() {
         </header>
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
+          {/* Welcome & Quick Action */}
           <section className="rounded-2xl p-6 border border-orange-500/40 bg-[#111111] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2 className="text-xl font-bold text-white mb-1">
@@ -161,6 +178,25 @@ export default function Dashboard() {
             </button>
           </section>
 
+          {/* Growth Stats */}
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Posts Generated', value: stats.posts_generated, icon: PenTool, color: 'text-blue-400' },
+              { label: 'Posting Streak', value: `${stats.posting_streak} days`, icon: Flame, color: 'text-orange-500' },
+              { label: 'Connected Channels', value: stats.connected_channels, icon: Share2, color: 'text-purple-400' },
+              { label: 'Audience Found', value: stats.audience_found, icon: Users, color: 'text-green-400' },
+            ].map((stat, i) => (
+              <div key={i} className="bg-[#111111] border border-white/5 rounded-2xl p-5 flex flex-col">
+                <div className="flex items-center gap-2 mb-3">
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</span>
+                </div>
+                <span className="text-2xl font-bold text-white">{stat.value}</span>
+              </div>
+            ))}
+          </section>
+
+          {/* Brand Brain */}
           <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-8">
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -193,6 +229,7 @@ export default function Dashboard() {
             </div>
           </section>
 
+          {/* Tools */}
           <section className="space-y-6">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-gray-400" />

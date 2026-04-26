@@ -37,7 +37,7 @@ export default function AudienceSpotter() {
         .from('user_payments')
         .select('payment_status')
         .eq('email', user.email)
-        .single();
+        .maybeSingle();
       
       if (paymentData?.payment_status) {
         setIsPaid(true);
@@ -47,7 +47,7 @@ export default function AudienceSpotter() {
         .from('brand_brains')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       if (data) setBrain(data);
       setLoading(false);
     }
@@ -77,8 +77,13 @@ export default function AudienceSpotter() {
     }`;
 
     try {
-      const parsed = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
+      const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
+      const parsed = JSON.parse(result);
       setResults(parsed);
+      
+      // Increment audience_found stat
+      await supabase.rpc('increment_audience_found', { user_uuid: user.id });
+      
     } catch (err) {
       console.error("Scan failed:", err);
     } finally {

@@ -37,7 +37,7 @@ export default function PostMaker() {
         .from('user_payments')
         .select('payment_status')
         .eq('email', user.email)
-        .single();
+        .maybeSingle();
       
       if (paymentData?.payment_status) {
         setIsPaid(true);
@@ -47,7 +47,7 @@ export default function PostMaker() {
         .from('brand_brains')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       if (data) setBrain(data);
       setLoading(false);
     }
@@ -81,6 +81,10 @@ export default function PostMaker() {
       const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
       const parsed = JSON.parse(result);
       setHooks(parsed.hooks);
+      
+      // Increment posts_generated stat
+      await supabase.rpc('increment_posts_generated', { user_uuid: user.id });
+      
       toast.success("5 fresh posts generated! 🔥");
     } catch (err) {
       console.error("Generation failed:", err);
