@@ -15,13 +15,12 @@ export const generateAICall = async (systemPrompt, userMessage) => {
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage }
       ],
-      temperature: 1,
+      temperature: 0.7, // Slightly lower temperature for faster, more focused results
       top_p: 0.95,
-      max_tokens: 8192,
+      max_tokens: 4096, // Reduced max tokens to prevent long-winded responses
       extra_body: {
         "chat_template_kwargs": {
-          "thinking": true,
-          "reasoning_effort": "high"
+          "thinking": false // Disabled thinking to speed up response
         }
       },
       stream: false
