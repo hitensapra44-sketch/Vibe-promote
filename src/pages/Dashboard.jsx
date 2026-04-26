@@ -27,7 +27,6 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [isPaid, setIsPaid] = useState(false);
   const [profileData, setProfileData] = useState(null);
-  const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -36,21 +35,23 @@ export default function Dashboard() {
       if (!user) return;
 
       try {
+        // Check payment status
         const { data: paymentData } = await supabase
           .from('user_payments')
           .select('payment_status')
           .eq('email', user.email)
-          .single();
+          .maybeSingle();
         
         if (paymentData?.payment_status) {
           setIsPaid(true);
         }
 
-        const { data: brain } = await supabase
+        // Fetch Brand Brain
+        const { data: brain, error: brainError } = await supabase
           .from('brand_brains')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (brain) {
           setProfileData({
@@ -60,6 +61,9 @@ export default function Dashboard() {
             targetAudience: brain.target_customer,
             marketingGoal: brain.primary_cta || 'Drive Traffic'
           });
+        } else if (!brainError) {
+          // If no brain found, redirect to onboarding
+          navigate('/onboarding');
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -68,7 +72,7 @@ export default function Dashboard() {
       }
     }
     fetchData();
-  }, [user]);
+  }, [user, navigate]);
 
   const tools = [
     { 
@@ -122,7 +126,6 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0a0a0a] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <header className="h-14 border-b border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
@@ -142,7 +145,6 @@ export default function Dashboard() {
         </header>
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
-          {/* Welcome Banner */}
           <section className="rounded-2xl p-6 border border-orange-500/40 bg-[#111111] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2 className="text-xl font-bold text-white mb-1">
@@ -159,13 +161,12 @@ export default function Dashboard() {
             </button>
           </section>
 
-          {/* Your Profile Section */}
           <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-8">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <User className="w-4 h-4 text-gray-400" />
-                  Your Profile
+                  Your Brand Brain
                 </h3>
                 <Link to="/onboarding" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">
                   Edit Brain
@@ -190,57 +191,8 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-
-            <div className="pt-8 border-t border-white/5">
-              <h4 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4">Current Stage Metrics</h4>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { label: 'Post Generated', value: '0', icon: FileText },
-                  { label: 'Audience Found', value: '0', icon: Search },
-                  { label: 'Connected Channel', value: '0', icon: LinkIcon },
-                  { label: 'Posting Streak', value: '0 days', icon: Flame },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.01]">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                      <item.icon className="w-5 h-5 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{item.label}</p>
-                      <p className="text-lg font-bold text-white">{item.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </section>
 
-          {/* Recent Posts Section */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-gray-400" />
-              Recent Posts
-            </h3>
-            {recentPosts.length === 0 ? (
-              <div className="p-12 rounded-2xl border border-white/5 bg-white/[0.02] text-center">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                  <PenTool className="w-6 h-6 text-gray-700" />
-                </div>
-                <p className="text-sm font-medium text-gray-500">No posts generated yet.</p>
-                <button 
-                  onClick={() => navigate('/post-maker')}
-                  className="mt-4 text-xs font-bold text-orange-500 hover:underline bg-transparent"
-                >
-                  Create your first post →
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {/* Posts would be mapped here */}
-              </div>
-            )}
-          </section>
-
-          {/* Tools Grid */}
           <section className="space-y-6">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-gray-400" />
@@ -264,7 +216,7 @@ export default function Dashboard() {
                   </p>
                   <button
                     disabled={!tool.available}
-                    onClick={() => isPaid ? navigate(tool.path) : navigate('/pre-purchase')}
+                    onClick={() => navigate(tool.path)}
                     className={cn(
                       "w-full py-2.5 rounded-lg text-xs font-bold transition-all border bg-transparent",
                       tool.available 
@@ -272,22 +224,12 @@ export default function Dashboard() {
                         : "border-white/5 text-gray-700 cursor-not-allowed"
                     )}
                   >
-                    {!tool.available ? 'Coming Soon' : (isPaid ? 'Open Tool' : 'Unlock Access')}
+                    {!tool.available ? 'Coming Soon' : 'Open Tool'}
                   </button>
                 </div>
               ))}
             </div>
           </section>
-
-          <footer className="pt-8 pb-6 border-t border-white/5 flex items-center justify-between">
-            <p className="text-[10px] text-gray-700 font-medium">
-              Vibe Promote © 2026
-            </p>
-            <div className="flex items-center gap-4">
-              <button className="text-[10px] text-gray-700 hover:text-white transition-colors bg-transparent">Support</button>
-              <button className="text-[10px] text-gray-700 hover:text-white transition-colors bg-transparent">Feedback</button>
-            </div>
-          </footer>
         </div>
       </main>
     </div>

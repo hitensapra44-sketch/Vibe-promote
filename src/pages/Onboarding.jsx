@@ -11,7 +11,6 @@ import PostPreview from './PostPreview';
 export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [step1Data, setStep1Data] = useState(null);
-  const [positioningData, setPositioningData] = useState(null);
   const [step2Data, setStep2Data] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -24,13 +23,13 @@ export default function Onboarding() {
   const handlePositioningComplete = (result) => {
     // If they chose AI, we update the core fields with AI's improved versions
     if (result.type === 'ai') {
-      setStep1Data({
-        ...step1Data,
+      setStep1Data(prev => ({
+        ...prev,
         app_description: result.data.positioningStatement,
         target_customer: result.data.targetAudience,
         suggested_tagline: result.data.suggestedTagline,
         core_value: result.data.coreValue
-      });
+      }));
     }
     setStep(2);
   };
@@ -47,7 +46,7 @@ export default function Onboarding() {
       return;
     }
 
-    const loadingToast = toast.loading("Saving your Brand Brain...");
+    const loadingToast = toast.loading("Finalizing your Brand Brain...");
 
     try {
       const brainData = {
@@ -63,9 +62,9 @@ export default function Onboarding() {
         brand_tone: step2Data.brand_tone,
         writing_style: step2Data.writing_style,
         primary_platform: step2Data.primary_platform,
-        current_stage: step2Data.current_stage || 'MVP',
-        posting_frequency: step2Data.posting_frequency || 'Daily',
-        primary_cta: step2Data.primary_cta
+        primary_cta: step2Data.primary_cta,
+        current_stage: 'MVP', // Defaulting for now
+        posting_frequency: 'Daily' // Defaulting for now
       };
 
       const { error } = await supabase
@@ -74,7 +73,7 @@ export default function Onboarding() {
 
       if (error) throw error;
 
-      toast.success("Brand Brain saved! 🚀", { id: loadingToast });
+      toast.success("Brand Brain ready! 🚀", { id: loadingToast });
       navigate('/dashboard');
     } catch (err) {
       console.error("Save failed:", err);
