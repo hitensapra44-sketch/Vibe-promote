@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2, Share2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Brain, Rocket, X, Globe, Loader2 } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
@@ -16,7 +16,6 @@ export default function BrandBrainOnboarding({ onComplete }) {
   const [url, setUrl] = useState('');
   
   const [extracting, setExtracting] = useState(false);
-  const [extracted, setExtracted] = useState(false);
   const [extractError, setExtractError] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -28,39 +27,39 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
     setExtracting(true);
     setExtractError(null);
-    setExtracted(false);
 
-    const systemPrompt = `You are an expert SaaS analyst and marketing strategist. You deeply understand products, customers, and where those customers spend their time online.
+    const systemPrompt = `Analyze the SaaS product at the given URL. Return ONLY a JSON object with these 5 fields:
+- app_name: Product name.
+- app_description: 1-2 simple sentences on what it does.
+- target_customer: Specific person it's built for.
+- core_problem: The main pain it fixes.
+- top_social_platform: The best platform to find these users + 1 sentence why.
 
-The user will give you a URL. Analyze the product at that URL and return a JSON object with EXACTLY these five fields:
-
-- app_name: The product's name. Keep it clean, exactly as shown on the site.
-
-- app_description: Explain what this product does in 1-2 simple sentences. Write like you're texting a friend — no jargon, no buzzwords. Make it so clear that someone with zero context gets it instantly.
-
-- target_customer: Paint a picture of the exact person this is built for. Don't just say their job title — mention their situation, their goals, and their daily reality. Example: "A solo founder who just launched their first SaaS product, has no marketing budget, and is trying to get their first 100 users without hiring an agency."
-
-- core_problem: Describe the ONE main pain this product fixes — but make it feel real. Write it from the customer's perspective, like something they'd actually say out loud. Example: "I spend hours every week writing social posts and still get zero engagement. I have no idea what's working or who I'm even talking to."
-
-- top_social_platform: Name the single platform where this target customer is most active and most reachable. Then explain in 1-2 sentences: where they hang out, what kind of content they engage with there, and why that platform beats the others for this specific audience. Be specific and confident — no wishy-washy answers.
-
-Rules:
-- If exact info isn't available, make a sharp, well-reasoned inference based on the URL, domain, and your knowledge of that product space. Never guess randomly.
-- Every field must feel like it was written by someone who actually understands the product and its customers — not a generic AI summary.
-- Return ONLY valid JSON. No explanation, no markdown, no backticks, no extra text outside the JSON.`;
+Return ONLY valid JSON. No markdown, no extra text.`;
 
     try {
-      const result = await generateAICall(systemPrompt, `Analyze the product at this URL: ${url}`);
+      const result = await generateAICall(systemPrompt, `URL: ${url}`);
       
-      // Parse the JSON response
       let parsed;
       try {
-        // Clean the response first
-        const cleaned = result.replace(/```json\n?|```/g, '').trim();
-        parsed = JSON.parse(cleaned);
+        // Clean and attempt to repair truncated JSON
+        let cleaned = result.replace(/```json\n?|```/g, '').trim();
+        
+        // Simple repair: if it starts with { but doesn't end with }, try to close it
+        if (cleaned.startsWith('{') && !cleaned.endsWith('}')) {
+          cleaned += '"}'; // Try to close a string and the object
+          if (!cleaned.endsWith('}')) cleaned += '}';
+        }
+        
+        try {
+          parsed = JSON.parse(cleaned);
+        } catch (e) {
+          // If first repair failed, try just closing the object
+          parsed = JSON.parse(cleaned + '}');
+        }
       } catch (parseError) {
         console.error("Failed to parse JSON:", result);
-        throw new Error("Couldn't parse the website analysis. Please fill in the fields manually.");
+        throw new Error("AI response was incomplete. Please fill in the fields manually.");
       }
 
       setAppName(parsed.app_name || '');
@@ -69,9 +68,8 @@ Rules:
       setCoreProblem(parsed.core_problem || '');
       setTopSocialPlatform(parsed.top_social_platform || '');
       
-      setExtracted(true);
     } catch (err) {
-      console.error("Extraction failed:", err);
+      console.error("Extraction failed:", err.message || err);
       setExtractError(err.message || "Couldn't read that URL. Fill in the questions below instead.");
     } finally {
       setExtracting(false);
@@ -281,13 +279,6 @@ Rules:
                   <Rocket className="w-5 h-5 text-white/10" />
                 </div>
               </div>
-            </div>
-
-            <div className="mt-8 flex items-center justify-between px-4 py-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-              <p className="text-[11px] text-text-secondary/60 leading-relaxed">
-                <span className="text-primary font-bold">Expert Analysis</span> — Our AI is analyzing your product's market position and audience behavior in real-time.
-              </p>
-              <X className="w-4 h-4 text-text-secondary/40 cursor-pointer hover:text-white transition-colors" />
             </div>
           </motion.div>
         </div>
