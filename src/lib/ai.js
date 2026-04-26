@@ -2,7 +2,7 @@ import { OpenAI } from 'openai';
 
 // Using absolute URL for the proxy to satisfy OpenAI client validation
 const client = new OpenAI({
-  apiKey: "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",
+  apiKey: "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",
   baseURL: `${window.location.origin}/api/ai`,
   dangerouslyAllowBrowser: true 
 });
@@ -10,19 +10,14 @@ const client = new OpenAI({
 export const generateAICall = async (systemPrompt, userMessage) => {
   try {
     const completion = await client.chat.completions.create({
-      model: "deepseek-ai/deepseek-v4-flash",
+      model: "nvidia/nemotron-mini-4b-instruct",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage }
       ],
-      temperature: 0.7, // Slightly lower temperature for faster, more focused results
-      top_p: 0.95,
-      max_tokens: 4096, // Reduced max tokens to prevent long-winded responses
-      extra_body: {
-        "chat_template_kwargs": {
-          "thinking": false // Disabled thinking to speed up response
-        }
-      },
+      temperature: 0.2,
+      top_p: 0.7,
+      max_tokens: 1024,
       stream: false
     });
 
