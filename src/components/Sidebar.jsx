@@ -14,7 +14,8 @@ import {
   Brain,
   Calendar,
   MessageSquare,
-  Menu
+  Menu,
+  BarChart2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -37,6 +38,8 @@ export default function Sidebar({ isPaid }) {
     { icon: Brain, label: 'Brand Brain', path: '/onboarding', available: true },
     { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
     { icon: PenTool, label: 'Post Maker', path: '/post-maker', available: true },
+    { icon: BarChart2, label: 'Results Tracker', path: '/dashboard/results-tracker', available: true },
+    { icon: Sparkles, label: 'Marketing Buddy', path: '/dashboard/marketing-buddy', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
     { icon: MessageSquare, label: 'Agentic Helper', path: '#', available: false, comingSoon: true },
     { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },

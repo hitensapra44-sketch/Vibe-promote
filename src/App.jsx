@@ -14,6 +14,8 @@ import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import AudienceSpotter from './pages/AudienceSpotter';
 import PostMaker from './pages/PostMaker';
+import ResultsTracker from './pages/results-tracker/ResultsTracker';
+import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -39,6 +41,8 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/results-tracker" element={<ResultsTracker />} />
+          <Route path="/dashboard/marketing-buddy" element={<MarketingBuddy />} />
           <Route path="/audience-spotter" element={<AudienceSpotter />} />
           <Route path="/post-maker" element={<PostMaker />} />
           <Route path="*" element={<PageNotFound />} />
