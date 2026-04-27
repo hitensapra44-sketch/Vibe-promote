@@ -21,7 +21,8 @@ import {
   Plus,
   ChevronRight,
   Mail,
-  Lock
+  Lock,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
