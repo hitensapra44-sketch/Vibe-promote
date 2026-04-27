@@ -10,13 +10,17 @@ import {
   Globe, 
   Loader2, 
   Sparkles,
-  ExternalLink,
-  TrendingUp,
-  Zap,
   ArrowLeft,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  Hash,
+  Bell,
+  Calendar,
+  Settings,
+  Plus,
+  ChevronRight,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -24,27 +28,25 @@ import { useNavigate, Link } from 'react-router-dom';
 import { generateAICall } from '../lib/ai';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
   const [brain, setBrain] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState('setup'); // 'setup', 'loading', 'results'
-  const [scanningSteps, setScanningSteps] = useState([]);
-  const [results, setResults] = useState(null);
   const [isPaid, setIsPaid] = useState(false);
   
-  // Search Settings
-  const [subreddits, setSubreddits] = useState(['r/SaaS', 'r/entrepreneur', 'r/startups', 'r/indiehackers']);
-  const [searchType, setSearchType] = useState('Both'); // 'Solutions', 'Frustrations', 'Both'
-  const [timeframe, setTimeframe] = useState('7 days'); // '24 hours', '7 days', '30 days'
-  
-  // Reply Crafter
-  const [selectedResult, setSelectedResult] = useState(null);
-  const [replyTone, setReplyTone] = useState('Friendly Founder');
-  const [mentionStyle, setMentionStyle] = useState('Soft mention');
-  const [generatedReply, setGeneratedReply] = useState('');
-  const [generatingReply, setGeneratingReply] = useState(false);
+  // Flow State: 'monitoring' | 'setup'
+  const [view, setView] = useState('setup'); 
+  const [currentStep, setCurrentStep] = useState(1); // 1: Platforms, 2: Communities, 3: Keywords, 4: Review
+
+  // Setup Data
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['Reddit']);
+  const [communities, setCommunities] = useState(['SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 'startups', 'Entrepreneur', 'BrandMarketing', 'copywriting', 'MarTech', 'saasoperations', 'smallbusiness', 'socialmedia', 'productmarketing']);
+  const [keywords, setKeywords] = useState(['SaaS marketing', 'brand vibe', 'marketing strategy', 'brand building', 'customer engagement', 'audience connection', 'brand identity', 'marketing message', 'value proposition']);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [frequency, setFrequency] = useState('Daily');
+  const [emailDigest, setEmailDigest] = useState(true);
 
   const navigate = useNavigate();
 
@@ -73,368 +75,325 @@ export default function AudienceSpotter() {
     fetchData();
   }, [user]);
 
-  const startScan = async () => {
-    setStep('loading');
-    setScanningSteps([]);
-    
-    const addStep = (text, status = 'loading') => {
-      setScanningSteps(prev => [...prev, { text, status }]);
-    };
-
-    // Simulate steps for UI feel
-    setTimeout(() => addStep(`Scanning ${subreddits[0]}...`), 500);
-    setTimeout(() => addStep(`Scanning ${subreddits[1]}...`), 1500);
-    setTimeout(() => addStep(`Scoring buying intent with AI...`), 3000);
-
-    const systemPrompt = `You are a social listening expert. Find the exact "watering holes" where this audience hangs out.
-    
-    Based on: ${JSON.stringify(brain)}
-    Settings: Type: ${searchType}, Timeframe: ${timeframe}
-    
-    Return ONLY a valid JSON object:
-    {
-      "reddit": [{ "name": "r/...", "title": "...", "snippet": "...", "intent": "High", "time": "2 hours ago", "ups": 47, "comments": 23 }],
-      "twitter": [{ "tag": "#...", "vibe": "...", "angle": "..." }],
-      "forums": [{ "name": "...", "vibe": "...", "angle": "..." }]
-    }`;
-
-    try {
-      const result = await generateAICall(systemPrompt, `Brand Brain:\n${JSON.stringify(brain)}`);
-      const parsed = JSON.parse(result);
-      
-      setTimeout(() => {
-        setScanningSteps(prev => {
-          const next = [...prev];
-          next[next.length - 1].status = 'success';
-          return next;
-        });
-        setResults(parsed);
-        setStep('results');
-        supabase.rpc('increment_audience_found', { user_uuid: user.id });
-      }, 4500);
-      
-    } catch (err) {
-      console.error("Scan failed:", err);
-      setStep('setup');
+  const handleAddKeyword = (e) => {
+    e.preventDefault();
+    if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
+      setKeywords([...keywords, newKeyword.trim()]);
+      setNewKeyword('');
     }
   };
 
-  const generateReply = async () => {
-    if (!selectedResult) return;
-    setGeneratingReply(true);
-    
-    const systemPrompt = `Write a Reddit reply for this post: "${selectedResult.title}". 
-    Tone: ${replyTone}. Style: ${mentionStyle}. 
-    App Context: ${brain.app_name} - ${brain.app_description}.
-    
-    Rules:
-    - Sound like a real human founder.
-    - No hard selling.
-    - Max 250 chars.
-    - If soft mention, don't name the app, just describe the solution.
-    - If direct pitch, mention the app name naturally.`;
+  const removeKeyword = (word) => {
+    setKeywords(keywords.filter(k => k !== word));
+  };
 
-    try {
-      const result = await generateAICall(systemPrompt, "Generate the reply now.");
-      setGeneratedReply(result);
-    } catch (err) {
-      console.error("Reply generation failed:", err);
-    } finally {
-      setGeneratingReply(false);
-    }
+  const handleCreateSignal = () => {
+    toast.success("Signal created! Monitoring started.");
+    setView('monitoring');
   };
 
   if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
+
+  const steps = [
+    { id: 1, name: 'Platforms' },
+    { id: 2, name: 'Communities' },
+    { id: 3, name: 'Keywords' },
+    { id: 4, name: 'Review' }
+  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {step === 'setup' && (
-          <div className="max-w-[640px] mx-auto w-full py-12 px-6">
-            <div className="mb-8">
-              <p className="text-[#52525B] text-xs font-medium mb-2">Dashboard / Audience Spotter</p>
-              <h1 className="text-2xl font-semibold text-white">Audience Spotter</h1>
-              <p className="text-[#A1A1AA] text-sm">Find people who need your app</p>
+        
+        {view === 'monitoring' ? (
+          <div className="flex-1 flex flex-col p-8">
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#E11D48]/10 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-[#E11D48]" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">Buying Signals</h1>
+                  <p className="text-[#52525B] text-sm">AI-powered monitoring of high-intent conversations across social platforms.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setView('setup')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1F1F1F] text-sm font-medium hover:bg-[#111111] transition-all bg-transparent"
+              >
+                <Settings className="w-4 h-4" />
+                Configure
+              </button>
             </div>
 
-            {/* Brand Context Card */}
-            <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[#A1A1AA] text-sm font-medium">🏷 Using your brand info</span>
-                <Link to="/onboarding" className="text-[#F97316] text-xs font-bold hover:underline">Edit →</Link>
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 rounded-full bg-[#E11D48]/20 animate-ping" />
+                <div className="relative w-12 h-12 rounded-full bg-[#E11D48]/10 flex items-center justify-center">
+                  <Target className="w-6 h-6 text-[#E11D48]" />
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {brain ? (
-                  <>
-                    <span className="bg-[#1F1F1F] text-[#F97316] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">{brain.app_name}</span>
-                    <span className="bg-[#1F1F1F] text-[#F97316] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Problem: {brain.core_problem}</span>
-                    <span className="bg-[#1F1F1F] text-[#F97316] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Audience: {brain.target_customer}</span>
-                  </>
-                ) : (
-                  <span className="text-red-400 text-xs font-bold flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> Complete your brand info first
-                  </span>
-                )}
-              </div>
+              <h2 className="text-lg font-bold mb-2">Monitoring signals for {brain?.app_name || 'Vibe Hype'}</h2>
+              <p className="text-[#52525B] text-sm max-w-md">
+                We're actively scanning social platforms for high-intent conversations. Signals will appear here as they're detected.
+              </p>
             </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col lg:flex-row">
+            {/* Left Sidebar Progress */}
+            <div className="w-full lg:w-64 p-8 lg:pt-24 flex flex-col items-center lg:items-start">
+              <button onClick={() => navigate('/dashboard')} className="text-[#52525B] text-sm flex items-center gap-2 hover:text-white mb-12">
+                <ArrowLeft className="w-4 h-4" /> Buying Signals
+              </button>
 
-            {/* Search Settings Card */}
-            <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 space-y-8">
-              <div className="space-y-3">
-                <label className="text-white text-sm font-medium block">Search in</label>
-                <div className="flex flex-wrap gap-2">
-                  {subreddits.map(s => (
-                    <span key={s} className="bg-[#1F1F1F] text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
-                      {s}
-                      <button onClick={() => setSubreddits(subreddits.filter(x => x !== s))} className="text-[#52525B] hover:text-white">
-                        <X className="w-3 h-3" />
-                      </button>
+              <div className="relative space-y-12">
+                {/* Vertical Line */}
+                <div className="absolute left-[15px] top-2 bottom-2 w-[2px] bg-[#1F1F1F]" />
+                
+                {steps.map((s) => (
+                  <div key={s.id} className="relative flex items-center gap-4">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all duration-300",
+                      currentStep > s.id ? "bg-[#E11D48] text-white" : 
+                      currentStep === s.id ? "bg-[#0A0A0A] border-2 border-[#E11D48] text-[#E11D48]" : 
+                      "bg-[#0A0A0A] border-2 border-[#1F1F1F] text-[#52525B]"
+                    )}>
+                      {currentStep > s.id ? <Check className="w-4 h-4" /> : s.id}
+                    </div>
+                    <span className={cn(
+                      "text-sm font-bold transition-all duration-300",
+                      currentStep >= s.id ? "text-white" : "text-[#52525B]"
+                    )}>
+                      {s.name}
                     </span>
-                  ))}
-                  <button className="text-[#F97316] text-xs font-bold hover:underline">+ Add subreddit</button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-white text-sm font-medium block">Looking for</label>
-                <div className="flex bg-[#1F1F1F] p-1 rounded-lg">
-                  {['People asking for solutions', 'People venting frustrations', 'Both'].map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setSearchType(t)}
-                      className={cn(
-                        "flex-1 py-2 text-[10px] font-bold rounded-md transition-all",
-                        searchType === t ? "bg-[#F97316] text-white" : "text-[#A1A1AA] hover:text-white"
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-white text-sm font-medium block">Posted in the last</label>
-                <div className="flex bg-[#1F1F1F] p-1 rounded-lg">
-                  {['24 hours', '7 days', '30 days'].map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setTimeframe(t)}
-                      className={cn(
-                        "flex-1 py-2 text-[10px] font-bold rounded-md transition-all",
-                        timeframe === t ? "bg-[#F97316] text-white" : "text-[#A1A1AA] hover:text-white"
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={startScan}
-              disabled={!brain}
-              className="w-full mt-8 h-11 bg-[#F97316] hover:bg-[#EA6C0A] disabled:bg-[#1F1F1F] disabled:text-[#52525B] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-            >
-              Find My Audience →
-            </button>
-          </div>
-        )}
-
-        {step === 'loading' && (
-          <div className="max-w-[640px] mx-auto w-full py-12 px-6 flex flex-col items-center justify-center min-h-[60vh]">
-            <div className="w-full space-y-4 mb-8">
-              {scanningSteps.map((s, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  {s.status === 'loading' ? (
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#F97316] animate-pulse" />
-                  ) : (
-                    <Check className="w-4 h-4 text-[#22C55E]" />
-                  )}
-                  <span className={cn("text-sm", s.status === 'loading' ? "text-white" : "text-[#52525B]")}>{s.text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="w-full h-1 bg-[#1F1F1F] rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 4.5, ease: "linear" }}
-                className="h-full bg-[#F97316]"
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 'results' && (
-          <div className="flex flex-col lg:flex-row h-full">
-            <div className="flex-1 p-8 overflow-y-auto">
-              <div className="flex items-center justify-between mb-8">
-                <button onClick={() => setStep('setup')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white">
-                  <ArrowLeft className="w-4 h-4" /> Back to setup
-                </button>
-                <div className="text-center">
-                  <span className="text-white font-bold">{results?.reddit?.length || 0} results found</span>
-                  <span className="text-[#52525B] text-xs block">Reddit + Indie Hackers</span>
-                </div>
-                <button onClick={startScan} className="text-[#A1A1AA] text-xs font-bold flex items-center gap-1 hover:text-white">
-                  Re-run ↺
-                </button>
-              </div>
-
-              <div className="flex bg-[#1F1F1F] p-1 rounded-lg mb-8 w-fit">
-                {['All', '🔥 High', '👀 Medium', '💬 Low'].map(f => (
-                  <button key={f} className="px-4 py-1.5 text-[10px] font-bold rounded-md text-[#A1A1AA] hover:text-white">
-                    {f}
-                  </button>
+                  </div>
                 ))}
               </div>
+            </div>
 
-              <div className="space-y-4">
-                {results?.reddit?.map((r, i) => (
-                  <div key={i} className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 hover:border-[#F97316]/30 transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#52525B] text-xs font-bold">{r.name}</span>
-                        <span className="text-[#52525B] text-[10px]">· {r.time}</span>
-                      </div>
-                      <span className={cn(
-                        "text-[10px] font-bold px-2 py-0.5 rounded-md border",
-                        r.intent === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-[#1F1F1F] text-[#A1A1AA] border-[#1F1F1F]"
-                      )}>
-                        {r.intent === 'High' ? '🔥 HIGH INTENT' : r.intent === 'Medium' ? '👀 MEDIUM' : '💬 LOW'}
-                      </span>
+            {/* Main Content Area */}
+            <div className="flex-1 p-8 lg:pt-24 max-w-4xl">
+              <AnimatePresence mode="wait">
+                {currentStep === 3 && (
+                  <motion.div 
+                    key="step3"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div>
+                      <h1 className="text-4xl font-bold mb-4">Keywords</h1>
+                      <p className="text-[#A1A1AA] text-sm">Short-tail terms we'll use to find posts about your product across all selected platforms.</p>
                     </div>
-                    <h3 className="text-white font-medium mb-2">{r.title}</h3>
-                    <p className="text-[#A1A1AA] text-sm line-clamp-2 mb-4">{r.snippet}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-[#52525B] text-xs">
-                        <span>▲ {r.ups}</span>
-                        <span>💬 {r.comments} comments</span>
+
+                    <form onSubmit={handleAddKeyword} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          placeholder="e.g. email outreach"
+                          value={newKeyword}
+                          onChange={(e) => setNewKeyword(e.target.value)}
+                          className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl px-6 py-4 text-white focus:outline-none focus:border-[#E11D48]/50 transition-all"
+                        />
                       </div>
-                      <div className="flex gap-2">
-                        <button className="text-[#A1A1AA] text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-[#1F1F1F]">View Post ↗</button>
+                      <button 
+                        type="submit"
+                        className="w-12 h-12 rounded-xl border border-[#1F1F1F] flex items-center justify-center hover:bg-[#111111] transition-all bg-transparent"
+                      >
+                        <Plus className="w-5 h-5 text-[#52525B]" />
+                      </button>
+                    </form>
+
+                    <div className="space-y-4">
+                      <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">Keywords ({keywords.length}/10)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {keywords.map((word) => (
+                          <span key={word} className="bg-[#E11D48]/10 text-[#E11D48] text-xs font-bold px-3 py-2 rounded-full border border-[#E11D48]/20 flex items-center gap-2">
+                            <Hash className="w-3 h-3" />
+                            {word}
+                            <button onClick={() => removeKeyword(word)} className="hover:text-white">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-[#111111] border border-[#1F1F1F] p-4 rounded-xl flex gap-4">
+                      <AlertCircle className="w-5 h-5 text-[#52525B] flex-shrink-0 mt-0.5" />
+                      <p className="text-[#52525B] text-xs leading-relaxed">
+                        These keywords help us find relevant posts across platforms. Keep them short and broad — we run a separate filtering process on top that removes spam, off-topic content, and AI-generated noise.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-8">
+                      <button onClick={() => setCurrentStep(2)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button 
+                        onClick={() => setCurrentStep(4)}
+                        className="px-8 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
+                      >
+                        Continue
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 4 && (
+                  <motion.div 
+                    key="step4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div>
+                      <h1 className="text-4xl font-bold mb-4">Review your signal</h1>
+                      <p className="text-[#A1A1AA] text-sm">Everything looks good? Hit create and we'll start monitoring.</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Product Summary */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                          <Search className="w-5 h-5 text-[#52525B]" />
+                        </div>
+                        <div>
+                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Product</p>
+                          <h3 className="text-white font-bold mb-1">{brain?.app_name || 'Vibe Hype'}</h3>
+                          <p className="text-[#52525B] text-xs">{brain?.app_description || 'Vibe Hype helps SaaS companies transform their marketing efforts into a strong brand "vibe."'}</p>
+                        </div>
+                      </div>
+
+                      {/* Platforms Summary */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                          <Globe className="w-5 h-5 text-[#52525B]" />
+                        </div>
+                        <div>
+                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Platforms</p>
+                          <div className="flex gap-2">
+                            <span className="bg-orange-500/10 text-orange-500 text-[10px] font-bold px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1.5">
+                              <div className="w-3 h-3 rounded-sm bg-orange-500 flex items-center justify-center text-[8px] text-white font-black">Y</div>
+                              Hacker News
+                            </span>
+                            <span className="bg-orange-600/10 text-orange-600 text-[10px] font-bold px-3 py-1 rounded-full border border-orange-600/20 flex items-center gap-1.5">
+                              <div className="w-3 h-3 rounded-full bg-orange-600 flex items-center justify-center text-[8px] text-white font-black">r/</div>
+                              Reddit
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Communities Summary */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                          <MessageSquare className="w-5 h-5 text-[#52525B]" />
+                        </div>
+                        <div>
+                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Communities</p>
+                          <div className="flex flex-wrap gap-2">
+                            {communities.map(c => (
+                              <span key={c} className="bg-[#1F1F1F] text-[#A1A1AA] text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#52525B]/20 flex items-center justify-center text-[6px] text-[#52525B] font-black">r/</div>
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Keywords Summary */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                          <Hash className="w-5 h-5 text-[#52525B]" />
+                        </div>
+                        <div>
+                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Keywords</p>
+                          <div className="flex flex-wrap gap-2">
+                            {keywords.map(k => (
+                              <span key={k} className="bg-[#1F1F1F] text-[#A1A1AA] text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#52525B]/20 flex items-center justify-center text-[6px] text-[#52525B] font-black">#</div>
+                                {k}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Frequency */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-5 h-5 text-[#52525B]" />
+                        </div>
+                        <div>
+                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Frequency</p>
+                          <h3 className="text-white font-bold">{frequency}</h3>
+                        </div>
+                      </div>
+
+                      {/* Email Digest */}
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex items-center justify-between">
+                        <div className="flex gap-6">
+                          <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                            <Mail className="w-5 h-5 text-[#52525B]" />
+                          </div>
+                          <div>
+                            <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Email Digest</p>
+                            <p className="text-[#A1A1AA] text-xs">Receive a summary when new signals are found.</p>
+                          </div>
+                        </div>
                         <button 
-                          onClick={() => setSelectedResult(r)}
-                          className="bg-[#F97316] text-white text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-[#EA6C0A]"
+                          onClick={() => setEmailDigest(!emailDigest)}
+                          className={cn(
+                            "w-10 h-5 rounded-full transition-all relative",
+                            emailDigest ? "bg-[#E11D48]" : "bg-[#1F1F1F]"
+                          )}
                         >
-                          Craft Reply →
+                          <div className={cn(
+                            "absolute top-1 w-3 h-3 rounded-full bg-white transition-all",
+                            emailDigest ? "right-1" : "left-1"
+                          )} />
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Reply Crafter Panel */}
-            <AnimatePresence>
-              {selectedResult && (
-                <motion.aside 
-                  initial={{ x: 420 }}
-                  animate={{ x: 0 }}
-                  exit={{ x: 420 }}
-                  className="w-full lg:w-[420px] bg-[#0A0A0A] border-l border-[#1F1F1F] p-6 flex flex-col h-full z-40"
-                >
-                  <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-lg font-semibold">Craft Your Reply</h2>
-                    <button onClick={() => setSelectedResult(null)} className="text-[#52525B] hover:text-white">
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="bg-[#111111] rounded-lg p-4 mb-8">
-                    <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-2">Replying to:</p>
-                    <p className="text-[#A1A1AA] text-sm line-clamp-2 italic">"{selectedResult.title}"</p>
-                    <p className="text-[#52525B] text-[10px] mt-2">{selectedResult.name} · {selectedResult.time}</p>
-                  </div>
-
-                  <div className="space-y-6 flex-1">
-                    <div className="space-y-3">
-                      <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">Tone</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {['Friendly Founder', 'Direct & Clear', 'Curious Helper', 'Authority'].map(t => (
-                          <button
-                            key={t}
-                            onClick={() => setReplyTone(t)}
-                            className={cn(
-                              "py-2.5 text-[10px] font-bold rounded-lg border transition-all",
-                              replyTone === t ? "border-[#F97316] text-[#F97316] bg-[#F97316]/5" : "border-[#1F1F1F] text-[#A1A1AA] hover:border-[#52525B]"
-                            )}
-                          >
-                            {t}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="flex items-center justify-between pt-8">
+                      <button onClick={() => setCurrentStep(3)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button 
+                        onClick={handleCreateSignal}
+                        className="px-8 py-4 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#E11D48]/20"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Create Signal
+                      </button>
                     </div>
+                  </motion.div>
+                )}
 
-                    <div className="space-y-3">
-                      <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">How to mention your app</label>
-                      <div className="flex bg-[#1F1F1F] p-1 rounded-lg">
-                        {['Soft mention', 'Direct pitch'].map(s => (
-                          <button
-                            key={s}
-                            onClick={() => setMentionStyle(s)}
-                            className={cn(
-                              "flex-1 py-2 text-[10px] font-bold rounded-md transition-all",
-                              mentionStyle === s ? "bg-[#F97316] text-white" : "text-[#A1A1AA] hover:text-white"
-                            )}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={generateReply}
-                      disabled={generatingReply}
-                      className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                {/* Placeholder for Steps 1 & 2 for demo purposes */}
+                {(currentStep === 1 || currentStep === 2) && (
+                  <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                    <h2 className="text-2xl font-bold mb-4">Step {currentStep}: {steps[currentStep-1].name}</h2>
+                    <p className="text-[#52525B] mb-8">This step is pre-configured for your brand vibe.</p>
+                    <button 
+                      onClick={() => setCurrentStep(currentStep + 1)}
+                      className="px-8 py-3 rounded-xl bg-[#E11D48] text-white font-bold"
                     >
-                      {generatingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                      Write My Reply
+                      Continue
                     </button>
-
-                    {generatedReply && (
-                      <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                        <textarea
-                          value={generatedReply}
-                          onChange={(e) => setGeneratedReply(e.target.value)}
-                          className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 text-sm text-white focus:outline-none focus:border-[#F97316]/50 min-h-[120px] resize-none"
-                        />
-                        <div className="flex items-center justify-between">
-                          <span className="bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-bold px-2 py-0.5 rounded-md border border-[#22C55E]/20">
-                            ✅ Looks natural
-                          </span>
-                          <span className="text-[#52525B] text-[10px]">{generatedReply.length} chars</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              navigator.clipboard.writeText(generatedReply);
-                              toast.success("Reply copied!");
-                            }}
-                            className="flex-1 h-11 bg-[#F97316] text-white font-bold rounded-lg text-xs"
-                          >
-                            Copy Reply
-                          </button>
-                          <button className="flex-1 h-11 border border-[#1F1F1F] text-white font-bold rounded-lg text-xs hover:bg-[#111111]">
-                            Open Post ↗
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                  
-                  <p className="text-[#52525B] text-[10px] text-center mt-6">
-                    💡 Post manually — Reddit bans automated replies
-                  </p>
-                </motion.aside>
-              )}
-            </AnimatePresence>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </main>
