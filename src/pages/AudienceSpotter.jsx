@@ -35,9 +35,8 @@ import { toast } from 'sonner';
 const platforms = [
   { id: 'reddit', name: 'Reddit', icon: 'r/', color: 'bg-[#FF4500]', active: true },
   { id: 'hn', name: 'Hacker News', icon: 'Y', color: 'bg-[#FF6600]', active: true },
-  { id: 'twitter', name: 'X (Twitter)', icon: <Twitter className="w-4 h-4" />, color: 'bg-[#1F1F1F]', active: false, pro: true },
-  { id: 'bluesky', name: 'Bluesky', icon: '🦋', color: 'bg-[#1F1F1F]', active: false, pro: true },
-  { id: 'facebook', name: 'Facebook', icon: 'f', color: 'bg-[#1F1F1F]', active: false, pro: true },
+  { id: 'twitter', name: 'X (Twitter)', icon: <Twitter className="w-4 h-4" />, color: 'bg-[#1F1F1F]', active: false, pro: true, comingSoon: true },
+  { id: 'bluesky', name: 'Bluesky', icon: '🦋', color: 'bg-[#1F1F1F]', active: false, pro: true, comingSoon: true },
 ];
 
 export default function AudienceSpotter() {
@@ -52,12 +51,16 @@ export default function AudienceSpotter() {
 
   // Setup Data
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
-  const [communities, setCommunities] = useState(['SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 'startups', 'Entrepreneur', 'BrandMarketing']);
+  const [communities, setCommunities] = useState([
+    'SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 
+    'startups', 'Entrepreneur', 'BrandMarketing', 'copywriting', 'MarTech'
+  ]);
   const [newCommunity, setNewCommunity] = useState('');
-  const [keywords, setKeywords] = useState(['SaaS marketing', 'brand vibe', 'marketing strategy']);
+  const [keywords, setKeywords] = useState([
+    'SaaS marketing', 'brand vibe', 'marketing strategy', 'brand building', 
+    'customer engagement', 'audience connection', 'brand identity'
+  ]);
   const [newKeyword, setNewKeyword] = useState('');
-  const [frequency, setFrequency] = useState('Daily');
-  const [emailDigest, setEmailDigest] = useState(true);
 
   const navigate = useNavigate();
 
@@ -118,7 +121,7 @@ export default function AudienceSpotter() {
     setView('monitoring');
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>;
 
   const steps = [
     { id: 1, name: 'Platforms' },
@@ -137,8 +140,8 @@ export default function AudienceSpotter() {
           <div className="flex-1 flex flex-col p-8">
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#E11D48]/10 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-[#E11D48]" />
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold">Buying Signals</h1>
@@ -147,7 +150,7 @@ export default function AudienceSpotter() {
               </div>
               <button 
                 onClick={() => setView('setup')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1F1F1F] text-sm font-medium hover:bg-[#111111] transition-all bg-transparent"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm font-medium hover:bg-white/5 transition-all bg-transparent"
               >
                 <Settings className="w-4 h-4" />
                 Configure
@@ -156,9 +159,9 @@ export default function AudienceSpotter() {
 
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <div className="relative mb-6">
-                <div className="absolute inset-0 rounded-full bg-[#E11D48]/20 animate-ping" />
-                <div className="relative w-12 h-12 rounded-full bg-[#E11D48]/10 flex items-center justify-center">
-                  <Target className="w-6 h-6 text-[#E11D48]" />
+                <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Target className="w-6 h-6 text-primary" />
                 </div>
               </div>
               <h2 className="text-lg font-bold mb-2">Monitoring signals for {brain?.app_name || 'Vibe Hype'}</h2>
@@ -183,8 +186,8 @@ export default function AudienceSpotter() {
                   <div key={s.id} className="relative flex items-center gap-4">
                     <div className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all duration-300",
-                      currentStep > s.id ? "bg-[#E11D48] text-white" : 
-                      currentStep === s.id ? "bg-[#0A0A0A] border-2 border-[#E11D48] text-[#E11D48]" : 
+                      currentStep > s.id ? "bg-primary text-white" : 
+                      currentStep === s.id ? "bg-[#0A0A0A] border-2 border-primary text-primary" : 
                       "bg-[#0A0A0A] border-2 border-[#1F1F1F] text-[#52525B]"
                     )}>
                       {currentStep > s.id ? <Check className="w-4 h-4" /> : s.id}
@@ -224,14 +227,14 @@ export default function AudienceSpotter() {
                           className={cn(
                             "relative p-6 rounded-2xl border transition-all flex flex-col items-center justify-center gap-4 min-h-[160px]",
                             selectedPlatforms.includes(p.id) 
-                              ? "bg-[#E11D48]/5 border-[#E11D48]" 
-                              : "bg-[#111111] border-[#1F1F1F] hover:border-[#E11D48]/30",
+                              ? "bg-primary/5 border-primary" 
+                              : "bg-[#111111] border-white/10 hover:border-primary/30",
                             !p.active && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          {p.pro && (
+                          {p.comingSoon && (
                             <span className="absolute top-3 right-3 text-[#52525B] text-[8px] font-bold uppercase tracking-widest flex items-center gap-1">
-                              PRO <Lock className="w-2 h-2" />
+                              Coming Soon <Lock className="w-2 h-2" />
                             </span>
                           )}
                           <div className={cn(
@@ -243,7 +246,7 @@ export default function AudienceSpotter() {
                           <div className="text-center">
                             <p className="text-sm font-bold text-white">{p.name}</p>
                             {selectedPlatforms.includes(p.id) && (
-                              <div className="mt-2 bg-[#E11D48] text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                              <div className="mt-2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
                                 <Check className="w-2.5 h-2.5" /> Selected
                               </div>
                             )}
@@ -256,7 +259,7 @@ export default function AudienceSpotter() {
                       <button 
                         onClick={() => setCurrentStep(2)}
                         disabled={selectedPlatforms.length === 0}
-                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 transition-all"
+                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
                       >
                         Continue
                         <ChevronRight className="w-4 h-4" />
@@ -285,12 +288,12 @@ export default function AudienceSpotter() {
                           placeholder="e.g. SaaS or r/startups"
                           value={newCommunity}
                           onChange={(e) => setNewCommunity(e.target.value)}
-                          className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl px-6 py-4 text-white focus:outline-none focus:border-[#E11D48]/50 transition-all"
+                          className="w-full bg-[#111111] border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all"
                         />
                       </div>
                       <button 
                         type="submit"
-                        className="w-12 h-12 rounded-xl border border-[#1F1F1F] flex items-center justify-center hover:bg-[#111111] transition-all bg-transparent"
+                        className="w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all bg-transparent"
                       >
                         <Plus className="w-5 h-5 text-[#52525B]" />
                       </button>
@@ -301,13 +304,13 @@ export default function AudienceSpotter() {
                         <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">SUBREDDITS</p>
                         <p className="text-[#52525B] text-[10px] font-bold">{communities.length}/15</p>
                       </div>
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden">
+                      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
                         <div className="max-h-[400px] overflow-y-auto">
                           {communities.map((c, i) => (
-                            <div key={c} className="flex items-center justify-between px-6 py-4 border-b border-[#1F1F1F] last:border-0 hover:bg-white/[0.02] transition-all group">
+                            <div key={c} className="flex items-center justify-between px-6 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-all group">
                               <div className="flex items-center gap-4">
                                 <span className="text-[#52525B] text-xs font-bold w-4">{i + 1}</span>
-                                <span className="text-[#E11D48] text-xs font-bold">r/</span>
+                                <span className="text-primary text-xs font-bold">r/</span>
                                 <span className="text-white text-sm font-medium">{c}</span>
                               </div>
                               <button 
@@ -328,7 +331,7 @@ export default function AudienceSpotter() {
                       </button>
                       <button 
                         onClick={() => setCurrentStep(3)}
-                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
+                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
                       >
                         Continue
                         <ChevronRight className="w-4 h-4" />
@@ -357,12 +360,12 @@ export default function AudienceSpotter() {
                           placeholder="e.g. email outreach"
                           value={newKeyword}
                           onChange={(e) => setNewKeyword(e.target.value)}
-                          className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl px-6 py-4 text-white focus:outline-none focus:border-[#E11D48]/50 transition-all"
+                          className="w-full bg-[#111111] border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all"
                         />
                       </div>
                       <button 
                         type="submit"
-                        className="w-12 h-12 rounded-xl border border-[#1F1F1F] flex items-center justify-center hover:bg-[#111111] transition-all bg-transparent"
+                        className="w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all bg-transparent"
                       >
                         <Plus className="w-5 h-5 text-[#52525B]" />
                       </button>
@@ -372,7 +375,7 @@ export default function AudienceSpotter() {
                       <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">Keywords ({keywords.length}/10)</p>
                       <div className="flex flex-wrap gap-2">
                         {keywords.map((word) => (
-                          <span key={word} className="bg-[#E11D48]/10 text-[#E11D48] text-xs font-bold px-3 py-2 rounded-full border border-[#E11D48]/20 flex items-center gap-2">
+                          <span key={word} className="bg-primary/10 text-primary text-xs font-bold px-3 py-2 rounded-full border border-primary/20 flex items-center gap-2">
                             <Hash className="w-3 h-3" />
                             {word}
                             <button onClick={() => setKeywords(keywords.filter(k => k !== word))} className="hover:text-white">
@@ -383,7 +386,7 @@ export default function AudienceSpotter() {
                       </div>
                     </div>
 
-                    <div className="bg-[#111111] border border-[#1F1F1F] p-4 rounded-xl flex gap-4">
+                    <div className="bg-[#111111] border border-white/10 p-4 rounded-xl flex gap-4">
                       <AlertCircle className="w-5 h-5 text-[#52525B] flex-shrink-0 mt-0.5" />
                       <p className="text-[#52525B] text-xs leading-relaxed">
                         These keywords help us find relevant posts across platforms. Keep them short and broad — we run a separate filtering process on top that removes spam, off-topic content, and AI-generated noise.
@@ -396,7 +399,7 @@ export default function AudienceSpotter() {
                       </button>
                       <button 
                         onClick={() => setCurrentStep(4)}
-                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
+                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
                       >
                         Continue
                         <ChevronRight className="w-4 h-4" />
@@ -420,8 +423,8 @@ export default function AudienceSpotter() {
 
                     <div className="space-y-4">
                       {/* Product Summary */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
                           <Search className="w-5 h-5 text-[#52525B]" />
                         </div>
                         <div>
@@ -432,8 +435,8 @@ export default function AudienceSpotter() {
                       </div>
 
                       {/* Platforms Summary */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
                           <Globe className="w-5 h-5 text-[#52525B]" />
                         </div>
                         <div>
@@ -455,8 +458,8 @@ export default function AudienceSpotter() {
                       </div>
 
                       {/* Communities Summary */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
                           <MessageSquare className="w-5 h-5 text-[#52525B]" />
                         </div>
                         <div>
@@ -473,8 +476,8 @@ export default function AudienceSpotter() {
                       </div>
 
                       {/* Keywords Summary */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
+                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
                           <Hash className="w-5 h-5 text-[#52525B]" />
                         </div>
                         <div>
@@ -489,42 +492,6 @@ export default function AudienceSpotter() {
                           </div>
                         </div>
                       </div>
-
-                      {/* Frequency */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
-                          <Calendar className="w-5 h-5 text-[#52525B]" />
-                        </div>
-                        <div>
-                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Frequency</p>
-                          <h3 className="text-white font-bold">{frequency}</h3>
-                        </div>
-                      </div>
-
-                      {/* Email Digest */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 flex items-center justify-between">
-                        <div className="flex gap-6">
-                          <div className="w-10 h-10 rounded-xl bg-[#1F1F1F] flex items-center justify-center flex-shrink-0">
-                            <Mail className="w-5 h-5 text-[#52525B]" />
-                          </div>
-                          <div>
-                            <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Email Digest</p>
-                            <p className="text-[#A1A1AA] text-xs">Receive a summary when new signals are found.</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => setEmailDigest(!emailDigest)}
-                          className={cn(
-                            "w-10 h-5 rounded-full transition-all relative",
-                            emailDigest ? "bg-[#E11D48]" : "bg-[#1F1F1F]"
-                          )}
-                        >
-                          <div className={cn(
-                            "absolute top-1 w-3 h-3 rounded-full bg-white transition-all",
-                            emailDigest ? "right-1" : "left-1"
-                          )} />
-                        </button>
-                      </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-8">
@@ -533,7 +500,7 @@ export default function AudienceSpotter() {
                       </button>
                       <button 
                         onClick={handleCreateSignal}
-                        className="px-8 py-4 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-[#E11D48]/20"
+                        className="px-8 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
                       >
                         <Zap className="w-4 h-4" />
                         Create Signal
