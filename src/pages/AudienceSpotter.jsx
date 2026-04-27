@@ -20,7 +20,8 @@ import {
   Settings,
   Plus,
   ChevronRight,
-  Mail
+  Mail,
+  Lock
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -29,6 +30,14 @@ import { generateAICall } from '../lib/ai';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
+
+const platforms = [
+  { id: 'reddit', name: 'Reddit', icon: 'r/', color: 'bg-[#FF4500]', active: true },
+  { id: 'hn', name: 'Hacker News', icon: 'Y', color: 'bg-[#FF6600]', active: true },
+  { id: 'twitter', name: 'X (Twitter)', icon: <Twitter className="w-4 h-4" />, color: 'bg-[#1F1F1F]', active: false, pro: true },
+  { id: 'bluesky', name: 'Bluesky', icon: '🦋', color: 'bg-[#1F1F1F]', active: false, pro: true },
+  { id: 'facebook', name: 'Facebook', icon: 'f', color: 'bg-[#1F1F1F]', active: false, pro: true },
+];
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
@@ -41,9 +50,10 @@ export default function AudienceSpotter() {
   const [currentStep, setCurrentStep] = useState(1); // 1: Platforms, 2: Communities, 3: Keywords, 4: Review
 
   // Setup Data
-  const [selectedPlatforms, setSelectedPlatforms] = useState(['Reddit']);
-  const [communities, setCommunities] = useState(['SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 'startups', 'Entrepreneur', 'BrandMarketing', 'copywriting', 'MarTech', 'saasoperations', 'smallbusiness', 'socialmedia', 'productmarketing']);
-  const [keywords, setKeywords] = useState(['SaaS marketing', 'brand vibe', 'marketing strategy', 'brand building', 'customer engagement', 'audience connection', 'brand identity', 'marketing message', 'value proposition']);
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
+  const [communities, setCommunities] = useState(['SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 'startups', 'Entrepreneur', 'BrandMarketing']);
+  const [newCommunity, setNewCommunity] = useState('');
+  const [keywords, setKeywords] = useState(['SaaS marketing', 'brand vibe', 'marketing strategy']);
   const [newKeyword, setNewKeyword] = useState('');
   const [frequency, setFrequency] = useState('Daily');
   const [emailDigest, setEmailDigest] = useState(true);
@@ -75,16 +85,31 @@ export default function AudienceSpotter() {
     fetchData();
   }, [user]);
 
+  const togglePlatform = (id) => {
+    const platform = platforms.find(p => p.id === id);
+    if (!platform.active) return;
+    
+    if (selectedPlatforms.includes(id)) {
+      setSelectedPlatforms(selectedPlatforms.filter(p => p !== id));
+    } else {
+      setSelectedPlatforms([...selectedPlatforms, id]);
+    }
+  };
+
+  const handleAddCommunity = (e) => {
+    e.preventDefault();
+    if (newCommunity.trim() && !communities.includes(newCommunity.trim())) {
+      setCommunities([...communities, newCommunity.trim()]);
+      setNewCommunity('');
+    }
+  };
+
   const handleAddKeyword = (e) => {
     e.preventDefault();
     if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
       setKeywords([...keywords, newKeyword.trim()]);
       setNewKeyword('');
     }
-  };
-
-  const removeKeyword = (word) => {
-    setKeywords(keywords.filter(k => k !== word));
   };
 
   const handleCreateSignal = () => {
@@ -177,6 +202,140 @@ export default function AudienceSpotter() {
             {/* Main Content Area */}
             <div className="flex-1 p-8 lg:pt-24 max-w-4xl">
               <AnimatePresence mode="wait">
+                {currentStep === 1 && (
+                  <motion.div 
+                    key="step1"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div>
+                      <h1 className="text-4xl font-bold mb-4">Where should we listen?</h1>
+                      <p className="text-[#A1A1AA] text-sm">Select the platforms to monitor for buying signals. At least one required.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {platforms.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => togglePlatform(p.id)}
+                          className={cn(
+                            "relative p-6 rounded-2xl border transition-all flex flex-col items-center justify-center gap-4 min-h-[160px]",
+                            selectedPlatforms.includes(p.id) 
+                              ? "bg-[#E11D48]/5 border-[#E11D48]" 
+                              : "bg-[#111111] border-[#1F1F1F] hover:border-[#E11D48]/30",
+                            !p.active && "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          {p.pro && (
+                            <span className="absolute top-3 right-3 text-[#52525B] text-[8px] font-bold uppercase tracking-widest flex items-center gap-1">
+                              PRO <Lock className="w-2 h-2" />
+                            </span>
+                          )}
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white",
+                            p.color
+                          )}>
+                            {p.icon}
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-bold text-white">{p.name}</p>
+                            {selectedPlatforms.includes(p.id) && (
+                              <div className="mt-2 bg-[#E11D48] text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                                <Check className="w-2.5 h-2.5" /> Selected
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-end pt-8">
+                      <button 
+                        onClick={() => setCurrentStep(2)}
+                        disabled={selectedPlatforms.length === 0}
+                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 transition-all"
+                      >
+                        Continue
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 2 && (
+                  <motion.div 
+                    key="step2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-8"
+                  >
+                    <div>
+                      <h1 className="text-4xl font-bold mb-4">Communities</h1>
+                      <p className="text-[#A1A1AA] text-sm">Subreddits where we'll scan for high-intent conversations about your product.</p>
+                    </div>
+
+                    <form onSubmit={handleAddCommunity} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          placeholder="e.g. SaaS or r/startups"
+                          value={newCommunity}
+                          onChange={(e) => setNewCommunity(e.target.value)}
+                          className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl px-6 py-4 text-white focus:outline-none focus:border-[#E11D48]/50 transition-all"
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        className="w-12 h-12 rounded-xl border border-[#1F1F1F] flex items-center justify-center hover:bg-[#111111] transition-all bg-transparent"
+                      >
+                        <Plus className="w-5 h-5 text-[#52525B]" />
+                      </button>
+                    </form>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">SUBREDDITS</p>
+                        <p className="text-[#52525B] text-[10px] font-bold">{communities.length}/15</p>
+                      </div>
+                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden">
+                        <div className="max-h-[400px] overflow-y-auto">
+                          {communities.map((c, i) => (
+                            <div key={c} className="flex items-center justify-between px-6 py-4 border-b border-[#1F1F1F] last:border-0 hover:bg-white/[0.02] transition-all group">
+                              <div className="flex items-center gap-4">
+                                <span className="text-[#52525B] text-xs font-bold w-4">{i + 1}</span>
+                                <span className="text-[#E11D48] text-xs font-bold">r/</span>
+                                <span className="text-white text-sm font-medium">{c}</span>
+                              </div>
+                              <button 
+                                onClick={() => setCommunities(communities.filter(x => x !== c))}
+                                className="opacity-0 group-hover:opacity-100 text-[#52525B] hover:text-white transition-all"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-8">
+                      <button onClick={() => setCurrentStep(1)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button 
+                        onClick={() => setCurrentStep(3)}
+                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
+                      >
+                        Continue
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {currentStep === 3 && (
                   <motion.div 
                     key="step3"
@@ -215,7 +374,7 @@ export default function AudienceSpotter() {
                           <span key={word} className="bg-[#E11D48]/10 text-[#E11D48] text-xs font-bold px-3 py-2 rounded-full border border-[#E11D48]/20 flex items-center gap-2">
                             <Hash className="w-3 h-3" />
                             {word}
-                            <button onClick={() => removeKeyword(word)} className="hover:text-white">
+                            <button onClick={() => setKeywords(keywords.filter(k => k !== word))} className="hover:text-white">
                               <X className="w-3 h-3" />
                             </button>
                           </span>
@@ -236,7 +395,7 @@ export default function AudienceSpotter() {
                       </button>
                       <button 
                         onClick={() => setCurrentStep(4)}
-                        className="px-8 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
+                        className="px-10 py-3 rounded-xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold flex items-center gap-2 transition-all"
                       >
                         Continue
                         <ChevronRight className="w-4 h-4" />
@@ -279,14 +438,17 @@ export default function AudienceSpotter() {
                         <div>
                           <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Platforms</p>
                           <div className="flex gap-2">
-                            <span className="bg-orange-500/10 text-orange-500 text-[10px] font-bold px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1.5">
-                              <div className="w-3 h-3 rounded-sm bg-orange-500 flex items-center justify-center text-[8px] text-white font-black">Y</div>
-                              Hacker News
-                            </span>
-                            <span className="bg-orange-600/10 text-orange-600 text-[10px] font-bold px-3 py-1 rounded-full border border-orange-600/20 flex items-center gap-1.5">
-                              <div className="w-3 h-3 rounded-full bg-orange-600 flex items-center justify-center text-[8px] text-white font-black">r/</div>
-                              Reddit
-                            </span>
+                            {selectedPlatforms.map(id => {
+                              const p = platforms.find(x => x.id === id);
+                              return (
+                                <span key={id} className="bg-[#1F1F1F] text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
+                                  <div className={cn("w-3 h-3 rounded-sm flex items-center justify-center text-[8px] text-white font-black", p.color)}>
+                                    {p.icon}
+                                  </div>
+                                  {p.name}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
@@ -377,20 +539,6 @@ export default function AudienceSpotter() {
                       </button>
                     </div>
                   </motion.div>
-                )}
-
-                {/* Placeholder for Steps 1 & 2 for demo purposes */}
-                {(currentStep === 1 || currentStep === 2) && (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-center">
-                    <h2 className="text-2xl font-bold mb-4">Step {currentStep}: {steps[currentStep-1].name}</h2>
-                    <p className="text-[#52525B] mb-8">This step is pre-configured for your brand vibe.</p>
-                    <button 
-                      onClick={() => setCurrentStep(currentStep + 1)}
-                      className="px-8 py-3 rounded-xl bg-[#E11D48] text-white font-bold"
-                    >
-                      Continue
-                    </button>
-                  </div>
                 )}
               </AnimatePresence>
             </div>
