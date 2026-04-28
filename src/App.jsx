@@ -16,6 +16,7 @@ import AudienceSpotter from './pages/AudienceSpotter';
 import PostMaker from './pages/post-maker/PostMaker';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
+import BrandBrainView from './pages/BrandBrainView';
 
 import GridBackground from "@/components/ui/grid-background"
 
@@ -40,6 +41,7 @@ function App() {
           <Route path="/pre-purchase" element={<PrePurchase />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/brand-brain" element={<BrandBrainView />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/results-tracker" element={<ResultsTracker />} />
           <Route path="/dashboard/marketing-buddy" element={<MarketingBuddy />} />
