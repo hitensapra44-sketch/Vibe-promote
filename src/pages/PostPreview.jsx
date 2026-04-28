@@ -24,7 +24,6 @@ export default function PostPreview({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Single source of truth for the increasing count
   const [baseCount, setBaseCount] = useState(0);
   const [heartPulse, setHeartPulse] = useState(false);
   
@@ -40,17 +39,15 @@ export default function PostPreview({
     return rounded.toString();
   };
 
-  // Animation logic: 0 to 100 in 3 seconds = 33.33 units per second
   const INCREMENT_PER_SECOND = 100 / 3;
 
   useEffect(() => {
     if (post && !loading) {
       const animate = (time) => {
         if (lastTimeRef.current !== null) {
-          const deltaTime = (time - lastTimeRef.current) / 1000; // in seconds
+          const deltaTime = (time - lastTimeRef.current) / 1000;
           setBaseCount(prev => {
             const next = prev + (INCREMENT_PER_SECOND * deltaTime);
-            // Pulse heart every 50 units
             if (Math.floor(next / 50) > Math.floor(prev / 50)) {
               setHeartPulse(true);
               setTimeout(() => setHeartPulse(false), 300);
@@ -168,7 +165,6 @@ Write the post now. Return only the post. Nothing else.`;
       <GridBackground />
       <ParticleBackground />
       
-      {/* Gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl"
         style={{ background: 'radial-gradient(circle, #b55933 0%, transparent 70%)' }} />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full opacity-5 blur-3xl"
@@ -177,13 +173,13 @@ Write the post now. Return only the post. Nothing else.`;
       <div className="relative z-10 pt-12 pb-20 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
+            <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 3</span>
             <h1 className="text-3xl font-bold mb-2">Here's your first post.</h1>
+            <p className="text-text-secondary text-sm">Previewing how your app will vibe with the world.</p>
           </div>
 
-          {/* Twitter/X Post Card */}
           <div className="relative mb-8">
             <div className="bg-[#0f0f0f] rounded-2xl border border-[#2f3336] overflow-hidden">
-              {/* Profile Header */}
               <div className="p-4 border-b border-[#2f3336]">
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mr-3" />
@@ -191,7 +187,7 @@ Write the post now. Return only the post. Nothing else.`;
                     <div className="flex items-center">
                       <span className="font-bold text-white text-base">{app_name}</span>
                       <svg className="w-5 h-5 text-[#1d9bf0] ml-1" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.66 2.19-1.91 2.19-3.34z" />
+                        <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.66-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.66 2.19-1.91-2.19-3.34z" />
                       </svg>
                     </div>
                     <div className="text-[#71767b] text-sm">{handle}</div>
@@ -199,7 +195,6 @@ Write the post now. Return only the post. Nothing else.`;
                 </div>
               </div>
 
-              {/* Post Content */}
               <div className="p-4">
                 {error ? (
                   <div className="py-10 text-center">
@@ -215,7 +210,6 @@ Write the post now. Return only the post. Nothing else.`;
                 )}
               </div>
 
-              {/* Engagement Bar */}
               <div className="px-4 py-3 border-t border-[#2f3336]">
                 <div className="flex justify-between max-w-md">
                   <div className="flex items-center space-x-2">
@@ -244,7 +238,6 @@ Write the post now. Return only the post. Nothing else.`;
             </div>
           </div>
 
-          {/* Dashboard Button */}
           <div className="flex flex-col items-center">
             <motion.button
               onClick={onComplete}

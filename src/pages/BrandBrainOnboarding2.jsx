@@ -57,9 +57,9 @@ export default function BrandBrainOnboarding2({ app_name, onComplete }) {
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-20">
         <div className="text-center mb-12">
-          <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 2 & 3</span>
-          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4">Refine your brand voice.</h1>
-          <p className="text-text-secondary">We've prefilled these based on your niche. Tweak if needed.</p>
+          <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">Step 2</span>
+          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4">Post Maker Setup.</h1>
+          <p className="text-text-secondary text-sm">We've prefilled these based on your niche. Edit if you see something wrong</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -132,7 +132,7 @@ export default function BrandBrainOnboarding2({ app_name, onComplete }) {
               onClick={handleContinue}
               className="w-full py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
             >
-              Generate first posts
+              Generate my first post
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
