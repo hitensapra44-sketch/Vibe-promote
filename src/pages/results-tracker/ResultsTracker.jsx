@@ -71,6 +71,7 @@ export default function ResultsTracker() {
               problem="Marketing takes too long"
               audience="SaaS founders"
               hideEdit={true}
+              hideLabel={true}
             />
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

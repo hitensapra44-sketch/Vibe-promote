@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function BrandInfoPreview({ appName, problem, audience, hideEdit = false }) {
+export default function BrandInfoPreview({ appName, problem, audience, hideEdit = false, hideLabel = false }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMissingInfo = !appName || !problem || !audience;
 
@@ -16,7 +16,7 @@ export default function BrandInfoPreview({ appName, problem, audience, hideEdit 
       >
         <div className="flex items-center gap-2">
           <Tag size={14} className="text-zinc-400" />
-          <span className="text-zinc-400 text-sm">Using your brand info</span>
+          {!hideLabel && <span className="text-zinc-400 text-sm">Using your brand info</span>}
           {isMissingInfo && (
             <span className="text-red-400 text-xs ml-2">Complete your brand info to unlock full features</span>
           )}

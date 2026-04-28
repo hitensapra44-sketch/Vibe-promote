@@ -9,7 +9,7 @@ export default function StrategyBuddyPanel({ analysis, isLoading }) {
   const [answer, setAnswer] = useState('');
   const [isAnswering, setIsAnswering] = useState(false);
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState(analysis?.nextWeek || "→ Double down on Reddit with 3 posts\n→ Refresh LinkedIn hooks using the 'Hot Take' format\n→ Test one Product Hunt discussion post");
+  const [currentPlan, setCurrentPlan] = useState("");
 
   const handleAsk = () => {
     if (!question.trim()) return;
@@ -111,14 +111,14 @@ export default function StrategyBuddyPanel({ analysis, isLoading }) {
                   <div className="h-3 bg-zinc-800 rounded w-full" />
                   <div className="h-3 bg-zinc-800 rounded w-2/3" />
                 </div>
-              ) : (
+              ) : currentPlan ? (
                 currentPlan.split('\n').map((line, i) => (
                   <div key={i} className="flex gap-2 text-sm">
                     <span className="text-orange-500">→</span>
                     <span className="text-zinc-300">{line.replace('→ ', '')}</span>
                   </div>
                 ))
-              )}
+              ) : null}
             </div>
           </div>
 
