@@ -1,8 +1,16 @@
 "use client";
 
 import React from 'react';
+import { cn } from "@/lib/utils";
 
-export default function PlatformBreakdownBar({ breakdown }) {
+export default function PlatformBreakdownBar({ breakdown, metric, onMetricChange }) {
+  const metrics = [
+    { id: 'views', label: 'Views' },
+    { id: 'engagements', label: 'Engagement' },
+    { id: 'linkTaps', label: 'Link Taps' },
+    { id: 'comments', label: 'Comments' }
+  ];
+
   if (!breakdown) {
     return (
       <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 animate-pulse">
@@ -18,7 +26,28 @@ export default function PlatformBreakdownBar({ breakdown }) {
 
   return (
     <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-8">
-      <h3 className="text-white text-lg font-semibold mb-6">Where your views came from</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <h3 className="text-white text-lg font-semibold">
+          Where your {metrics.find(m => m.id === metric)?.label.toLowerCase()} came from
+        </h3>
+        
+        <div className="flex bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg p-1">
+          {metrics.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => onMetricChange(m.id)}
+              className={cn(
+                "text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 transition-all",
+                metric === m.id 
+                  ? "bg-orange-500 text-white rounded-md" 
+                  : "bg-transparent text-zinc-500 hover:text-zinc-300"
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
       
       <div className="w-full h-4 bg-[#1F1F1F] rounded-full flex overflow-hidden mb-8">
         {breakdown.map((item, i) => (

@@ -15,6 +15,8 @@ export default function ResultsTracker() {
   const [hasConnectedAccounts, setHasConnectedAccounts] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
   const [activePlatform, setActivePlatform] = useState("All Platforms");
+  const [showAllPosts, setShowAllPosts] = useState(false);
+  const [breakdownMetric, setBreakdownMetric] = useState("views");
 
   const mockMetrics = {
     views: { value: 12483, change: 23, label: 'Views' },
@@ -23,18 +25,39 @@ export default function ResultsTracker() {
     comments: { value: 156, change: 12, label: 'Comments' }
   };
 
-  const mockPosts = [
+  const allMockPosts = [
     { title: "I spent 40 hours building a feature nobody wanted. Here's what I learned.", platform: "Reddit", views: 4200, engagements: 340, linkTaps: 89, date: "2 days ago", isBest: true },
     { title: "Why most SaaS marketing feels like shouting into a void.", platform: "LinkedIn", views: 2100, engagements: 120, linkTaps: 45, date: "4 days ago" },
     { title: "Just hit 100 users! Here's the exact strategy we used.", platform: "Indie Hackers", views: 1800, engagements: 95, linkTaps: 32, date: "5 days ago" },
-    { title: "Vibe Promote is live on Product Hunt!", platform: "Product Hunt", views: 1200, engagements: 210, linkTaps: 68, date: "1 week ago" }
+    { title: "Vibe Promote is live on Product Hunt!", platform: "Product Hunt", views: 1200, engagements: 210, linkTaps: 68, date: "1 week ago" },
+    { title: "How to find your first 10 customers without spending a dime.", platform: "Reddit", views: 950, engagements: 45, linkTaps: 12, date: "1 week ago" },
+    { title: "The future of AI marketing is agentic.", platform: "X", views: 800, engagements: 30, linkTaps: 5, date: "2 weeks ago" },
   ];
 
-  const mockBreakdown = [
-    { platform: 'Reddit', percentage: 68, color: '#FF4500' },
-    { platform: 'LinkedIn', percentage: 19, color: '#0A66C2' },
-    { platform: 'Product Hunt', percentage: 13, color: '#DA552F' }
-  ];
+  const displayedPosts = showAllPosts ? allMockPosts : allMockPosts.slice(0, 4);
+
+  const mockBreakdowns = {
+    views: [
+      { platform: 'Reddit', percentage: 68, color: '#FF4500' },
+      { platform: 'LinkedIn', percentage: 19, color: '#0A66C2' },
+      { platform: 'Product Hunt', percentage: 13, color: '#DA552F' }
+    ],
+    engagements: [
+      { platform: 'Reddit', percentage: 55, color: '#FF4500' },
+      { platform: 'LinkedIn', percentage: 25, color: '#0A66C2' },
+      { platform: 'Product Hunt', percentage: 20, color: '#DA552F' }
+    ],
+    linkTaps: [
+      { platform: 'Reddit', percentage: 40, color: '#FF4500' },
+      { platform: 'LinkedIn', percentage: 30, color: '#0A66C2' },
+      { platform: 'Product Hunt', percentage: 30, color: '#DA552F' }
+    ],
+    comments: [
+      { platform: 'Reddit', percentage: 80, color: '#FF4500' },
+      { platform: 'LinkedIn', percentage: 10, color: '#0A66C2' },
+      { platform: 'Product Hunt', percentage: 10, color: '#DA552F' }
+    ]
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
@@ -102,10 +125,18 @@ export default function ResultsTracker() {
 
             <div className="space-y-6">
               <div className="min-w-0">
-                <PostPerformanceTable posts={mockPosts} />
+                <PostPerformanceTable 
+                  posts={displayedPosts} 
+                  showAll={showAllPosts}
+                  onToggleShowAll={() => setShowAllPosts(!showAllPosts)}
+                />
               </div>
               <div className="w-full">
-                <PlatformBreakdownBar breakdown={mockBreakdown} />
+                <PlatformBreakdownBar 
+                  breakdown={mockBreakdowns[breakdownMetric]} 
+                  metric={breakdownMetric}
+                  onMetricChange={setBreakdownMetric}
+                />
               </div>
             </div>
           </div>
