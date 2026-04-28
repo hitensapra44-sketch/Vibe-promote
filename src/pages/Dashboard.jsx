@@ -180,7 +180,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/audience-spotter')}
-              className="px-4 py-2 rounded-lg border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all flex items-center gap-2 bg-transparent"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#b55933] to-[#9e4a2a] text-white text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
             >
               Start User finder
               <ArrowRight className="w-3 h-3" />
