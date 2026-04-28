@@ -41,70 +41,75 @@ export default function ResultsTracker() {
       <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto w-full space-y-8">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-white">Results Tracker</h1>
+        {!hasConnectedAccounts ? (
+          <div className="max-w-[680px] mx-auto py-10 w-full">
+            <div className="space-y-1 mb-8">
+              <h1 className="text-white text-2xl font-semibold mt-4">Results Tracker</h1>
+              <p className="text-zinc-400 text-sm mt-1">Connect your accounts to see what's working.</p>
+            </div>
+            
+            <ConnectAccounts onConnect={() => setHasConnectedAccounts(true)} />
+            
+            <div className="text-center mt-8">
+              <button 
+                onClick={() => setHasConnectedAccounts(true)}
+                className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors bg-transparent"
+              >
+                Skip for now, I'll connect later →
+              </button>
+            </div>
           </div>
-
-          {!hasConnectedAccounts ? (
-            <div className="space-y-6">
-              <ConnectAccounts />
-              <div className="text-center">
-                <button 
-                  onClick={() => setHasConnectedAccounts(true)}
-                  className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors bg-transparent"
-                >
-                  Skip for now, I'll connect later →
-                </button>
-              </div>
+        ) : (
+          <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-white">Results Tracker</h1>
+              <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
             </div>
-          ) : (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <BrandInfoPreview 
-                appName="Vibe Promote"
-                problem="Marketing takes too long"
-                audience="SaaS founders"
+
+            <BrandInfoPreview 
+              appName="Vibe Promote"
+              problem="Marketing takes too long"
+              audience="SaaS founders"
+            />
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <PeriodSelector 
+                selected={selectedPeriod}
+                onChange={setSelectedPeriod}
               />
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <PeriodSelector 
-                  selected={selectedPeriod}
-                  onChange={setSelectedPeriod}
-                />
-                
-                <div className="flex gap-6 border-b border-[#1F1F1F]">
-                  {["All Platforms", "Reddit", "LinkedIn", "Product Hunt", "IH"].map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActivePlatform(tab)}
-                      className={cn(
-                        "text-sm font-medium pb-2 transition-all bg-transparent",
-                        activePlatform === tab 
-                          ? "text-white border-b-2 border-orange-500" 
-                          : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
-                      )}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
+              
+              <div className="flex gap-6 border-b border-[#1F1F1F]">
+                {["All Platforms", "Reddit", "LinkedIn", "Product Hunt", "IH"].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActivePlatform(tab)}
+                    className={cn(
+                      "text-sm font-medium pb-2 transition-all bg-transparent",
+                      activePlatform === tab 
+                        ? "text-white border-b-2 border-orange-500" 
+                        : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
+                    )}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
-
-              <MetricCards metrics={mockMetrics} />
-
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-1 min-w-0">
-                  <PostPerformanceTable posts={mockPosts} />
-                </div>
-                <div className="lg:w-72 flex-shrink-0">
-                  <PlatformBreakdownBar breakdown={mockBreakdown} />
-                </div>
-              </div>
-
-              <StrategyBuddyPanel isLoading={false} />
             </div>
-          )}
-        </div>
+
+            <MetricCards metrics={mockMetrics} />
+
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 min-w-0">
+                <PostPerformanceTable posts={mockPosts} />
+              </div>
+              <div className="lg:w-72 flex-shrink-0">
+                <PlatformBreakdownBar breakdown={mockBreakdown} />
+              </div>
+            </div>
+
+            <StrategyBuddyPanel isLoading={false} />
+          </div>
+        )}
       </main>
     </div>
   );

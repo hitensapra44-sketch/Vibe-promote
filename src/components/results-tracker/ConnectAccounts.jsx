@@ -2,141 +2,80 @@
 
 import React, { useState } from 'react';
 import { Lock, Loader2, MessageSquare, Linkedin, Globe, Zap, Twitter } from 'lucide-react';
-import PlatformCard from '../shared/PlatformCard';
+import { cn } from "@/lib/utils";
 
-export default function ConnectAccounts() {
-  const [connections, setConnections] = useState({
-    reddit: 'available',
-    linkedin: 'available',
-    producthunt: 'available',
-    indiehackers: 'available',
-    twitter: 'coming-soon'
-  });
+const platforms = [
+  { id: 'reddit', name: 'Reddit', desc: 'Upvotes & reach', icon: MessageSquare, color: '#FF4500' },
+  { id: 'linkedin', name: 'LinkedIn', desc: 'Impressions & clicks', icon: Linkedin, color: '#0A66C2' },
+  { id: 'producthunt', name: 'Product Hunt', desc: 'Votes & comments', icon: Zap, color: '#DA552F' },
+  { id: 'indiehackers', name: 'Indie Hackers', desc: 'Community engagement', icon: Globe, color: '#0EA5E9' },
+  { id: 'twitter', name: 'X / Twitter', desc: 'Coming soon', icon: Twitter, color: '#333333', comingSoon: true },
+];
 
+export default function ConnectAccounts({ onConnect }) {
   const [loadingPlatform, setLoadingPlatform] = useState(null);
-  const [showInput, setShowInput] = useState(null);
-  const [usernames, setUsernames] = useState({ ph: '', ih: '' });
+  const [connected, setConnected] = useState([]);
 
-  const handleConnect = (platform) => {
-    if (platform === 'producthunt' || platform === 'indiehackers') {
-      setShowInput(platform);
-      return;
-    }
-
-    setLoadingPlatform(platform);
+  const handleConnect = (id) => {
+    if (platforms.find(p => p.id === id).comingSoon) return;
+    
+    setLoadingPlatform(id);
     setTimeout(() => {
-      setConnections(prev => ({ ...prev, [platform]: 'connected' }));
+      setConnected(prev => [...prev, id]);
       setLoadingPlatform(null);
+      // If they connect at least one, we could auto-proceed or let them connect more
     }, 1500);
   };
 
-  const handleSaveUsername = (platform) => {
-    setConnections(prev => ({ ...prev, [platform]: 'connected' }));
-    setShowInput(null);
-  };
-
   return (
-    <div className="max-w-[640px] mx-auto py-10 flex flex-col gap-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-white text-xl font-semibold">Connect Your Accounts</h2>
-        <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
-          <Lock size={14} />
-          <span>We only read your performance data. We never post on your behalf.</span>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+        {platforms.map((p) => {
+          (p.id === 'reddit' || p.id === 'linkedin' || p.id === 'producthunt' || p.id === 'indiehackers' || p.id === 'twitter')
+          const isConnected = connected.includes(p.id);
+          const isLoading = loadingPlatform === p.id;
+
+          return (
+            <div
+              key={p.id}
+              onClick={() => !isConnected && handleConnect(p.id)}
+              className={cn(
+                "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-zinc-600 transition-all relative",
+                isConnected && "border-green-500/50 bg-green-500/5",
+                p.comingSoon && "opacity-40 cursor-not-allowed"
+              )}
+            >
+              {p.comingSoon && (
+                <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+              )}
+              
+              <div className={cn(
+                "w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1",
+                isConnected ? "text-green-500" : "text-zinc-400"
+              )}>
+                {isLoading ? <Loader2 size={20} className="animate-spin text-orange-500" /> : <p.icon size={20} />}
+              </div>
+              
+              <span className="text-white text-sm font-medium">{p.name}</span>
+              <span className="text-zinc-500 text-xs">{isConnected ? "Connected ✓" : p.desc}</span>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <PlatformCard 
-            name="Reddit"
-            description="Upvotes, comments, post reach"
-            icon={<MessageSquare size={20} />}
-            status={loadingPlatform === 'reddit' ? 'connecting' : connections.reddit}
-            onClick={() => handleConnect('reddit')}
-          />
-          {loadingPlatform === 'reddit' && (
-            <div className="flex items-center justify-center gap-2 text-orange-500 text-xs font-medium">
-              <Loader2 size={12} className="animate-spin" /> Connecting...
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <PlatformCard 
-            name="LinkedIn"
-            description="Impressions, clicks, followers gained"
-            icon={<Linkedin size={20} />}
-            status={loadingPlatform === 'linkedin' ? 'connecting' : connections.linkedin}
-            onClick={() => handleConnect('linkedin')}
-          />
-          {loadingPlatform === 'linkedin' && (
-            <div className="flex items-center justify-center gap-2 text-orange-500 text-xs font-medium">
-              <Loader2 size={12} className="animate-spin" /> Connecting...
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <PlatformCard 
-            name="Product Hunt"
-            description="Enter your username, no login needed"
-            icon={<Zap size={20} />}
-            status={connections.producthunt}
-            onClick={() => handleConnect('producthunt')}
-          />
-          {showInput === 'producthunt' && (
-            <div className="p-3 bg-[#111111] border border-[#1F1F1F] rounded-xl flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Enter your username"
-                className="flex-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
-                value={usernames.ph}
-                onChange={(e) => setUsernames({...usernames, ph: e.target.value})}
-              />
-              <button 
-                onClick={() => handleSaveUsername('producthunt')}
-                className="bg-orange-500 text-white text-xs font-bold px-4 py-2 rounded-lg"
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <PlatformCard 
-            name="Indie Hackers"
-            description="Enter your IH username"
-            icon={<Globe size={20} />}
-            status={connections.indiehackers}
-            onClick={() => handleConnect('indiehackers')}
-          />
-          {showInput === 'indiehackers' && (
-            <div className="p-3 bg-[#111111] border border-[#1F1F1F] rounded-xl flex gap-2">
-              <input 
-                type="text" 
-                placeholder="Enter your username"
-                className="flex-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
-                value={usernames.ih}
-                onChange={(e) => setUsernames({...usernames, ih: e.target.value})}
-              />
-              <button 
-                onClick={() => handleSaveUsername('indiehackers')}
-                className="bg-orange-500 text-white text-xs font-bold px-4 py-2 rounded-lg"
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
-
-        <PlatformCard 
-          name="X / Twitter"
-          description="Coming soon"
-          icon={<Twitter size={20} />}
-          status="coming-soon"
-        />
+      <div className="flex items-center justify-center gap-2 text-zinc-500 text-xs bg-[#111111] border border-[#1F1F1F] rounded-lg py-3 px-4">
+        <Lock size={12} />
+        <span>We only read performance data. We never post for you.</span>
       </div>
+
+      {connected.length > 0 && (
+        <button
+          onClick={onConnect}
+          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg px-6 py-2.5 mt-2 transition-colors"
+        >
+          View My Results →
+        </button>
+      )}
     </div>
   );
 }
