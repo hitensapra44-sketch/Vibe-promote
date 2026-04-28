@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function BrandInfoPreview({ appName, problem, audience }) {
+export default function BrandInfoPreview({ appName, problem, audience, hideEdit = false }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isMissingInfo = !appName || !problem || !audience;
 
@@ -22,13 +22,15 @@ export default function BrandInfoPreview({ appName, problem, audience }) {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <Link 
-            to="/onboarding" 
-            className="text-orange-500 text-xs hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            Edit →
-          </Link>
+          {!hideEdit && (
+            <Link 
+              to="/onboarding" 
+              className="text-orange-500 text-xs hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Edit →
+            </Link>
+          )}
           {isExpanded ? (
             <ChevronUp size={16} className="text-zinc-500" />
           ) : (

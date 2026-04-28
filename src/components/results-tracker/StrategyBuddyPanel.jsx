@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Sparkles, CheckCircle2, AlertCircle, Calendar, RefreshCw, Send } from 'lucide-react';
+import { Sparkles, CheckCircle2, AlertCircle, Calendar, RefreshCw, Send, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function StrategyBuddyPanel({ analysis, isLoading }) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [isAnswering, setIsAnswering] = useState(false);
+  const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(analysis?.nextWeek || "→ Double down on Reddit with 3 posts\n→ Refresh LinkedIn hooks using the 'Hot Take' format\n→ Test one Product Hunt discussion post");
 
   const handleAsk = () => {
     if (!question.trim()) return;
@@ -16,6 +18,21 @@ export default function StrategyBuddyPanel({ analysis, isLoading }) {
       setAnswer("This is where the AI analysis will appear based on your data. I'll look at your specific drops and spikes to give you a real answer.");
       setIsAnswering(false);
     }, 1500);
+  };
+
+  const handleGetNewStrategy = () => {
+    setIsGeneratingStrategy(true);
+    // Simulate AI generating a new strategy based on "current analytics"
+    setTimeout(() => {
+      const newStrategies = [
+        "→ Shift focus to LinkedIn: Your engagement there is recovering, use 'Founder Vulnerability' posts\n→ Pause Reddit for 48 hours: You've hit a saturation point in r/SaaS\n→ Repurpose your best Reddit post into a LinkedIn carousel",
+        "→ Double down on Product Hunt discussions: Your launch traffic is high, keep the momentum\n→ Test 2 new hooks for X: Your current ones are dropping in reach\n→ Reach out to the top 5 commenters on your last Indie Hackers post",
+        "→ Focus on 'The Implementation Asset' format: It's driving 80% of your link taps\n→ Reduce posting frequency on Threads: Quality over quantity is winning right now\n→ Update your landing page CTA based on the high bounce rate from LinkedIn"
+      ];
+      const randomStrategy = newStrategies[Math.floor(Math.random() * newStrategies.length)];
+      setCurrentPlan(randomStrategy);
+      setIsGeneratingStrategy(false);
+    }, 2000);
   };
 
   return (
@@ -72,18 +89,36 @@ export default function StrategyBuddyPanel({ analysis, isLoading }) {
 
           <div className="h-px bg-[#1F1F1F]" />
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-orange-400">
-              <Calendar size={16} />
-              <span className="text-sm font-medium text-white">Your Plan for Next Week</span>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-orange-400">
+                <Calendar size={16} />
+                <span className="text-sm font-medium text-white">plan fo next week according to current analytics</span>
+              </div>
+              <button 
+                onClick={handleGetNewStrategy}
+                disabled={isGeneratingStrategy}
+                className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isGeneratingStrategy ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                get new startegy
+              </button>
             </div>
+            
             <div className="space-y-2 pl-6">
-              {(analysis?.nextWeek || "→ Double down on Reddit with 3 posts\n→ Refresh LinkedIn hooks using the 'Hot Take' format\n→ Test one Product Hunt discussion post").split('\n').map((line, i) => (
-                <div key={i} className="flex gap-2 text-sm">
-                  <span className="text-orange-500">→</span>
-                  <span className="text-zinc-300">{line.replace('→ ', '')}</span>
+              {isGeneratingStrategy ? (
+                <div className="space-y-2 animate-pulse">
+                  <div className="h-3 bg-zinc-800 rounded w-full" />
+                  <div className="h-3 bg-zinc-800 rounded w-2/3" />
                 </div>
-              ))}
+              ) : (
+                currentPlan.split('\n').map((line, i) => (
+                  <div key={i} className="flex gap-2 text-sm">
+                    <span className="text-orange-500">→</span>
+                    <span className="text-zinc-300">{line.replace('→ ', '')}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

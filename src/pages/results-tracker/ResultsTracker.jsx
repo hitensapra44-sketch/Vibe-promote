@@ -70,6 +70,7 @@ export default function ResultsTracker() {
               appName="Vibe Promote"
               problem="Marketing takes too long"
               audience="SaaS founders"
+              hideEdit={true}
             />
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
