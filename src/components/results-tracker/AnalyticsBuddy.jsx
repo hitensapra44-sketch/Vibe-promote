@@ -126,10 +126,10 @@ export default function AnalyticsBuddy() {
               initial={{ opacity: 0, x: 20, scale: 0.8 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 20, scale: 0.8 }}
-              className="absolute bottom-full right-0 mb-4 whitespace-nowrap bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-orange-500/20"
+              className="absolute bottom-full right-0 mb-4 bg-white text-zinc-900 text-[10px] font-bold px-4 py-2 rounded-xl shadow-2xl border border-zinc-200 max-w-[200px] sm:max-w-none text-center"
             >
               ask me anything about your analytics
-              <div className="absolute top-full right-5 w-2 h-2 bg-orange-500 rotate-45 -translate-y-1" />
+              <div className="absolute top-full right-5 w-2 h-2 bg-white border-r border-b border-zinc-200 rotate-45 -translate-y-1" />
             </motion.div>
           )}
         </AnimatePresence>
