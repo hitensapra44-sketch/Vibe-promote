@@ -13,7 +13,8 @@ import {
   Activity,
   Link as LinkIcon,
   Sparkles,
-  Target
+  Target,
+  BarChart2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -92,7 +93,7 @@ export default function Dashboard() {
     { 
       id: 'audience', 
       icon: Search, 
-      name: 'Audience Spotter', 
+      name: 'User Finder', 
       desc: 'Find exactly who your buyers are and where they hang out.', 
       available: true,
       path: '/audience-spotter'
@@ -106,17 +107,26 @@ export default function Dashboard() {
       path: '/post-maker'
     },
     { 
+      id: 'analytics', 
+      icon: BarChart2, 
+      name: 'Analytics', 
+      desc: 'Track your performance and see what is working.', 
+      available: true,
+      path: '/dashboard/results-tracker'
+    },
+    { 
+      id: 'copilot', 
+      icon: Sparkles, 
+      name: 'Co-pilot', 
+      desc: 'Your 24/7 AI marketing assistant for strategy and ideas.', 
+      available: true,
+      path: '/dashboard/marketing-buddy'
+    },
+    { 
       id: 'poster', 
       icon: Calendar, 
       name: 'Auto Poster/Scheduler', 
       desc: 'Schedule and automate your content across all platforms.', 
-      available: false 
-    },
-    { 
-      id: 'helper', 
-      icon: MessageSquare, 
-      name: 'Agentic Helper', 
-      desc: 'Your 24/7 AI marketing assistant for strategy and ideas.', 
       available: false 
     },
     { 
@@ -171,7 +181,7 @@ export default function Dashboard() {
               onClick={() => navigate('/audience-spotter')}
               className="px-4 py-2 rounded-lg border border-orange-500 text-white text-xs font-bold hover:bg-orange-500/5 transition-all flex items-center gap-2 bg-transparent"
             >
-              Start Audience finder
+              Start User finder
               <ArrowRight className="w-3 h-3" />
             </button>
           </section>

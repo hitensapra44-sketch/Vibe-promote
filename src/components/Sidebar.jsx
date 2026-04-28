@@ -37,12 +37,11 @@ export default function Sidebar({ isPaid }) {
   const navLinks = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', available: true },
     { icon: Brain, label: 'Brand Brain', path: '/onboarding', available: true },
-    { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
+    { icon: Search, label: 'User Finder', path: '/audience-spotter', available: true },
     { icon: PenLine, label: 'Post Maker', path: '/dashboard/post-maker', available: true },
-    { icon: BarChart2, label: 'Results Tracker', path: '/dashboard/results-tracker', available: true },
-    { icon: Sparkles, label: 'Marketing Buddy', path: '/dashboard/marketing-buddy', available: true },
+    { icon: BarChart2, label: 'Analytics', path: '/dashboard/results-tracker', available: true },
+    { icon: Sparkles, label: 'Co-pilot', path: '/dashboard/marketing-buddy', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
-    { icon: MessageSquare, label: 'Agentic Helper', path: '#', available: false, comingSoon: true },
     { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
   ];
 
@@ -129,7 +128,7 @@ export default function Sidebar({ isPaid }) {
           <div className="p-3 border-t border-white/5 space-y-3">
             {!sidebarCollapsed && (
               <div className="px-2">
-                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Account</p>
+                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Account</p>
                 <p className="text-[10px] text-gray-500 truncate mb-2">{user?.email}</p>
                 <div className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border",

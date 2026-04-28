@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
-import BrandInfoPreview from '../../components/shared/BrandInfoPreview';
 import BuddyChat from '../../components/marketing-buddy/BuddyChat';
-import { Sparkles, MessageSquare, ArrowRight, Brain } from 'lucide-react';
+import { Sparkles, MessageSquare, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 
@@ -29,7 +28,7 @@ export default function MarketingBuddy() {
           {/* Header with Tabs */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-white">Marketing Buddy</h1>
+              <h1 className="text-2xl font-semibold text-white">Co-pilot</h1>
               <p className="text-zinc-400 text-sm">Your 24/7 AI strategist.</p>
             </div>
 
@@ -58,28 +57,8 @@ export default function MarketingBuddy() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
-            {/* Left Panel - Context (Hidden on mobile) */}
-            <div className="hidden lg:flex w-72 flex-col gap-6">
-              <BrandInfoPreview 
-                appName={mockBrandInfo.appName}
-                problem={mockBrandInfo.problem}
-                audience={mockBrandInfo.audience}
-              />
-
-              <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 space-y-4">
-                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Buddy Status</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-white text-sm font-medium">Online & Ready</span>
-                </div>
-                <p className="text-zinc-400 text-xs leading-relaxed">
-                  I've analyzed your brand brain and current analytics. Ask me for post ideas or strategy fixes.
-                </p>
-              </div>
-            </div>
-
-            {/* Right Panel - Chat */}
+          <div className="flex-1 flex flex-col gap-6 min-h-0">
+            {/* Full Width Chat Panel */}
             <div className="flex-1 bg-[#111111] border border-[#1F1F1F] rounded-2xl flex flex-col overflow-hidden shadow-2xl">
               <header className="px-6 py-4 border-b border-[#1F1F1F] flex items-center justify-between bg-[#1A1A1A]">
                 <div className="flex items-center gap-3">
