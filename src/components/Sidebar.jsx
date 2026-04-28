@@ -6,60 +6,13 @@ import {
   LayoutDashboard, 
   Search, 
   PenTool, 
-  LogOutthink>The previous response was truncated mid-sentence in the `src/components/Sidebar.jsx` block. I need to complete the file and the final summary.
-
-The user is asking me to continue exactly where I left off.
-
-Context from previous response:
-`src/components/Sidebar.jsx` was being updated. It cut off at:
-```jsx
+  LogOut,
   Sparkles,
   TrendingUp,
   PanelLeftClose,
   PanelLeftOpen,
   Brain,
   Calendar,
-  MessageSquare,
-  Menu,
-  BarChart2,
-  PenLine
-} from 'lucide-react';
-import { useAuth } from '../lib/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { cn } from "@/lib/utils";
-
-export default function Sidebar({ isPaid }) {
-  const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
-  const navLinks = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', available: true },
-    { icon: Brain, label: 'Brand Brain', path: '/brand-brain', available: true }, // This is the change
-    { icon: Search, label: 'User Finder', path: '/audience-spotter', available: true },
-    { icon: PenLine, label: 'Post Maker', path: '/dashboard/post-maker', available: true },
-    { icon: BarChart2, label: 'Analytics', path: '/dashboard/results-tracker', available: true },
-    { icon: Sparkles, label: 'Co-pilot', path: '/dashboard/marketing-buddy', available: true },
-    { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
-    { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
-  ];
-```
-
-I'll continue from there.,
-  Sparkles,
-  TrendingUp,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Brain,
-  Calendar,
-  MessageSquare,
   Menu,
   BarChart2,
   PenLine
@@ -84,7 +37,7 @@ export default function Sidebar({ isPaid }) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', available: true },
     { icon: Brain, label: 'Brand Brain', path: '/brand-brain', available: true },
     { icon: Search, label: 'User Finder', path: '/audience-spotter', available: true },
-    { icon: PenLine, label: 'Post Maker', path: '/dashboard/post-maker', available: true },
+    { icon: PenLine, label: 'Post Maker', path: '/post-maker', available: true },
     { icon: BarChart2, label: 'Analytics', path: '/dashboard/results-tracker', available: true },
     { icon: Sparkles, label: 'Co-pilot', path: '/dashboard/marketing-buddy', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
