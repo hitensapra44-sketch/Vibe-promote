@@ -128,7 +128,7 @@ export default function AnalyticsBuddy() {
               exit={{ opacity: 0, x: 20, scale: 0.8 }}
               className="absolute bottom-full right-0 mb-4 whitespace-nowrap bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg shadow-orange-500/20"
             >
-              Ask anything about analytics
+              ask me anything about your analytics
               <div className="absolute top-full right-5 w-2 h-2 bg-orange-500 rotate-45 -translate-y-1" />
             </motion.div>
           )}

@@ -100,11 +100,11 @@ export default function ResultsTracker() {
 
             <MetricCards metrics={mockMetrics} />
 
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="flex-1 min-w-0">
+            <div className="space-y-6">
+              <div className="min-w-0">
                 <PostPerformanceTable posts={mockPosts} />
               </div>
-              <div className="lg:w-72 flex-shrink-0">
+              <div className="w-full">
                 <PlatformBreakdownBar breakdown={mockBreakdown} />
               </div>
             </div>
