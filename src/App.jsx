@@ -13,7 +13,7 @@ import Auth from './pages/Auth';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import AudienceSpotter from './pages/AudienceSpotter';
-import PostMaker from './pages/PostMaker';
+import PostMaker from './pages/post-maker/PostMaker';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 
@@ -43,6 +43,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/results-tracker" element={<ResultsTracker />} />
           <Route path="/dashboard/marketing-buddy" element={<MarketingBuddy />} />
+          <Route path="/dashboard/post-maker" element={<PostMaker />} />
           <Route path="/audience-spotter" element={<AudienceSpotter />} />
           <Route path="/post-maker" element={<PostMaker />} />
           <Route path="*" element={<PageNotFound />} />
