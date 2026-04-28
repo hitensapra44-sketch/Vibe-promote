@@ -49,11 +49,6 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll }
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        {post.isBest && (
-                          <span className="bg-orange-500/10 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                            🔥 Best
-                          </span>
-                        )}
                         <span className="text-white text-sm truncate max-w-[200px]">
                           {post.title}
                         </span>

@@ -18,15 +18,33 @@ export default function ResultsTracker() {
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [breakdownMetric, setBreakdownMetric] = useState("views");
 
-  const mockMetrics = {
-    views: { value: 12483, change: 23, label: 'Views' },
-    engagements: { value: 847, change: -4, label: 'Engagements' },
-    linkTaps: { value: 234, change: 61, label: 'Link Taps' },
-    comments: { value: 156, change: 12, label: 'Comments' }
+  const getMetrics = () => {
+    if (activePlatform === "Reddit") {
+      return {
+        views: { value: 8420, change: 15, label: 'Views' },
+        engagements: { value: 520, change: 8, label: 'Upvotes' },
+        linkTaps: { value: 142, change: 42, label: 'Link Taps' },
+        comments: { value: 89, change: 5, label: 'Comments' }
+      };
+    }
+    if (activePlatform === "Product Hunt") {
+      return {
+        views: { value: 3100, change: 120, label: 'Views' },
+        engagements: { value: 450, change: 85, label: 'Votes' },
+        comments: { value: 112, change: 30, label: 'Comments' },
+        linkTaps: { value: 94, change: 55, label: 'Link Taps' }
+      };
+    }
+    return {
+      views: { value: 12483, change: 23, label: 'Views' },
+      engagements: { value: 847, change: -4, label: 'Engagements' },
+      linkTaps: { value: 234, change: 61, label: 'Link Taps' },
+      comments: { value: 156, change: 12, label: 'Comments' }
+    };
   };
 
   const allMockPosts = [
-    { title: "I spent 40 hours building a feature nobody wanted. Here's what I learned.", platform: "Reddit", views: 4200, engagements: 340, linkTaps: 89, date: "2 days ago", isBest: true },
+    { title: "I spent 40 hours building a feature nobody wanted. Here's what I learned.", platform: "Reddit", views: 4200, engagements: 340, linkTaps: 89, date: "2 days ago" },
     { title: "Why most SaaS marketing feels like shouting into a void.", platform: "LinkedIn", views: 2100, engagements: 120, linkTaps: 45, date: "4 days ago" },
     { title: "Just hit 100 users! Here's the exact strategy we used.", platform: "Indie Hackers", views: 1800, engagements: 95, linkTaps: 32, date: "5 days ago" },
     { title: "Vibe Promote is live on Product Hunt!", platform: "Product Hunt", views: 1200, engagements: 210, linkTaps: 68, date: "1 week ago" },
@@ -121,7 +139,7 @@ export default function ResultsTracker() {
               </div>
             </div>
 
-            <MetricCards metrics={mockMetrics} />
+            <MetricCards metrics={getMetrics()} />
 
             <div className="space-y-6">
               <div className="min-w-0">

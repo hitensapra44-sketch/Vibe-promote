@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Lock, Loader2, MessageSquare, Linkedin, Globe, Zap, Twitter } from 'lucide-react';
+import { Lock, Loader2, MessageSquare, Linkedin, Globe, Zap, Twitter, AtSign } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const platforms = [
@@ -10,6 +10,7 @@ const platforms = [
   { id: 'producthunt', name: 'Product Hunt', desc: 'Votes & comments', icon: Zap, color: '#DA552F' },
   { id: 'indiehackers', name: 'Indie Hackers', desc: 'Community engagement', icon: Globe, color: '#0EA5E9' },
   { id: 'twitter', name: 'X / Twitter', desc: 'Coming soon', icon: Twitter, color: '#333333', comingSoon: true },
+  { id: 'threads', name: 'Threads', desc: 'Coming soon', icon: AtSign, color: '#000000', comingSoon: true },
 ];
 
 export default function ConnectAccounts({ onConnect }) {
@@ -23,15 +24,13 @@ export default function ConnectAccounts({ onConnect }) {
     setTimeout(() => {
       setConnected(prev => [...prev, id]);
       setLoadingPlatform(null);
-      // If they connect at least one, we could auto-proceed or let them connect more
     }, 1500);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {platforms.map((p) => {
-          (p.id === 'reddit' || p.id === 'linkedin' || p.id === 'producthunt' || p.id === 'indiehackers' || p.id === 'twitter')
           const isConnected = connected.includes(p.id);
           const isLoading = loadingPlatform === p.id;
 

@@ -40,11 +40,11 @@ export default function BuddyChat({ brandInfo }) {
   };
 
   const quickPrompts = [
-    "💡 Reddit post idea",
-    "📅 What to post this week",
-    "🎯 Who should I target",
-    "📊 Analyze my strategy",
-    "✍️ Write me a hook"
+    "Reddit post idea",
+    "What to post this week",
+    "Who should I target",
+    "Analyze my strategy",
+    "Write me a hook"
   ];
 
   return (
@@ -84,7 +84,7 @@ export default function BuddyChat({ brandInfo }) {
           {quickPrompts.map(prompt => (
             <button
               key={prompt}
-              onClick={() => setInputValue(prompt.split(' ').slice(1).join(' '))}
+              onClick={() => setInputValue(prompt)}
               className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 whitespace-nowrap hover:border-zinc-600 hover:text-white transition-all bg-transparent"
             >
               {prompt}
