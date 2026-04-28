@@ -85,7 +85,7 @@ export default function ResultsTracker() {
         {!hasConnectedAccounts ? (
           <div className="max-w-[680px] mx-auto py-10 w-full">
             <div className="space-y-1 mb-8">
-              <h1 className="text-white text-2xl font-semibold mt-4">Results Tracker</h1>
+              <h1 className="text-white text-2xl font-semibold mt-4">Analytics</h1>
               <p className="text-zinc-400 text-sm mt-1">Connect your accounts to see what's working.</p>
             </div>
             
@@ -103,7 +103,7 @@ export default function ResultsTracker() {
         ) : (
           <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-white">Results Tracker</h1>
+              <h1 className="text-2xl font-semibold text-white">Analytics</h1>
               <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
             </div>
 

@@ -14,7 +14,8 @@ import {
   Link as LinkIcon,
   Sparkles,
   Target,
-  BarChart2
+  BarChart2,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -183,6 +184,21 @@ export default function Dashboard() {
             >
               Start User finder
               <ArrowRight className="w-3 h-3" />
+            </button>
+          </section>
+
+          {/* App Update Prompt */}
+          <section className="rounded-2xl p-6 border border-white/5 bg-[#111111] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-white mb-1">Have an App update?</h2>
+              <p className="text-sm text-gray-500">Keep your Brand Brain in sync with your latest features.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/onboarding')}
+              className="px-4 py-2 rounded-lg bg-white text-black text-xs font-bold hover:bg-gray-200 transition-all flex items-center gap-2"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Update brand brain
             </button>
           </section>
 
