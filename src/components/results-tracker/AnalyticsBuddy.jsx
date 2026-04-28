@@ -123,10 +123,10 @@ export default function AnalyticsBuddy() {
         <AnimatePresence>
           {showTooltip && !isOpen && (
             <motion.div
-              initial={{ opacity: 0, x: 20, scale: 0.8 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 20, scale: 0.8 }}
-              className="absolute bottom-full right-0 mb-4 bg-white text-zinc-900 text-[10px] font-bold px-4 py-2 rounded-xl shadow-2xl border border-zinc-200 max-w-[200px] sm:max-w-none text-center"
+              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.8 }}
+              className="absolute bottom-full right-0 mb-4 bg-white text-zinc-900 text-[10px] font-bold px-4 py-2 rounded-xl shadow-2xl border border-zinc-200 w-max max-w-[180px] text-center"
             >
               ask me anything about your analytics
               <div className="absolute top-full right-5 w-2 h-2 bg-white border-r border-b border-zinc-200 rotate-45 -translate-y-1" />
