@@ -83,6 +83,7 @@ export default function BrandBrainView() {
       setEditingField(null);
       toast.success(`${field.replace('_', ' ')} updated!`);
     } catch (err) {
+      console.error("Update failed:", err);
       toast.error("Failed to update field.");
     }
   };
@@ -102,7 +103,8 @@ export default function BrandBrainView() {
       setShowUpdateBox(false);
       toast.success("App update recorded!");
     } catch (err) {
-      toast.error("Failed to save update.");
+      console.error("Update failed:", err);
+      toast.error("Failed to save update. Make sure your database is updated.");
     }
   };
 
