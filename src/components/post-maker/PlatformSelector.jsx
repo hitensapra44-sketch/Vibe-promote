@@ -19,7 +19,6 @@ export default function PlatformSelector({ onSelect }) {
   return (
     <div className="max-w-[680px] mx-auto py-10 flex flex-col">
       <div className="space-y-1">
-        <p className="text-zinc-500 text-xs">Dashboard / Post Maker</p>
         <h1 className="text-white text-2xl font-semibold mt-4">Post Maker</h1>
         <p className="text-zinc-400 text-sm mt-1">Where are you posting today?</p>
       </div>

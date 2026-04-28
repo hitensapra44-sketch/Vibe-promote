@@ -72,7 +72,6 @@ export default function MarketingBuddy() {
         {/* Right Panel - Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 h-full">
           <header className="px-6 py-4 border-b border-white/5">
-            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-1">Dashboard / Marketing Buddy</p>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-semibold text-white">Your 24/7 Marketing Buddy</h1>
               <div className="bg-orange-500/10 text-orange-500 text-[10px] font-bold px-2 py-0.5 rounded-full">

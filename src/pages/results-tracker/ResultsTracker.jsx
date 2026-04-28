@@ -43,7 +43,6 @@ export default function ResultsTracker() {
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto w-full space-y-8">
           <div className="space-y-1">
-            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Dashboard / Results Tracker</p>
             <h1 className="text-2xl font-semibold text-white">Results Tracker</h1>
           </div>
 
