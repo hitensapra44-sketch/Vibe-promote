@@ -8,7 +8,7 @@ import ConnectAccounts from '../../components/results-tracker/ConnectAccounts';
 import MetricCards from '../../components/results-tracker/MetricCards';
 import PostPerformanceTable from '../../components/results-tracker/PostPerformanceTable';
 import PlatformBreakdownBar from '../../components/results-tracker/PlatformBreakdownBar';
-import StrategyBuddyPanel from '../../components/results-tracker/StrategyBuddyPanel';
+import AnalyticsBuddy from '../../components/results-tracker/AnalyticsBuddy';
 import { cn } from "@/lib/utils";
 
 export default function ResultsTracker() {
@@ -40,7 +40,7 @@ export default function ResultsTracker() {
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
         {!hasConnectedAccounts ? (
           <div className="max-w-[680px] mx-auto py-10 w-full">
             <div className="space-y-1 mb-8">
@@ -60,7 +60,7 @@ export default function ResultsTracker() {
             </div>
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500">
+          <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
             <div className="space-y-1">
               <h1 className="text-2xl font-semibold text-white">Results Tracker</h1>
               <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
@@ -108,10 +108,10 @@ export default function ResultsTracker() {
                 <PlatformBreakdownBar breakdown={mockBreakdown} />
               </div>
             </div>
-
-            <StrategyBuddyPanel isLoading={false} />
           </div>
         )}
+
+        {hasConnectedAccounts && <AnalyticsBuddy />}
       </main>
     </div>
   );
