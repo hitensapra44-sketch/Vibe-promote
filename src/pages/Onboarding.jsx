@@ -63,8 +63,8 @@ export default function Onboarding() {
         writing_style: step2Data.writing_style,
         primary_platform: step2Data.primary_platform,
         primary_cta: step2Data.primary_cta,
-        current_stage: 'MVP', // Defaulting for now
-        posting_frequency: 'Daily' // Defaulting for now
+        current_stage: 'MVP',
+        posting_frequency: step2Data.posting_frequency || 'Daily'
       };
 
       const { error } = await supabase
@@ -77,7 +77,7 @@ export default function Onboarding() {
       navigate('/dashboard');
     } catch (err) {
       console.error("Save failed:", err);
-      toast.error("Failed to save your Brand Brain. Please try again.", { id: loadingToast });
+      toast.error("Failed to save your Brand Brain.", { id: loadingToast });
     }
   };
 
