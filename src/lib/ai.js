@@ -8,7 +8,7 @@ const client = new OpenAI({
 });
 
 /**
- * Generates a structured set of keywords and communities for audience targeting based on the brand brain.
+ * Generates a structured set of keywords for audience targeting based on the brand brain.
  * This is used by the Audience Spotter to find high-intent conversations.
  */
 export const generateAudienceKeywords = async (brandBrain) => {
@@ -17,7 +17,6 @@ export const generateAudienceKeywords = async (brandBrain) => {
 
   Return ONLY a JSON object with these exact fields:
   {
-    "subreddits": [Array of 5-8 highly targeted subreddit names WITHOUT the 'r/' prefix, e.g., "SaaS", "startups"],
     "primary_keywords": [Array of 5 highly specific core intent phrases],
     "pain_point_keywords": [Array of 5 user problem/frustration phrases],
     "contextual_keywords": [Array of 5 situational/use-case phrases],
@@ -69,14 +68,7 @@ export const generateAudienceKeywords = async (brandBrain) => {
     // Clean up any potential markdown formatting
     content = content.replace(/```json\n?|```/g, '').trim();
     
-    const parsed = JSON.parse(content);
-    
-    // Ensure we have the 10 sub_keywords
-    if (!parsed.sub_keywords || parsed.sub_keywords.length !== 10) {
-        throw new Error("Invalid keyword count from AI");
-    }
-
-    return parsed;
+    return JSON.parse(content);
   } catch (err) {
     console.error("AI Keyword Generation Error:", err.message);
     if (err.message.includes('404')) {

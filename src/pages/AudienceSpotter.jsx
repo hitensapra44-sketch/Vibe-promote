@@ -30,7 +30,7 @@ import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
-import { generateAudienceKeywords } from '../lib/ai';
+import { generateAICall } from '../lib/ai';
 import { useNavigate } from 'react-router-dom';
 
 const STEPS = [
@@ -97,20 +97,41 @@ export default function AudienceSpotter() {
   const suggestFilters = async (brainData) => {
     setIsAIAnalyzing(true);
     try {
-      // Use the new structured AI function
-      const result = await generateAudienceKeywords(brainData);
-      
-      // Map Subreddits to Communities
-      if (result.subreddits && result.subreddits.length > 0) {
-        setCommunities(result.subreddits);
-      }
-      
-      // Map Sub-Keywords (10) to Keywords
-      if (result.sub_keywords && result.sub_keywords.length === 10) {
-        setKeywords(result.sub_keywords);
-      } else if (result.primary_keywords) {
-        // Fallback to primary if sub_keywords missing
-        setKeywords(result.primary_keywords);
+      const systemPrompt = `You are an elite Growth Marketing Strategist specializing in community-led growth on Reddit and Hacker News. 
+      Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
+
+      Return ONLY a JSON object with:
+      - subreddits: Array of 5-8 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
+      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. These must follow strict relevance rules:
+
+        RULES FOR KEYWORDS (10 total, no more, no less):
+        1. Primary Intent (2-3): What users are actively searching for to solve their problem (e.g., "AI copywriting tool for SaaS landing pages")
+        2. Pain-Point Keywords (2-3): Reflect user frustrations or goals (e.g., "low engagement on LinkedIn posts", "struggling with content ideas daily")
+        3. Contextual Keywords (2-2): Situational or use-case based (e.g., "content tool for solo founders", "marketing automation for early-stage startup")
+        4. Intent-Based Variations (2-3): Mix of informational ("how to automate social media posting"), problem-aware ("why my content gets no reach"), and solution-aware ("tools to generate Reddit posts")
+        5. Platform-Specific (1-2): Tied to specific platforms (e.g., "Twitter growth strategy", "LinkedIn content scheduler")
+        6. Long-Tail Priority: All phrases must be multi-word, highly specific, realistic search queries. NO generic terms like "marketing tool" or "SaaS software".
+        7. NO repetition or slight variations of the same phrase.
+        8. Each keyword must reflect REAL search/query behavior from your target audience.
+
+      Format: Return ONLY valid JSON. No markdown, no extra text.`;
+
+      const userMsg = `
+        App Name: ${brainData.app_name}
+        Description: ${brainData.app_description}
+        Target Customer: ${brainData.target_customer}
+        Core Problem: ${brainData.core_problem}
+        Unique Advantage: ${brainData.unique_differentiator}
+      `;
+
+      const result = await generateAICall(systemPrompt, userMsg);
+      const parsed = JSON.parse(result);
+
+      if (parsed.subreddits) setCommunities(parsed.subreddits);
+      if (parsed.keywords && parsed.keywords.length === 10) {
+        setKeywords(parsed.keywords);
+      } else {
+        throw new Error("Invalid keyword count");
       }
       
       toast.success("AI has pre-filled targeted subreddits and high-intent keywords!");
@@ -119,8 +140,6 @@ export default function AudienceSpotter() {
       // Fallback to basic extraction if AI fails
       const brainKeywords = brainData.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [];
       setKeywords(brainKeywords);
-      // Suggest a default subreddit based on app name/category
-      if (brainData.app_name) setCommunities([brainData.app_name.toLowerCase()]);
     } finally {
       setIsAIAnalyzing(false);
     }
@@ -132,14 +151,16 @@ export default function AudienceSpotter() {
       return;
     }
 
-    const loadingToast = toast.loading("Setting up monitoring...");    
+    const loadingToast = toast.loading("Setting up monitoring...");
+    
     const { error } = await supabase
       .from('brand_brains')
       .update({ 
         pain_phrases: keywords.join(', '),
         primary_platform: communities.join(', ')
       })
-      .eq('user_id', user.id);    
+      .eq('user_id', user.id);
+    
     if (error) {
       toast.error("Failed to save configuration", { id: loadingToast });
     } else {
@@ -409,7 +430,7 @@ export default function AudienceSpotter() {
                   <button 
                     onClick={() => setStep(step + 1)}
                     disabled={step === 1 && (selectedPlatforms.length === 0 || isAIAnalyzing)}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
                   </button>
