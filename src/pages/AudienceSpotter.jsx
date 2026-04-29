@@ -101,7 +101,7 @@ export default function AudienceSpotter() {
       Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
 
       Return ONLY a JSON object with:
-      - subreddits: Array of 5-8 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
+      - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
       - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. These must follow strict relevance rules:
 
         RULES FOR KEYWORDS (10 total, no more, no less):
