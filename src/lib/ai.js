@@ -20,7 +20,6 @@ export const generateAudienceKeywords = async (brandBrain) => {
     "primary_keywords": [Array of 5 highly specific core intent phrases],
     "pain_point_keywords": [Array of 5 user problem/frustration phrases],
     "contextual_keywords": [Array of 5 situational/use-case phrases],
-    "platform_keywords": [Array of 5 platform-specific phrases],
     "sub_keywords": [Array of EXACTLY 10 highly-specific, intent-driven search phrases]
   }
 
