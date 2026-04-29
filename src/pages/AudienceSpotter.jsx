@@ -98,17 +98,23 @@ export default function AudienceSpotter() {
     setIsAIAnalyzing(true);
     try {
       const systemPrompt = `You are an elite Growth Marketing Strategist specializing in community-led growth on Reddit and Hacker News. 
-      Your task is to analyze a SaaS product and identify exactly where its buyers hang out and what phrases they use when they have the problem this product solves.
+      Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
 
       Return ONLY a JSON object with:
       - subreddits: Array of 5-8 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
-      - keywords: Array of 8-10 high-intent search terms or "pain phrases" users type when they are frustrated or looking for a solution. (e.g. "how to automate X", "alternative to [competitor]", "is there a tool for X").
+      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. These must follow strict relevance rules:
 
-      RULES:
-      - Be extremely specific to the product niche.
-      - Keywords should be natural, human phrases, not SEO tags.
-      - Avoid generic subreddits like 'news' or 'funny'.
-      - Return ONLY valid JSON. No markdown.`;
+        RULES FOR KEYWORDS (10 total, no more, no less):
+        1. Primary Intent (2-3): What users are actively searching for to solve their problem (e.g., "AI copywriting tool for SaaS landing pages")
+        2. Pain-Point Keywords (2-3): Reflect user frustrations or goals (e.g., "low engagement on LinkedIn posts", "struggling with content ideas daily")
+        3. Contextual Keywords (2-2): Situational or use-case based (e.g., "content tool for solo founders", "marketing automation for early-stage startup")
+        4. Intent-Based Variations (2-3): Mix of informational ("how to automate social media posting"), problem-aware ("why my content gets no reach"), and solution-aware ("tools to generate Reddit posts")
+        5. Platform-Specific (1-2): Tied to specific platforms (e.g., "Twitter growth strategy", "LinkedIn content scheduler")
+        6. Long-Tail Priority: All phrases must be multi-word, highly specific, realistic search queries. NO generic terms like "marketing tool" or "SaaS software".
+        7. NO repetition or slight variations of the same phrase.
+        8. Each keyword must reflect REAL search/query behavior from your target audience.
+
+      Format: Return ONLY valid JSON. No markdown, no extra text.`;
 
       const userMsg = `
         App Name: ${brainData.app_name}
@@ -122,9 +128,13 @@ export default function AudienceSpotter() {
       const parsed = JSON.parse(result);
 
       if (parsed.subreddits) setCommunities(parsed.subreddits);
-      if (parsed.keywords) setKeywords(parsed.keywords);
+      if (parsed.keywords && parsed.keywords.length === 10) {
+        setKeywords(parsed.keywords);
+      } else {
+        throw new Error("Invalid keyword count");
+      }
       
-      toast.success("AI has pre-filled the best subreddits and keywords for your product!");
+      toast.success("AI has pre-filled targeted subreddits and high-intent keywords!");
     } catch (e) { 
       console.error("AI Analysis failed", e);
       // Fallback to basic extraction if AI fails
@@ -307,12 +317,12 @@ export default function AudienceSpotter() {
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Keywords</h1>
-                      <p className="text-zinc-500">Short-tail terms we'll use to find posts about your product. These are what trigger the alerts.</p>
+                      <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery. Exactly 10 targeted keywords.</p>
                     </div>
                     <div className="relative">
                       <input 
                         type="text" 
-                        placeholder="e.g. email outreach"
+                        placeholder="e.g. AI copywriting tool for SaaS"
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
@@ -324,18 +334,18 @@ export default function AudienceSpotter() {
                     </div>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">
-                        <span>Active Keywords</span>
-                        <span>{keywords.length}/10</span>
+                        <span>Targeted Keywords ({keywords.length}/10)</span>
+                        {keywords.length === 10 && <span className="text-green-500">✓ Complete</span>}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {keywords.length === 0 && (
                           <p className="text-zinc-600 text-sm italic w-full text-center py-8">
-                            {isAIAnalyzing ? 'AI is generating pain phrases...' : 'Add at least one keyword'}
+                            {isAIAnalyzing ? 'AI is generating targeted keywords...' : 'Add at least one keyword'}
                           </p>
                         )}
                         {keywords.map((k, i) => (
                           <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold group">
-                            <span className="opacity-50">#</span> {k}
+                            <span className="opacity-50">{i + 1}.</span> {k}
                             <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
                               <X className="w-3 h-3" />
                             </button>
@@ -345,7 +355,7 @@ export default function AudienceSpotter() {
                       <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800 flex gap-3 mt-8">
                         <Sparkles className="w-5 h-5 text-zinc-500 shrink-0" />
                         <p className="text-xs text-zinc-500 leading-relaxed">
-                          We run a secondary AI filter that removes spam and bot noise. Keep your keywords broad like "marketing" rather than "my specific niche tool".
+                          Keywords follow strict relevance rules: Primary intent, pain points, contextual use-cases, intent variations, and platform-specific searches. No generic terms.
                         </p>
                       </div>
                     </div>
@@ -427,7 +437,7 @@ export default function AudienceSpotter() {
                 ) : (
                   <button 
                     onClick={handleCreateSignal}
-                    disabled={isAIAnalyzing}
+                    disabled={isAIAnalyzing || keywords.length !== 10}
                     className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                   >
                     <Zap className="w-4 h-4" /> Create Signal
