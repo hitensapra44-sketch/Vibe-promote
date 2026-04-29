@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -15,504 +15,262 @@ import {
   Check,
   AlertCircle,
   Hash,
-  Bell,
-  Calendar,
   Settings,
   Plus,
   ChevronRight,
-  Mail,
-  Lock,
-  Zap
+  Zap,
+  Copy,
+  ExternalLink,
+  Filter,
+  ArrowUpDown
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../supabaseClient';
-import { useNavigate, Link } from 'react-router-dom';
-import { generateAICall } from '../lib/ai';
+import { useNavigate } from 'react-router-dom';
+import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 
-const platforms = [
-  { id: 'reddit', name: 'Reddit', icon: 'r/', color: 'bg-[#FF4500]', active: true },
-  { id: 'hn', name: 'Hacker News', icon: 'Y', color: 'bg-[#FF6600]', active: true },
-  { id: 'twitter', name: 'X (Twitter)', icon: <Twitter className="w-4 h-4" />, color: 'bg-[#1F1F1F]', active: false, pro: true, comingSoon: true },
-  { id: 'bluesky', name: 'Bluesky', icon: '🦋', color: 'bg-[#1F1F1F]', active: false, pro: true, comingSoon: true },
-];
-
 export default function AudienceSpotter() {
   const { user } = useAuth();
-  const [brain, setBrain] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isPaid, setIsPaid] = useState(false);
+  const [view, setView] = useState('monitoring'); 
+  const [filterStatus, setFilterStatus] = useState('new');
+  const [filterIntent, setFilterIntent] = useState('all');
+  const [sortBy, setSortBy] = useState('score'); // score, date, upvotes
   
-  // Flow State: 'monitoring' | 'setup'
-  const [view, setView] = useState('setup'); 
-  const [currentStep, setCurrentStep] = useState(1); // 1: Platforms, 2: Communities, 3: Keywords, 4: Review
-
-  // Setup Data
-  const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
-  const [communities, setCommunities] = useState([
-    'SaaS', 'marketing', 'growthhacker', 'digitalmarketing', 'SaaSMarketing', 
-    'startups', 'Entrepreneur', 'BrandMarketing', 'copywriting', 'MarTech'
-  ]);
-  const [newCommunity, setNewCommunity] = useState('');
-  const [keywords, setKeywords] = useState([
-    'SaaS marketing', 'brand vibe', 'marketing strategy', 'brand building', 
-    'customer engagement', 'audience connection', 'brand identity'
-  ]);
-  const [newKeyword, setNewKeyword] = useState('');
-
+  const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!user) return;
-      
-      const { data: paymentData } = await supabase
-        .from('user_payments')
-        .select('payment_status')
-        .eq('email', user.email)
-        .maybeSingle();
-      
-      if (paymentData?.payment_status) {
-        setIsPaid(true);
-      }
-
-      const { data } = await supabase
-        .from('brand_brains')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (data) setBrain(data);
-      setLoading(false);
-    }
-    fetchData();
-  }, [user]);
-
-  const togglePlatform = (id) => {
-    const platform = platforms.find(p => p.id === id);
-    if (!platform.active) return;
+  const filteredSignals = useMemo(() => {
+    let result = signals.filter(s => filterStatus === 'all' || s.status === filterStatus);
+    if (filterIntent !== 'all') result = result.filter(s => s.intent_type === filterIntent);
     
-    if (selectedPlatforms.includes(id)) {
-      setSelectedPlatforms(selectedPlatforms.filter(p => p !== id));
-    } else {
-      setSelectedPlatforms([...selectedPlatforms, id]);
-    }
+    return result.sort((a, b) => {
+      if (sortBy === 'score') return b.intent_score - a.intent_score;
+      if (sortBy === 'date') return new Date(b.posted_at) - new Date(a.posted_at);
+      if (sortBy === 'upvotes') return b.upvotes - a.upvotes;
+      return 0;
+    });
+  }, [signals, filterStatus, filterIntent, sortBy]);
+
+  const pendingCount = signals.filter(s => s.status === 'new').length;
+
+  const handleCopyAndOpen = (signal) => {
+    navigator.clipboard.writeText(signal.suggested_reply);
+    toast.success("Suggested reply copied!");
+    window.open(signal.post_url, '_blank');
   };
 
-  const handleAddCommunity = (e) => {
-    e.preventDefault();
-    if (newCommunity.trim() && !communities.includes(newCommunity.trim())) {
-      setCommunities([...communities, newCommunity.trim()]);
-      setNewCommunity('');
-    }
-  };
-
-  const handleAddKeyword = (e) => {
-    e.preventDefault();
-    if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
-      setKeywords([...keywords, newKeyword.trim()]);
-      setNewKeyword('');
-    }
-  };
-
-  const handleCreateSignal = () => {
-    toast.success("Signal created! Monitoring started.");
-    setView('monitoring');
-  };
-
-  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>;
-
-  const steps = [
-    { id: 1, name: 'Platforms' },
-    { id: 2, name: 'Communities' },
-    { id: 3, name: 'Keywords' },
-    { id: 4, name: 'Review' }
-  ];
+  if (isLoading && signals.length === 0) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
-      <Sidebar isPaid={isPaid} />
+      <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        
-        {view === 'monitoring' ? (
-          <div className="flex-1 flex flex-col p-8">
-            <div className="flex items-center justify-between mb-12">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold">Buying Signals</h1>
-                  <p className="text-[#52525B] text-sm">AI-powered monitoring of high-intent conversations across social platforms.</p>
-                </div>
+        <div className="flex-1 flex flex-col p-8 max-w-6xl mx-auto w-full">
+          
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Target className="w-5 h-5 text-primary" />
               </div>
+              <div>
+                <h1 className="text-xl font-bold">Audience Spotter</h1>
+                <p className="text-[#52525B] text-sm">Real-time high-intent buying signals.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
               <button 
-                onClick={() => setView('setup')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm font-medium hover:bg-white/5 transition-all bg-transparent"
+                onClick={() => startScan()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-sm font-bold transition-all shadow-lg shadow-primary/20"
               >
-                <Settings className="w-4 h-4" />
-                Configure
+                <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+                Scan for signals
               </button>
             </div>
+          </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Target className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-              <h2 className="text-lg font-bold mb-2">Monitoring signals for {brain?.app_name || 'Vibe Hype'}</h2>
-              <p className="text-[#52525B] text-sm max-w-md">
-                We're actively scanning social platforms for high-intent conversations. Signals will appear here as they're detected.
+          {/* Stats Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
+              <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Pending Review</p>
+              <p className="text-2xl font-bold text-primary">{pendingCount}</p>
+            </div>
+            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
+              <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Avg Intent Score</p>
+              <p className="text-2xl font-bold text-white">
+                {signals.length > 0 ? Math.round(signals.reduce((acc, s) => acc + s.intent_score, 0) / signals.length) : 0}%
               </p>
             </div>
+            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
+              <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Top Platform</p>
+              <p className="text-2xl font-bold text-white">Reddit</p>
+            </div>
+            <div className="bg-[#111111] border border-white/5 rounded-xl p-4">
+              <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Total Signals</p>
+              <p className="text-2xl font-bold text-white">{signals.length}</p>
+            </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col lg:flex-row">
-            {/* Left Sidebar Progress */}
-            <div className="w-full lg:w-64 p-8 lg:pt-24 flex flex-col items-center lg:items-start">
-              <button onClick={() => navigate('/dashboard')} className="text-[#52525B] text-sm flex items-center gap-2 hover:text-white mb-12">
-                <ArrowLeft className="w-4 h-4" /> Buying Signals
-              </button>
 
-              <div className="relative space-y-12">
-                {/* Vertical Line */}
-                <div className="absolute left-[15px] top-2 bottom-2 w-[2px] bg-[#1F1F1F]" />
-                
-                {steps.map((s) => (
-                  <div key={s.id} className="relative flex items-center gap-4">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all duration-300",
-                      currentStep > s.id ? "bg-primary text-white" : 
-                      currentStep === s.id ? "bg-[#0A0A0A] border-2 border-primary text-primary" : 
-                      "bg-[#0A0A0A] border-2 border-[#1F1F1F] text-[#52525B]"
-                    )}>
-                      {currentStep > s.id ? <Check className="w-4 h-4" /> : s.id}
-                    </div>
-                    <span className={cn(
-                      "text-sm font-bold transition-all duration-300",
-                      currentStep >= s.id ? "text-white" : "text-[#52525B]"
-                    )}>
-                      {s.name}
-                    </span>
-                  </div>
-                ))}
+          {/* Filters */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setFilterStatus('new')}
+                className={cn("px-4 py-1.5 rounded-full text-xs font-bold transition-all", filterStatus === 'new' ? "bg-primary text-white" : "bg-white/5 text-[#52525B] hover:text-white")}
+              >
+                New ({pendingCount})
+              </button>
+              <button 
+                onClick={() => setFilterStatus('reviewed')}
+                className={cn("px-4 py-1.5 rounded-full text-xs font-bold transition-all", filterStatus === 'reviewed' ? "bg-primary text-white" : "bg-white/5 text-[#52525B] hover:text-white")}
+              >
+                Reviewed
+              </button>
+              <button 
+                onClick={() => setFilterStatus('dismissed')}
+                className={cn("px-4 py-1.5 rounded-full text-xs font-bold transition-all", filterStatus === 'dismissed' ? "bg-primary text-white" : "bg-white/5 text-[#52525B] hover:text-white")}
+              >
+                Dismissed
+              </button>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-[#52525B]" />
+                <select 
+                  value={filterIntent} 
+                  onChange={(e) => setFilterIntent(e.target.value)}
+                  className="bg-transparent border-none text-xs font-bold text-white focus:ring-0"
+                >
+                  <option value="all">All Intents</option>
+                  <option value="Seeking Recommendation">Recommendation</option>
+                  <option value="Comparing Alternatives">Comparison</option>
+                  <option value="Expressing Pain">Pain</option>
+                  <option value="Switching Tools">Switching</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-[#52525B]" />
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-transparent border-none text-xs font-bold text-white focus:ring-0"
+                >
+                  <option value="score">Intent Score</option>
+                  <option value="date">Date</option>
+                  <option value="upvotes">Upvotes</option>
+                </select>
               </div>
             </div>
-
-            {/* Main Content Area */}
-            <div className="flex-1 p-8 lg:pt-24 max-w-4xl">
-              <AnimatePresence mode="wait">
-                {currentStep === 1 && (
-                  <motion.div 
-                    key="step1"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-8"
-                  >
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Where should we listen?</h1>
-                      <p className="text-[#A1A1AA] text-sm">Select the platforms to monitor for buying signals. At least one required.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {platforms.map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => togglePlatform(p.id)}
-                          className={cn(
-                            "relative p-6 rounded-2xl border transition-all flex flex-col items-center justify-center gap-4 min-h-[160px]",
-                            selectedPlatforms.includes(p.id) 
-                              ? "bg-primary/5 border-primary" 
-                              : "bg-[#111111] border-white/10 hover:border-primary/30",
-                            !p.active && "opacity-50 cursor-not-allowed"
-                          )}
-                        >
-                          {p.comingSoon && (
-                            <span className="absolute top-3 right-3 text-[#52525B] text-[8px] font-bold uppercase tracking-widest flex items-center gap-1">
-                              Coming Soon <Lock className="w-2 h-2" />
-                            </span>
-                          )}
-                          <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white",
-                            p.color
-                          )}>
-                            {p.icon}
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-bold text-white">{p.name}</p>
-                            {selectedPlatforms.includes(p.id) && (
-                              <div className="mt-2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                                <Check className="w-2.5 h-2.5" /> Selected
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-end pt-8">
-                      <button 
-                        onClick={() => setCurrentStep(2)}
-                        disabled={selectedPlatforms.length === 0}
-                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
-                      >
-                        Continue
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div 
-                    key="step2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-8"
-                  >
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Communities</h1>
-                      <p className="text-[#A1A1AA] text-sm">Subreddits where we'll scan for high-intent conversations about your product.</p>
-                    </div>
-
-                    <form onSubmit={handleAddCommunity} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="e.g. SaaS or r/startups"
-                          value={newCommunity}
-                          onChange={(e) => setNewCommunity(e.target.value)}
-                          className="w-full bg-[#111111] border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all"
-                        />
-                      </div>
-                      <button 
-                        type="submit"
-                        className="w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all bg-transparent"
-                      >
-                        <Plus className="w-5 h-5 text-[#52525B]" />
-                      </button>
-                    </form>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">SUBREDDITS</p>
-                        <p className="text-[#52525B] text-[10px] font-bold">{communities.length}/15</p>
-                      </div>
-                      <div className="bg-[#111111] border border-white/10 rounded-xl overflow-hidden">
-                        <div className="max-h-[400px] overflow-y-auto">
-                          {communities.map((c, i) => (
-                            <div key={c} className="flex items-center justify-between px-6 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-all group">
-                              <div className="flex items-center gap-4">
-                                <span className="text-[#52525B] text-xs font-bold w-4">{i + 1}</span>
-                                <span className="text-primary text-xs font-bold">r/</span>
-                                <span className="text-white text-sm font-medium">{c}</span>
-                              </div>
-                              <button 
-                                onClick={() => setCommunities(communities.filter(x => x !== c))}
-                                className="opacity-0 group-hover:opacity-100 text-[#52525B] hover:text-white transition-all"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-8">
-                      <button onClick={() => setCurrentStep(1)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button 
-                        onClick={() => setCurrentStep(3)}
-                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
-                      >
-                        Continue
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div 
-                    key="step3"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-8"
-                  >
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Keywords</h1>
-                      <p className="text-[#A1A1AA] text-sm">Short-tail terms we'll use to find posts about your product across all selected platforms.</p>
-                    </div>
-
-                    <form onSubmit={handleAddKeyword} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input
-                          type="text"
-                          placeholder="e.g. email outreach"
-                          value={newKeyword}
-                          onChange={(e) => setNewKeyword(e.target.value)}
-                          className="w-full bg-[#111111] border border-white/10 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary/50 transition-all"
-                        />
-                      </div>
-                      <button 
-                        type="submit"
-                        className="w-12 h-12 rounded-xl border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all bg-transparent"
-                      >
-                        <Plus className="w-5 h-5 text-[#52525B]" />
-                      </button>
-                    </form>
-
-                    <div className="space-y-4">
-                      <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">Keywords ({keywords.length}/10)</p>
-                      <div className="flex flex-wrap gap-2">
-                        {keywords.map((word) => (
-                          <span key={word} className="bg-primary/10 text-primary text-xs font-bold px-3 py-2 rounded-full border border-primary/20 flex items-center gap-2">
-                            <Hash className="w-3 h-3" />
-                            {word}
-                            <button onClick={() => setKeywords(keywords.filter(k => k !== word))} className="hover:text-white">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="bg-[#111111] border border-white/10 p-4 rounded-xl flex gap-4">
-                      <AlertCircle className="w-5 h-5 text-[#52525B] flex-shrink-0 mt-0.5" />
-                      <p className="text-[#52525B] text-xs leading-relaxed">
-                        These keywords help us find relevant posts across platforms. Keep them short and broad — we run a separate filtering process on top that removes spam, off-topic content, and AI-generated noise.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-8">
-                      <button onClick={() => setCurrentStep(2)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button 
-                        onClick={() => setCurrentStep(4)}
-                        className="px-10 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
-                      >
-                        Continue
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 4 && (
-                  <motion.div 
-                    key="step4"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-8"
-                  >
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Review your signal</h1>
-                      <p className="text-[#A1A1AA] text-sm">Everything looks good? Hit create and we'll start monitoring.</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Product Summary */}
-                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                          <Search className="w-5 h-5 text-[#52525B]" />
-                        </div>
-                        <div>
-                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-1">Product</p>
-                          <h3 className="text-white font-bold mb-1">{brain?.app_name || 'Vibe Hype'}</h3>
-                          <p className="text-[#52525B] text-xs">{brain?.app_description || 'Vibe Hype helps SaaS companies transform their marketing efforts into a strong brand "vibe."'}</p>
-                        </div>
-                      </div>
-
-                      {/* Platforms Summary */}
-                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                          <Globe className="w-5 h-5 text-[#52525B]" />
-                        </div>
-                        <div>
-                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Platforms</p>
-                          <div className="flex gap-2">
-                            {selectedPlatforms.map(id => {
-                              const p = platforms.find(x => x.id === id);
-                              return (
-                                <span key={id} className="bg-[#1F1F1F] text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
-                                  <div className={cn("w-3 h-3 rounded-sm flex items-center justify-center text-[8px] text-white font-black", p.color)}>
-                                    {p.icon}
-                                  </div>
-                                  {p.name}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Communities Summary */}
-                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                          <MessageSquare className="w-5 h-5 text-[#52525B]" />
-                        </div>
-                        <div>
-                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Communities</p>
-                          <div className="flex flex-wrap gap-2">
-                            {communities.map(c => (
-                              <span key={c} className="bg-[#1F1F1F] text-[#A1A1AA] text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#52525B]/20 flex items-center justify-center text-[6px] text-[#52525B] font-black">r/</div>
-                                {c}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Keywords Summary */}
-                      <div className="bg-[#111111] border border-white/10 rounded-xl p-6 flex gap-6">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
-                          <Hash className="w-5 h-5 text-[#52525B]" />
-                        </div>
-                        <div>
-                          <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Keywords</p>
-                          <div className="flex flex-wrap gap-2">
-                            {keywords.map(k => (
-                              <span key={k} className="bg-[#1F1F1F] text-[#A1A1AA] text-[10px] font-bold px-3 py-1 rounded-full border border-white/5 flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#52525B]/20 flex items-center justify-center text-[6px] text-[#52525B] font-black">#</div>
-                                {k}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-8">
-                      <button onClick={() => setCurrentStep(3)} className="text-[#52525B] text-sm font-bold flex items-center gap-2 hover:text-white bg-transparent">
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <button 
-                        onClick={handleCreateSignal}
-                        className="px-8 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
-                      >
-                        <Zap className="w-4 h-4" />
-                        Create Signal
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
           </div>
-        )}
+
+          {/* Signals List */}
+          <div className="space-y-4 mb-12">
+            {filteredSignals.length === 0 ? (
+              <div className="py-24 text-center">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-6 h-6 text-[#52525B]" />
+                </div>
+                <h3 className="text-white font-bold mb-1">No signals found</h3>
+                <p className="text-[#52525B] text-sm">Try scanning for new signals or changing your filters.</p>
+              </div>
+            ) : (
+              filteredSignals.map((signal) => (
+                <motion.div 
+                  layout
+                  key={signal.id}
+                  className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden hover:border-primary/30 transition-all group"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-xs",
+                          signal.platform === 'reddit' ? "bg-[#FF4500]" : "bg-[#FF6600]"
+                        )}>
+                          {signal.platform === 'reddit' ? 'r/' : 'HN'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-white font-bold text-sm">{signal.subreddit}</span>
+                            <span className="text-[#52525B] text-xs">•</span>
+                            <span className="text-[#52525B] text-xs">by u/{signal.author}</span>
+                            <span className="text-[#52525B] text-xs">•</span>
+                            <span className="text-[#52525B] text-xs">{new Date(signal.posted_at).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                              signal.intent_score > 70 ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
+                            )}>
+                              {signal.intent_type} • {signal.intent_score}% Score
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => updateSignalStatus({ id: signal.id, status: 'dismissed' })}
+                          className="p-2 rounded-lg hover:bg-red-500/10 text-[#52525B] hover:text-red-500 transition-all bg-transparent"
+                          title="Non Relevant"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => updateSignalStatus({ id: signal.id, status: 'reviewed' })}
+                          className="p-2 rounded-lg hover:bg-green-500/10 text-[#52525B] hover:text-green-500 transition-all bg-transparent"
+                          title="Mark Reviewed"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <h2 className="text-lg font-bold text-white mb-3 line-clamp-1">{signal.post_title}</h2>
+                    <p className="text-[#A1A1AA] text-sm line-clamp-3 mb-6 leading-relaxed">{signal.post_body}</p>
+
+                    <div className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 mb-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
+                      </div>
+                      <p className="text-white text-sm italic leading-relaxed">"{signal.suggested_reply}"</p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-[#52525B]">
+                          <Zap className="w-3.5 h-3.5" />
+                          <span className="text-xs font-bold">{signal.upvotes}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[#52525B]">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span className="text-xs font-bold">{signal.comment_count}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleCopyAndOpen(signal)}
+                        className="flex items-center gap-2 px-5 py-2 rounded-xl bg-white text-black font-bold text-xs hover:bg-white/90 transition-all"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        Copy & Open Post
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );
 }
+
+const RefreshCw = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
