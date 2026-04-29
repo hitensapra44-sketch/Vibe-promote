@@ -13,6 +13,7 @@ import {
   Copy,
   Plus,
   ArrowRight,
+  ArrowLeft,
   Globe,
   Twitter,
   Lock,
@@ -29,6 +30,7 @@ import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { generateAICall } from '../lib/ai';
+import { useNavigate } from 'react-router-dom';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -46,6 +48,7 @@ const PLATFORMS = [
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isConfigured, setIsConfigured] = useState(false);
   const [brain, setBrain] = useState(null);
