@@ -54,6 +54,7 @@ export default function AudienceSpotter() {
   const [isConfigured, setIsConfigured] = useState(false);
   const [brain, setBrain] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
   
   // Wizard State
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
@@ -82,19 +83,8 @@ export default function AudienceSpotter() {
           if (count > 0) {
             setIsConfigured(true);
           } else {
-            // Pre-fill from Brand Brain if starting wizard
-            const brainKeywords = data.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [];
-            if (brainKeywords.length > 0) {
-              setKeywords(brainKeywords);
-            } else {
-              // Intelligently suggest if brain is empty
-              suggestKeywords(data);
-            }
-
-            const brainSubs = data.primary_platform?.split(',').map(s => s.trim().replace('r/', '')).filter(Boolean) || [];
-            if (brainSubs.length > 0) {
-              setCommunities(brainSubs);
-            }
+            // Start AI analysis for the wizard
+            suggestFilters(data);
           }
         }
       } finally {
@@ -104,14 +94,45 @@ export default function AudienceSpotter() {
     fetchBrainAndInit();
   }, [user]);
 
-  const suggestKeywords = async (brainData) => {
+  const suggestFilters = async (brainData) => {
+    setIsAIAnalyzing(true);
     try {
-      const systemPrompt = "Suggest 5 short keywords or phrases (2-3 words max) that people would use on Reddit to ask for help with a problem this product solves. Return ONLY a comma-separated list.";
-      const userMsg = `App: ${brainData.app_name}. Description: ${brainData.app_description}. Problem: ${brainData.core_problem}.`;
+      const systemPrompt = `You are an elite Growth Marketing Strategist specializing in community-led growth on Reddit and Hacker News. 
+      Your task is to analyze a SaaS product and identify exactly where its buyers hang out and what phrases they use when they have the problem this product solves.
+
+      Return ONLY a JSON object with:
+      - subreddits: Array of 5-8 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
+      - keywords: Array of 8-10 high-intent search terms or "pain phrases" users type when they are frustrated or looking for a solution. (e.g. "how to automate X", "alternative to [competitor]", "is there a tool for X").
+
+      RULES:
+      - Be extremely specific to the product niche.
+      - Keywords should be natural, human phrases, not SEO tags.
+      - Avoid generic subreddits like 'news' or 'funny'.
+      - Return ONLY valid JSON. No markdown.`;
+
+      const userMsg = `
+        App Name: ${brainData.app_name}
+        Description: ${brainData.app_description}
+        Target Customer: ${brainData.target_customer}
+        Core Problem: ${brainData.core_problem}
+        Unique Advantage: ${brainData.unique_differentiator}
+      `;
+
       const result = await generateAICall(systemPrompt, userMsg);
-      const suggested = result.split(',').map(k => k.trim()).filter(Boolean);
-      setKeywords(suggested);
-    } catch (e) { console.error("Keyword suggestion failed", e); }
+      const parsed = JSON.parse(result);
+
+      if (parsed.subreddits) setCommunities(parsed.subreddits);
+      if (parsed.keywords) setKeywords(parsed.keywords);
+      
+      toast.success("AI has pre-filled the best subreddits and keywords for your product!");
+    } catch (e) { 
+      console.error("AI Analysis failed", e);
+      // Fallback to basic extraction if AI fails
+      const brainKeywords = brainData.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [];
+      setKeywords(brainKeywords);
+    } finally {
+      setIsAIAnalyzing(false);
+    }
   };
 
   const handleCreateSignal = async () => {
@@ -188,6 +209,13 @@ export default function AudienceSpotter() {
                   </div>
                 ))}
               </div>
+
+              {isAIAnalyzing && (
+                <div className="mt-8 p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 text-center">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-tight">AI is analyzing your brand brain for best targets...</p>
+                </div>
+              )}
             </div>
 
             {/* Right: Step Content */}
@@ -253,7 +281,9 @@ export default function AudienceSpotter() {
                       </div>
                       <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden min-h-[100px]">
                         {communities.length === 0 ? (
-                          <div className="p-12 text-center text-zinc-600 text-sm italic">No communities added yet</div>
+                          <div className="p-12 text-center text-zinc-600 text-sm italic">
+                            {isAIAnalyzing ? 'AI is picking subreddits...' : 'No communities added yet'}
+                          </div>
                         ) : (
                           communities.map((c, i) => (
                             <div key={i} className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 last:border-0 group hover:bg-white/[0.02]">
@@ -298,7 +328,11 @@ export default function AudienceSpotter() {
                         <span>{keywords.length}/10</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {keywords.length === 0 && <p className="text-zinc-600 text-sm italic w-full text-center py-8">Add at least one keyword</p>}
+                        {keywords.length === 0 && (
+                          <p className="text-zinc-600 text-sm italic w-full text-center py-8">
+                            {isAIAnalyzing ? 'AI is generating pain phrases...' : 'Add at least one keyword'}
+                          </p>
+                        )}
                         {keywords.map((k, i) => (
                           <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold group">
                             <span className="opacity-50">#</span> {k}
@@ -385,7 +419,7 @@ export default function AudienceSpotter() {
                 {step < 4 ? (
                   <button 
                     onClick={() => setStep(step + 1)}
-                    disabled={step === 1 && selectedPlatforms.length === 0}
+                    disabled={step === 1 && (selectedPlatforms.length === 0 || isAIAnalyzing)}
                     className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
@@ -393,7 +427,8 @@ export default function AudienceSpotter() {
                 ) : (
                   <button 
                     onClick={handleCreateSignal}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20"
+                    disabled={isAIAnalyzing}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                   >
                     <Zap className="w-4 h-4" /> Create Signal
                   </button>
