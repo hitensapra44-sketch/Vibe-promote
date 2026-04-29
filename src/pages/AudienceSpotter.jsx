@@ -21,7 +21,8 @@ import {
   RefreshCw,
   Search,
   ExternalLink,
-  Trash2
+  Trash2,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
