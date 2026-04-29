@@ -113,8 +113,8 @@ export default function AudienceSpotter() {
         6. Long-Tail Priority: All phrases must be multi-word, highly specific, realistic search queries. NO generic terms like "marketing tool" or "SaaS software".
         7. NO repetition or slight variations of the same phrase.
         8. Each keyword must reflect REAL search/query behavior from your target audience.
-
-      Format: Return ONLY valid JSON. No markdown, no extra text.`;
+        (Important- return keywords properly)
+      Format: Return ONLY valid JSON.`;
 
       const userMsg = `
         App Name: ${brainData.app_name}
