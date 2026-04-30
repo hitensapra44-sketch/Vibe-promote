@@ -17,7 +17,12 @@ export default function BrandBrainOnboarding({ onComplete }) {
   
   const [extracting, setExtracting] = useState(false);
   const [hasExtracted, setHasExtracted] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({
+    app_name: '',
+    app_description: '',
+    target_customer: '',
+    core_problem: ''
+  });
 
   const handleExtract = async (e) => {
     e?.preventDefault();
