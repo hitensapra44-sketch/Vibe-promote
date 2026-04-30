@@ -117,6 +117,7 @@ export default function AudienceSpotter() {
       - Description: ${brainData.app_description}
       - Target Audience: ${brainData.target_customer}
       - Core Problem: ${brainData.core_problem}
+      - Unique Differentiator: ${brainData.unique_differentiator}
 
       Return ONLY a JSON object with:
       - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
@@ -125,8 +126,8 @@ export default function AudienceSpotter() {
       RULES FOR KEYWORDS (10 total):
       1. Extract what the app does and its core functionality based on the description and problem.
       2. Keywords must be generic search queries that a user would type to find a solution to the core problem.
-      3. DO NOT include the app name (${brainData.app_name}) in any keyword. Example: use "crm" instead of "${brainData.app_name} crm".
-      4. Must be multi-word, specific search queries (e.g., "how to automate reddit marketing" not just "marketing").
+      3. DO NOT include the app name (${brainData.app_name}) in any keyword.
+      4. Must be multi-word, specific search queries.
       5. Must reflect high buying intent or deep pain.
       6. No repetition.
 
