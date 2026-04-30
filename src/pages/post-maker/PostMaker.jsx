@@ -18,13 +18,15 @@ import {
   Globe,
   Layout,
   PenLine,
-  RefreshCw} from 'lucide-react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../supabaseClient';
+  RefreshCw
+} from 'lucide-react';
+import { useAuth } from '../../lib/AuthContext';
+import { supabase } from '../../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
-import { generateAICall } from '../lib/ai';
+import { generateAICall } from '../../lib/ai';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
+import Sidebar from '../../components/Sidebar';
 
 const platforms = [
   { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
@@ -69,6 +71,7 @@ export default function PostMaker() {
   const [step, setStep] = useState('platform');
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [selectedFormat, setSelectedFormat] = useState(null);
+  const [generating, setGenerating] = useState(false);
   const [post, setPost] = useState(null);
   const [tone, setTone] = useState('Authentic Founder');
   const [context, setContext] = useState('');
@@ -110,56 +113,15 @@ export default function PostMaker() {
     setStep('output');
     setGenerating(true);
     
-    const systemPrompt = `You are a real founder. Not a marketer. Not a content strategist. A person who built or found something that genuinely helped them, and now wants to tell other people about it in plain, honest words.
+    const systemPrompt = `You are a real founder writing for ${selectedPlatform?.name || 'social media'}.
+    Format: ${selectedFormat?.name}. Tone: ${tone}.
+    Context: ${context}.
+    
+    Structure the post with a strong hook, relatable story, and clear call to action.`;
 
-You are writing ONE post for Twitter/X. It must feel like something a real human typed on their phone after a long day — not something that came out of a content calendar. Raw. Direct. True.
-
-Follow this exact 6-part structure. Each part is its own short paragraph. One blank line between each part. Do not label the parts. Do not add anything before or after the post. Return only the post text.
-
---- 
-PART 1 — HOOKThis is the only line that decides if anyone reads the rest. Use one of the exact pain phrases the founder gave you, in their own words or very close to it. Name the frustration so specifically that the right person reads it and feels like someone finally said it out loud. Maximum 12 words. No period at the end. No hashtags. No emojis unless the founder's tone is genuinely casual. If a question adds real tension, use it — otherwise don't.
-
-PART 2 — RELATE
-One sentence. The founder is saying: I know this pain because I lived it, or I see it every day in the people I talk to. This is not sympathy — it is proof that the founder is one of them. It makes the reader feel like they are in the right place.
-
-PART 3 — TURN
-One line only. Something shifted. Something was discovered. Do not name the solution yet. Just signal that a door opened. This creates a small open loop that pulls the reader forward. It should feel like the moment before a reveal, not the reveal itself.
-
-PART 4 — PROOF
-One to two sentences. Now introduce the product — but casually, the way a founder mentions something they built or stumbled onto, not the way an ad talks about a product. State the single biggest differentiator as a plain fact. Concrete and specific beats vague and impressive every time. Do not use any of these words: game-changing, revolutionary, powerful, robust, seamless, cutting-edge, innovative, disruptive, supercharge, unlock, leverage, synergy, crushing it, hustle.
-
-PART 5 — SPECIFICITY
-One line. Drop one real, concrete detail — a number, a timeframe, a before-and-after, a specific result. This is what makes the post feel like a true story and not a pitch. If the founder did not provide a specific number, create a believable, modest one that fits an early-stage product. Do not exaggerate. Small and real is better than big and suspicious.
-
-PART 6 — CTA
-One sentence. Use the founder's call to action exactly as they described it. Keep it direct and low-pressure. No exclamation mark. No emoji. No asking for likes, shares, or follows. Just tell them what to do next.
-
---- 
-HARD RULES — these apply to every word in the post:
-
-- No hashtags anywhere
-- No em dashes
-- No corporate or hype language of any kind- No more than 3 sentences in any paragraph
-- Total word count must be between 180 and 280 words
-- The entire post must sound like one specific person wrote it — not a team, not a tool- Fully respect the writing tone and style the founder described
-- If the target audience has LOW awareness (they do not yet know a solution like this exists): educate them gently in Parts 2 and 3 before introducing the product
-- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried`;
-
-    const userMessage = `Here is everything you need to write the post:
-
-App name: ${brain?.app_name || ''}
-What the app does: ${brain?.app_description || ''}
-Target customer: ${brain?.target_customer || ''}
-Core problem the app solves: ${brain?.core_problem || ''}
-What makes it different from alternatives: ${brain?.unique_differentiator || ''}
-Brand tone: ${brain?.brand_tone || ''}
-Writing style: ${brain?.writing_style || ''}
-Primary CTA: ${brain?.primary_cta || ''}
-
-Write the post now. Return only the post. Nothing else.`;
+    const userMessage = `Write the post now. Return only the post text.`;
 
     try {
-      // Pass user ID so generateAICall can inject brand context
       const result = await generateAICall(systemPrompt, userMessage, user?.id);
       setPost(result);
     } catch (err) {
@@ -169,3 +131,143 @@ Write the post now. Return only the post. Nothing else.`;
       setGenerating(false);
     }
   };
+
+  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+      <Sidebar isPaid={isPaid} />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
+        <div className="max-w-[720px] mx-auto w-full">
+          
+          {step === 'platform' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="mb-12">
+                <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
+                <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                {platforms.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPlatform(p)}
+                    className={cn(
+                      "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
+                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                    )}
+                  >
+                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
+                    <div>
+                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                      <p className="text-[#A1A1AA] text-[10px] mt-1">{p.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {selectedPlatform && (
+                <button
+                  onClick={() => setStep('format')}
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  Continue with {selectedPlatform.name} →
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'format' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <button onClick={() => setStep('platform')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8 bg-transparent">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-white">What's working on {selectedPlatform.name} right now</h2>
+                <p className="text-[#A1A1AA] text-sm">Formats getting traction in your niche</p>
+              </div>
+
+              <div className="space-y-4 mb-12">
+                {formats.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFormat(f)}
+                    className={cn(
+                      "w-full p-5 rounded-xl border text-left transition-all flex flex-col lg:flex-row justify-between gap-6 bg-transparent",
+                      selectedFormat?.id === f.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-base font-bold text-white">{f.name}</h3>
+                        <span className={cn(
+                          "text-[10px] font-bold px-2 py-0.5 rounded-md border",
+                          f.traction === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-[#1F1F1F] text-[#A1A1AA] border-[#1F1F1F]"
+                        )}>
+                          {f.traction === 'High' ? '🔥 High Traction' : '👀 Medium'}
+                        </span>
+                      </div>
+                      <p className="text-[#A1A1AA] text-sm mb-4">{f.why}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {selectedFormat && (
+                <button
+                  onClick={generatePost}
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  Generate My Post →
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'output' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <button onClick={() => setStep('format')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8 bg-transparent">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+
+              <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden p-6">
+                {generating ? (
+                  <div className="py-20 flex flex-col items-center justify-center text-center">
+                    <Loader2 className="w-8 h-8 text-[#F97316] animate-spin mb-4" />
+                    <p className="text-white font-bold">Writing your post...</p>
+                  </div>
+                ) : post ? (
+                  <div className="space-y-6">
+                    <div className="p-4 rounded-lg bg-[#0A0A0A] border border-[#1F1F1F]">
+                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{post}</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(post);
+                          toast.success("Copied to clipboard!");
+                        }}
+                        className="flex-1 h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-bold rounded-lg flex items-center justify-center gap-2"
+                      >
+                        <Copy className="w-4 h-4" /> Copy Post
+                      </button>
+                      <button 
+                        onClick={generatePost}
+                        className="h-11 px-4 border border-[#1F1F1F] text-white rounded-lg hover:bg-white/5 transition-all bg-transparent"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+    </div>
+  );
+}
