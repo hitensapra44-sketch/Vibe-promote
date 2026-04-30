@@ -1,14 +1,18 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { generateAICall } from '../../lib/ai';
+import { useAuth } from '../../lib/AuthContext';
+import { toast } from 'sonner';
 
-export default function BuddyChat({ brandInfo }) {
+export default function BuddyChat() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     { 
       role: 'buddy', 
-      text: "Hey! I know everything about your app. Ask me anything — post ideas, strategy questions, what to do next. I'm here 24/7." 
+      text: "Hey! I'm your marketing co-pilot. I've studied your Brand Brain and I'm ready to help you grow. What's on your mind today?" 
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -21,30 +25,51 @@ export default function BuddyChat({ brandInfo }) {
     }
   }, [messages, isTyping]);
 
-  const handleSend = () => {
-    if (!inputValue.trim() || isTyping) return;
+  const handleSend = async (text) => {
+    const msgText = typeof text === 'string' ? text : inputValue;
+    if (!msgText.trim() || isTyping) return;
 
-    const userMsg = { role: 'user', text: inputValue };
+    const userMsg = { role: 'user', text: msgText };
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
+    const systemPrompt = `You are the user's elite AI Marketing Co-pilot. 
+    Your primary goal is to provide strategic marketing advice, content ideas, and growth tactics that are 100% aligned with the provided Brand Context.
+    
+    RULES:
+    1. NEVER be generic. Use the brand's specific tone, problem, and audience in every answer.
+    2. Be actionable. Don't just give theory; give specific steps, hooks, or platform-specific advice.
+    3. Be encouraging but professional (unless the brand tone is edgy/casual).
+    4. If the user asks for content, follow their specific 'Writing Style' and 'Tone' from the context.
+    5. Always lead with the 'Core Value' and 'Unique Differentiator' of the product.
+    
+    Maintain a helpful, high-energy founder-to-founder vibe.`;
+
+    try {
+      // The generateAICall utility automatically fetches and injects the brand brain when userId is passed
+      const response = await generateAICall(systemPrompt, msgText, user?.id);
+      
       const buddyMsg = { 
         role: 'buddy', 
-        text: "Got it — I'll have a real answer here once the AI is connected. For now I'm just showing you how this will look." 
+        text: response 
       };
       setMessages(prev => [...prev, buddyMsg]);
+    } catch (err) {
+      console.error("Copilot Error:", err);
+      toast.error("I hit a snag. Try again?");
+      setMessages(prev => [...prev, { role: 'buddy', text: "Sorry, I had trouble connecting to my brain. Can you try that again?" }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const quickPrompts = [
-    "Reddit post idea",
-    "What to post this week",
-    "Who should I target",
-    "Analyze my strategy",
-    "Write me a hook"
+    "Give me 3 Reddit post ideas",
+    "How should I describe my app to a skeptic?",
+    "What's the best hook for my audience?",
+    "Review my current strategy",
+    "Write a viral Twitter thread intro"
   ];
 
   return (
@@ -71,10 +96,9 @@ export default function BuddyChat({ brandInfo }) {
         ))}
         
         {isTyping && (
-          <div className="mr-auto bg-[#111111] border border-[#1F1F1F] rounded-xl rounded-bl-sm px-4 py-3 flex gap-1">
-            <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" />
+          <div className="mr-auto bg-[#111111] border border-[#1F1F1F] rounded-xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
+            <Loader2 size={14} className="text-orange-500 animate-spin mr-1" />
+            <span className="text-zinc-500 text-xs">Consulting your brain...</span>
           </div>
         )}
       </div>
@@ -84,8 +108,9 @@ export default function BuddyChat({ brandInfo }) {
           {quickPrompts.map(prompt => (
             <button
               key={prompt}
-              onClick={() => setInputValue(prompt)}
-              className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 whitespace-nowrap hover:border-zinc-600 hover:text-white transition-all bg-transparent"
+              onClick={() => handleSend(prompt)}
+              disabled={isTyping}
+              className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 whitespace-nowrap hover:border-zinc-600 hover:text-white transition-all bg-transparent disabled:opacity-50"
             >
               {prompt}
             </button>
@@ -95,7 +120,7 @@ export default function BuddyChat({ brandInfo }) {
         <div className="flex gap-2 items-end">
           <textarea 
             rows={1}
-            placeholder="Ask anything — 'Give me a Reddit post idea'..."
+            placeholder="Ask anything..."
             className="flex-1 bg-[#111111] border border-[#1F1F1F] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-zinc-500 resize-none min-h-[46px] max-h-[120px]"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -115,7 +140,7 @@ export default function BuddyChat({ brandInfo }) {
             disabled={!inputValue.trim() || isTyping}
             className={cn(
               "p-3 rounded-xl transition-all flex-shrink-0",
-              inputValue.trim() && !isTyping ? "bg-orange-500 text-white" : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
+              inputValue.trim() && !isTyping ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
             )}
           >
             <Send size={16} />

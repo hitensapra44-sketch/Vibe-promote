@@ -6,17 +6,12 @@ import BuddyChat from '../../components/marketing-buddy/BuddyChat';
 import { Sparkles, MessageSquare, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
+import { useAuth } from '../../lib/AuthContext';
 
 export default function MarketingBuddy() {
   const [activeTab, setActiveTab] = useState('chat');
   const navigate = useNavigate();
-
-  const mockBrandInfo = {
-    appName: "Vibe Promote",
-    problem: "Marketing takes too long",
-    audience: "SaaS founders",
-    tone: "Authentic Founder"
-  };
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
@@ -46,7 +41,7 @@ export default function MarketingBuddy() {
                 Chat
               </button>
               <button
-                onClick={() => navigate('/onboarding')}
+                onClick={() => navigate('/brand-brain')}
                 className={cn(
                   "flex items-center gap-2 text-sm font-medium px-6 py-2 transition-all duration-200 bg-transparent text-zinc-400 hover:text-zinc-200"
                 )}
@@ -65,13 +60,16 @@ export default function MarketingBuddy() {
                   <Sparkles size={16} className="text-orange-500" />
                   <span className="text-white text-sm font-semibold">AI Strategist</span>
                 </div>
-                <button className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-300 bg-transparent">
-                  Clear History
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-300 bg-transparent"
+                >
+                  Reset Session
                 </button>
               </header>
               
               <div className="flex-1 overflow-hidden p-4 sm:p-6">
-                <BuddyChat brandInfo={mockBrandInfo} />
+                <BuddyChat />
               </div>
             </div>
           </div>
