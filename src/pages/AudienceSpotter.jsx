@@ -67,6 +67,17 @@ export default function AudienceSpotter() {
 
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
 
+  const skipSubreddits = useMemo(() => {
+    return selectedPlatforms.includes('hn') && !selectedPlatforms.includes('reddit');
+  }, [selectedPlatforms]);
+
+  const filteredSteps = useMemo(() => {
+    if (skipSubreddits) {
+      return STEPS.filter(s => s.id !== 2);
+    }
+    return STEPS;
+  }, [skipSubreddits]);
+
   useEffect(() => {
     async function fetchBrainAndInit() {
       if (!user) return;
@@ -99,18 +110,25 @@ export default function AudienceSpotter() {
     if (!brainData) return;
     setIsAIAnalyzing(true);
     try {
-      const systemPrompt = `You are an elite Growth Marketing Strategist. 
-      Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
+      const systemPrompt = `You are an elite Growth Marketing Strategist. Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
+
+      Product Info:
+      - Name: ${brainData.app_name}
+      - Description: ${brainData.app_description}
+      - Target Audience: ${brainData.target_customer}
+      - Core Problem: ${brainData.core_problem}
 
       Return ONLY a JSON object with:
       - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
       - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. 
 
       RULES FOR KEYWORDS (10 total):
-      1. Must be multi-word, specific search queries (e.g., "how to automate reddit marketing" not "marketing").
-      2. Must reflect high buying intent or deep pain.
-      3. No generic terms.
-      4. No repetition.
+      1. Extract what the app does and its core functionality based on the description and problem.
+      2. Keywords must be generic search queries that a user would type to find a solution to the core problem.
+      3. DO NOT include the app name (${brainData.app_name}) in any keyword. Example: use "crm" instead of "${brainData.app_name} crm".
+      4. Must be multi-word, specific search queries (e.g., "how to automate reddit marketing" not just "marketing").
+      5. Must reflect high buying intent or deep pain.
+      6. No repetition.
 
       Format: Return ONLY valid JSON.`;
 
@@ -199,14 +217,14 @@ export default function AudienceSpotter() {
             <div className="lg:w-48 flex flex-col gap-8 pt-8">
               <div className="relative flex flex-col gap-10">
                 <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-zinc-800" />
-                {STEPS.map((s) => (
+                {filteredSteps.map((s, idx) => (
                   <div key={s.id} className="relative flex items-center gap-4">
                     <div className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all border-2",
                       step === s.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : 
                       step > s.id ? "bg-primary border-primary text-white" : "bg-[#0A0A0A] border-zinc-800 text-zinc-500"
                     )}>
-                      {step > s.id ? <Check className="w-4 h-4" /> : s.id}
+                      {step > s.id ? <Check className="w-4 h-4" /> : idx + 1}
                     </div>
                     <span className={cn(
                       "text-sm font-medium transition-colors",
@@ -427,14 +445,26 @@ export default function AudienceSpotter() {
               {/* Navigation */}
               <div className="mt-12 flex items-center justify-between">
                 <button 
-                  onClick={() => step > 1 && setStep(step - 1)}
+                  onClick={() => {
+                    if (step === 3 && skipSubreddits) {
+                      setStep(1);
+                    } else {
+                      setStep(step - 1);
+                    }
+                  }}
                   className={cn("flex items-center gap-2 text-zinc-500 hover:text-white transition-all bg-transparent", step === 1 && "invisible")}
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 {step < 4 ? (
                   <button 
-                    onClick={() => setStep(step + 1)}
+                    onClick={() => {
+                      if (step === 1 && skipSubreddits) {
+                        setStep(3);
+                      } else {
+                        setStep(step + 1);
+                      }
+                    }}
                     disabled={step === 1 && (selectedPlatforms.length === 0 || isAIAnalyzing)}
                     className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50"
                   >
