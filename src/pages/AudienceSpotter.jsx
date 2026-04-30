@@ -111,27 +111,63 @@ export default function AudienceSpotter() {
     setIsAIAnalyzing(true);
     try {
       const systemPrompt = `You are an elite Growth Marketing Strategist. Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
+brainData.app_name
+brainData.app_description
+brainData.target_customer
+brainData.core_problem
+brainData.unique_differentiator
 
-      Product Info:
-      - Name: ${brainData.app_name}
-      - Description: ${brainData.app_description}
-      - Target Audience: ${brainData.target_customer}
-      - Core Problem: ${brainData.core_problem}
+Using the existing generateAICall function and the API already in the project, add two new AI calls after posts are fetched:
 
-      Return ONLY a JSON object with:
-      - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
-      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. 
+1. RELEVANCE FILTER CALL
+For each fetched post, call generateAICall with:
 
-      RULES FOR KEYWORDS (10 total):
-      1. Extract what the app does and its core functionality based on the description and problem.
-      2. Keywords must be generic search queries that a user would type to find a solution to the core problem.
-      3. DO NOT include the app name (${brainData.app_name}) in any keyword. Example: use "crm" instead of "${brainData.app_name} crm".
-      4. Must be multi-word, specific search queries (e.g., "how to automate reddit marketing" not just "marketing").
-      5. Must reflect high buying intent or deep pain.
-      6. No repetition.
+System prompt:
+"You are a relevance filter. Based on the product info below, decide if this post is from someone who would genuinely benefit from or is actively looking for a solution like this product.
 
-      Format: Return ONLY valid JSON.`;
+Product: ${brainData.app_name}
+Description: ${brainData.app_description}
+Target Customer: ${brainData.target_customer}
+Core Problem it solves: ${brainData.core_problem}
 
+Only mark relevant: true if the post author matches the target customer profile and is expressing a pain point or seeking a recommendation that this product directly solves.
+
+Reply ONLY in this JSON format, nothing else:
+{
+  'relevant': true or false,
+  'intent': 'Expressing Pain' or 'Seeking Recommendation' or 'Not Relevant',
+  'score': 0-100,
+  'reason': 'one sentence'
+}"
+
+User message: the full post text
+
+Only show posts where relevant is true and score is above 70.
+
+2. REPLY GENERATION CALL
+For posts that pass the filter, call generateAICall with:
+
+System prompt:
+"You are a genuine community member who uses ${brainData.app_name}. 
+
+Product context:
+- What it does: ${brainData.app_description}
+- Who it helps: ${brainData.target_customer}
+- Problem it solves: ${brainData.core_problem}
+- Why it's different: ${brainData.unique_differentiator}
+
+Write a reply that:
+1. Acknowledges the poster's specific pain point in 1-2 sentences, showing you actually read their post
+2. Gives one genuinely helpful insight related to their problem
+3. Naturally mentions ${brainData.app_name} only if it directly solves what they described
+4. Maximum 4 sentences total
+5. Tone: casual, founder-to-founder, like a real Reddit comment not an ad
+6. Never say 'Absolutely' or 'I'd be happy to'
+7. Never mention features that are not in the product description above"
+
+User message: the full post text
+
+DO NOT change anything else. No new files, no UI changes, no new API integrations.
       const userMsg = `
         App Name: ${brainData.app_name}
         Description: ${brainData.app_description}
