@@ -1,33 +1,83 @@
 "use client";
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Home from './pages/Home';
+import Auth from './pages/Auth';
+import Survey from './pages/Survey';
+import PrePurchase from './pages/PrePurchase';
 import Onboarding from './pages/Onboarding';
+import Dashboard from './pages/Dashboard';
 import BrandBrainView from './pages/BrandBrainView';
-import PostMaker from './pages/PostMaker';
+import PostMaker from './pages/post-maker/PostMaker';
+import AudienceSpotter from './pages/AudienceSpotter';
+import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Sidebar from './components/Sidebar';
 import { useAuth } from './lib/AuthContext';
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
+  const location = useLocation();
+
+  // Define public routes that don't need a sidebar or auth
+  const publicRoutes = ['/', '/auth', '/survey', '/pre-purchase'];
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex flex-col">
-      <Sidebar isPaid={true} />
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto w-full h-[calc(100vh-100px)] flex flex-col gap-6 animate-in fade-in duration-500">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/brand-brain" element={<BrandBrainView />} />
-            <Route path="/post-maker" element={<PostMaker />} />
-            <Route path="/marketing-buddy" element={<MarketingBuddy />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </div>
+    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex">
+      {/* Only show sidebar on non-public routes when authenticated */}
+      {!isPublicRoute && isAuthenticated && <Sidebar isPaid={true} />}
+      
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/survey" element={<Survey />} />
+          <Route path="/pre-purchase" element={<PrePurchase />} />
+
+          {/* Protected Routes */}
+          <Route 
+            path="/onboarding" 
+            element={isAuthenticated ? <Onboarding /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/dashboard" 
+            element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/brand-brain" 
+            element={isAuthenticated ? <BrandBrainView /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/post-maker" 
+            element={isAuthenticated ? <PostMaker /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/audience-spotter" 
+            element={isAuthenticated ? <AudienceSpotter /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/dashboard/results-tracker" 
+            element={isAuthenticated ? <ResultsTracker /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/marketing-buddy" 
+            element={isAuthenticated ? <MarketingBuddy /> : <Navigate to="/auth" />} 
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
     </div>
   );
