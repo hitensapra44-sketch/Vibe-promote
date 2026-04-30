@@ -584,18 +584,7 @@ export default function AudienceSpotter() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => updateSignalStatus({ id: signal.id, status: 'dismissed' })}
-                          className="p-2.5 rounded-xl hover:bg-red-500/10 text-zinc-600 hover:text-red-500 transition-all bg-transparent"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => updateSignalStatus({ id: signal.id, status: 'reviewed' })}
-                          className="p-2.5 rounded-xl hover:bg-green-500/10 text-zinc-600 hover:text-green-500 transition-all bg-transparent"
-                        >
-                          <Check className="w-5 h-5" />
-                        </button>
+                 
                       </div>
                     </div>
 

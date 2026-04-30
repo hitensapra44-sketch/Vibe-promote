@@ -262,7 +262,7 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
       vite:
-        specifier: ^6.1.0
+        specifier: ^6.4.2
         version: 6.4.2(@types/node@22.19.17)(jiti@1.21.7)
 
 packages:
