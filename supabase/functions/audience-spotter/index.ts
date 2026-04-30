@@ -8,6 +8,21 @@ const corsHeaders = {
 
 const NVIDIA_API_KEY = "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";
 
+// Helper to extract JSON from AI response string
+function extractJSON(text: string) {
+  try {
+    // Try to find JSON block
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("[audience-spotter] JSON Parse failed for text:", text);
+    throw e;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -31,7 +46,7 @@ serve(async (req) => {
 
     if (brainError || !brain) throw new Error("Brand Brain not found for user")
 
-    // 2. Extract keywords from pain phrases or core problem
+    // 2. Extract keywords
     const keywords = brain.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [brain.core_problem];
     const results = [];
 
@@ -92,11 +107,10 @@ serve(async (req) => {
       } catch (e) { console.error("[audience-spotter] HN search failed", e) }
     }
 
-    // 4. Analyze with AI (Two-step process)
+    // 4. Analyze with AI
     const analyzedSignals = []
     for (const res of results.slice(0, 10)) {
       try {
-        // CALL 1: RELEVANCE FILTER
         const filterSystemPrompt = `You are a relevance filter. Based on the product info below, decide if this post is from someone who would genuinely benefit from or is actively looking for a solution like this product.
 
 Product: ${brain.app_name}
@@ -109,8 +123,8 @@ Only mark relevant: true if the post author matches the target customer profile 
 Reply ONLY in this JSON format, nothing else:
 {
   "relevant": true,
-  "intent": "Expressing Pain" or "Seeking Recommendation" or "Not Relevant",
-  "score": 0-100,
+  "intent": "Expressing Pain",
+  "score": 85,
   "reason": "one sentence"
 }`
 
@@ -130,12 +144,18 @@ Reply ONLY in this JSON format, nothing else:
           })
         })
         
+        if (!filterRes.ok) {
+          const errText = await filterRes.text();
+          console.error("[audience-spotter] Filter API Error:", errText);
+          continue;
+        }
+
         const filterData = await filterRes.json()
-        const filterContent = filterData.choices[0].message.content.replace(/```json|```/g, '').trim()
-        const filterResult = JSON.parse(filterContent)
+        if (!filterData.choices?.[0]?.message?.content) continue;
+
+        const filterResult = extractJSON(filterData.choices[0].message.content);
 
         if (filterResult.relevant && filterResult.score > 70) {
-          // CALL 2: REPLY GENERATION
           const replySystemPrompt = `You are a genuine community member who uses ${brain.app_name}. 
 
 Product context:
@@ -145,11 +165,11 @@ Product context:
 - Why it's different: ${brain.unique_differentiator}
 
 Write a reply that:
-1. Acknowledges the poster's specific pain point in 1-2 sentences, showing you actually read their post
+1. Acknowledges the poster's specific pain point in 1-2 sentences
 2. Gives one genuinely helpful insight related to their problem
 3. Naturally mentions ${brain.app_name} only if it directly solves what they described
 4. Maximum 4 sentences total
-5. Tone: casual, founder-to-founder, like a real Reddit comment not an ad
+5. Tone: casual, founder-to-founder
 6. Never say 'Absolutely' or 'I'd be happy to'
 7. Never mention features that are not in the product description above`
 
@@ -167,20 +187,23 @@ Write a reply that:
             })
           })
           
-          const replyData = await replyRes.json()
-          const suggestedReply = replyData.choices[0].message.content.trim()
+          if (!replyRes.ok) continue;
 
-          const finalSignal = { 
-            ...res, 
-            intent_score: filterResult.score,
-            intent_type: filterResult.intent,
-            suggested_reply: suggestedReply,
-            status: 'new' 
+          const replyData = await replyRes.json()
+          const suggestedReply = replyData.choices?.[0]?.message?.content?.trim() || "";
+
+          if (suggestedReply) {
+            const finalSignal = { 
+              ...res, 
+              intent_score: filterResult.score,
+              intent_type: filterResult.intent,
+              suggested_reply: suggestedReply,
+              status: 'new' 
+            }
+            
+            await supabase.from('audience_signals').upsert(finalSignal, { onConflict: 'post_url' })
+            analyzedSignals.push(finalSignal)
           }
-          
-          // Save to DB (upsert by URL to avoid duplicates)
-          await supabase.from('audience_signals').upsert(finalSignal, { onConflict: 'post_url' })
-          analyzedSignals.push(finalSignal)
         }
       } catch (e) { console.error("[audience-spotter] AI Analysis failed for a post", e) }
     }
