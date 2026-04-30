@@ -22,7 +22,8 @@ import {
   Search,
   ExternalLink,
   Trash2,
-  Clock
+  Clock,
+  Wand2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
@@ -83,7 +84,7 @@ export default function AudienceSpotter() {
           if (count > 0) {
             setIsConfigured(true);
           } else {
-            // Start AI analysis for the wizard
+            // Start AI analysis for the wizard automatically
             suggestFilters(data);
           }
         }
@@ -95,25 +96,22 @@ export default function AudienceSpotter() {
   }, [user]);
 
   const suggestFilters = async (brainData) => {
+    if (!brainData) return;
     setIsAIAnalyzing(true);
     try {
-      const systemPrompt = `You are an elite Growth Marketing Strategist specializing in community-led growth on Reddit and Hacker News. 
+      const systemPrompt = `You are an elite Growth Marketing Strategist. 
       Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
 
       Return ONLY a JSON object with:
       - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
-      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. These must follow strict relevance rules:
+      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. 
 
-        RULES FOR KEYWORDS (10 total, no more, no less):
-        1. Primary Intent (2-3): What users are actively searching for to solve their problem (e.g., "AI copywriting tool for SaaS landing pages")
-        2. Pain-Point Keywords (2-3): Reflect user frustrations or goals (e.g., "low engagement on LinkedIn posts", "struggling with content ideas daily")
-        3. Contextual Keywords (2-2): Situational or use-case based (e.g., "content tool for solo founders", "marketing automation for early-stage startup")
-        4. Intent-Based Variations (2-3): Mix of informational ("how to automate social media posting"), problem-aware ("why my content gets no reach"), and solution-aware ("tools to generate Reddit posts")
-        5. Platform-Specific (1-2): Tied to specific platforms (e.g., "Twitter growth strategy", "LinkedIn content scheduler")
-        6. Long-Tail Priority: All phrases must be multi-word, highly specific, realistic search queries. NO generic terms like "marketing tool" or "SaaS software".
-        7. NO repetition or slight variations of the same phrase.
-        8. Each keyword must reflect REAL search/query behavior from your target audience.
-        (Important- return keywords properly)
+      RULES FOR KEYWORDS (10 total):
+      1. Must be multi-word, specific search queries (e.g., "how to automate reddit marketing" not "marketing").
+      2. Must reflect high buying intent or deep pain.
+      3. No generic terms.
+      4. No repetition.
+
       Format: Return ONLY valid JSON.`;
 
       const userMsg = `
@@ -128,10 +126,8 @@ export default function AudienceSpotter() {
       const parsed = JSON.parse(result);
 
       if (parsed.subreddits) setCommunities(parsed.subreddits);
-      if (parsed.keywords && parsed.keywords.length === 10) {
-        setKeywords(parsed.keywords);
-      } else {
-        throw new Error("Invalid keyword count");
+      if (parsed.keywords && Array.isArray(parsed.keywords)) {
+        setKeywords(parsed.keywords.slice(0, 10));
       }
       
       toast.success("AI has pre-filled targeted subreddits and high-intent keywords!");
@@ -139,7 +135,7 @@ export default function AudienceSpotter() {
       console.error("AI Analysis failed", e);
       // Fallback to basic extraction if AI fails
       const brainKeywords = brainData.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [];
-      setKeywords(brainKeywords);
+      setKeywords(brainKeywords.slice(0, 10));
     } finally {
       setIsAIAnalyzing(false);
     }
@@ -223,7 +219,7 @@ export default function AudienceSpotter() {
               {isAIAnalyzing && (
                 <div className="mt-8 p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 text-center">
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-tight">AI is analyzing your brand brain for best targets...</p>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-tight">AI is analyzing your brand brain...</p>
                 </div>
               )}
             </div>
@@ -315,9 +311,19 @@ export default function AudienceSpotter() {
 
                 {step === 3 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Keywords</h1>
-                      <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery. Exactly 10 targeted keywords.</p>
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                      <div>
+                        <h1 className="text-4xl font-bold mb-4">Keywords</h1>
+                        <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery.</p>
+                      </div>
+                      <button 
+                        onClick={() => suggestFilters(brain)}
+                        disabled={isAIAnalyzing}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition-all bg-transparent"
+                      >
+                        {isAIAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                        Regenerate with AI
+                      </button>
                     </div>
                     <div className="relative">
                       <input 
@@ -335,7 +341,7 @@ export default function AudienceSpotter() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">
                         <span>Targeted Keywords ({keywords.length}/10)</span>
-                        {keywords.length === 10 && <span className="text-green-500">✓ Complete</span>}
+                        {keywords.length >= 10 && <span className="text-green-500">✓ Complete</span>}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {keywords.length === 0 && (
@@ -355,7 +361,7 @@ export default function AudienceSpotter() {
                       <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800 flex gap-3 mt-8">
                         <Sparkles className="w-5 h-5 text-zinc-500 shrink-0" />
                         <p className="text-xs text-zinc-500 leading-relaxed">
-                          Keywords follow strict relevance rules: Primary intent, pain points, contextual use-cases, intent variations, and platform-specific searches. No generic terms.
+                          We've pre-filled these based on your Brand Brain. These are specific phrases your audience uses when they have the problem you solve.
                         </p>
                       </div>
                     </div>
@@ -437,7 +443,7 @@ export default function AudienceSpotter() {
                 ) : (
                   <button 
                     onClick={handleCreateSignal}
-                    disabled={isAIAnalyzing || keywords.length !== 10}
+                    disabled={isAIAnalyzing || keywords.length === 0}
                     className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                   >
                     <Zap className="w-4 h-4" /> Create Signal
