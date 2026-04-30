@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import { supabase } from './supabaseClient.js';
+import { supabase } from '../supabaseClient';
 
 const client = new OpenAI({
   apiKey: "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",
