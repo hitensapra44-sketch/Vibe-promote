@@ -22,7 +22,11 @@ export default function ConnectAccounts({ onConnect }) {
   const [username, setUsername] = useState('');
 
   const fetchRedditPosts = async (username) => {
-    const response = await fetch(`https://www.reddit.com/user/${username}/submitted.json`);
+    const response = await fetch(`https://www.reddit.com/user/${username}/submitted.json`, {
+      headers: {
+        'User-Agent': 'VibePromote/1.0'
+      }
+    });
     if (!response.ok) throw new Error('Reddit user not found');
     const data = await response.json();
     return (data.data.children || []).map(child => ({
@@ -49,10 +53,27 @@ export default function ConnectAccounts({ onConnect }) {
     setLoadingPlatform(platform);
 
     try {
-      // 1. Store account
-      const { error: accountError } = await supabase
+      // 1. Store account - Manual Upsert to avoid "no unique constraint" error
+      const { data: existingAccount } = await supabase
         .from('social_accounts')
-        .upsert({ user_id: user.id, platform, username: username.trim() }, { onConflict: 'user_id, platform' });
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('platform', platform)
+        .maybeSingle();
+
+      let accountError;
+      if (existingAccount) {
+        const { error } = await supabase
+          .from('social_accounts')
+          .update({ username: username.trim() })
+          .eq('id', existingAccount.id);
+        accountError = error;
+      } else {
+        const { error } = await supabase
+          .from('social_accounts')
+          .insert({ user_id: user.id, platform, username: username.trim() });
+        accountError = error;
+      }
 
       if (accountError) throw accountError;
 
@@ -64,7 +85,7 @@ export default function ConnectAccounts({ onConnect }) {
         posts = await fetchProductHuntPosts(username.trim());
       }
 
-      // 3. Delete existing posts for this platform
+      // 3. Delete existing posts for this platform to refresh data
       await supabase
         .from('social_posts')
         .delete()
@@ -95,8 +116,8 @@ export default function ConnectAccounts({ onConnect }) {
       setUsername('');
       onConnect(); // Refresh parent
     } catch (err) {
-      console.error(err);
-      alert("Failed to fetch data. Try again.");
+      console.error("Connection error:", err);
+      alert("Failed to fetch data. Please check the username and try again.");
     } finally {
       setLoadingPlatform(null);
     }
