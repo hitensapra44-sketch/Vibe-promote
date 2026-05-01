@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar';
 import BrandInfoPreview from '../../components/shared/BrandInfoPreview';
 import PeriodSelector from '../../components/shared/PeriodSelector';
@@ -25,82 +25,70 @@ export default function ResultsTracker() {
   const [metrics, setMetrics] = useState(null);
   const [breakdown, setBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // 1. Detect connection on mount
+  const fetchPosts = useCallback(async () => {
+    if (!user) return;
+
+    let query = supabase
+      .from('social_posts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (activePlatform !== 'All Platforms') {
+      query = query.eq('platform', activePlatform);
+    }
+
+    const now = new Date();
+    if (selectedPeriod === 'This Week') {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      query = query.gte('created_at', weekAgo.toISOString());
+    } else if (selectedPeriod === 'This Month') {
+      const monthAgo = new Date(now);
+      monthAgo.setDate(now.getDate() - 30);
+      query = query.gte('created_at', monthAgo.toISOString());
+    } else if (selectedPeriod === 'Last Week') {
+      const start = new Date(now);
+      start.setDate(now.getDate() - 14);
+      const end = new Date(now);
+      end.setDate(now.getDate() - 7);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    } else if (selectedPeriod === 'Last Month') {
+      const start = new Date(now);
+      start.setDate(now.getDate() - 60);
+      const end = new Date(now);
+      end.setDate(now.getDate() - 30);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      setPosts([]);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setHasConnectedAccounts(true);
+    }
+
+    const mappedData = (data ?? []).map(p => ({
+      ...p,
+      linkTaps: p.link_clicks ?? 0,
+      date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }));
+
+    setPosts(mappedData);
+    setIsLoading(false);
+  }, [user, activePlatform, selectedPeriod]);
+
   useEffect(() => {
-    const checkConnection = async () => {
-      if (!user) return;
-      const { data, error } = await supabase
-        .from('social_posts')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
-      
-      setHasConnectedAccounts(!error && data && data.length > 0);
-      setIsLoading(false);
-    };
-    checkConnection();
-  }, [user]);
-
-  // 2. Fetch posts whenever activePlatform or selectedPeriod changes
-  useEffect(() => {
-    const fetchPosts = async () => {
-      if (!hasConnectedAccounts || !user) return;
-
-      let query = supabase
-        .from('social_posts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (activePlatform !== 'All Platforms') {
-        query = query.eq('platform', activePlatform);
-      }
-
-      const now = new Date();
-      if (selectedPeriod === 'This Week') {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(now.getDate() - 7);
-        query = query.gte('created_at', weekAgo.toISOString());
-      } else if (selectedPeriod === 'This Month') {
-        const monthAgo = new Date(now);
-        monthAgo.setDate(now.getDate() - 30);
-        query = query.gte('created_at', monthAgo.toISOString());
-      } else if (selectedPeriod === 'Last Week') {
-        const start = new Date(now);
-        start.setDate(now.getDate() - 14);
-        const end = new Date(now);
-        end.setDate(now.getDate() - 7);
-        query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
-      } else if (selectedPeriod === 'Last Month') {
-        const start = new Date(now);
-        start.setDate(now.getDate() - 60);
-        const end = new Date(now);
-        end.setDate(now.getDate() - 30);
-        query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Supabase fetch error:', error);
-        setPosts([]);
-        return;
-      }
-
-      // Map DB fields to UI expected fields (link_clicks -> linkTaps)
-      const mappedData = (data ?? []).map(p => ({
-        ...p,
-        linkTaps: p.link_clicks ?? 0,
-        date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-      }));
-
-      setPosts(mappedData);
-    };
-
     fetchPosts();
-  }, [activePlatform, selectedPeriod, hasConnectedAccounts, user]);
+  }, [fetchPosts, refreshKey]);
 
-  // 3. Calculate metrics from posts
+  // Calculate metrics from posts
   useEffect(() => {
     const totals = posts.reduce(
       (acc, p) => ({
@@ -120,7 +108,7 @@ export default function ResultsTracker() {
     });
   }, [posts]);
 
-  // 4. Calculate platform breakdown
+  // Calculate platform breakdown
   useEffect(() => {
     if (!posts.length) {
       setBreakdown([]);
@@ -156,9 +144,13 @@ export default function ResultsTracker() {
     setBreakdown(result);
   }, [posts, breakdownMetric]);
 
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   const displayedPosts = showAllPosts ? posts : posts.slice(0, 4);
 
-  if (isLoading) {
+  if (isLoading && !posts.length) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
@@ -171,23 +163,14 @@ export default function ResultsTracker() {
       <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
-        {!hasConnectedAccounts ? (
+        {!hasConnectedAccounts && posts.length === 0 ? (
           <div className="max-w-[680px] mx-auto py-10 w-full">
             <div className="space-y-1 mb-8">
               <h1 className="text-white text-2xl font-semibold mt-4">Analytics</h1>
               <p className="text-zinc-400 text-sm mt-1">Connect your accounts to see what's working.</p>
             </div>
             
-            <ConnectAccounts onConnect={() => setHasConnectedAccounts(true)} />
-            
-            <div className="text-center mt-8">
-              <button 
-                onClick={() => setHasConnectedAccounts(true)}
-                className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors bg-transparent"
-              >
-                Skip for now, I'll connect later →
-              </button>
-            </div>
+            <ConnectAccounts onConnect={handleRefresh} />
           </div>
         ) : (
           <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
