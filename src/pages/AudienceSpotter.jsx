@@ -26,13 +26,13 @@ import {
   Wand2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
-import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
 import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { generateAICall } from '../lib/ai';
 import { useNavigate } from 'react-router-dom';
+import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -181,7 +181,7 @@ export default function AudienceSpotter() {
     } else {
       toast.success("Monitoring started! We're scanning now...", { id: loadingToast });
       setIsConfigured(true);
-      startScan();
+      startScan({ keywords, platforms: selectedPlatforms });
     }
   };
 
@@ -505,7 +505,7 @@ export default function AudienceSpotter() {
           </div>
           <div className="flex items-center gap-3">
              <button 
-                onClick={() => startScan()}
+                onClick={() => startScan({ keywords, platforms: selectedPlatforms })}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white text-xs font-bold hover:bg-zinc-800 transition-all bg-transparent"
               >
                 <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />

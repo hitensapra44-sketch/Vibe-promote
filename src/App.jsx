@@ -13,7 +13,7 @@ import PostMaker from './pages/post-maker/PostMaker';
 import AudienceSpotter from './pages/AudienceSpotter';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
-import Sidebar from './components/Sidebar';
+import Analytics from './pages/Analytics';
 import { useAuth } from './lib/AuthContext';
 
 export default function App() {
@@ -34,9 +34,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex">
-      {/* Only show sidebar on non-public routes when authenticated */}
-      {!isPublicRoute && isAuthenticated && <Sidebar isPaid={true} />}
-      
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Routes>
           {/* Public Routes */}
@@ -73,6 +70,10 @@ export default function App() {
           <Route 
             path="/marketing-buddy" 
             element={isAuthenticated ? <MarketingBuddy /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/analytics" 
+            element={isAuthenticated ? <Analytics /> : <Navigate to="/auth" />} 
           />
 
           {/* Fallback */}

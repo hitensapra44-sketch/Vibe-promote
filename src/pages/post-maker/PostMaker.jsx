@@ -3,265 +3,471 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  PenTool, 
-  Loader2, 
-  Zap,
+  LayoutTemplate, 
+  PenLine, 
   Copy, 
+  RefreshCw, 
   Check, 
-  AlertTriangle,
-  Lightbulb,
+  ChevronDown, 
+  ChevronUp,
   ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  MessageSquare,
-  Twitter,
-  Globe,
-  Layout,
-  PenLine,
-  RefreshCw
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
-import { useNavigate, Link } from 'react-router-dom';
 import { generateAICall } from '../../lib/ai';
 import { toast } from 'sonner';
-import { cn } from "@/lib/utils";
 import Sidebar from '../../components/Sidebar';
+import { cn } from "@/lib/utils";
 
-const platforms = [
-  { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
-  { id: 'twitter', name: 'X (Twitter)', desc: 'Hook-first. Punchy and direct.', icon: Twitter, color: '#FFFFFF', available: true },
-  { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: MessageSquare, color: '#FFFFFF', available: true },
-  { id: 'ih', name: 'Indie Hackers', desc: 'Founder stories win here.', icon: Globe, color: '#0073b1', available: true },
-  { id: 'ph', name: 'Product Hunt', desc: 'Make your launch land.', icon: Zap, color: '#da552f', available: true },
-  { id: 'linkedin', name: 'LinkedIn', desc: 'Professional + personal mix.', icon: Layout, color: '#0077b5', available: true },
-];
+const platformTemplates = {
+  Reddit: [
+    { name: "The Vulnerable Founder", why: "Reddit rewards honesty over marketing. Specific painful moments get upvoted hard.", structure: "Open with one painful specific moment → full context of what you built → what went wrong → what you learned → genuine question to community, no pitch" },
+    { name: "The Transparent Numbers Update", why: "Real data = instant credibility on Reddit. Founders love specifics.", structure: "Headline with exact numbers → break down what drove each metric → one thing that surprised you → one thing changing next month → what you're watching next" },
+    { name: "The Contrarian Insight", why: "Goes against common advice, people stop scrolling when they disagree or get curious.", structure: "Unpopular opinion stated plainly → why most people believe the opposite → your specific experience proving otherwise → 2-3 concrete examples → what you'd tell someone starting today" },
+    { name: "The Deep Useful Breakdown", why: "Saves people time. Step-by-step actionable posts get saved and shared.", structure: "Title frames exact outcome → short context on who you are → numbered steps, each specific → what didn't work alongside what did → honest note on what you'd do differently today" },
+    { name: "The Ask That Teaches", why: "Asking for help while giving value makes community want to engage.", structure: "Specific situation you're in right now → what you've already tried → one sharp specific question → what you think the answer might be → invite disagreement" }
+  ],
+  Twitter: [
+    { name: "The Scroll-Stopping Hot Take", why: "First line creates tension. People reply to disagree which feeds the algorithm.", structure: "Line 1 bold controversial statement under 12 words → setup why people think opposite → your proof with specific numbers → real insight in one sentence → question that invites replies" },
+    { name: "The Story Thread", why: "Narrative pulls people through. Each tweet ends with reason to read next.", structure: "Tweet 1 hook most dramatic moment → Tweet 2 context who you are → Tweets 3-5 specific journey events → Tweet 6 turning point → Tweet 7 result with numbers → Tweet 8 lesson for reader → Final tweet CTA" },
+    { name: "The Numbered Insight List", why: "Easy to read, save, share. Respects people's time.", structure: "Hook tweet with specific milestone → each numbered tweet one insight one proof one takeaway → keep each under 220 chars → last tweet most surprising insight → final CTA" },
+    { name: "The Before/After", why: "Contrast creates curiosity. People want to know what caused the change.", structure: "Tweet 1 before state specific and painful → Tweet 2 one thing that changed without revealing → Tweets 3-4 what you actually did → Tweet 5 after state with numbers → Tweet 6 underlying principle → Final CTA" },
+    { name: "The Unpopular Opinion With Receipts", why: "Disagreement drives replies. Proof stops it being dismissed.", structure: "State opinion plainly no hedging → acknowledge mainstream view → your specific contradicting experience → data or result backing you up → nuance when mainstream view is right → question to reader" }
+  ],
+  LinkedIn: [
+    { name: "Personal Story With Business Lesson", why: "LinkedIn rewards vulnerability plus professionalism. Story plus takeaway equals shares.", structure: "Opening line a moment not a statement → 2-3 short paragraphs full story with specifics → turning point paragraph → lesson stated clearly → 3 bullet takeaways for skimmers → closing question" },
+    { name: "The Counterintuitive Numbers Post", why: "Numbers stop the scroll. Counterintuitive angle makes people want to understand why.", structure: "Open with surprising number → brief context → break down why number looks wrong but isn't → the principle behind it → what this means practically → question relating to their experience" },
+    { name: "The Honest Lessons Post", why: "LinkedIn is full of success theatre. Honest failure stands out immediately.", structure: "Open line here's what I got wrong → context what you believed and why → 3-4 numbered lessons each specific → for each what you thought vs what happened vs what you'd do now → one mindset shift that changed everything → CTA" },
+    { name: "The Industry Insight", why: "Positions you as a thinker not just a builder. Gets shared across the industry.", structure: "Trend or shift you've noticed specific not vague → why most people are missing it → what data or experience shows → what it means for next 12 months → what you're doing about it → call for others' perspective" },
+    { name: "Build In Public Update", why: "Consistency builds audience. Real updates with real numbers get saved and followed.", structure: "Month and milestone with specific number → what you set out to do → what actually happened wins and losses equally → one decision you made and why → one thing you'd do differently → what's next specific → CTA" }
+  ],
+  "Indie Hackers": [
+    { name: "The Milestone Full Breakdown", why: "IH community runs on transparency. Full breakdowns with real numbers get referenced for months.", structure: "Headline milestone plus time taken → what you built who it's for → exact steps that led to milestone → what didn't work required for credibility → current metrics table → what you're doing next and why → advice for someone 2 steps behind" },
+    { name: "The Failure Autopsy", why: "IH loves honest failure more than polished success. These posts get the most comments.", structure: "What failed and how badly with numbers → what you were trying and why you thought it'd work → exact moment you knew it wasn't working → root cause real reason not surface reason → what you salvaged → what you'd do differently → question has anyone been through this" },
+    { name: "The Technical Process Post", why: "IH audience are builders. Showing HOW you did something plus business result is gold.", structure: "Headline outcome plus method → problem it solved → exact tools and approach used → step by step what you built → time taken plus result produced → what broke and how fixed → honest recommendation" },
+    { name: "The Audience Research Post", why: "Shows strategic thinking. Other founders learn from your process and engage heavily.", structure: "Why you did research and when → how you found people to talk to exact method → questions you asked list them → 3 most surprising things you heard → how it changed what you were building → what you wish you'd asked → invite others to share their process" },
+    { name: "What's Actually Working Right Now", why: "Cuts through theory. Real tactical wins with attribution get bookmarked constantly.", structure: "Open what's actually working for goal right now not 2 years ago → tactic 1 specific with numbers → tactic 2 specific with numbers → tactic 3 specific with numbers → what stopped working → why these work now underlying reason → CTA" }
+  ],
+  "Product Hunt": [
+    { name: "The Maker Story Launch", why: "PH community votes for makers they believe in not just products. Story equals votes.", structure: "Why you personally built this specific moment → who it's for exact person exact situation → what it does in 2 sentences no jargon → one thing that makes it different → where you are right now → what you're asking community for → CTA" },
+    { name: "The Problem First Post", why: "Leading with pain before solution makes the solution feel inevitable.", structure: "Open with problem as a scene → how they currently solve it ugly workaround → why every existing solution misses the point → what you built to fix it → 2-3 specific features addressing exact pain → early results or feedback quote → CTA" },
+    { name: "The Before/After Post", why: "Concrete transformation is easier to upvote than abstract features.", structure: "Before describe workflow without your product specific and painful → friction points list them → after describe same workflow with your product → specific things now easier or gone → real user quote if available → metric that changed → CTA" },
+    { name: "The Why Now Post", why: "PH voters want to back timely things. Showing why this moment matters drives urgency.", structure: "Shift happening in market right now → why problem is more urgent than 2 years ago → why you're the right person → what you've built → what changes if this succeeds → what you need from community → CTA" },
+    { name: "The Social Proof First Post", why: "Validation from others reduces risk of upvoting.", structure: "Open with what early users said specific → problem those users had before → what they're using it for now → result they got even if small → what the product actually is explained simply → where you're taking it → CTA" }
+  ]
+};
 
-const formats = [
-  { 
-    id: 'struggle', 
-    name: 'The Relatable Struggle', 
-    desc: 'I was X, until I did Y', 
-    traction: 'High', 
-    engagement: 78,
-    why: 'People comment because they\'ve been there too'
-  },
-  { 
-    id: 'hot-take', 
-    name: 'Hot Take + Proof', 
-    desc: 'Unpopular opinion: [your insight]', 
-    traction: 'High', 
-    engagement: 85,
-    why: 'Controversial hooks drive 3x more replies'
-  },
-  { 
-    id: 'learned', 
-    name: 'What I Learned After Z', 
-    desc: 'After [milestone], here\'s what actually worked', 
-    traction: 'Medium', 
-    engagement: 62,
-    why: 'Authority + story = shares'
-  },
-];
+const postingTips = {
+  Reddit: "Post between 9am-12pm EST on weekdays. Add a genuine comment yourself right after posting to start the conversation. Never reply to your own post with a link immediately.",
+  Twitter: "Post between 8am-10am or 6pm-9pm in your audience's timezone. Reply to the first few comments fast — early engagement signals matter most.",
+  LinkedIn: "Post between 8am-10am Tuesday to Thursday. Avoid external links in the main post; put them in the first comment to maximize reach.",
+  "Indie Hackers": "Post when you have a real milestone or a real failure to share. Transparency is the only currency that matters here. Engage with every single comment.",
+  "Product Hunt": "Launch at 12:01am PST. The first 4 hours are critical for trending. Personal outreach to your existing network drives the initial momentum."
+};
 
 export default function PostMaker() {
   const { user } = useAuth();
-  const [brain, setBrain] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState('platform');
+  const [step, setStep] = useState(1);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
-  const [selectedFormat, setSelectedFormat] = useState(null);
-  const [generating, setGenerating] = useState(false);
-  const [post, setPost] = useState(null);
-  const [tone, setTone] = useState('Authentic Founder');
-  const [context, setContext] = useState('');
-  const [isPaid, setIsPaid] = useState(false);
-  
-  const navigate = useNavigate();
+  const [selectedMode, setSelectedMode] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customContext, setCustomContext] = useState("");
+  const [selectedTone, setSelectedTone] = useState("Authentic Founder");
+  const [generatedPost, setGeneratedPost] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [brain, setBrain] = useState(null);
+  const [expandedTemplate, setExpandedTemplate] = useState(null);
+  const [copyStatus, setCopyStatus] = useState("Copy Post");
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchBrain() {
       if (!user) return;
-      try {
-        const { data: paymentData } = await supabase
-          .from('user_payments')
-          .select('payment_status')
-          .eq('email', user.email)
-          .maybeSingle();
-        
-        if (paymentData?.payment_status) {
-          setIsPaid(true);
-        }
-
-        const { data } = await supabase
-          .from('brand_brains')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        if (data) setBrain(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setLoading(false);
-      }
+      const { data, error } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) setBrain(data);
     }
-    fetchData();
+    fetchBrain();
   }, [user]);
 
   const generatePost = async () => {
-    if (!brain) return;
-    setStep('output');
-    setGenerating(true);
-    
-    const systemPrompt = `You are a real founder writing for ${selectedPlatform?.name || 'social media'}.
-    Format: ${selectedFormat?.name}. Tone: ${tone}.
-    Context: ${context}.
-    
-    Structure the post with a strong hook, relatable story, and clear call to action.`;
+    setIsLoading(true);
+    setStep(5);
 
-    const userMessage = `Write the post now. Return only the post text.`;
+    const prompt = `
+You are an expert social media copywriter for indie founders and bootstrapped SaaS builders.
 
-    try {
-      const result = await generateAICall(systemPrompt, userMessage, user?.id);
-      setPost(result);
-    } catch (err) {
-      console.error("Generation failed:", err);
-      toast.error("Something went wrong generating your post.");
-    } finally {
-      setGenerating(false);
+BRAND INFORMATION:
+${JSON.stringify(brain)}
+
+TASK:
+Write a high-performing ${selectedPlatform} post using the "${selectedTemplate?.name || 'custom'}" format.
+
+TEMPLATE STRUCTURE TO FOLLOW:
+${selectedTemplate?.structure || 'Improve and rewrite the following draft for ' + selectedPlatform}
+
+${selectedMode === 'write' ? 'USER DRAFT TO IMPROVE:\n' + customContext : ''}
+
+TONE: ${selectedTone}
+
+ADDITIONAL CONTEXT FROM USER: ${customContext || 'None'}
+
+PLATFORM RULES:
+${selectedPlatform === 'Reddit' ? 'No hype, no salesy language. Write like a real founder. No buzzwords. Mention the product naturally only if it fits. Community first.' : ''}
+${selectedPlatform === 'Twitter' ? 'Hook in first line must stop the scroll. Under 280 chars for opening tweet. Use line breaks. End with question or strong opinion.' : ''}
+${selectedPlatform === 'LinkedIn' ? 'Mix professional insight with personal story. Start with a pattern interrupt. End with a takeaway or question.' : ''}
+${selectedPlatform === 'Indie Hackers' ? 'Founder journey angle. Show real numbers and real struggle. Community respects transparency above everything.' : ''}
+${selectedPlatform === 'Product Hunt' ? 'Excitement plus clarity. What it does, who it is for, why now. No fluff. Be specific.' : ''}
+
+CTA RULES:
+The call to action MUST match the brand's marketing goal from the brand information above.
+If goal is get signups — CTA drives to signup.
+If goal is get feedback — CTA asks for feedback or invites replies.
+If goal is drive traffic — CTA includes a link prompt.
+If goal is build audience — CTA asks people to follow or share.
+Make the CTA feel natural, not forced. It should fit the platform tone.
+
+SCORING RULES:
+Score the post out of 100 based on: hook strength, platform fit, CTA alignment with marketing goal, tone match, and template structure followed.
+Then assign a scoreLabel:
+- 75 to 100: "Great Post"
+- 50 to 74: "Decent Post"  
+- 0 to 49: "Needs Work"
+And a scoreColor:
+- Great Post: "green"
+- Decent Post: "yellow"
+- Needs Work: "red"
+
+Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
+{
+  "title": "post title or tweet hook",
+  "body": "full post body",
+  "cta": "the call to action text",
+  "score": 82,
+  "scoreLabel": "Great Post",
+  "scoreColor": "green"
+}
+`;
+
+    const attemptGeneration = async () => {
+      try {
+        const result = await generateAICall(prompt, "Generate the post now.");
+        return JSON.parse(result);
+      } catch (e) {
+        return null;
+      }
+    };
+
+    let parsed = await attemptGeneration();
+    if (!parsed) parsed = await attemptGeneration();
+
+    if (parsed) {
+      setGeneratedPost(parsed);
+      setIsLoading(false);
+      setStep(6);
+    } else {
+      toast.error("Couldn't generate post. Try again.");
+      setIsLoading(false);
+      setStep(4);
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
+  const handleCopy = () => {
+    const text = `${generatedPost.title}\n\n${generatedPost.body}\n\n${generatedPost.cta}`;
+    navigator.clipboard.writeText(text);
+    setCopyStatus("Copied!");
+    setTimeout(() => setCopyStatus("Copy Post"), 2000);
+  };
+
+  const resetAll = () => {
+    setStep(1);
+    setSelectedPlatform(null);
+    setSelectedMode(null);
+    setSelectedTemplate(null);
+    setCustomContext("");
+    setSelectedTone("Authentic Founder");
+    setGeneratedPost(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
-      <Sidebar isPaid={isPaid} />
+      <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
-        <div className="max-w-[720px] mx-auto w-full">
+        <div className="max-w-4xl mx-auto w-full">
           
-          {step === 'platform' && (
+          {/* STEP 1: Platform Selection */}
+          {step === 1 && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="mb-12">
-                <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
-                <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
+              <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-white">Where are you posting?</h1>
+                <p className="text-zinc-400 text-sm">Pick your platform — templates and tone are tailored to it</p>
               </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-                {platforms.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedPlatform(p)}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Object.keys(platformTemplates).map((p) => (
+                  <div
+                    key={p}
+                    onClick={() => { setSelectedPlatform(p); setStep(2); }}
                     className={cn(
-                      "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
-                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                      "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer transition-all hover:border-orange-500/50",
+                      selectedPlatform === p && "border-orange-500 bg-orange-500/5"
                     )}
                   >
-                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
-                    <div>
-                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
-                      <p className="text-[#A1A1AA] text-[10px] mt-1">{p.desc}</p>
-                    </div>
-                  </button>
+                    <h3 className="text-white text-sm font-medium">{p}</h3>
+                    <p className="text-zinc-400 text-xs mt-1">Tailored templates for {p}</p>
+                  </div>
                 ))}
               </div>
-
-              {selectedPlatform && (
-                <button
-                  onClick={() => setStep('format')}
-                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                  Continue with {selectedPlatform.name} →
-                </button>
-              )}
             </div>
           )}
 
-          {step === 'format' && (
+          {/* STEP 2: Mode Selection */}
+          {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <button onClick={() => setStep('platform')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8 bg-transparent">
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
+              <button onClick={() => setStep(1)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back to platforms</button>
+              <h1 className="text-2xl font-semibold text-white mb-8">How do you want to create your post?</h1>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div
+                  onClick={() => { setSelectedMode("template"); setStep(3); }}
+                  className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 relative group"
+                >
+                  <div className="absolute top-4 right-4 text-orange-500 text-[10px] font-bold uppercase tracking-widest">Recommended</div>
+                  <LayoutTemplate className="w-8 h-8 text-orange-500 mb-4" />
+                  <h3 className="text-white text-lg font-bold">Use a Proven Template</h3>
+                  <p className="text-zinc-400 text-sm mt-2">Pick from 5 templates that are working right now on {selectedPlatform}</p>
+                </div>
+                <div
+                  onClick={() => { setSelectedMode("write"); setStep(3); }}
+                  className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 group"
+                >
+                  <PenLine className="w-8 h-8 text-zinc-500 group-hover:text-orange-500 mb-4 transition-colors" />
+                  <h3 className="text-white text-lg font-bold">Write It Yourself + AI Enhance</h3>
+                  <p className="text-zinc-400 text-sm mt-2">Write your own draft and let AI improve it for {selectedPlatform}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Template or Write */}
+          {step === 3 && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <button onClick={() => setStep(2)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back to mode</button>
               
-              <div className="mb-12">
-                <h2 className="text-xl font-semibold text-white">What's working on {selectedPlatform.name} right now</h2>
-                <p className="text-[#A1A1AA] text-sm">Formats getting traction in your niche</p>
-              </div>
-
-              <div className="space-y-4 mb-12">
-                {formats.map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => setSelectedFormat(f)}
-                    className={cn(
-                      "w-full p-5 rounded-xl border text-left transition-all flex flex-col lg:flex-row justify-between gap-6 bg-transparent",
-                      selectedFormat?.id === f.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
-                    )}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-base font-bold text-white">{f.name}</h3>
-                        <span className={cn(
-                          "text-[10px] font-bold px-2 py-0.5 rounded-md border",
-                          f.traction === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-[#1F1F1F] text-[#A1A1AA] border-[#1F1F1F]"
-                        )}>
-                          {f.traction === 'High' ? '🔥 High Traction' : '👀 Medium'}
-                        </span>
+              {selectedMode === "template" ? (
+                <>
+                  <div className="mb-8">
+                    <h1 className="text-2xl font-semibold text-white">Pick a template that's working right now</h1>
+                    <p className="text-zinc-400 text-sm">These formats are getting real traction on {selectedPlatform}</p>
+                  </div>
+                  <div className="space-y-4">
+                    {platformTemplates[selectedPlatform].map((t, i) => (
+                      <div key={i} className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-white text-sm font-semibold">{t.name}</h3>
+                          <button
+                            onClick={() => { setSelectedTemplate(t); setStep(4); }}
+                            className="bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 hover:bg-orange-600 transition-all"
+                          >
+                            Use This Template
+                          </button>
+                        </div>
+                        <p className="text-zinc-400 text-sm">{t.why}</p>
+                        <div className="border-t border-[#1F1F1F] pt-3">
+                          <button 
+                            onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
+                            className="flex items-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-300 transition-colors"
+                          >
+                            {expandedTemplate === i ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            Structure Preview
+                          </button>
+                          {expandedTemplate === i && (
+                            <div className="mt-3 space-y-1">
+                              {t.structure.split(' → ').map((step, idx) => (
+                                <div key={idx} className="flex gap-2 text-zinc-500 text-xs">
+                                  <span className="text-orange-500/50">•</span>
+                                  <span>{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-[#A1A1AA] text-sm mb-4">{f.why}</p>
-                    </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-6">
+                  <h1 className="text-2xl font-semibold text-white">Write your draft</h1>
+                  <textarea
+                    value={customContext}
+                    onChange={(e) => setCustomContext(e.target.value)}
+                    placeholder={`Write your rough draft here — AI will improve it for ${selectedPlatform}`}
+                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 text-sm text-white min-h-[250px] focus:outline-none focus:border-orange-500 transition-all placeholder-zinc-600"
+                  />
+                  <button
+                    onClick={() => setStep(4)}
+                    className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all"
+                  >
+                    Continue →
                   </button>
-                ))}
-              </div>
-
-              {selectedFormat && (
-                <button
-                  onClick={generatePost}
-                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                  Generate My Post →
-                </button>
+                </div>
               )}
             </div>
           )}
 
-          {step === 'output' && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <button onClick={() => setStep('format')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8 bg-transparent">
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
+          {/* STEP 4: Customization */}
+          {step === 4 && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-2xl">
+              <button onClick={() => setStep(3)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back</button>
+              <div className="mb-10">
+                <h1 className="text-2xl font-semibold text-white">Make it yours</h1>
+                <p className="text-zinc-400 text-sm">Both fields are optional — skip if you're happy</p>
+              </div>
 
-              <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden p-6">
-                {generating ? (
-                  <div className="py-20 flex flex-col items-center justify-center text-center">
-                    <Loader2 className="w-8 h-8 text-[#F97316] animate-spin mb-4" />
-                    <p className="text-white font-bold">Writing your post...</p>
-                  </div>
-                ) : post ? (
-                  <div className="space-y-6">
-                    <div className="p-4 rounded-lg bg-[#0A0A0A] border border-[#1F1F1F]">
-                      <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">{post}</p>
-                    </div>
-                    <div className="flex gap-4">
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(post);
-                          toast.success("Copied to clipboard!");
-                        }}
-                        className="flex-1 h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-bold rounded-lg flex items-center justify-center gap-2"
+              <div className="space-y-8">
+                <div className="space-y-3">
+                  <label className="text-white text-sm font-medium block">Anything specific to add?</label>
+                  <p className="text-zinc-500 text-xs">e.g. just hit 100 users, launching next week, got featured somewhere</p>
+                  <textarea
+                    value={customContext}
+                    onChange={(e) => setCustomContext(e.target.value)}
+                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 text-sm text-white min-h-[100px] focus:outline-none focus:border-orange-500 transition-all"
+                    placeholder="Add extra context here..."
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-white text-sm font-medium block">Writing tone</label>
+                  <div className="flex flex-wrap gap-3">
+                    {["Authentic Founder", "Bold & Punchy", "Educational", "Conversational"].map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setSelectedTone(t)}
+                        className={cn(
+                          "px-5 py-2.5 rounded-full text-xs font-bold border transition-all",
+                          selectedTone === t 
+                            ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                            : "bg-[#111111] border-[#1F1F1F] text-zinc-400 hover:border-zinc-600"
+                        )}
                       >
-                        <Copy className="w-4 h-4" /> Copy Post
+                        {t}
                       </button>
-                      <button 
-                        onClick={generatePost}
-                        className="h-11 px-4 border border-[#1F1F1F] text-white rounded-lg hover:bg-white/5 transition-all bg-transparent"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                      </button>
-                    </div>
+                    ))}
                   </div>
-                ) : null}
+                </div>
+
+                <div className="pt-6 flex gap-4">
+                  <button
+                    onClick={generatePost}
+                    className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all"
+                  >
+                    Skip, just generate
+                  </button>
+                  <button
+                    onClick={generatePost}
+                    className="flex-[2] py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
+                  >
+                    Generate My Post →
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: Loading Screen */}
+          {step === 5 && (
+            <div className="min-h-[500px] flex flex-col items-center justify-center gap-8 animate-in fade-in duration-700">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-orange-500/20 rounded-full" />
+                <div className="absolute inset-0 w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <div className="text-center space-y-2">
+                <h2 className="text-xl font-bold text-white">Crafting your post...</h2>
+                <p className="text-zinc-400 text-sm">Using your brand info and the {selectedTemplate?.name || 'custom'} template</p>
+              </div>
+              <div className="w-64 h-1 bg-[#1F1F1F] rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-orange-500"
+                  animate={{ width: ["20%", "80%", "20%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6: Result Screen */}
+          {step === 6 && generatedPost && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto pb-20">
+              <div className="flex items-center gap-4 mb-8">
+                <div className={cn(
+                  "px-4 py-1.5 rounded-full text-sm font-bold border",
+                  generatedPost.scoreColor === "green" ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                  generatedPost.scoreColor === "yellow" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
+                  "bg-red-500/10 text-red-400 border-red-500/20"
+                )}>
+                  {generatedPost.scoreLabel}
+                </div>
+                <span className="text-zinc-500 text-sm font-medium">Score: <span className="text-white">{generatedPost.score}/100</span></span>
+              </div>
+
+              <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl overflow-hidden shadow-2xl">
+                <div className="p-4 border-b border-[#1F1F1F] flex items-center justify-between bg-[#161616]">
+                  <span className="bg-[#1F1F1F] text-zinc-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                    {selectedPlatform}
+                  </span>
+                  <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Preview</span>
+                </div>
+                <div className="p-8 space-y-6">
+                  <h2 className="text-xl font-bold text-white leading-tight">{generatedPost.title}</h2>
+                  <p className="text-zinc-300 text-base leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                  <div className="pt-6 border-t border-[#1F1F1F]">
+                    <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-2">Call to Action</span>
+                    <p className="text-orange-400 text-sm font-bold">{generatedPost.cta}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+                <button 
+                  onClick={handleCopy}
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                >
+                  {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  {copyStatus}
+                </button>
+                <button 
+                  onClick={generatePost}
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Regenerate
+                </button>
+                <button 
+                  onClick={() => { setSelectedTemplate(null); setStep(3); }}
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                >
+                  <LayoutTemplate className="w-4 h-4" />
+                  Templates
+                </button>
+                <button 
+                  onClick={resetAll}
+                  className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-400 transition-colors"
+                >
+                  Start Over
+                </button>
+              </div>
+
+              <div className="mt-10 bg-[#111111] border-l-4 border-orange-500 border border-[#1F1F1F] rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">💡</span>
+                  <span className="text-orange-500 text-xs font-bold uppercase tracking-widest">Posting tip</span>
+                </div>
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  {postingTips[selectedPlatform]}
+                </p>
               </div>
             </div>
           )}

@@ -2,7 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
 
-export const useAudienceSpotter = (userId) => {
+interface Signal {
+  id: string;
+  platform: string;
+  title: string;
+  post_url: string;
+  created_at: number;
+  score: number;
+  author: string;
+  subreddit?: string; // Optional for HN
+  type: string;
+  intent_type: string;
+  intent_score: number;
+  suggested_reply: string;
+  status?: 'pending' | 'reviewed' | 'dismissed'; // Added status property
+}
+
+export const useAudienceSpotter = (userId: string) => {
   const queryClient = useQueryClient();
 
   // 1. Fetch existing signals from the database
@@ -23,9 +39,11 @@ export const useAudienceSpotter = (userId) => {
 
   // 2. Trigger the Edge Function to scan for NEW signals
   const scanMutation = useMutation({
-    mutationFn: async ({ keywords, platforms }) => {
+    mutationFn: async ({ keywords, platforms }: { keywords: string[]; platforms: string[] }): Promise<Signal[]> => {
+      console.log('Scanning with keywords:', keywords);
+      console.log('Scanning on platforms:', platforms);
       const sevenDaysAgo = Math.floor(Date.now() / 1000) - 7 * 24 * 60 * 60;
-      let allSignals = [];
+      let allSignals: Signal[] = [];
 
       // Fetch from Hacker News
       if (platforms.includes('hackernews')) {
@@ -91,14 +109,14 @@ export const useAudienceSpotter = (userId) => {
       // For the purpose of this task, we'll simulate saving by returning them.
       return allSignals;
     },
-    onSuccess: (newSignals) => {
+    onSuccess: (newSignals: Signal[]) => {
       toast.success('Scan complete! New signals found.');
       // Instead of invalidating, we'll update the cache directly or refetch if needed
-      queryClient.setQueryData(['audience_signals', userId], (oldSignals) => {
+      queryClient.setQueryData(['audience_signals', userId], (oldSignals: Signal[] | undefined) => {
         // This is a simplified merge. In a real app, you'd handle duplicates and existing signals more robustly.
-        const existingSignalIds = new Set(oldSignals.map(s => s.id));
-        const uniqueNewSignals = newSignals.filter(s => !existingSignalIds.has(s.id));
-        return [...uniqueNewSignals, ...oldSignals].sort((a, b) => b.created_at - a.created_at);
+        const existingSignalIds = new Set(oldSignals?.map(s => s.id));
+        const uniqueNewSignals = newSignals.filter(s => !existingSignalIds?.has(s.id));
+        return [...(oldSignals || []), ...uniqueNewSignals].sort((a, b) => b.created_at - a.created_at);
       });
     },
     onError: (error) => {
@@ -108,15 +126,23 @@ export const useAudienceSpotter = (userId) => {
 
   // 3. Update signal status (reviewed/dismissed)
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }) => {
-      const { error } = await supabase
+    mutationFn: async ({ id, status }: { id: string; status: 'reviewed' | 'dismissed' }): Promise<Signal> => {
+      const { data, error } = await supabase
         .from('audience_signals')
         .update({ status })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
       if (error) throw error;
+      return data as Signal;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['audience_signals', userId]);
+    onSuccess: (updatedSignal: Signal) => {
+      queryClient.setQueryData(['audience_signals', userId], (oldSignals: Signal[] | undefined) => {
+        if (!oldSignals) return [];
+        return oldSignals.map(signal => 
+          signal.id === updatedSignal.id ? { ...signal, status: updatedSignal.status } : signal
+        );
+      });
     }
   });
 

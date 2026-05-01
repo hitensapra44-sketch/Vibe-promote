@@ -31,6 +31,7 @@ import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
+import Sidebar from '../components/Sidebar';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -243,83 +244,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 bg-[#111111] border-r border-white/5 z-50 transition-all duration-300 h-screen overflow-hidden",
-        mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-        sidebarCollapsed ? "lg:w-16" : "lg:w-56"
-      )}>
-        <div className="flex flex-col h-full">
-          <div className="p-4 flex items-center justify-between">
-            {!sidebarCollapsed && (
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-white" />
-                <span className="text-sm font-bold tracking-tight">Vibe Promote</span>
-              </div>
-            )}
-            <button 
-              className="p-1.5 rounded-md hover:bg-white/5 text-gray-500 transition-all bg-transparent"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            >
-              {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-            </button>
-          </div>
-
-          <nav className="flex-1 px-3 py-2 space-y-0.5">
-            {navLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => link.available && navigate(link.path)}
-                className={cn(
-                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent",
-                  link.active 
-                    ? "bg-white/5 text-white" 
-                    : "text-gray-500 hover:text-white hover:bg-white/5",
-                  sidebarCollapsed ? "justify-center" : "justify-between"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <link.icon className="w-4 h-4" />
-                  {!sidebarCollapsed && (
-                    <div className="flex flex-col items-start">
-                      <span>{link.label}</span>
-                      {link.comingSoon && (
-                        <span className="text-[8px] text-orange-500/60 font-bold uppercase tracking-tighter">Coming Soon</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </nav>
-
-          <div className="p-3 border-t border-white/5 space-y-3">
-            {!sidebarCollapsed && (
-              <div className="px-2">
-                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Account</p>
-                <p className="text-[10px] text-gray-500 truncate mb-2">{user?.email}</p>
-                <div className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border",
-                  isPaid ? "border-green-500/30 text-green-500" : "border-orange-500/30 text-orange-500"
-                )}>
-                  {isPaid ? "Lifetime" : "Free Tier"}
-                </div>
-              </div>
-            )}
-            
-            <button 
-              onClick={handleLogout}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-red-400 hover:bg-red-400/5 transition-all bg-transparent",
-                sidebarCollapsed ? "justify-center" : ""
-              )}
-            >
-              <LogOut className="w-4 h-4" />
-              {!sidebarCollapsed && "Log Out"}
-            </button>
-          </div>
-        </div>
-      </aside>
+      <Sidebar isPaid={isPaid} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
