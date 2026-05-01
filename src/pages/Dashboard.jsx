@@ -142,15 +142,6 @@ export default function Dashboard() {
     navigate('/');
   };
 
-  const navLinks = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', active: true },
-    { icon: Brain, label: 'Brand Brain', path: '/onboarding', available: true },
-    { icon: Search, label: 'Audience Spotter', path: '/audience-spotter', available: true },
-    { icon: PenTool, label: 'Post Maker', path: '/post-maker', available: true },
-    { icon: MessageSquare, label: 'Co-Pilot', path: '/marketing-buddy', available: true },
-    { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
-    { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
-  ];
 
   const tools = [
     { 
@@ -182,9 +173,10 @@ export default function Dashboard() {
       icon: TrendingUp, 
       name: 'Analytics', 
       desc: 'Track performance and insights across all your marketing channels.', 
-      available: false 
+      available: true,
+      path: '/analytics'
     },
-    { 
+     { 
       id: 'poster', 
       icon: Calendar, 
       name: 'Auto Poster/Scheduler', 
