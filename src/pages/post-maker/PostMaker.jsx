@@ -11,7 +11,8 @@ import {
   ChevronDown, 
   ChevronUp,
   ArrowRight,
-  Loader2
+  Loader2,
+  ChevronLeft
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
@@ -61,9 +62,9 @@ const platformTemplates = {
 const postingTips = {
   Reddit: "Post between 9am-12pm EST on weekdays. Add a genuine comment yourself right after posting to start the conversation. Never reply to your own post with a link immediately.",
   Twitter: "Post between 8am-10am or 6pm-9pm in your audience's timezone. Reply to the first few comments fast — early engagement signals matter most.",
-  LinkedIn: "Post between 8am-10am Tuesday to Thursday. Avoid external links in the main post; put them in the first comment to maximize reach.",
-  "Indie Hackers": "Post when you have a real milestone or a real failure to share. Transparency is the only currency that matters here. Engage with every single comment.",
-  "Product Hunt": "Launch at 12:01am PST. The first 4 hours are critical for trending. Personal outreach to your existing network drives the initial momentum."
+  LinkedIn: "Tuesday to Thursday 7am-9am gets the most reach. End your post with a direct question — posts with questions in comments get 3x more distribution.",
+  "Indie Hackers": "Post on weekday mornings. Give the community something genuinely useful and the upvotes follow. Don't cross-post the same day you post elsewhere.",
+  "Product Hunt": "Launch on Tuesday or Wednesday between 12:01am and 3am PST. Have 5 people ready to upvote and comment in the first hour — early velocity is everything."
 };
 
 export default function PostMaker() {
@@ -92,6 +93,19 @@ export default function PostMaker() {
     }
     fetchBrain();
   }, [user]);
+
+  const handleBack = () => {
+    if (step === 2) {
+      setSelectedPlatform(null);
+      setStep(1);
+    } else if (step === 3) {
+      setSelectedMode(null);
+      setStep(2);
+    } else if (step === 4) {
+      setSelectedTemplate(null);
+      setStep(3);
+    }
+  };
 
   const generatePost = async () => {
     setIsLoading(true);
@@ -199,6 +213,34 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
         <div className="max-w-4xl mx-auto w-full">
           
+          {/* Progress Bar & Back Navigation */}
+          {step >= 1 && step <= 4 && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-8 h-8">
+                  {step > 1 && (
+                    <button 
+                      onClick={handleBack}
+                      className="p-2 -ml-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all bg-transparent"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+                <span className="text-zinc-500 text-xs font-medium">Step {step} of 4</span>
+                <div className="w-8 h-8" />
+              </div>
+              <div className="w-full bg-[#1F1F1F] h-1 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-orange-500 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(step / 4) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* STEP 1: Platform Selection */}
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -227,7 +269,6 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
           {/* STEP 2: Mode Selection */}
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <button onClick={() => setStep(1)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back to platforms</button>
               <h1 className="text-2xl font-semibold text-white mb-8">How do you want to create your post?</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div
@@ -254,8 +295,6 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
           {/* STEP 3: Template or Write */}
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <button onClick={() => setStep(2)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back to mode</button>
-              
               {selectedMode === "template" ? (
                 <>
                   <div className="mb-8">
@@ -321,7 +360,6 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
           {/* STEP 4: Customization */}
           {step === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-2xl">
-              <button onClick={() => setStep(3)} className="text-zinc-500 text-xs mb-6 hover:text-white transition-colors">← Back</button>
               <div className="mb-10">
                 <h1 className="text-2xl font-semibold text-white">Make it yours</h1>
                 <p className="text-zinc-400 text-sm">Both fields are optional — skip if you're happy</p>
@@ -362,7 +400,7 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
                 <div className="pt-6 flex gap-4">
                   <button
                     onClick={generatePost}
-                    className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all"
+                    className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
                   >
                     Skip, just generate
                   </button>
@@ -379,18 +417,15 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
 
           {/* STEP 5: Loading Screen */}
           {step === 5 && (
-            <div className="min-h-[500px] flex flex-col items-center justify-center gap-8 animate-in fade-in duration-700">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-orange-500/20 rounded-full" />
-                <div className="absolute inset-0 w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-              </div>
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-6 animate-in fade-in duration-700">
+              <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-bold text-white">Crafting your post...</h2>
                 <p className="text-zinc-400 text-sm">Using your brand info and the {selectedTemplate?.name || 'custom'} template</p>
               </div>
-              <div className="w-64 h-1 bg-[#1F1F1F] rounded-full overflow-hidden">
+              <div className="w-64 bg-[#1F1F1F] h-1 rounded-full overflow-hidden">
                 <motion.div 
-                  className="h-full bg-orange-500"
+                  className="h-full bg-orange-500 rounded-full"
                   animate={{ width: ["20%", "80%", "20%"] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 />
@@ -403,67 +438,63 @@ Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto pb-20">
               <div className="flex items-center gap-4 mb-8">
                 <div className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-bold border",
+                  "px-4 py-1.5 rounded-full text-sm font-medium border",
                   generatedPost.scoreColor === "green" ? "bg-green-500/10 text-green-400 border-green-500/20" :
                   generatedPost.scoreColor === "yellow" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
                   "bg-red-500/10 text-red-400 border-red-500/20"
                 )}>
                   {generatedPost.scoreLabel}
                 </div>
-                <span className="text-zinc-500 text-sm font-medium">Score: <span className="text-white">{generatedPost.score}/100</span></span>
+                <span className="text-zinc-400 text-sm">Score: <span className="text-white">{generatedPost.score}/100</span></span>
               </div>
 
-              <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl overflow-hidden shadow-2xl">
-                <div className="p-4 border-b border-[#1F1F1F] flex items-center justify-between bg-[#161616]">
-                  <span className="bg-[#1F1F1F] text-zinc-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+              <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6">
+                <div className="flex">
+                  <span className="bg-[#1F1F1F] text-zinc-400 text-xs font-medium rounded-full px-3 py-1">
                     {selectedPlatform}
                   </span>
-                  <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Preview</span>
                 </div>
-                <div className="p-8 space-y-6">
-                  <h2 className="text-xl font-bold text-white leading-tight">{generatedPost.title}</h2>
-                  <p className="text-zinc-300 text-base leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
-                  <div className="pt-6 border-t border-[#1F1F1F]">
-                    <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest block mb-2">Call to Action</span>
-                    <p className="text-orange-400 text-sm font-bold">{generatedPost.cta}</p>
-                  </div>
+                <h2 className="text-lg font-semibold text-white">{generatedPost.title}</h2>
+                <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                <div className="pt-4 border-t border-[#1F1F1F]">
+                  <span className="text-zinc-500 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
+                  <p className="text-orange-400 text-sm font-medium">{generatedPost.cta}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+              <div className="flex flex-wrap gap-3 mt-8">
                 <button 
                   onClick={handleCopy}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copyStatus}
                 </button>
                 <button 
                   onClick={generatePost}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Regenerate
                 </button>
                 <button 
                   onClick={() => { setSelectedTemplate(null); setStep(3); }}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-3 text-xs font-bold hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   <LayoutTemplate className="w-4 h-4" />
-                  Templates
+                  Try Different Template
                 </button>
                 <button 
                   onClick={resetAll}
-                  className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-400 transition-colors"
+                  className="text-zinc-500 text-xs font-medium hover:text-zinc-300 transition-colors bg-transparent"
                 >
                   Start Over
                 </button>
               </div>
 
-              <div className="mt-10 bg-[#111111] border-l-4 border-orange-500 border border-[#1F1F1F] rounded-xl p-5">
+              <div className="mt-10 bg-[#111111] border-l-4 border-orange-500 border border-[#1F1F1F] rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">💡</span>
-                  <span className="text-orange-500 text-xs font-bold uppercase tracking-widest">Posting tip</span>
+                  <span className="text-orange-500 text-xs font-medium">💡 Posting tip</span>
                 </div>
                 <p className="text-zinc-400 text-sm leading-relaxed">
                   {postingTips[selectedPlatform]}
