@@ -58,24 +58,29 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      const response = await fetch(`https://www.reddit.com/user/${userHandle}/submitted.json?limit=25&sort=new`, {
-        headers: { 'User-Agent': 'VibePromote/1.0' }
-      });
+      // Get the current session token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      // Call the server-side proxy to avoid CORS issues
+      const response = await fetch(
+        `https://pxueqqjfvbrzfvmcbynu.supabase.co/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       
       if (!response.ok) {
+        const errorData = await response.json();
         if (response.status === 404) throw new Error('Reddit user not found. Check the spelling.');
-        throw new Error('Could not reach Reddit. Try again later.');
+        if (response.status === 429) throw new Error('Reddit is rate limiting requests. Try again in a few minutes.');
+        throw new Error(errorData.error || 'Could not reach Reddit. Try again later.');
       }
       
-      const data = await response.json();
-      const posts = (data.data.children || []).map(child => ({
-        title: child.data.title,
-        subreddit: child.data.subreddit_name_prefixed,
-        score: child.data.score,
-        num_comments: child.data.num_comments,
-        url: `https://reddit.com${child.data.permalink}`,
-        created_at: new Date(child.data.created_utc * 1000).toISOString()
-      }));
+      const posts = await response.json();
 
       if (posts.length === 0) throw new Error('This user has no submitted posts.');
       return posts;
@@ -327,6 +332,7 @@ export default function ConnectAccounts({ onConnect }) {
             key="step3"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: -0.95 }}
             className="bg-[#111111] border border-green-500/30 rounded-2xl p-8"
           >
             <div className="flex items-center justify-between mb-8">
