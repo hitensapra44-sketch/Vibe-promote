@@ -16,6 +16,7 @@ serve(async (req) => {
     // 1. Validate Authentication
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error("[reddit-proxy] Missing Authorization header");
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
         status: 401, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -50,27 +51,41 @@ serve(async (req) => {
 
     console.log(`[reddit-proxy] Fetching posts for user: ${username}`);
 
-    // 3. Fetch from Reddit API
+    // 3. Fetch from Reddit API with proper User-Agent
+    // Format: platform:app_id:version (by /u/reddit_username)
     const redditUrl = `https://www.reddit.com/user/${username}/submitted.json?limit=25&sort=new`
     const response = await fetch(redditUrl, {
       headers: { 
-        'User-Agent': 'VibePromote/1.0 (by /u/VibePromote)' 
+        'User-Agent': 'web:vibehype:1.0.0 (by /u/VibePromote)' 
       }
     })
 
     if (!response.ok) {
+      console.error(`[reddit-proxy] Reddit API error: ${response.status} for user ${username}`);
+      
+      if (response.status === 403) {
+        return new Response(JSON.stringify({ 
+          error: 'Reddit access forbidden. This user might have a private profile or Reddit is blocking the request.' 
+        }), { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        })
+      }
+      
       if (response.status === 404) {
         return new Response(JSON.stringify({ error: 'Reddit user not found' }), { 
           status: 404, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         })
       }
+      
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Reddit rate limit exceeded' }), { 
+        return new Response(JSON.stringify({ error: 'Reddit rate limit exceeded. Please try again in a few minutes.' }), { 
           status: 429, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         })
       }
+      
       throw new Error(`Reddit API returned ${response.status}`)
     }
 
@@ -86,12 +101,12 @@ serve(async (req) => {
       created_at: new Date(child.data.created_utc * 1000).toISOString()
     }))
 
-    // 5. Return response with caching headers
+    // 5. Return response with caching headers (5 minutes)
     return new Response(JSON.stringify(posts), {
       headers: { 
         ...corsHeaders, 
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300' // Cache for 5 minutes
+        'Cache-Control': 'public, max-age=300'
       },
       status: 200
     })
