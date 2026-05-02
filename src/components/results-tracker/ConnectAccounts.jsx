@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Lock, 
   Loader2, 
@@ -40,6 +40,21 @@ export default function ConnectAccounts({ onConnect }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fetchedPosts, setFetchedPosts] = useState([]);
+  const [connectedPlatforms, setConnectedPlatforms] = useState([]);
+
+  useEffect(() => {
+    async function fetchConnected() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('social_accounts')
+        .select('platform')
+        .eq('user_id', user.id);
+      if (data) {
+        setConnectedPlatforms(data.map(a => a.platform));
+      }
+    }
+    fetchConnected();
+  }, [user]);
 
   const fetchRedditPosts = async (userHandle) => {
     try {
@@ -212,25 +227,41 @@ export default function ConnectAccounts({ onConnect }) {
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-2 sm:grid-cols-3 gap-3"
           >
-            {platforms.map((p) => (
-              <div
-                key={p.id}
-                onClick={() => !p.comingSoon && (setSelectedPlatform(p), setStep('input'))}
-                className={cn(
-                  "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
-                  p.comingSoon && "opacity-40 cursor-not-allowed"
-                )}
-              >
-                {p.comingSoon && (
-                  <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
-                )}
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1 group-hover:bg-orange-500/10 transition-colors">
-                  <p.icon size={20} className="text-zinc-400 group-hover:text-orange-500 transition-colors" />
+            {platforms.map((p) => {
+              const isConnected = connectedPlatforms.includes(p.id);
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => !p.comingSoon && (setSelectedPlatform(p), setStep('input'))}
+                  className={cn(
+                    "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
+                    p.comingSoon && "opacity-40 cursor-not-allowed",
+                    isConnected && "border-green-500/30 bg-green-500/5"
+                  )}
+                >
+                  {p.comingSoon && (
+                    <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+                  )}
+                  {isConnected && (
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full">
+                      <CheckCircle2 size={10} className="text-green-500" />
+                      <span className="text-green-500 text-[8px] font-bold uppercase">Connected</span>
+                    </div>
+                  )}
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1 transition-colors",
+                    isConnected ? "bg-green-500/10" : "group-hover:bg-orange-500/10"
+                  )}>
+                    <p.icon size={20} className={cn(
+                      "transition-colors",
+                      isConnected ? "text-green-500" : "text-zinc-400 group-hover:text-orange-500"
+                    )} />
+                  </div>
+                  <span className="text-white text-sm font-medium">{p.name}</span>
+                  <span className="text-zinc-500 text-xs">{p.desc}</span>
                 </div>
-                <span className="text-white text-sm font-medium">{p.name}</span>
-                <span className="text-zinc-500 text-xs">{p.desc}</span>
-              </div>
-            ))}
+              );
+            })}
           </motion.div>
         )}
 
