@@ -58,30 +58,23 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      // Get the current session token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      // Call the server-side proxy to avoid CORS issues
       const response = await fetch(
-        `https://pxueqqjfvbrzfvmcbynu.supabase.co/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        `https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`,
+        { headers: { 'Accept': 'application/json' } }
       );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 404) throw new Error('Reddit user not found. Check the spelling.');
-        if (response.status === 429) throw new Error('Reddit is rate limiting requests. Try again in a few minutes.');
-        throw new Error(errorData.error || 'Could not reach Reddit. Try again later.');
-      }
-      
-      const posts = await response.json();
-
+      if (response.status === 403) throw new Error('This Reddit profile is private or Reddit is blocking the request. Try again in a moment.');
+      if (response.status === 404) throw new Error('Reddit user not found. Check the spelling.');
+      if (response.status === 429) throw new Error('Reddit is rate limiting. Try again in a few minutes.');
+      if (!response.ok) throw new Error(`Reddit returned an error: ${response.status}`);
+      const data = await response.json();
+      const posts = (data.data?.children || []).map((child) => ({
+        title: child.data.title,
+        subreddit: child.data.subreddit_name_prefixed,
+        score: child.data.score,
+        num_comments: child.data.num_comments,
+        url: `https://reddit.com${child.data.permalink}`,
+        created_at: new Date(child.data.created_utc * 1000).toISOString()
+      }));
       if (posts.length === 0) throw new Error('This user has no submitted posts.');
       return posts;
     } catch (err) {
