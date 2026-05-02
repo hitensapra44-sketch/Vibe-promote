@@ -1,10 +1,27 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Lock, Loader2, MessageSquare, Linkedin, Globe, Zap, Twitter, AtSign, X } from 'lucide-react';
+import { 
+  Lock, 
+  Loader2, 
+  MessageSquare, 
+  Linkedin, 
+  Globe, 
+  Zap, 
+  Twitter, 
+  AtSign, 
+  X, 
+  ArrowRight, 
+  ArrowLeft, 
+  CheckCircle2, 
+  AlertCircle,
+  ExternalLink,
+  TrendingUp
+} from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { supabase } from '../../supabaseClient';
 import { useAuth } from '../../lib/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const platforms = [
   { id: 'Reddit', name: 'Reddit', desc: 'Upvotes & reach', icon: MessageSquare, color: '#FF4500' },
@@ -17,176 +34,278 @@ const platforms = [
 
 export default function ConnectAccounts({ onConnect }) {
   const { user } = useAuth();
-  const [loadingPlatform, setLoadingPlatform] = useState(null);
-  const [activeInput, setActiveInput] = useState(null);
+  const [step, setStep] = useState('platform-select'); // 'platform-select', 'input', 'preview'
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [fetchedPosts, setFetchedPosts] = useState([]);
 
-  const fetchRedditPosts = async (username) => {
-    const response = await fetch(`https://www.reddit.com/user/${username}/submitted.json`, {
-      headers: {
-        'User-Agent': 'VibePromote/1.0'
+  const fetchRedditPosts = async (userHandle) => {
+    try {
+      const response = await fetch(`https://www.reddit.com/user/${userHandle}/submitted.json?limit=10`, {
+        headers: { 'User-Agent': 'VibePromote/1.0' }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) throw new Error('Reddit user not found. Check the spelling.');
+        throw new Error('Could not reach Reddit. Try again later.');
       }
-    });
-    if (!response.ok) throw new Error('Reddit user not found');
-    const data = await response.json();
-    return (data.data.children || []).map(child => ({
-      title: child.data.title,
-      score: child.data.score,
-      num_comments: child.data.num_comments,
-      created_at: new Date(child.data.created_utc * 1000).toISOString()
-    }));
+      
+      const data = await response.json();
+      const posts = (data.data.children || []).map(child => ({
+        title: child.data.title,
+        subreddit: child.data.subreddit_name_prefixed,
+        score: child.data.score,
+        num_comments: child.data.num_comments,
+        url: `https://reddit.com${child.data.permalink}`,
+        created_at: new Date(child.data.created_utc * 1000).toISOString()
+      }));
+
+      if (posts.length === 0) throw new Error('This user has no submitted posts.');
+      return posts;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const fetchProductHuntPosts = async (username) => {
-    // Mocking Product Hunt fetch as requested for placeholder data
+  const fetchProductHuntPosts = async (userHandle) => {
+    // Mocking Product Hunt fetch for now
+    await new Promise(resolve => setTimeout(resolve, 1500));
     return [
-      { title: `${username}'s Awesome Launch`, score: 120, num_comments: 15, created_at: new Date().toISOString() },
-      { title: "Secondary Tool Update", score: 45, num_comments: 8, created_at: new Date(Date.now() - 86400000).toISOString() }
+      { title: `${userHandle}'s Latest Launch`, subreddit: 'Product Hunt', score: 142, num_comments: 24, url: '#', created_at: new Date().toISOString() },
+      { title: "Community Tool Update", subreddit: 'Product Hunt', score: 56, num_comments: 12, url: '#', created_at: new Date(Date.now() - 86400000).toISOString() }
     ];
   };
 
-  const handleConnect = async (e) => {
-    e.preventDefault();
-    if (!username.trim() || !activeInput || !user) return;
+  const handleStartFetch = async (e) => {
+    e?.preventDefault();
+    if (!username.trim()) {
+      setError("Please enter a username.");
+      return;
+    }
 
-    const platform = activeInput;
-    setLoadingPlatform(platform);
+    setLoading(true);
+    setError(null);
 
     try {
-      // 1. Store account - Manual Upsert to avoid "no unique constraint" error
+      let posts = [];
+      if (selectedPlatform.id === 'Reddit') {
+        posts = await fetchRedditPosts(username.trim());
+      } else if (selectedPlatform.id === 'Product Hunt') {
+        posts = await fetchProductHuntPosts(username.trim());
+      }
+      
+      setFetchedPosts(posts);
+      setStep('preview');
+    } catch (err) {
+      setError(err.message || "Something went wrong while fetching data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalizeConnection = async () => {
+    setLoading(true);
+    try {
+      // 1. Store account
       const { data: existingAccount } = await supabase
         .from('social_accounts')
         .select('id')
         .eq('user_id', user.id)
-        .eq('platform', platform)
+        .eq('platform', selectedPlatform.id)
         .maybeSingle();
 
-      let accountError;
       if (existingAccount) {
-        const { error } = await supabase
+        await supabase
           .from('social_accounts')
           .update({ username: username.trim() })
           .eq('id', existingAccount.id);
-        accountError = error;
       } else {
-        const { error } = await supabase
+        await supabase
           .from('social_accounts')
-          .insert({ user_id: user.id, platform, username: username.trim() });
-        accountError = error;
+          .insert({ user_id: user.id, platform: selectedPlatform.id, username: username.trim() });
       }
 
-      if (accountError) throw accountError;
+      // 2. Sync posts to DB
+      await supabase.from('social_posts').delete().eq('user_id', user.id).eq('platform', selectedPlatform.id);
 
-      // 2. Fetch posts
-      let posts = [];
-      if (platform === 'Reddit') {
-        posts = await fetchRedditPosts(username.trim());
-      } else if (platform === 'Product Hunt') {
-        posts = await fetchProductHuntPosts(username.trim());
-      }
+      const mappedPosts = fetchedPosts.map(p => ({
+        user_id: user.id,
+        platform: selectedPlatform.id,
+        title: p.title,
+        views: p.score * 3, // Estimated
+        engagements: p.score,
+        comments: p.num_comments,
+        link_clicks: Math.floor(p.score * 0.2),
+        created_at: p.created_at
+      }));
 
-      // 3. Delete existing posts for this platform to refresh data
-      await supabase
-        .from('social_posts')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('platform', platform);
+      await supabase.from('social_posts').insert(mappedPosts);
 
-      // 4. Insert new posts
-      if (posts.length > 0) {
-        const mappedPosts = posts.map(p => ({
-          user_id: user.id,
-          platform,
-          title: p.title,
-          views: p.score * 3,
-          engagements: p.score,
-          comments: p.num_comments,
-          link_clicks: Math.floor(p.score * 0.2),
-          created_at: p.created_at
-        }));
-
-        const { error: insertError } = await supabase
-          .from('social_posts')
-          .insert(mappedPosts);
-
-        if (insertError) throw insertError;
-      }
-
-      setActiveInput(null);
-      setUsername('');
-      onConnect(); // Refresh parent
+      onConnect();
     } catch (err) {
-      console.error("Connection error:", err);
-      alert("Failed to fetch data. Please check the username and try again.");
+      setError("Failed to save connection. Please try again.");
     } finally {
-      setLoadingPlatform(null);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {platforms.map((p) => {
-          const isLoading = loadingPlatform === p.id;
-
-          return (
-            <div
-              key={p.id}
-              onClick={() => !p.comingSoon && !isLoading && setActiveInput(p.id)}
-              className={cn(
-                "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-zinc-600 transition-all relative",
-                activeInput === p.id && "border-orange-500 bg-orange-500/5",
-                p.comingSoon && "opacity-40 cursor-not-allowed"
-              )}
-            >
-              {p.comingSoon && (
-                <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
-              )}
-              
-              <div className={cn(
-                "w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1",
-                activeInput === p.id ? "text-orange-500" : "text-zinc-400"
-              )}>
-                {isLoading ? <Loader2 size={20} className="animate-spin text-orange-500" /> : <p.icon size={20} />}
+    <div className="w-full">
+      <AnimatePresence mode="wait">
+        {step === 'platform-select' && (
+          <motion.div 
+            key="step1"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          >
+            {platforms.map((p) => (
+              <div
+                key={p.id}
+                onClick={() => !p.comingSoon && (setSelectedPlatform(p), setStep('input'))}
+                className={cn(
+                  "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
+                  p.comingSoon && "opacity-40 cursor-not-allowed"
+                )}
+              >
+                {p.comingSoon && (
+                  <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+                )}
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1 group-hover:bg-orange-500/10 transition-colors">
+                  <p.icon size={20} className="text-zinc-400 group-hover:text-orange-500 transition-colors" />
+                </div>
+                <span className="text-white text-sm font-medium">{p.name}</span>
+                <span className="text-zinc-500 text-xs">{p.desc}</span>
               </div>
-              
-              <span className="text-white text-sm font-medium">{p.name}</span>
-              <span className="text-zinc-500 text-xs">{p.desc}</span>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </motion.div>
+        )}
 
-      {activeInput && (
-        <form onSubmit={handleConnect} className="bg-[#111111] border border-orange-500/30 rounded-xl p-6 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-white text-sm font-bold">Connect {activeInput}</h3>
-            <button type="button" onClick={() => setActiveInput(null)} className="text-zinc-500 hover:text-white bg-transparent">
-              <X size={16} />
-            </button>
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder={`Enter your ${activeInput} username`}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="flex-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
-              required
-              disabled={!!loadingPlatform}
-            />
-            <button
-              type="submit"
-              disabled={!!loadingPlatform || !username.trim()}
-              className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-lg px-6 py-2 transition-all disabled:opacity-50 flex items-center gap-2"
+        {step === 'input' && (
+          <motion.div 
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="bg-[#111111] border border-orange-500/30 rounded-2xl p-8"
+          >
+            <button 
+              onClick={() => setStep('platform-select')}
+              className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-6 bg-transparent"
             >
-              {loadingPlatform ? <Loader2 size={14} className="animate-spin" /> : "Connect"}
+              <ArrowLeft size={14} /> Back to platforms
             </button>
-          </div>
-        </form>
-      )}
 
-      <div className="flex items-center justify-center gap-2 text-zinc-500 text-xs bg-[#111111] border border-[#1F1F1F] rounded-lg py-3 px-4">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                <selectedPlatform.icon size={24} className="text-orange-500" />
+              </div>
+              <div>
+                <h3 className="text-white text-xl font-bold">Connect {selectedPlatform.name}</h3>
+                <p className="text-zinc-400 text-sm">Enter your username to track your performance.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleStartFetch} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Username</label>
+                <input
+                  type="text"
+                  placeholder={`e.g. ${selectedPlatform.id === 'Reddit' ? 'spez' : 'maker_name'}`}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-400/5 border border-red-400/20 p-4 rounded-xl">
+                  <AlertCircle size={16} />
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !username.trim()}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : <><TrendingUp size={20} /> Fetch Results</>}
+              </button>
+            </form>
+          </motion.div>
+        )}
+
+        {step === 'preview' && (
+          <motion.div 
+            key="step3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111111] border border-green-500/30 rounded-2xl p-8"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle2 size={20} className="text-green-500" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold">Found {fetchedPosts.length} posts</h3>
+                  <p className="text-zinc-400 text-xs">Previewing data for u/{username}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setStep('input')}
+                className="text-zinc-500 hover:text-white text-xs font-bold bg-transparent"
+              >
+                Change User
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 mb-8 scrollbar-hide">
+              {fetchedPosts.map((post, i) => (
+                <div key={i} className="bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl p-4 flex items-center justify-between group">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-white text-sm font-medium truncate mb-1">{post.title}</h4>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                      <span className="text-orange-500">{post.subreddit}</span>
+                      <span>•</span>
+                      <span>{post.score} Upvotes</span>
+                      <span>•</span>
+                      <span>{post.num_comments} Comments</span>
+                    </div>
+                  </div>
+                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="p-2 text-zinc-600 hover:text-white transition-colors">
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStep('input')}
+                className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleFinalizeConnection}
+                disabled={loading}
+                className="flex-[2] bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : "Confirm & Connect"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="mt-8 flex items-center justify-center gap-2 text-zinc-500 text-xs bg-[#111111] border border-[#1F1F1F] rounded-lg py-3 px-4">
         <Lock size={12} />
         <span>We only read performance data. We never post for you.</span>
       </div>
