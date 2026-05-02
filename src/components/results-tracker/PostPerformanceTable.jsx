@@ -15,6 +15,8 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll }
     );
   }
 
+  const formatNum = (val) => (val ?? 0).toLocaleString();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
@@ -55,9 +57,9 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll }
                       </div>
                     </td>
                     <td className="px-4 py-3 text-zinc-400 text-xs">{post.platform}</td>
-                    <td className="px-4 py-3 text-white text-sm">{post.views.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-white text-sm">{post.engagements.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-white text-sm">{post.linkTaps.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.views)}</td>
+                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.engagements)}</td>
+                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.linkTaps)}</td>
                     <td className="px-4 py-3 text-zinc-500 text-xs">{post.date}</td>
                   </tr>
                   {expandedRow === index && (
@@ -70,15 +72,15 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll }
                           <div className="grid grid-cols-3 gap-8">
                             <div>
                               <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Views</p>
-                              <p className="text-white text-lg font-bold">{post.views.toLocaleString()}</p>
+                              <p className="text-white text-lg font-bold">{formatNum(post.views)}</p>
                             </div>
                             <div>
                               <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Engagements</p>
-                              <p className="text-white text-lg font-bold">{post.engagements.toLocaleString()}</p>
+                              <p className="text-white text-lg font-bold">{formatNum(post.engagements)}</p>
                             </div>
                             <div>
                               <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Link Taps</p>
-                              <p className="text-white text-lg font-bold">{post.linkTaps.toLocaleString()}</p>
+                              <p className="text-white text-lg font-bold">{formatNum(post.linkTaps)}</p>
                             </div>
                           </div>
                         </div>
