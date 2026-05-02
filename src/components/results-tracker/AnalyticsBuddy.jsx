@@ -4,13 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { generateAICall } from '../../lib/ai';
+import { useAuth } from '../../lib/AuthContext';
 
-export default function AnalyticsBuddy() {
+export default function AnalyticsBuddy({ dataContext }) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'buddy', text: "Hey! I've analyzed your data. What would you like to know?" }
+    { role: 'buddy', text: "Hey! I've analyzed your data. What would you like to know about your performance or strategy?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -19,7 +22,7 @@ export default function AnalyticsBuddy() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleSend = (text) => {
+  const handleSend = async (text) => {
     const msg = text || inputValue;
     if (!msg.trim() || isTyping) return;
 
@@ -27,16 +30,44 @@ export default function AnalyticsBuddy() {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      let response = "I'm analyzing your current metrics to give you a specific answer...";
-      if (msg.includes("working")) response = "Your Reddit posts are driving 68% of your traffic. The 'Relatable Struggle' format is your clear winner right now.";
-      if (msg.includes("improve")) response = "LinkedIn engagement is down 12%. Your hooks are getting repetitive—try a 'Hot Take' format next week.";
-      if (msg.includes("strategy")) response = "Based on your high Reddit conversion, I recommend shifting 20% of your LinkedIn effort to r/SaaS and r/startups next week.";
-      
+    const systemPrompt = `You are a brutally honest marketing analyst and a smart founder‑friend. Use only the data that follows; never invent numbers.
+
+Context
+
+Period: ${dataContext.selectedPeriod}
+Platform filter: ${dataContext.activePlatform || "all platforms"}
+Posts (title – upvotes – comments – link taps – date):
+${dataContext.posts.map(p => `- ${p.title} | ${p.upvotes} upvotes | ${p.comments} comments | ${p.linkTaps} link taps | ${p.date}`).join('\n')}
+
+Aggregate metrics for the period:
+- Total Upvotes: ${dataContext.metrics?.engagements?.value || 0}
+- Total Comments: ${dataContext.metrics?.comments?.value || 0}
+- Total Link Taps: ${dataContext.metrics?.linkTaps?.value || 0}
+
+Platform breakdown (percentage of total activity per platform):
+${dataContext.breakdown.map(b => `- ${b.platform}: ${b.percentage}%`).join('\n')}
+
+Best performing post: ${dataContext.bestPost ? `${dataContext.bestPost.title} (${dataContext.bestPost.engagement} engagement)` : 'None'}
+Worst performing post: ${dataContext.worstPost ? `${dataContext.worstPost.title} (${dataContext.worstPost.engagement} engagement)` : 'None'}
+Zero‑engagement posts: ${dataContext.zeroEngagementCount}
+
+Important note: Link taps is the most important metric because it represents product visits.
+
+Behaviour
+
+Speak like a knowledgeable, candid friend.
+Keep replies to 3‑5 sentences unless the user explicitly asks for a full breakdown.
+Reference the supplied numbers directly; do not fabricate any data.`;
+
+    try {
+      const response = await generateAICall(systemPrompt, msg, user?.id);
       setMessages(prev => [...prev, { role: 'buddy', text: response }]);
+    } catch (err) {
+      console.error("AI Error:", err);
+      setMessages(prev => [...prev, { role: 'buddy', text: "I hit a snag while analyzing your data. Can you try that again?" }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const suggestions = [

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { cn } from "@/lib/utils";
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ArrowUpRight } from 'lucide-react';
 
 export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, platform }) {
   const [expandedRow, setExpandedRow] = useState(null);
@@ -16,7 +16,7 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
   }
 
   const formatNum = (val) => (val ?? 0).toLocaleString();
-  const isReddit = platform === 'Reddit';
+  const isReddit = platform === 'Reddit' || platform === 'All Platforms';
 
   return (
     <div className="space-y-4">
@@ -39,8 +39,8 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                 <th className="px-4 py-3 font-semibold">Platform</th>
                 <th className="px-4 py-3 font-semibold">{isReddit ? 'Upvotes' : 'Engagements'}</th>
                 <th className="px-4 py-3 font-semibold">Comments</th>
-                <th className="px-4 py-3 font-semibold">{isReddit ? 'Engagement' : 'Link Taps'}</th>
-                <th className="px-4 py-3 font-semibold">Action</th>
+                <th className="px-4 py-3 font-semibold">Engagement</th>
+                <th className="px-4 py-3 font-semibold">Link</th>
               </tr>
             </thead>
             <tbody>
@@ -51,16 +51,16 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                     className="border-t border-[#1F1F1F] hover:bg-[#1A1A1A] transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 group/title">
                         <span className="text-white text-sm truncate max-w-[200px]">
                           {post.title}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-zinc-400 text-xs">{post.platform}</td>
-                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.engagements)}</td>
+                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.upvotes)}</td>
                     <td className="px-4 py-3 text-white text-sm">{formatNum(post.comments)}</td>
-                    <td className="px-4 py-3 text-white text-sm">{formatNum(post.linkTaps)}</td>
+                    <td className="px-4 py-3 text-white text-sm font-bold">{formatNum(post.engagement)}</td>
                     <td className="px-4 py-3">
                       {post.url && (
                         <a 
@@ -68,9 +68,9 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                           target="_blank" 
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-[10px] font-bold hover:bg-white/10 transition-all"
+                          className="p-2 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10 transition-all inline-flex items-center justify-center"
                         >
-                          View Post <ExternalLink size={10} />
+                          <ArrowUpRight size={14} />
                         </a>
                       )}
                     </td>
@@ -85,15 +85,15 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                           <div className="grid grid-cols-3 gap-8">
                             <div>
                               <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">{isReddit ? 'Upvotes' : 'Engagements'}</p>
-                              <p className="text-white text-lg font-bold">{formatNum(post.engagements)}</p>
+                              <p className="text-white text-lg font-bold">{formatNum(post.upvotes)}</p>
                             </div>
                             <div>
                               <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Comments</p>
                               <p className="text-white text-lg font-bold">{formatNum(post.comments)}</p>
                             </div>
                             <div>
-                              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">{isReddit ? 'Engagement' : 'Link Taps'}</p>
-                              <p className="text-white text-lg font-bold">{formatNum(post.linkTaps)}</p>
+                              <p className="text-zinc-500 text-[10px] uppercase tracking-widest mb-1">Total Engagement</p>
+                              <p className="text-white text-lg font-bold text-orange-500">{formatNum(post.engagement)}</p>
                             </div>
                           </div>
                         </div>

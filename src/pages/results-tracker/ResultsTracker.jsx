@@ -20,13 +20,36 @@ export default function ResultsTracker() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
   const [activePlatform, setActivePlatform] = useState("All Platforms");
   const [showAllPosts, setShowAllPosts] = useState(false);
-  const [breakdownMetric, setBreakdownMetric] = useState("engagements");
+  const [breakdownMetric, setBreakdownMetric] = useState("engagement");
   
   const [posts, setPosts] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [breakdown, setBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [profileKarma, setProfileKarma] = useState(0);
+
+  const fetchProfileKarma = useCallback(async () => {
+    if (!user) return;
+    const { data: account } = await supabase
+      .from('social_accounts')
+      .select('username')
+      .eq('user_id', user.id)
+      .eq('platform', 'Reddit')
+      .maybeSingle();
+
+    if (account?.username) {
+      try {
+        const res = await fetch(`https://www.reddit.com/user/${encodeURIComponent(account.username)}/about.json`);
+        if (res.ok) {
+          const data = await res.json();
+          setProfileKarma(data.data?.total_karma || 0);
+        }
+      } catch (e) {
+        console.error("Failed to fetch profile karma", e);
+      }
+    }
+  }, [user]);
 
   const fetchPosts = useCallback(async () => {
     if (!user) return;
@@ -64,13 +87,14 @@ export default function ResultsTracker() {
     }
 
     const mappedData = (data ?? []).map(p => {
-      // Parse title and URL if stored in "title||url" format
       const parts = p.title.split('||');
       return {
         ...p,
         title: parts[0],
         url: parts[1] || null,
         linkTaps: p.link_clicks ?? 0,
+        upvotes: p.engagements || 0,
+        engagement: (p.engagements || 0) + (p.comments || 0),
         date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
       };
     });
@@ -81,32 +105,33 @@ export default function ResultsTracker() {
 
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts, refreshKey]);
+    fetchProfileKarma();
+  }, [fetchPosts, fetchProfileKarma, refreshKey]);
 
-  // Calculate metrics from posts
   useEffect(() => {
     const totals = posts.reduce(
       (acc, p) => ({
         views: acc.views + (p.views ?? 0),
-        engagements: acc.engagements + (p.engagements ?? 0),
+        upvotes: acc.upvotes + (p.upvotes ?? 0),
         comments: acc.comments + (p.comments ?? 0),
         linkTaps: acc.linkTaps + (p.linkTaps ?? 0),
+        totalEngagement: acc.totalEngagement + (p.engagement ?? 0)
       }),
-      { views: 0, engagements: 0, comments: 0, linkTaps: 0 }
+      { views: 0, upvotes: 0, comments: 0, linkTaps: 0, totalEngagement: 0 }
     );
 
-    const isReddit = activePlatform === 'Reddit';
+    const isRedditFilter = activePlatform === 'Reddit';
 
     setMetrics({
       views: { 
-        value: totals.engagements, // For Reddit, we use sum of scores as "Total Karma" of posts
+        value: isRedditFilter ? profileKarma : totals.views, 
         change: 0, 
-        label: isReddit ? 'Total Karma' : 'Views' 
+        label: isRedditFilter ? 'Total Karma' : 'Views' 
       },
       engagements: { 
-        value: totals.engagements, 
+        value: isRedditFilter ? totals.upvotes : totals.totalEngagement, 
         change: 0, 
-        label: isReddit ? 'Upvotes' : 'Engagements' 
+        label: isRedditFilter ? 'Upvotes' : 'Engagement' 
       },
       comments: { 
         value: totals.comments, 
@@ -114,14 +139,13 @@ export default function ResultsTracker() {
         label: 'Comments' 
       },
       linkTaps: { 
-        value: totals.linkTaps, 
+        value: isRedditFilter ? totals.totalEngagement : totals.linkTaps, 
         change: 0, 
-        label: isReddit ? 'Engagement' : 'Link Taps' 
+        label: isRedditFilter ? 'Engagement' : 'Link Taps' 
       },
     });
-  }, [posts, activePlatform]);
+  }, [posts, activePlatform, profileKarma]);
 
-  // Calculate platform breakdown
   useEffect(() => {
     if (!posts.length) {
       setBreakdown([]);
@@ -160,6 +184,25 @@ export default function ResultsTracker() {
   };
 
   const displayedPosts = showAllPosts ? posts : posts.slice(0, 4);
+
+  // Prepare data context for Analytics Buddy
+  const analyticsContext = {
+    selectedPeriod,
+    activePlatform,
+    posts: posts.map(p => ({
+      title: p.title,
+      upvotes: p.upvotes,
+      comments: p.comments,
+      linkTaps: p.linkTaps,
+      engagement: p.engagement,
+      date: p.date
+    })),
+    metrics,
+    breakdown,
+    bestPost: posts.length > 0 ? [...posts].sort((a, b) => (b.engagement || 0) - (a.engagement || 0))[0] : null,
+    worstPost: posts.length > 0 ? [...posts].sort((a, b) => (a.engagement || 0) - (b.engagement || 0))[posts.length - 1] : null,
+    zeroEngagementCount: posts.filter(p => (p.engagement || 0) === 0).length
+  };
 
   if (isLoading && !posts.length) {
     return (
@@ -256,7 +299,7 @@ export default function ResultsTracker() {
           </div>
         )}
 
-        {hasConnectedAccounts && <AnalyticsBuddy />}
+        {hasConnectedAccounts && <AnalyticsBuddy dataContext={analyticsContext} />}
       </main>
     </div>
   );

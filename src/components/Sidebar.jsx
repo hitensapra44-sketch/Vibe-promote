@@ -15,7 +15,8 @@ import {
   Calendar,
   Menu,
   BarChart2,
-  PenLine
+  PenLine,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -40,6 +41,7 @@ export default function Sidebar({ isPaid }) {
     { icon: PenLine, label: 'Post Maker', path: '/post-maker', available: true },
     { icon: BarChart2, label: 'Analytics', path: '/dashboard/results-tracker', available: true },
     { icon: Sparkles, label: 'Co-pilot', path: '/marketing-buddy', available: true },
+    { icon: Settings, label: 'Settings', path: '/settings', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
     { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
   ];
@@ -136,6 +138,15 @@ export default function Sidebar({ isPaid }) {
                   {isPaid ? "Lifetime" : "Free Tier"}
                 </div>
               </div>
+            )}
+            
+            {sidebarCollapsed && (
+              <button 
+                onClick={() => navigate('/settings')}
+                className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-white hover:bg-white/5 transition-all bg-transparent"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             )}
             
             <button 

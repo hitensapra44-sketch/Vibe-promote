@@ -14,6 +14,7 @@ import AudienceSpotter from './pages/AudienceSpotter';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 import { useAuth } from './lib/AuthContext';
 
 export default function App() {
@@ -74,6 +75,10 @@ export default function App() {
           <Route 
             path="/analytics" 
             element={isAuthenticated ? <Analytics /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/settings" 
+            element={isAuthenticated ? <Settings /> : <Navigate to="/auth" />} 
           />
 
           {/* Fallback */}

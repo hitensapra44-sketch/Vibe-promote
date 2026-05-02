@@ -52,41 +52,30 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      // Fetch posts and profile in parallel
-      const [postsRes, aboutRes] = await Promise.all([
-        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`, { headers: { 'Accept': 'application/json' } }),
-        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/about.json`, { headers: { 'Accept': 'application/json' } })
-      ]);
+      // Use the project's internal proxy API for Reddit
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`https://pxueqqjfvbrzfvmcbynu.supabase.co/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}`, {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      });
 
-      if (postsRes.status === 403) throw new Error('This Reddit profile is private or Reddit is blocking the request.');
-      if (postsRes.status === 404) throw new Error('Reddit user not found. Check the spelling.');
-      if (postsRes.status === 429) throw new Error('Reddit is rate limiting. Try again in a few minutes.');
-      if (!postsRes.ok) throw new Error(`Reddit returned an error: ${postsRes.status}`);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to fetch Reddit data');
+      }
 
-      const postsData = await postsRes.json();
-      const aboutData = aboutRes.ok ? await aboutRes.json() : null;
-
-      // Store profile summary
-      const profile = aboutData?.data ? {
-        totalKarma: aboutData.data.total_karma,
-        postKarma: aboutData.data.link_karma,
-        commentKarma: aboutData.data.comment_karma,
-        accountAge: new Date(aboutData.data.created_utc * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })
-      } : null;
-
-      const posts = (postsData.data?.children || []).map((child) => ({
-        title: child.data.title,
-        subreddit: child.data.subreddit_name_prefixed,
-        score: child.data.score,
-        num_comments: child.data.num_comments,
-        engagement: child.data.score + child.data.num_comments,
-        url: `https://reddit.com${child.data.permalink}`,
-        created_at: new Date(child.data.created_utc * 1000).toISOString(),
-        created_display: new Date(child.data.created_utc * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-      }));
+      const posts = await response.json();
 
       if (posts.length === 0) throw new Error('This user has no submitted posts.');
-      return { posts, profile };
+      
+      return { 
+        posts: posts.map(p => ({
+          ...p,
+          engagement: (p.score || 0) + (p.num_comments || 0)
+        })), 
+        profile: null 
+      };
     } catch (err) {
       throw err;
     }
@@ -211,7 +200,7 @@ export default function ConnectAccounts({ onConnect }) {
         views: null,
         engagements: p.score,
         comments: p.num_comments,
-        link_clicks: p.engagement, // Store calculated engagement in link_clicks
+        link_clicks: 0, // Reset link clicks for new sync
         created_at: p.created_at
       }));
 
