@@ -1,15 +1,15 @@
 "use client";
 
 import React from 'react';
-import { Eye, Heart, Link2, MessageCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Eye, Heart, Link2, MessageCircle, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export default function MetricCards({ metrics }) {
   const items = [
-    { key: 'views', label: 'Views', icon: Eye },
-    { key: 'engagements', label: 'Upvotes', icon: Heart },
-    { key: 'linkTaps', label: 'Link Taps', icon: Link2 },
-    { key: 'comments', label: 'Comments', icon: MessageCircle },
+    { key: 'views', icon: Eye },
+    { key: 'engagements', icon: Heart },
+    { key: 'comments', icon: MessageCircle },
+    { key: 'linkTaps', icon: TrendingUp },
   ];
 
   if (!metrics) {
@@ -30,18 +30,17 @@ export default function MetricCards({ metrics }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {items.map((item) => {
         const data = metrics[item.key];
-        const isPositive = data.change >= 0;
+        if (!data) return null;
         
-        // Show "—" if views or linkTaps are null or 0
-        const shouldShowPlaceholder = (item.key === 'views' || item.key === 'linkTaps') && (!data.value || data.value === 0);
-        const displayValue = shouldShowPlaceholder ? "—" : data.value.toLocaleString();
+        const isPositive = data.change >= 0;
+        const displayValue = data.value.toLocaleString();
 
         return (
           <div key={item.key} className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-400">
                 <item.icon size={16} />
-                <span className="text-sm">{item.label}</span>
+                <span className="text-sm font-medium">{data.label}</span>
               </div>
             </div>
             
@@ -49,7 +48,7 @@ export default function MetricCards({ metrics }) {
               <h3 className="text-white text-3xl font-bold">
                 {displayValue}
               </h3>
-              {!shouldShowPlaceholder && (
+              {data.change !== 0 && (
                 <div className="flex items-center gap-1 mt-1">
                   <span className={cn(
                     "text-xs font-medium flex items-center",

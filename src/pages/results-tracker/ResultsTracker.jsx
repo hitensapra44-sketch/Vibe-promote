@@ -20,7 +20,7 @@ export default function ResultsTracker() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
   const [activePlatform, setActivePlatform] = useState("All Platforms");
   const [showAllPosts, setShowAllPosts] = useState(false);
-  const [breakdownMetric, setBreakdownMetric] = useState("views");
+  const [breakdownMetric, setBreakdownMetric] = useState("engagements");
   
   const [posts, setPosts] = useState([]);
   const [metrics, setMetrics] = useState(null);
@@ -50,18 +50,6 @@ export default function ResultsTracker() {
       const monthAgo = new Date(now);
       monthAgo.setDate(now.getDate() - 30);
       query = query.gte('created_at', monthAgo.toISOString());
-    } else if (selectedPeriod === 'Last Week') {
-      const start = new Date(now);
-      start.setDate(now.getDate() - 14);
-      const end = new Date(now);
-      end.setDate(now.getDate() - 7);
-      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
-    } else if (selectedPeriod === 'Last Month') {
-      const start = new Date(now);
-      start.setDate(now.getDate() - 60);
-      const end = new Date(now);
-      end.setDate(now.getDate() - 30);
-      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
     }
 
     const { data, error } = await query;
@@ -75,11 +63,17 @@ export default function ResultsTracker() {
       setHasConnectedAccounts(true);
     }
 
-    const mappedData = (data ?? []).map(p => ({
-      ...p,
-      linkTaps: p.link_clicks ?? 0,
-      date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    }));
+    const mappedData = (data ?? []).map(p => {
+      // Parse title and URL if stored in "title||url" format
+      const parts = p.title.split('||');
+      return {
+        ...p,
+        title: parts[0],
+        url: parts[1] || null,
+        linkTaps: p.link_clicks ?? 0,
+        date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      };
+    });
 
     setPosts(mappedData);
     setIsLoading(false);
@@ -101,13 +95,31 @@ export default function ResultsTracker() {
       { views: 0, engagements: 0, comments: 0, linkTaps: 0 }
     );
 
+    const isReddit = activePlatform === 'Reddit';
+
     setMetrics({
-      views: { value: totals.views, change: 0, label: 'Views' },
-      engagements: { value: totals.engagements, change: 0, label: 'Engagements' },
-      linkTaps: { value: totals.linkTaps, change: 0, label: 'Link Taps' },
-      comments: { value: totals.comments, change: 0, label: 'Comments' },
+      views: { 
+        value: totals.engagements, // For Reddit, we use sum of scores as "Total Karma" of posts
+        change: 0, 
+        label: isReddit ? 'Total Karma' : 'Views' 
+      },
+      engagements: { 
+        value: totals.engagements, 
+        change: 0, 
+        label: isReddit ? 'Upvotes' : 'Engagements' 
+      },
+      comments: { 
+        value: totals.comments, 
+        change: 0, 
+        label: 'Comments' 
+      },
+      linkTaps: { 
+        value: totals.linkTaps, 
+        change: 0, 
+        label: isReddit ? 'Engagement' : 'Link Taps' 
+      },
     });
-  }, [posts]);
+  }, [posts, activePlatform]);
 
   // Calculate platform breakdown
   useEffect(() => {
@@ -129,11 +141,9 @@ export default function ResultsTracker() {
 
     const platformColors = {
       'Reddit': '#FF4500',
-      'LinkedIn': '#0A66C2',
       'Product Hunt': '#DA552F',
       'X': '#333333',
-      'Threads': '#000000',
-      'Indie Hackers': '#0EA5E9'
+      'Threads': '#000000'
     };
 
     const result = Object.entries(grouped).map(([platform, value]) => ({
@@ -207,7 +217,7 @@ export default function ResultsTracker() {
               />
               
               <div className="flex gap-6 border-b border-[#1F1F1F]">
-                {["All Platforms", "Reddit", "LinkedIn", "Product Hunt", "Indie Hackers"].map(tab => (
+                {["All Platforms", "Reddit", "Product Hunt"].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActivePlatform(tab)}
@@ -232,6 +242,7 @@ export default function ResultsTracker() {
                   posts={displayedPosts} 
                   showAll={showAllPosts}
                   onToggleShowAll={() => setShowAllPosts(!showAllPosts)}
+                  platform={activePlatform}
                 />
               </div>
               <div className="w-full">

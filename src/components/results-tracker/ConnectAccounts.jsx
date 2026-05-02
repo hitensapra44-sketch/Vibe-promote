@@ -5,13 +5,9 @@ import {
   Lock, 
   Loader2, 
   MessageSquare, 
-  Linkedin, 
-  Globe, 
   Zap, 
   Twitter, 
   AtSign, 
-  X, 
-  ArrowRight, 
   ArrowLeft, 
   CheckCircle2, 
   AlertCircle,
@@ -24,10 +20,8 @@ import { useAuth } from '../../lib/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const platforms = [
-  { id: 'Reddit', name: 'Reddit', desc: 'Upvotes & reach', icon: MessageSquare, color: '#FF4500' },
+  { id: 'Reddit', name: 'Reddit', desc: 'Karma & engagement', icon: MessageSquare, color: '#FF4500' },
   { id: 'Product Hunt', name: 'Product Hunt', desc: 'Votes & comments', icon: Zap, color: '#DA552F' },
-  { id: 'LinkedIn', name: 'LinkedIn', desc: 'Impressions & clicks', icon: Linkedin, color: '#0A66C2', comingSoon: true },
-  { id: 'Indie Hackers', name: 'Indie Hackers', desc: 'Community engagement', icon: Globe, color: '#0EA5E9', comingSoon: true },
   { id: 'Twitter', name: 'X / Twitter', desc: 'Coming soon', icon: Twitter, color: '#333333', comingSoon: true },
   { id: 'Threads', name: 'Threads', desc: 'Coming soon', icon: AtSign, color: '#000000', comingSoon: true },
 ];
@@ -58,25 +52,41 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      const response = await fetch(
-        `https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-      if (response.status === 403) throw new Error('This Reddit profile is private or Reddit is blocking the request. Try again in a moment.');
-      if (response.status === 404) throw new Error('Reddit user not found. Check the spelling.');
-      if (response.status === 429) throw new Error('Reddit is rate limiting. Try again in a few minutes.');
-      if (!response.ok) throw new Error(`Reddit returned an error: ${response.status}`);
-      const data = await response.json();
-      const posts = (data.data?.children || []).map((child) => ({
+      // Fetch posts and profile in parallel
+      const [postsRes, aboutRes] = await Promise.all([
+        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`, { headers: { 'Accept': 'application/json' } }),
+        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/about.json`, { headers: { 'Accept': 'application/json' } })
+      ]);
+
+      if (postsRes.status === 403) throw new Error('This Reddit profile is private or Reddit is blocking the request.');
+      if (postsRes.status === 404) throw new Error('Reddit user not found. Check the spelling.');
+      if (postsRes.status === 429) throw new Error('Reddit is rate limiting. Try again in a few minutes.');
+      if (!postsRes.ok) throw new Error(`Reddit returned an error: ${postsRes.status}`);
+
+      const postsData = await postsRes.json();
+      const aboutData = aboutRes.ok ? await aboutRes.json() : null;
+
+      // Store profile summary
+      const profile = aboutData?.data ? {
+        totalKarma: aboutData.data.total_karma,
+        postKarma: aboutData.data.link_karma,
+        commentKarma: aboutData.data.comment_karma,
+        accountAge: new Date(aboutData.data.created_utc * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })
+      } : null;
+
+      const posts = (postsData.data?.children || []).map((child) => ({
         title: child.data.title,
         subreddit: child.data.subreddit_name_prefixed,
         score: child.data.score,
         num_comments: child.data.num_comments,
+        engagement: child.data.score + child.data.num_comments,
         url: `https://reddit.com${child.data.permalink}`,
-        created_at: new Date(child.data.created_utc * 1000).toISOString()
+        created_at: new Date(child.data.created_utc * 1000).toISOString(),
+        created_display: new Date(child.data.created_utc * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
       }));
+
       if (posts.length === 0) throw new Error('This user has no submitted posts.');
-      return posts;
+      return { posts, profile };
     } catch (err) {
       throw err;
     }
@@ -130,12 +140,13 @@ export default function ConnectAccounts({ onConnect }) {
         subreddit: 'Product Hunt',
         score: edge.node.votesCount,
         num_comments: edge.node.commentsCount,
+        engagement: edge.node.votesCount + edge.node.commentsCount,
         url: `https://www.producthunt.com/posts/${edge.node.slug}`,
         created_at: edge.node.createdAt
       }));
 
       if (posts.length === 0) throw new Error('This user has no posts on Product Hunt.');
-      return posts;
+      return { posts, profile: null };
     } catch (err) {
       throw err;
     }
@@ -152,14 +163,14 @@ export default function ConnectAccounts({ onConnect }) {
     setError(null);
 
     try {
-      let posts = [];
+      let result = { posts: [], profile: null };
       if (selectedPlatform.id === 'Reddit') {
-        posts = await fetchRedditPosts(username.trim());
+        result = await fetchRedditPosts(username.trim());
       } else if (selectedPlatform.id === 'Product Hunt') {
-        posts = await fetchProductHuntPosts(username.trim());
+        result = await fetchProductHuntPosts(username.trim());
       }
       
-      setFetchedPosts(posts);
+      setFetchedPosts(result.posts);
       setStep('preview');
     } catch (err) {
       setError(err.message || "Something went wrong while fetching data.");
@@ -196,11 +207,11 @@ export default function ConnectAccounts({ onConnect }) {
       const mappedPosts = fetchedPosts.map(p => ({
         user_id: user.id,
         platform: selectedPlatform.id,
-        title: p.title,
+        title: `${p.title}||${p.url}`, // Store URL in title for retrieval
         views: null,
         engagements: p.score,
         comments: p.num_comments,
-        link_clicks: null,
+        link_clicks: p.engagement, // Store calculated engagement in link_clicks
         created_at: p.created_at
       }));
 
@@ -267,7 +278,7 @@ export default function ConnectAccounts({ onConnect }) {
           <motion.div 
             key="step2"
             initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -20 }}
             className="bg-[#111111] border border-orange-500/30 rounded-2xl p-8"
           >
