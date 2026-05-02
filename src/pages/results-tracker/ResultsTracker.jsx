@@ -1,162 +1,251 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar';
+import PeriodSelector from '../../components/shared/PeriodSelector';
 import ConnectAccounts from '../../components/results-tracker/ConnectAccounts';
-import { ExternalLink, MessageSquare, ArrowBigUp, Zap, AlertCircle } from 'lucide-react';
+import MetricCards from '../../components/results-tracker/MetricCards';
+import PostPerformanceTable from '../../components/results-tracker/PostPerformanceTable';
+import PlatformBreakdownBar from '../../components/results-tracker/PlatformBreakdownBar';
+import AnalyticsBuddy from '../../components/results-tracker/AnalyticsBuddy';
+import { cn } from "@/lib/utils";
+import { supabase } from '../../supabaseClient';
+import { useAuth } from '../../lib/AuthContext';
+import { Plus, X } from 'lucide-react';
 
 export default function ResultsTracker() {
-  const [username, setUsername] = useState(() => localStorage.getItem('reddit_tracker_username') || '');
+  const { user } = useAuth();
+  const [hasConnectedAccounts, setHasConnectedAccounts] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState("This Week");
+  const [activePlatform, setActivePlatform] = useState("All Platforms");
+  const [showAllPosts, setShowAllPosts] = useState(false);
+  const [breakdownMetric, setBreakdownMetric] = useState("views");
+  
   const [posts, setPosts] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [breakdown, setBreakdown] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchRedditPosts = async (userHandle) => {
-    if (!userHandle) return;
-    
-    setIsFetching(true);
-    setError(null);
-    
-    try {
-      const res = await fetch(`https://www.reddit.com/user/${userHandle}/submitted.json?limit=25&sort=new`);
-      
-      if (!res.ok) {
-        throw new Error("Could not load posts. Your Reddit profile may be private, or try again in a moment.");
-      }
+  const fetchPosts = useCallback(async () => {
+    if (!user) return;
 
-      const data = await res.json();
-      const children = data?.data?.children || [];
-      
-      if (children.length === 0) {
-        setPosts([]);
-      } else {
-        const mappedPosts = children.map(child => ({
-          id: child.data.id,
-          title: child.data.title,
-          url: `https://reddit.com${child.data.permalink}`,
-          subreddit: child.data.subreddit_name_prefixed,
-          upvotes: child.data.score,
-          comments: child.data.num_comments,
-          engagement: child.data.score + child.data.num_comments,
-          date: new Date(child.data.created_utc * 1000).toLocaleDateString()
-        }));
-        setPosts(mappedPosts);
-      }
-      
-      setUsername(userHandle);
-      localStorage.setItem('reddit_tracker_username', userHandle);
-    } catch (err) {
-      console.error("Reddit fetch error:", err);
-      setError("Could not load posts. Your Reddit profile may be private, or try again in a moment.");
-      setPosts([]);
-    } finally {
-      setIsFetching(false);
+    let query = supabase
+      .from('social_posts')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (activePlatform !== 'All Platforms') {
+      query = query.eq('platform', activePlatform);
     }
+
+    const now = new Date();
+    if (selectedPeriod === 'This Week') {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 7);
+      query = query.gte('created_at', weekAgo.toISOString());
+    } else if (selectedPeriod === 'This Month') {
+      const monthAgo = new Date(now);
+      monthAgo.setDate(now.getDate() - 30);
+      query = query.gte('created_at', monthAgo.toISOString());
+    } else if (selectedPeriod === 'Last Week') {
+      const start = new Date(now);
+      start.setDate(now.getDate() - 14);
+      const end = new Date(now);
+      end.setDate(now.getDate() - 7);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    } else if (selectedPeriod === 'Last Month') {
+      const start = new Date(now);
+      start.setDate(now.getDate() - 60);
+      const end = new Date(now);
+      end.setDate(now.getDate() - 30);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      setPosts([]);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      setHasConnectedAccounts(true);
+    }
+
+    const mappedData = (data ?? []).map(p => ({
+      ...p,
+      linkTaps: p.link_clicks ?? 0,
+      date: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }));
+
+    setPosts(mappedData);
+    setIsLoading(false);
+  }, [user, activePlatform, selectedPeriod]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts, refreshKey]);
+
+  // Calculate metrics from posts
+  useEffect(() => {
+    const totals = posts.reduce(
+      (acc, p) => ({
+        views: acc.views + (p.views ?? 0),
+        engagements: acc.engagements + (p.engagements ?? 0),
+        comments: acc.comments + (p.comments ?? 0),
+        linkTaps: acc.linkTaps + (p.linkTaps ?? 0),
+      }),
+      { views: 0, engagements: 0, comments: 0, linkTaps: 0 }
+    );
+
+    setMetrics({
+      views: { value: totals.views, change: 0, label: 'Views' },
+      engagements: { value: totals.engagements, change: 0, label: 'Engagements' },
+      linkTaps: { value: totals.linkTaps, change: 0, label: 'Link Taps' },
+      comments: { value: totals.comments, change: 0, label: 'Comments' },
+    });
+  }, [posts]);
+
+  // Calculate platform breakdown
+  useEffect(() => {
+    if (!posts.length) {
+      setBreakdown([]);
+      return;
+    }
+
+    const total = posts.reduce(
+      (sum, p) => sum + (p[breakdownMetric] ?? 0),
+      0
+    );
+
+    const grouped = posts.reduce((acc, p) => {
+      const key = p.platform ?? 'Unknown';
+      acc[key] = (acc[key] ?? 0) + (p[breakdownMetric] ?? 0);
+      return acc;
+    }, {});
+
+    const platformColors = {
+      'Reddit': '#FF4500',
+      'LinkedIn': '#0A66C2',
+      'Product Hunt': '#DA552F',
+      'X': '#333333',
+      'Threads': '#000000',
+      'Indie Hackers': '#0EA5E9'
+    };
+
+    const result = Object.entries(grouped).map(([platform, value]) => ({
+      platform,
+      percentage: total ? Math.round((value / total) * 100) : 0,
+      color: platformColors[platform] || '#52525B'
+    })).sort((a, b) => b.percentage - a.percentage);
+
+    setBreakdown(result);
+  }, [posts, breakdownMetric]);
+
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
-  // Auto-fetch on mount if username exists
-  useEffect(() => {
-    if (username) {
-      fetchRedditPosts(username);
-    }
-  }, []);
+  const displayedPosts = showAllPosts ? posts : posts.slice(0, 4);
+
+  if (isLoading && !posts.length) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
-        <div className="max-w-4xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-white">Reddit Post Tracker</h1>
-            <p className="text-zinc-400 text-sm">Track your Reddit performance in real-time.</p>
-          </div>
-
-          <div className="max-w-md">
-            <ConnectAccounts 
-              onFetch={fetchRedditPosts} 
-              isFetching={isFetching} 
-              initialUsername={username}
-            />
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              <AlertCircle size={18} />
-              <p>{error}</p>
-            </div>
-          )}
-
-          {posts.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-white text-sm font-semibold">Recent Submissions</h3>
-                <span className="text-zinc-500 text-xs font-medium">{posts.length} posts found</span>
+        {(!hasConnectedAccounts && posts.length === 0) || isConnecting ? (
+          <div className="max-w-[680px] mx-auto py-10 w-full">
+            <div className="flex items-center justify-between mb-8">
+              <div className="space-y-1">
+                <h1 className="text-white text-2xl font-semibold mt-4">Connect Accounts</h1>
+                <p className="text-zinc-400 text-sm mt-1">Link your platforms to track performance.</p>
               </div>
+              {isConnecting && (
+                <button 
+                  onClick={() => setIsConnecting(false)}
+                  className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all bg-transparent"
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            
+            <ConnectAccounts onConnect={() => { handleRefresh(); setIsConnecting(false); }} />
+          </div>
+        ) : (
+          <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-white">Analytics</h1>
+              <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
+            </div>
 
-              <div className="grid gap-4">
-                {posts.map((post) => (
-                  <div 
-                    key={post.id}
-                    className="bg-[#111111] border border-white/5 rounded-xl p-5 hover:border-orange-500/30 transition-all group"
+            <div className="flex items-center">
+              <button 
+                onClick={() => setIsConnecting(true)}
+                className="px-4 py-2.5 rounded-xl bg-[#111111] border border-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2"
+              >
+                <Plus size={14} className="text-orange-500" />
+                Connect Account
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <PeriodSelector 
+                selected={selectedPeriod}
+                onChange={setSelectedPeriod}
+              />
+              
+              <div className="flex gap-6 border-b border-[#1F1F1F]">
+                {["All Platforms", "Reddit", "LinkedIn", "Product Hunt", "Indie Hackers"].map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActivePlatform(tab)}
+                    className={cn(
+                      "text-sm font-medium pb-2 transition-all bg-transparent",
+                      activePlatform === tab 
+                        ? "text-white border-b-2 border-orange-500" 
+                        : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
+                    )}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-orange-500 text-[10px] font-bold uppercase tracking-widest bg-orange-500/10 px-2 py-0.5 rounded">
-                            {post.subreddit}
-                          </span>
-                          <span className="text-zinc-600 text-xs">{post.date}</span>
-                        </div>
-                        <a 
-                          href={post.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-white font-medium text-base hover:text-orange-500 transition-colors flex items-center gap-2 group/link"
-                        >
-                          {post.title}
-                          <ExternalLink size={14} className="opacity-0 group-hover/link:opacity-100 transition-opacity" />
-                        </a>
-                      </div>
-
-                      <div className="flex items-center gap-6 sm:gap-8">
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
-                            <ArrowBigUp size={16} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Upvotes</span>
-                          </div>
-                          <span className="text-white font-bold">{post.upvotes}</span>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-1.5 text-zinc-400 mb-1">
-                            <MessageSquare size={14} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Comments</span>
-                          </div>
-                          <span className="text-white font-bold">{post.comments}</span>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-1.5 text-orange-500 mb-1">
-                            <Zap size={14} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Engagement</span>
-                          </div>
-                          <span className="text-orange-500 font-bold">{post.engagement}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    {tab}
+                  </button>
                 ))}
               </div>
             </div>
-          )}
 
-          {!isFetching && posts.length === 0 && !error && username && (
-            <div className="text-center py-20 bg-[#111111] border border-white/5 rounded-2xl">
-              <p className="text-zinc-500 text-sm">No posts found for this user.</p>
+            <MetricCards metrics={metrics} />
+
+            <div className="space-y-6">
+              <div className="min-w-0">
+                <PostPerformanceTable 
+                  posts={displayedPosts} 
+                  showAll={showAllPosts}
+                  onToggleShowAll={() => setShowAllPosts(!showAllPosts)}
+                />
+              </div>
+              <div className="w-full">
+                <PlatformBreakdownBar 
+                  breakdown={breakdown} 
+                  metric={breakdownMetric}
+                  onMetricChange={setBreakdownMetric}
+                />
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {hasConnectedAccounts && <AnalyticsBuddy />}
       </main>
     </div>
   );
