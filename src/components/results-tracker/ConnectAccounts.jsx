@@ -43,7 +43,7 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      const response = await fetch(`https://www.reddit.com/user/${userHandle}/submitted.json?limit=10`, {
+      const response = await fetch(`https://www.reddit.com/user/${userHandle}/submitted.json?limit=25&sort=new`, {
         headers: { 'User-Agent': 'VibePromote/1.0' }
       });
       
@@ -70,12 +70,62 @@ export default function ConnectAccounts({ onConnect }) {
   };
 
   const fetchProductHuntPosts = async (userHandle) => {
-    // Mocking Product Hunt fetch for now
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return [
-      { title: `${userHandle}'s Latest Launch`, subreddit: 'Product Hunt', score: 142, num_comments: 24, url: '#', created_at: new Date().toISOString() },
-      { title: "Community Tool Update", subreddit: 'Product Hunt', score: 56, num_comments: 12, url: '#', created_at: new Date(Date.now() - 86400000).toISOString() }
-    ];
+    const PH_TOKEN = "q1XgE1_GB8j1l5fV4ZZuUTsfXKI8nyXOPDgSN44VK3I";
+    const query = `
+      query FetchUserPosts($username: String!) {
+        user(username: $username) {
+          posts(first: 20) {
+            edges {
+              node {
+                name
+                votesCount
+                commentsCount
+                createdAt
+                slug
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch('https://api.producthunt.com/v2/api/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${PH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          variables: { username: userHandle }
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.errors) {
+        throw new Error(result.errors[0].message);
+      }
+
+      if (!result.data?.user) {
+        throw new Error('Product Hunt user not found.');
+      }
+
+      const posts = (result.data.user.posts.edges || []).map(edge => ({
+        title: edge.node.name,
+        subreddit: 'Product Hunt',
+        score: edge.node.votesCount,
+        num_comments: edge.node.commentsCount,
+        url: `https://www.producthunt.com/posts/${edge.node.slug}`,
+        created_at: edge.node.createdAt
+      }));
+
+      if (posts.length === 0) throw new Error('This user has no posts on Product Hunt.');
+      return posts;
+    } catch (err) {
+      throw err;
+    }
   };
 
   const handleStartFetch = async (e) => {
@@ -134,10 +184,10 @@ export default function ConnectAccounts({ onConnect }) {
         user_id: user.id,
         platform: selectedPlatform.id,
         title: p.title,
-        views: p.score * 3, // Estimated
+        views: null,
         engagements: p.score,
         comments: p.num_comments,
-        link_clicks: Math.floor(p.score * 0.2),
+        link_clicks: null,
         created_at: p.created_at
       }));
 
@@ -255,7 +305,7 @@ export default function ConnectAccounts({ onConnect }) {
                 </div>
                 <div>
                   <h3 className="text-white font-bold">Found {fetchedPosts.length} posts</h3>
-                  <p className="text-zinc-400 text-xs">Previewing data for u/{username}</p>
+                  <p className="text-zinc-400 text-xs">Previewing data for {selectedPlatform.id === 'Reddit' ? 'u/' : ''}{username}</p>
                 </div>
               </div>
               <button 

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export default function MetricCards({ metrics }) {
   const items = [
     { key: 'views', label: 'Views', icon: Eye },
-    { key: 'engagements', label: 'Engagements', icon: Heart },
+    { key: 'engagements', label: 'Upvotes', icon: Heart },
     { key: 'linkTaps', label: 'Link Taps', icon: Link2 },
     { key: 'comments', label: 'Comments', icon: MessageCircle },
   ];
@@ -31,30 +31,36 @@ export default function MetricCards({ metrics }) {
       {items.map((item) => {
         const data = metrics[item.key];
         const isPositive = data.change >= 0;
+        
+        // Show "—" if views or linkTaps are null or 0
+        const shouldShowPlaceholder = (item.key === 'views' || item.key === 'linkTaps') && (!data.value || data.value === 0);
+        const displayValue = shouldShowPlaceholder ? "—" : data.value.toLocaleString();
 
         return (
           <div key={item.key} className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-zinc-400">
                 <item.icon size={16} />
-                <span className="text-sm">{data.label}</span>
+                <span className="text-sm">{item.label}</span>
               </div>
             </div>
             
             <div className="mt-2">
               <h3 className="text-white text-3xl font-bold">
-                {data.value.toLocaleString()}
+                {displayValue}
               </h3>
-              <div className="flex items-center gap-1 mt-1">
-                <span className={cn(
-                  "text-xs font-medium flex items-center",
-                  isPositive ? "text-green-400" : "text-red-400"
-                )}>
-                  {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                  {Math.abs(data.change)}%
-                </span>
-                <span className="text-zinc-600 text-xs">vs last period</span>
-              </div>
+              {!shouldShowPlaceholder && (
+                <div className="flex items-center gap-1 mt-1">
+                  <span className={cn(
+                    "text-xs font-medium flex items-center",
+                    isPositive ? "text-green-400" : "text-red-400"
+                  )}>
+                    {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                    {Math.abs(data.change)}%
+                  </span>
+                  <span className="text-zinc-600 text-xs">vs last period</span>
+                </div>
+              )}
             </div>
           </div>
         );
