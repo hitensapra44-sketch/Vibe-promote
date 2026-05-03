@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const platforms = [
   { id: 'Reddit', name: 'Reddit', desc: 'Karma & engagement', icon: MessageSquare, color: '#FF4500' },
-  { id: 'Product Hunt', name: 'Product Hunt', desc: 'Votes & comments', icon: Zap, color: '#DA552F' },
+  { id: 'Product Hunt', name: 'Product Hunt', desc: 'Coming soon', icon: Zap, color: '#DA552F', comingSoon: true },
   { id: 'Twitter', name: 'X / Twitter', desc: 'Coming soon', icon: Twitter, color: '#333333', comingSoon: true },
   { id: 'Threads', name: 'Threads', desc: 'Coming soon', icon: AtSign, color: '#000000', comingSoon: true },
 ];

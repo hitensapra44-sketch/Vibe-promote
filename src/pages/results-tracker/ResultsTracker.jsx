@@ -18,7 +18,7 @@ export default function ResultsTracker() {
   const [hasConnectedAccounts, setHasConnectedAccounts] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
-  const [activePlatform, setActivePlatform] = useState("All Platforms");
+  const [activePlatform, setActivePlatform] = useState("Reddit");
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [breakdownMetric, setBreakdownMetric] = useState("engagement");
   
@@ -60,9 +60,7 @@ export default function ResultsTracker() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (activePlatform !== 'All Platforms') {
-      query = query.eq('platform', activePlatform);
-    }
+    query = query.eq('platform', activePlatform);
 
     const now = new Date();
     if (selectedPeriod === 'This Week') {
@@ -260,7 +258,7 @@ export default function ResultsTracker() {
               />
               
               <div className="flex gap-6 border-b border-[#1F1F1F]">
-                {["All Platforms", "Reddit", "Product Hunt"].map(tab => (
+                {["Reddit"].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActivePlatform(tab)}

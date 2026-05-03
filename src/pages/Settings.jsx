@@ -156,7 +156,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => navigate('/pre-purchase')}
-                  className="w-full border border-white/15 bg-white/10 hover:bg-white/15 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full border border-white/10 bg-transparent hover:bg-white/5 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   Upgrade to Lifetime — $49
                   <ArrowRight className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function Settings() {
             <button
               type="button"
               onClick={() => setShowDeleteModal(true)}
-              className="w-full border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/[0.14] rounded-xl py-2.5 text-xs font-bold transition-colors"
+              className="w-full border border-red-500/40 bg-transparent text-red-400 hover:bg-red-500/10 rounded-xl py-2.5 text-xs font-bold transition-colors"
             >
               Delete My Account & Data
             </button>
@@ -280,7 +280,7 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 border border-white/15 bg-white/10 text-gray-300 hover:bg-white/15 rounded-lg py-2.5 text-xs font-bold transition-colors"
+                    className="flex-1 border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 rounded-lg py-2.5 text-xs font-bold transition-colors"
                   >
                     Cancel
                   </button>
@@ -288,7 +288,7 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={handleDeleteAccount}
-                    className="flex-1 border border-red-500/60 bg-red-600/90 hover:bg-red-600 text-white rounded-lg py-2.5 text-xs font-bold transition-colors"
+                    className="flex-1 border border-red-500/50 bg-transparent hover:bg-red-500/10 text-red-400 rounded-lg py-2.5 text-xs font-bold transition-colors"
                   >
                     Yes, Delete Everything
                   </button>
