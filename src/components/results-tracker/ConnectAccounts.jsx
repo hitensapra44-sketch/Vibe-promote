@@ -81,76 +81,81 @@ export default function ConnectAccounts({ onConnect }) {
   };
 
   const fetchProductHuntPosts = async (userHandle) => {
-    const PH_TOKEN = "q1XgE1_GB8j1l5fV4ZZuUTsfXKI8nyXOPDgSN44VK3I";
-    
-    const USER_QUERY = `
-      query {
-        me {
-          id
-          name
-          username
-        }
-      }
-    `;
+    const PH_ENDPOINT = 'https://api.producthunt.com/v2/api/graphql';
+    const PH_TOKEN = import.meta.env.VITE_PH_DEV_TOKEN;
 
-    const POSTS_QUERY = `
-      query GetUserPosts($userId: ID!) {
-        posts(postedBefore: null, postedAfter: null, userId: $userId, first: 20) {
-          edges {
-            node {
-              id
-              name
-              slug
-              votesCount
-              commentsCount
-              createdAt
-              url
+    const phHeaders = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${PH_TOKEN}`
+    };
+
+    try {
+      // STEP A: Get user ID from username
+      const userQuery = `
+        query GetUser($username: String!) {
+          user(username: $username) {
+            id
+            name
+            username
+          }
+        }
+      `;
+
+      const userRes = await fetch(PH_ENDPOINT, {
+        method: 'POST',
+        headers: phHeaders,
+        body: JSON.stringify({
+          query: userQuery,
+          variables: { username: userHandle }
+        })
+      });
+
+      const userData = await userRes.json();
+
+      if (userData.errors || !userData.data?.user) {
+        throw new Error("Username not found on Product Hunt");
+      }
+
+      const userId = userData.data.user.id;
+
+      // STEP B: Fetch their posts using the user ID
+      const postsQuery = `
+        query GetUserPosts($userId: ID!) {
+          posts(userId: $userId, order: NEWEST, first: 20) {
+            edges {
+              node {
+                id
+                name
+                tagline
+                votesCount
+                commentsCount
+                createdAt
+                url
+              }
             }
           }
         }
-      }
-    `;
+      `;
 
-    try {
-      // Step A: Get User ID
-      const userResponse = await fetch('https://api.producthunt.com/v2/api/graphql', {
+      const postsRes = await fetch(PH_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${PH_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: USER_QUERY }),
-      });
-
-      const userResult = await userResponse.json();
-      if (userResult.errors) throw new Error(userResult.errors[0].message);
-      
-      const userId = userResult.data?.me?.id;
-      if (!userId) throw new Error("Product Hunt requires a developer token. Get yours free at producthunt.com/v2/oauth/applications");
-
-      // Step B: Get Posts
-      const postsResponse = await fetch('https://api.producthunt.com/v2/api/graphql', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${PH_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
+        headers: phHeaders,
         body: JSON.stringify({
-          query: POSTS_QUERY,
+          query: postsQuery,
           variables: { userId }
-        }),
+        })
       });
 
-      const postsResult = await postsResponse.json();
-      if (postsResult.errors) throw new Error(postsResult.errors[0].message);
+      const postsData = await postsRes.json();
+      if (postsData.errors) throw new Error(postsData.errors[0].message);
 
-      const posts = (postsResult.data.posts.edges || []).map(edge => ({
+      const posts = (postsData.data?.posts?.edges || []).map(edge => ({
         id: edge.node.id,
         title: edge.node.name,
         subreddit: 'Product Hunt',
         score: edge.node.votesCount,
         num_comments: edge.node.commentsCount,
-        engagement: edge.node.votesCount + edge.node.commentsCount,
+        engagement: (edge.node.votesCount || 0) + (edge.node.commentsCount || 0),
         url: edge.node.url,
         created_at: edge.node.createdAt
       }));
