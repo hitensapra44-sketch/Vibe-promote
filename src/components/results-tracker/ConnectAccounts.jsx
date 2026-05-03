@@ -106,6 +106,19 @@ export default function ConnectAccounts({ onConnect }) {
                 }
               }
             }
+            votedProducts(first: 20) {
+              edges {
+                node {
+                  id
+                  name
+                  tagline
+                  votesCount
+                  commentsCount
+                  createdAt
+                  url
+                }
+              }
+            }
           }
         }
       `;
@@ -122,7 +135,11 @@ export default function ConnectAccounts({ onConnect }) {
       const postsData = await postsRes.json();
       if (postsData.errors) throw new Error(postsData.errors[0].message);
 
-      const posts = (postsData.data?.user?.madePosts?.edges || []).map(edge => ({
+      const madePosts = (postsData.data?.user?.madePosts?.edges || []);
+      const votedPosts = (postsData.data?.user?.votedProducts?.edges || []);
+      const allEdges = madePosts.length > 0 ? madePosts : votedPosts;
+
+      const posts = allEdges.map(edge => ({
         id: edge.node.id,
         title: edge.node.name,
         subreddit: 'Product Hunt',
