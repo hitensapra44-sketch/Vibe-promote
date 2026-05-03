@@ -41,6 +41,7 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                 <th className="px-4 py-3 font-semibold">Comments</th>
                 <th className="px-4 py-3 font-semibold">Engagement</th>
                 <th className="px-4 py-3 font-semibold">Link</th>
+                <th className="px-4 py-3 font-semibold"></th>
               </tr>
             </thead>
             <tbody>
@@ -74,10 +75,23 @@ export default function PostPerformanceTable({ posts, showAll, onToggleShowAll, 
                         </a>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      {post.url && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(post.url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="text-zinc-500 hover:text-orange-400 transition-colors bg-transparent p-1"
+                        >
+                          <ExternalLink size={16} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                   {expandedRow === index && (
                     <tr className="bg-[#1A1A1A]/50">
-                      <td colSpan={6} className="px-8 py-6 border-t border-[#1F1F1F]">
+                      <td colSpan={7} className="px-8 py-6 border-t border-[#1F1F1F]">
                         <div className="space-y-4">
                           <p className="text-zinc-300 text-sm leading-relaxed">
                             {post.title}

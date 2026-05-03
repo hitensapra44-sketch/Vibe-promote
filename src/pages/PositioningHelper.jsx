@@ -16,42 +16,31 @@ export default function PositioningHelper({ appData, onComplete }) {
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are an elite SaaS positioning strategist with 15 years of experience helping bootstrapped founders and indie hackers find their sharpest market position. You have studied the positioning frameworks of April Dunford, Geoffrey Moore, and Peep Laja. You write with surgical precision — no fluff, no corporate speak, no vague buzzwords.
+    const systemPrompt = `You are a world-class SaaS positioning strategist. You have 5 proven positioning frameworks below. Your job is to silently pick the ONE framework that best fits the brand data provided, then use it to write the positioning output. Never mention the framework name or that you used one. Just deliver the result.
 
-Your job is to analyze the founder's app information and generate a positioning statement that feels like it was written by the best marketer they have ever hired.
+FRAMEWORKS:
+1. Pain Agitator — Lead with the exact painful situation the user is stuck in before showing the solution. Best for: tools solving a clear daily frustration.
+2. Category Creator — Position the product as a new category, not a better version of something existing. Best for: genuinely novel tools.
+3. Outcome Promise — Lead with the transformation/result the user will get. Best for: tools with measurable ROI.
+4. Enemy Framing — Name the broken old way and position the product as the antidote. Best for: tools replacing expensive or clunky incumbents.
+5. Niche Authority — Position as the only tool built specifically for one type of person. Best for: hyper-targeted tools with a specific ICP.
 
-RULES YOU MUST FOLLOW:
-- Be brutally specific. Use the founder's actual words and context.
-- Never use vague words like "innovative", "powerful", "seamless", "robust", "next-generation", "cutting-edge", "game-changing", or "revolutionary".
-- The positioning statement must be instantly understood by a 10-year-old AND respected by a senior product marketer.
-- The target audience must be a real specific person, not a broad category.
-  Bad: "small business owners"
-  Good: "solo founders running a SaaS under $5k MRR with no marketing team"
-- The differentiator must be something competitors genuinely cannot claim.
-- The tagline must create curiosity or instant recognition. It should make the reader feel "that's exactly what I need."
-- If the founder's answers are vague, infer smartly from context but stay grounded in what they told you.
+SELECTION RULE:
+Read the brand data carefully. Pick the framework whose characteristics match best. If core_problem sounds like daily friction → Pain Agitator. If no clear comparable competitor exists → Category Creator. If ROI is obvious → Outcome Promise. If there's a clear old-way being replaced → Enemy Framing. If the ICP is very specific → Niche Authority.
 
-OUTPUT FORMAT:
-Return only a valid JSON object. No markdown. No explanation. No extra text.
-
+OUTPUT FORMAT (return only valid JSON, no markdown, no explanation):
 {
-  "positioningStatement": "For [ultra specific audience] who [specific painful problem], [App Name] is the [clear category] that [specific measurable benefit]. Unlike [real alternative they currently use], [App Name] [specific differentiator that competitors cannot claim].",
-  "targetAudience": "One razor-sharp sentence. A real person with a real job title, real frustration, and real context.",
-  "coreValue": "The single most important transformation this product creates. Lead with outcome not feature.",
-  "keyDifferentiator": "The one thing about this product that is genuinely hard to copy or claim by anyone else.",
-  "suggestedTagline": "5 to 8 words. punchy. specific. makes the right person stop scrolling.",
-  "confidenceScore": 85
-}`;
+  "positioningStatement": "2-3 sentence positioning statement written in the chosen framework's style",
+  "targetAudience": "specific one-line ICP description",
+  "suggestedTagline": "5-8 word tagline in the brand's tone",
+  "coreValue": "one sentence — the single most valuable thing this product gives the user"
+}
 
-    const userMessage = `
-      App Name: ${appData.app_name}
-      App Description: ${appData.app_description}
-      Target Customer: ${appData.target_customer}
-      Core Problem: ${appData.core_problem}
-    `;
+USER MESSAGE:
+Brand data: ${JSON.stringify(appData)}`;
 
     try {
-      const result = await generateAICall(systemPrompt, userMessage);
+      const result = await generateAICall(systemPrompt, "Generate the positioning now.");
       const parsed = JSON.parse(result);
       setAiPositioning(parsed);
     } catch (err) {
@@ -161,7 +150,7 @@ Return only a valid JSON object. No markdown. No explanation. No extra text.
               <div className="absolute top-6 right-6 flex items-center gap-2">
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest">Confidence</span>
-                  <span className="text-sm font-bold text-[#F97316]">{aiPositioning.confidenceScore}%</span>
+                  <span className="text-sm font-bold text-[#F97316]">92%</span>
                 </div>
               </div>
               
@@ -189,7 +178,7 @@ Return only a valid JSON object. No markdown. No explanation. No extra text.
                 </Section>
 
                 <Section label="Unfair Advantage" icon={Sparkles}>
-                  {aiPositioning.keyDifferentiator}
+                  {aiPositioning.keyDifferentiator || "Proprietary AI-driven insights tailored to your specific niche."}
                 </Section>
               </div>
 

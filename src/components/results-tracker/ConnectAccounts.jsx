@@ -52,7 +52,6 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      // Use the project's internal proxy API for Reddit
       const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(`https://pxueqqjfvbrzfvmcbynu.supabase.co/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}`, {
         headers: {
@@ -83,18 +82,29 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchProductHuntPosts = async (userHandle) => {
     const PH_TOKEN = "q1XgE1_GB8j1l5fV4ZZuUTsfXKI8nyXOPDgSN44VK3I";
-    const query = `
-      query FetchUserPosts($username: String!) {
-        user(username: $username) {
-          posts(first: 20) {
-            edges {
-              node {
-                name
-                votesCount
-                commentsCount
-                createdAt
-                slug
-              }
+    
+    const USER_QUERY = `
+      query {
+        me {
+          id
+          name
+          username
+        }
+      }
+    `;
+
+    const POSTS_QUERY = `
+      query GetUserPosts($userId: ID!) {
+        posts(postedBefore: null, postedAfter: null, userId: $userId, first: 20) {
+          edges {
+            node {
+              id
+              name
+              slug
+              votesCount
+              commentsCount
+              createdAt
+              url
             }
           }
         }
@@ -102,35 +112,46 @@ export default function ConnectAccounts({ onConnect }) {
     `;
 
     try {
-      const response = await fetch('https://api.producthunt.com/v2/api/graphql', {
+      // Step A: Get User ID
+      const userResponse = await fetch('https://api.producthunt.com/v2/api/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${PH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: USER_QUERY }),
+      });
+
+      const userResult = await userResponse.json();
+      if (userResult.errors) throw new Error(userResult.errors[0].message);
+      
+      const userId = userResult.data?.me?.id;
+      if (!userId) throw new Error("Product Hunt requires a developer token. Get yours free at producthunt.com/v2/oauth/applications");
+
+      // Step B: Get Posts
+      const postsResponse = await fetch('https://api.producthunt.com/v2/api/graphql', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${PH_TOKEN}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query,
-          variables: { username: userHandle }
+          query: POSTS_QUERY,
+          variables: { userId }
         }),
       });
 
-      const result = await response.json();
-      
-      if (result.errors) {
-        throw new Error(result.errors[0].message);
-      }
+      const postsResult = await postsResponse.json();
+      if (postsResult.errors) throw new Error(postsResult.errors[0].message);
 
-      if (!result.data?.user) {
-        throw new Error('Product Hunt user not found.');
-      }
-
-      const posts = (result.data.user.posts.edges || []).map(edge => ({
+      const posts = (postsResult.data.posts.edges || []).map(edge => ({
+        id: edge.node.id,
         title: edge.node.name,
         subreddit: 'Product Hunt',
         score: edge.node.votesCount,
         num_comments: edge.node.commentsCount,
         engagement: edge.node.votesCount + edge.node.commentsCount,
-        url: `https://www.producthunt.com/posts/${edge.node.slug}`,
+        url: edge.node.url,
         created_at: edge.node.createdAt
       }));
 
@@ -171,7 +192,6 @@ export default function ConnectAccounts({ onConnect }) {
   const handleFinalizeConnection = async () => {
     setLoading(true);
     try {
-      // 1. Store account
       const { data: existingAccount } = await supabase
         .from('social_accounts')
         .select('id')
@@ -190,17 +210,16 @@ export default function ConnectAccounts({ onConnect }) {
           .insert({ user_id: user.id, platform: selectedPlatform.id, username: username.trim() });
       }
 
-      // 2. Sync posts to DB
       await supabase.from('social_posts').delete().eq('user_id', user.id).eq('platform', selectedPlatform.id);
 
       const mappedPosts = fetchedPosts.map(p => ({
         user_id: user.id,
         platform: selectedPlatform.id,
-        title: `${p.title}||${p.url}`, // Store URL in title for retrieval
+        title: `${p.title}||${p.url}`,
         views: null,
         engagements: p.score,
         comments: p.num_comments,
-        link_clicks: 0, // Reset link clicks for new sync
+        link_clicks: 0,
         created_at: p.created_at
       }));
 

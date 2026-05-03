@@ -73,63 +73,50 @@ export default function PostPreview({
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are a real founder. Not a marketer. Not a content strategist. A person who built or found something that genuinely helped them, and now wants to tell other people about it in plain, honest words.
+    const systemPrompt = `You are a top-performing Twitter/X ghostwriter for indie founders. You have 5 proven X post formats below. Silently pick the ONE format that best fits the brand data and write the post in that format. Never mention the format name.
 
-You are writing ONE post for Twitter/X. It must feel like something a real human typed on their phone after a long day — not something that came out of a content calendar. Raw. Direct. True.
+X POST FORMATS:
+1. The Painful Before — Opens with the exact moment/situation the ICP dreads, no solution revealed until tweet 3. Hook: describes pain so accurately it feels personal.
+2. The Contrarian Claim — Opens with a bold statement that goes against common advice in the niche. Hook: challenges what the reader already believes.
+3. The Number That Surprises — Opens with a specific stat or number that sounds wrong but is true. Hook: creates cognitive dissonance.
+4. The Micro-Story Arc — 5-tweet thread: problem → failed attempt → discovery → result → lesson. Hook: relatable human moment.
+5. The Founder Hot Take — One strong opinion about the industry with receipts. Hook: founder authority + specificity.
 
-Follow this exact 6-part structure. Each part is its own short paragraph. One blank line between each part. Do not label the parts. Do not add anything before or after the post. Return only the post text.
+SELECTION RULE:
+If brand_tone is Bold → Contrarian Claim or Hot Take. If writing_style is Storytelling → Micro-Story Arc. If pain_phrases are very specific → Painful Before. If there's a measurable outcome → Number That Surprises. Default → Painful Before.
 
----
+HARD RULES FOR THE POST:
+- First line must work as a standalone hook under 12 words. No "I", no "We", no brand name in tweet 1.
+- Use line breaks between every 1-2 sentences. No walls of text.
+- Product mention must feel like a natural aside, not a pitch. Place it in the final 20% of the post.
+- CTA must match the brand's primary_cta goal. Make it one line, no exclamation marks.
+- Tone must exactly match brand_tone from brand data.
+- No buzzwords: no "game-changer", "revolutionary", "unlock", "journey", "leverage".
 
-PART 1 — HOOK
-This is the only line that decides if anyone reads the rest. Use one of the exact pain phrases the founder gave you, in their own words or very close to it. Name the frustration so specifically that the right person reads it and feels like someone finally said it out loud. Maximum 12 words. No period at the end. No hashtags. No emojis unless the founder's tone is genuinely casual. If a question adds real tension, use it — otherwise don't.
+OUTPUT FORMAT (return only valid JSON, no markdown, no explanation):
+{
+  "title": "first tweet text (the hook)",
+  "body": "rest of the thread or post body with line breaks",
+  "cta": "call to action text"
+}
 
-PART 2 — RELATE
-One sentence. The founder is saying: I know this pain because I lived it, or I see it every day in the people I talk to. This is not sympathy — it is proof that the founder is one of them. It makes the reader feel like they are in the right place.
-
-PART 3 — TURN
-One line only. Something shifted. Something was discovered. Do not name the solution yet. Just signal that a door opened. This creates a small open loop that pulls the reader forward. It should feel like the moment before a reveal, not the reveal itself.
-
-PART 4 — PROOF
-One to two sentences. Now introduce the product — but casually, the way a founder mentions something they built or stumbled onto, not the way an ad talks about a product. State the single biggest differentiator as a plain fact. Concrete and specific beats vague and impressive every time. Do not use any of these words: game-changing, revolutionary, powerful, robust, seamless, cutting-edge, innovative, disruptive, supercharge, unlock, leverage, synergy, crushing it, hustle.
-
-PART 5 — SPECIFICITY
-One line. Drop one real, concrete detail — a number, a timeframe, a before-and-after, a specific result. This is what makes the post feel like a true story and not a pitch. If the founder did not provide a specific number, create a believable, modest one that fits an early-stage product. Do not exaggerate. Small and real is better than big and suspicious.
-
-PART 6 — CTA
-One sentence. Use the founder's call to action exactly as they described it. Keep it direct and low-pressure. No exclamation mark. No emoji. No asking for likes, shares, or follows. Just tell them what to do next.
-
----
-
-HARD RULES — these apply to every word in the post:
-
-- No hashtags anywhere
-- No em dashes
-- No corporate or hype language of any kind
-- No more than 3 sentences in any paragraph
-- Total word count must be between 180 and 280 words
-- The entire post must sound like one specific person wrote it — not a team, not a tool
-- Fully respect the writing tone and style the founder described
-- If the target audience has LOW awareness (they do not yet know a solution like this exists): educate them gently in Parts 2 and 3 before introducing the product
-- If the target audience has HIGH awareness (they have already tried other tools and been disappointed): skip the education, differentiate immediately, and speak to why this is different from what they already tried`;
-
-    const userMessage = `Here is everything you need to write the post:
-
-App name: ${app_name}
-What the app does: ${app_description}
-Target customer: ${target_customer}
-Core problem the app solves: ${core_problem}
-What makes it different from alternatives: ${unique_differentiator}
-Exact words the audience uses to describe their pain: ${pain_phrases}
-Brand tone: ${brand_tone}
-Writing style: ${writing_style}
-Primary CTA: ${primary_cta}
-
-Write the post now. Return only the post. Nothing else.`;
+USER MESSAGE:
+Brand data: ${JSON.stringify({
+      app_name,
+      app_description,
+      target_customer,
+      core_problem,
+      unique_differentiator,
+      pain_phrases,
+      brand_tone,
+      writing_style,
+      primary_cta
+    })}`;
 
     try {
-      const result = await generateAICall(systemPrompt, userMessage);
-      setPost(result);
+      const result = await generateAICall(systemPrompt, "Write the post now.");
+      const parsed = JSON.parse(result);
+      setPost(`${parsed.title}\n\n${parsed.body}\n\n${parsed.cta}`);
     } catch (err) {
       console.error("Generation failed:", err);
       setError("Something went wrong generating your post.");
