@@ -116,21 +116,21 @@ export default function ConnectAccounts({ onConnect }) {
         throw new Error("Username not found on Product Hunt");
       }
 
-      const userId = userData.data.user.id;
-
-      // STEP B: Fetch their posts using the user ID
+      // STEP B: Fetch their posts using the username directly
       const postsQuery = `
-        query GetUserPosts($userId: ID!) {
-          posts(userId: $userId, order: NEWEST, first: 20) {
-            edges {
-              node {
-                id
-                name
-                tagline
-                votesCount
-                commentsCount
-                createdAt
-                url
+        query GetUserPosts($username: String!) {
+          user(username: $username) {
+            madePosts(first: 20, order: NEWEST) {
+              edges {
+                node {
+                  id
+                  name
+                  tagline
+                  votesCount
+                  commentsCount
+                  createdAt
+                  url
+                }
               }
             }
           }
@@ -142,14 +142,14 @@ export default function ConnectAccounts({ onConnect }) {
         headers: phHeaders,
         body: JSON.stringify({
           query: postsQuery,
-          variables: { userId }
+          variables: { username: userHandle }
         })
       });
 
       const postsData = await postsRes.json();
       if (postsData.errors) throw new Error(postsData.errors[0].message);
 
-      const posts = (postsData.data?.posts?.edges || []).map(edge => ({
+      const posts = (postsData.data?.user?.madePosts?.edges || []).map(edge => ({
         id: edge.node.id,
         title: edge.node.name,
         subreddit: 'Product Hunt',
@@ -262,7 +262,7 @@ export default function ConnectAccounts({ onConnect }) {
                   )}
                 >
                   {p.comingSoon && (
-                    <span className="absolute top-2 right-2 bg-[#1F1F1F] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+                    <span className="absolute top-2 right-2 bg-[#111111] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
                   )}
                   {isConnected && (
                     <div className="absolute top-2 right-2 flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full">
@@ -348,7 +348,7 @@ export default function ConnectAccounts({ onConnect }) {
           <motion.div 
             key="step3"
             initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: -0.95 }}
             className="bg-[#111111] border border-green-500/30 rounded-2xl p-8"
           >
