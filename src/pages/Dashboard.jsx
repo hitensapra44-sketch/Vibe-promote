@@ -277,7 +277,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/brand-brain')}
-              className="px-4 py-2 rounded-lg border border-orange-500/40 bg-orange-500/10 text-orange-500 text-xs font-bold hover:bg-orange-500/20 transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-white/10 text-white text-xs font-bold hover:bg-white/5 transition-all flex items-center gap-2 bg-transparent"
             >
               Update brand brain
               <ArrowRight className="w-3 h-3" />

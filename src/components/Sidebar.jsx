@@ -13,6 +13,7 @@ import {
   PanelLeftOpen,
   Brain,
   Calendar,
+  Link2,
   Menu,
   BarChart2,
   PenLine,
@@ -127,6 +128,20 @@ export default function Sidebar({ isPaid }) {
           </nav>
 
           <div className="p-3 border-t border-white/5 space-y-3">
+            <button
+              onClick={() => {
+                navigate('/connected-accounts');
+                setMobileMenuOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-white hover:bg-white/5 transition-all bg-transparent",
+                sidebarCollapsed ? "justify-center" : ""
+              )}
+            >
+              <Link2 className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && "Connect accounts"}
+            </button>
+
             {!sidebarCollapsed && (
               <div className="px-2">
                 <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Account</p>

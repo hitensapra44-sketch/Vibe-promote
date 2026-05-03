@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Chrome } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Chrome, User } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const isSignInInitial = searchParams.get('mode') === 'signin';
   const [isSignIn, setIsSignIn] = useState(isSignInInitial);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,9 +32,16 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = isSignIn 
+      const trimmedName = name.trim();
+      const { data, error } = isSignIn
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+        : await supabase.auth.signUp({
+            email,
+            password,
+            ...(trimmedName
+              ? { options: { data: { full_name: trimmedName } } }
+              : {}),
+          });
 
       if (error) throw error;
 
@@ -106,6 +114,23 @@ export default function Auth() {
           </div>
 
           <form onSubmit={handleEmailAuth} className="space-y-6">
+            {!isSignIn && (
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-text-secondary ml-1 uppercase tracking-wider">Name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary/50" />
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-bg-elevated border border-border-muted text-text-primary placeholder-text-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-xs font-semibold text-text-secondary ml-1 uppercase tracking-wider">Email</label>
               <div className="relative">
@@ -139,7 +164,7 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] hover:opacity-90 text-white font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 mt-4"
+              className="w-full py-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xl flex items-center justify-center gap-2 transition-colors mt-4 disabled:opacity-50"
             >
               {loading ? 'Processing...' : "Let's go"}
               <ArrowRight className="w-6 h-6" />

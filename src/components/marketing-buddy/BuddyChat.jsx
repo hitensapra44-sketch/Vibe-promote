@@ -64,12 +64,11 @@ export default function BuddyChat() {
     }
   };
 
-  const quickPrompts = [
-    "Give me 3 Reddit post ideas",
-    "How should I describe my app to a skeptic?",
-    "What's the best hook for my audience?",
-    "Review my current strategy",
-    "Write a viral Twitter thread intro"
+  const suggestions = [
+    'How should I pitch my SaaS on Reddit?',
+    'What onboarding emails fit my product?',
+    'Ideas to differentiate my app from competitors?',
+    'Landing-page headlines for my app'
   ];
 
   return (
@@ -103,20 +102,20 @@ export default function BuddyChat() {
         )}
       </div>
 
-      <div className="bg-[#0A0A0A] border-t border-[#1F1F1F] pt-4 space-y-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {quickPrompts.map(prompt => (
+      <div className="bg-[#0A0A0A] border-t border-[#1F1F1F] pt-4 space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {suggestions.map((prompt) => (
             <button
               key={prompt}
+              type="button"
               onClick={() => handleSend(prompt)}
               disabled={isTyping}
-              className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 whitespace-nowrap hover:border-zinc-600 hover:text-white transition-all bg-transparent disabled:opacity-50"
+              className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 text-left hover:border-zinc-600 hover:text-white transition-all disabled:opacity-50"
             >
               {prompt}
             </button>
           ))}
         </div>
-
         <div className="flex gap-2 items-end">
           <textarea 
             rows={1}

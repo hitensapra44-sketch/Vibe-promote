@@ -34,10 +34,10 @@ export default function StartScreen({ onStart }) {
         </p>
 
         <motion.button
-          whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(181, 89, 51, 0.4)" }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={onStart}
-          className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-gradient-to-r from-[#b55933] to-[#9e4a2a] transition-all duration-300 shadow-lg shadow-primary/20 flex items-center gap-2 mx-auto"
+          className="px-10 py-4 text-white font-bold text-lg rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-colors flex items-center gap-2 mx-auto"
         >
           Let's go
           <ArrowRight className="w-5 h-5" />
