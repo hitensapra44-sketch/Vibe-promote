@@ -122,6 +122,7 @@ Write a complete, high-performing ${selectedPlatform} post using the "${selected
 
 CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
 - ZERO emojis. None. Not a single one.
+- DONT USE ANY LARGE OR HARD WORDS
 - ZERO hashtags. Not at the end, not in the middle. Never.
 - ZERO corporate buzzwords. No "streamline", "leverage", "optimize", "synergy", "game-changer", "revolutionize".
 - ZERO incomplete posts. The post MUST be fully written from first word to last word. Never cut off mid-sentence or mid-point.
