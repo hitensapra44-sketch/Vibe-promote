@@ -40,7 +40,7 @@ const platformTemplates = {
     { name: "Personal Story With Business Lesson", why: "LinkedIn rewards vulnerability plus professionalism. Story plus takeaway equals shares.", structure: "Opening line a moment not a statement → 2-3 short paragraphs full story with specifics → turning point paragraph → lesson stated clearly → 3 bullet takeaways for skimmers → closing question" },
     { name: "The Counterintuitive Numbers Post", why: "Numbers stop the scroll. Counterintuitive angle makes people want to understand why.", structure: "Open with surprising number → brief context → break down why number looks wrong but isn't → the principle behind it → what this means practically → question relating to their experience" },
     { name: "The Honest Lessons Post", why: "LinkedIn is full of success theatre. Honest failure stands out immediately.", structure: "Open line here's what I got wrong → context what you believed and why → 3-4 numbered lessons each specific → for each what you thought vs what happened vs what you'd do now → one mindset shift that changed everything → CTA" },
-    { name: "The Industry Insight", why: "Positions you as a thinker not just a builder. Gets shared across the industry.", structure: "Trend or shift you've noticed specific not vague → why most people are missing it → what data or experience shows → what it means for next 12 months → what you're doing about it → call for others' perspective" },
+    { name: "The Industry Insight", why: "Positions you as a thinker not just a builder. Gets shared across the industry.", structure: "Trend or shift you've noticed specific not vauge → why most people are missing it → what data or experience shows → what it means for next 12 months → what you're doing about it → call for others' perspective" },
     { name: "Build In Public Update", why: "Consistency builds audience. Real updates with real numbers get saved and followed.", structure: "Month and milestone with specific number → what you set out to do → what actually happened wins and losses equally → one decision you made and why → one thing you'd do differently → what's next specific → CTA" }
   ],
   "Indie Hackers": [
@@ -112,16 +112,44 @@ export default function PostMaker() {
     setStep(5);
 
     const prompt = `
-You are an expert social media copywriter for indie founders and bootstrapped SaaS builders.
+You are a world-class ghostwriter for indie founders and bootstrapped SaaS builders. You write like a real human, not a marketer.
 
 BRAND INFORMATION:
 ${JSON.stringify(brain)}
 
 TASK:
-Write a high-performing ${selectedPlatform} post using the "${selectedTemplate?.name || 'custom'}" format.
+Write a complete, high-performing ${selectedPlatform} post using the "${selectedTemplate?.name || 'custom'}" format.
 
-TEMPLATE STRUCTURE TO FOLLOW:
-${selectedTemplate?.structure || 'Improve and rewrite the following draft for ' + selectedPlatform}
+CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
+- ZERO emojis. None. Not a single one.
+- ZERO hashtags. Not at the end, not in the middle. Never.
+- ZERO corporate buzzwords. No "streamline", "leverage", "optimize", "synergy", "game-changer", "revolutionize".
+- ZERO incomplete posts. The post MUST be fully written from first word to last word. Never cut off mid-sentence or mid-point.
+- Write like a real person talking to another real person. Short sentences. Direct language.
+- Never start a sentence with "I" twice in a row.
+- No em-dashes. No bullet points unless the template structure explicitly calls for them.
+- No hype. No exclamation marks unless the template genuinely needs one.
+
+PLATFORM-SPECIFIC VOICE:
+
+Reddit voice:
+- Sound like a frustrated but honest founder sharing a real experience
+- No marketing language at all. Reddit users will downvote anything that sounds like an ad.
+- First paragraph must hook with a real specific painful moment or contrarian statement — not a generic opener
+- The product mention (if any) must come in naturally as part of the story, not as a pitch
+- CTA must be a genuine question to the community or a soft "I built X to solve this" — never a sales line
+- Post must be complete. Every section in the template structure must be filled out fully.
+
+Twitter/X voice:
+- Hook tweet must be under 220 characters and create real tension or curiosity
+- Each tweet in a thread must stand alone as a complete thought
+- No tweet can start with an emoji
+- Threads must feel like someone talking fast and directly, not a listicle
+- Every tweet break must feel natural, like a pause in speech — not a numbered list
+- CTA at the end must be a single punchy line — no more than one sentence
+
+TEMPLATE STRUCTURE TO FOLLOW COMPLETELY:
+${selectedTemplate?.structure || 'Rewrite the following draft for ' + selectedPlatform + ', fixing tone, structure, and platform fit'}
 
 ${selectedMode === 'write' ? 'USER DRAFT TO IMPROVE:\n' + customContext : ''}
 
@@ -129,37 +157,31 @@ TONE: ${selectedTone}
 
 ADDITIONAL CONTEXT FROM USER: ${customContext || 'None'}
 
-PLATFORM RULES:
-${selectedPlatform === 'Reddit' ? 'No hype, no salesy language. Write like a real founder. No buzzwords. Mention the product naturally only if it fits. Community first.' : ''}
-${selectedPlatform === 'Twitter' ? 'Hook in first line must stop the scroll. Under 280 chars for opening tweet. Use line breaks. End with question or strong opinion.' : ''}
-${selectedPlatform === 'LinkedIn' ? 'Mix professional insight with personal story. Start with a pattern interrupt. End with a takeaway or question.' : ''}
-${selectedPlatform === 'Indie Hackers' ? 'Founder journey angle. Show real numbers and real struggle. Community respects transparency above everything.' : ''}
-${selectedPlatform === 'Product Hunt' ? 'Excitement plus clarity. What it does, who it is for, why now. No fluff. Be specific.' : ''}
-
 CTA RULES:
-The call to action MUST match the brand's marketing goal from the brand information above.
-If goal is get signups — CTA drives to signup.
-If goal is get feedback — CTA asks for feedback or invites replies.
-If goal is drive traffic — CTA includes a link prompt.
-If goal is build audience — CTA asks people to follow or share.
-Make the CTA feel natural, not forced. It should fit the platform tone.
+- The CTA must match the brand's actual marketing goal from the brand information above
+- For Reddit: CTA is a question or soft mention — "Built X to fix this if anyone's curious: [link]"
+- For Twitter: CTA is one short punchy line max
+- For LinkedIn: CTA is a direct question to the reader
+- For Indie Hackers: CTA invites discussion or links to the product naturally
+- For Product Hunt: CTA is a direct ask to check it out or upvote
+- Never write a CTA that sounds like an ad. It must feel like a natural next line.
 
 SCORING RULES:
-Score the post out of 100 based on: hook strength, platform fit, CTA alignment with marketing goal, tone match, and template structure followed.
+Score the post out of 100 based on: hook strength, platform fit, CTA quality, no rule violations (emojis/hashtags = automatic -30), completeness of post, and tone match.
 Then assign a scoreLabel:
 - 75 to 100: "Great Post"
-- 50 to 74: "Decent Post"  
+- 50 to 74: "Decent Post"
 - 0 to 49: "Needs Work"
 And a scoreColor:
 - Great Post: "green"
 - Decent Post: "yellow"
 - Needs Work: "red"
 
-Return ONLY a valid JSON object. No markdown. No backticks. No explanation:
+Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No explanation outside the JSON:
 {
-  "title": "post title or tweet hook",
-  "body": "full post body",
-  "cta": "the call to action text",
+  "title": "hook line or post title",
+  "body": "full complete post body — every section of the template filled out",
+  "cta": "the call to action — one line, natural, no hype",
   "score": 82,
   "scoreLabel": "Great Post",
   "scoreColor": "green"

@@ -52,29 +52,43 @@ export default function ConnectAccounts({ onConnect }) {
 
   const fetchRedditPosts = async (userHandle) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch(`https://pxueqqjfvbrzfvmcbynu.supabase.co/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}`, {
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`
-        }
-      });
+      const [submittedRes, aboutRes] = await Promise.all([
+        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        }),
+        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/about.json`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        })
+      ]);
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to fetch Reddit data');
+      if (submittedRes.status === 404 || aboutRes.status === 404) {
+        throw new Error('Reddit user not found.');
+      }
+      if (submittedRes.status === 403 || aboutRes.status === 403) {
+        throw new Error('This Reddit profile is private.');
+      }
+      if (!submittedRes.ok || !aboutRes.ok) {
+        throw new Error('Failed to fetch Reddit data. Try again.');
       }
 
-      const posts = await response.json();
+      const [submittedData, aboutData] = await Promise.all([
+        submittedRes.json(),
+        aboutRes.json()
+      ]);
+
+      const posts = (submittedData.data?.children || []).map(child => ({
+        title: child.data.title,
+        subreddit: child.data.subreddit_name_prefixed,
+        score: child.data.score,
+        num_comments: child.data.num_comments,
+        url: `https://reddit.com${child.data.permalink}`,
+        created_at: new Date(child.data.created_utc * 1000).toISOString(),
+        engagement: (child.data.score || 0) + (child.data.num_comments || 0)
+      }));
 
       if (posts.length === 0) throw new Error('This user has no submitted posts.');
-      
-      return { 
-        posts: posts.map(p => ({
-          ...p,
-          engagement: (p.score || 0) + (p.num_comments || 0)
-        })), 
-        profile: null 
-      };
+
+      return { posts, karma: aboutData.data?.total_karma || 0 };
     } catch (err) {
       throw err;
     }
