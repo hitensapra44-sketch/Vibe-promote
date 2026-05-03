@@ -106,7 +106,7 @@ export default function ConnectAccounts({ onConnect }) {
                 }
               }
             }
-            votedProducts(first: 20) {
+            votedPosts(first: 20) {
               edges {
                 node {
                   id
@@ -136,7 +136,7 @@ export default function ConnectAccounts({ onConnect }) {
       if (postsData.errors) throw new Error(postsData.errors[0].message);
 
       const madePosts = (postsData.data?.user?.madePosts?.edges || []);
-      const votedPosts = (postsData.data?.user?.votedProducts?.edges || []);
+      const votedPosts = (postsData.data?.user?.votedPosts?.edges || []);
       const allEdges = madePosts.length > 0 ? madePosts : votedPosts;
 
       const posts = allEdges.map(edge => ({
