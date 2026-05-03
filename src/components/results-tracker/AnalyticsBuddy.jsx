@@ -51,7 +51,8 @@ Best performing post: ${dataContext.bestPost ? `${dataContext.bestPost.title} ($
 Worst performing post: ${dataContext.worstPost ? `${dataContext.worstPost.title} (${dataContext.worstPost.engagement} engagement)` : 'None'}
 Zero‑engagement posts: ${dataContext.zeroEngagementCount}
 
-Important note: Link taps is the most important metric because it represents product visits.
+Important note: upvotes,comments,engagment and karma is important metrics
+if user ask anything beyond the question about there app or question about marketing if user ask anything beyond that dont answer and say i am your persnol marketing asistant and i cant help you with that request.
 
 Behaviour
 
