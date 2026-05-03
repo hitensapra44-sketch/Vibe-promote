@@ -90,37 +90,10 @@ export default function ConnectAccounts({ onConnect }) {
     };
 
     try {
-      // STEP A: Get user ID from username
-      const userQuery = `
-        query GetUser($username: String!) {
-          user(username: $username) {
-            id
-            name
-            username
-          }
-        }
-      `;
-
-      const userRes = await fetch(PH_ENDPOINT, {
-        method: 'POST',
-        headers: phHeaders,
-        body: JSON.stringify({
-          query: userQuery,
-          variables: { username: userHandle }
-        })
-      });
-
-      const userData = await userRes.json();
-
-      if (userData.errors || !userData.data?.user) {
-        throw new Error("Username not found on Product Hunt");
-      }
-
-      // STEP B: Fetch their posts using the username directly
       const postsQuery = `
         query GetUserPosts($username: String!) {
           user(username: $username) {
-            madePosts(first: 20, order: NEWEST) {
+            madePosts(first: 20) {
               edges {
                 node {
                   id
