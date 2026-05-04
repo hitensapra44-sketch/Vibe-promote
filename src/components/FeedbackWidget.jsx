@@ -54,7 +54,7 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 rounded-full border border-white/10 bg-[#1a1f2e] px-4 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-[#20283b] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 focus:ring-offset-[#0f1117]"
+        className="fixed bottom-24 right-0 z-40 rounded-l-xl border border-r-0 border-white/10 bg-[#1a1f2e] px-1.5 py-2 text-[11px] font-medium tracking-wide text-white shadow-md transition hover:bg-[#20283b] [writing-mode:vertical-rl] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 focus:ring-offset-[#0f1117]"
       >
         Feedback
       </button>
