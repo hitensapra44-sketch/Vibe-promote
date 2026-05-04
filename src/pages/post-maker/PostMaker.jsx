@@ -122,6 +122,7 @@ Write a complete, high-performing ${selectedPlatform} post using the "${selected
 
 CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
 - ZERO emojis. None. Not a single one.
+- Dont use app name on the headline make it look like a founder build something around that problem
 - DONT USE ANY LARGE OR HARD WORDS
 - ZERO hashtags. Not at the end, not in the middle. Never.
 - ZERO corporate buzzwords. No "streamline", "leverage", "optimize", "synergy", "game-changer", "revolutionize".
