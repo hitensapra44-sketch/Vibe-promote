@@ -60,8 +60,8 @@ export default function FeedbackWidget() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-2 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#1a1f2e] p-6 text-[#e5e7eb] shadow-2xl">
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 px-1 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#1a1f2e] p-6 text-[#e5e7eb] shadow-1xl">
             <button
               type="button"
               onClick={handleClose}
@@ -74,7 +74,7 @@ export default function FeedbackWidget() {
             <h2 className="text-xl font-semibold text-white">Share your feedback</h2>
             <p className="mt-1 text-sm text-[#c9cfdd]">Help us improve Vibe Hype</p>
 
-            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-2">
               <div>
                 <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium">
                   Type
@@ -103,7 +103,7 @@ export default function FeedbackWidget() {
                   onChange={(event) => setMessage(event.target.value)}
                   rows={5}
                   placeholder="Tell us what is working or what we should improve..."
-                  className="w-full resize-none rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
+                  className="w-full resize-none rounded-lg border border-white/10 bg-[#111827] px-2 py-2 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
                 />
               </div>
 
