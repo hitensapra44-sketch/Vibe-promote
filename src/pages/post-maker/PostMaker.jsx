@@ -134,26 +134,90 @@ CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
 
 PLATFORM-SPECIFIC VOICE:
 
-Reddit voice:
-- dont use large or hard words, dont use emoji
-- for making post use 90% value in post and 10% mention in the cta, and dont make post look salesy
-- Sound like a frustrated but honest founder sharing a real experience
-- No marketing language at all. Reddit users will downvote anything that sounds like an ad.
-- First paragraph must hook with a real specific painful moment or contrarian statement — not a generic opener
-- The product mention (if any) must come in naturally as part of the story, not as a pitch
-- CTA must be a genuine question to the community or a soft "I built X to solve this" — never a sales line
-- Post must be complete. Every section in the template structure must be filled out fully.
+REDDIT VOICE
 
-Twitter/X voice:
-- use app name only in cta in the end and make the post mostly value
-- dont use hard or any long words use easy as possible words
-- dont use any emoji
-- Hook tweet must be under 220 characters and create real tension or curiosity
-- Each tweet in a thread must stand alone as a complete thought
-- No tweet can start with an emoji
-- Threads must feel like someone talking fast and directly, not a listicle
-- Every tweet break must feel natural, like a pause in speech — not a numbered list
-- CTA at the end must be a single punchy line — no more than one sentence
+Tone:
+- Write like a frustrated but honest founder sharing a real experience
+- No hype, no marketing tone, no buzzwords
+- Use simple, everyday language (no complex or “fancy” words)
+- No emojis
+
+Core Writing Rules:
+- 90% of the post = pure value, story, or insight
+- 10% or less = product mention (if included)
+- The post must NEVER feel like an ad
+
+Hook:
+- First paragraph must start with:
+  - A specific painful moment OR
+  - A strong contrarian statement
+- No generic intros (e.g. "I’ve been working on..." is banned)
+
+Body:
+- Tell a real story, struggle, mistake, or lesson
+- Be specific (numbers, actions, failures)
+- Avoid vague advice
+
+Product Mention:
+- Optional
+- If included, it must:
+  - Appear naturally in the story
+  - NOT sound like a pitch
+  - Be 1–2 lines max
+
+CTA:
+- Must NOT sell anything
+- Must be one of:
+  - A genuine question to the community
+  - OR a soft mention like: "I ended up building X to fix this"
+- Never include links or aggressive promotion
+
+Structure (MANDATORY):
+1. Hook (pain / contrarian)
+2. Context (what happened)
+3. Struggle / insight
+4. Outcome or lesson
+5. Soft CTA
+
+Post must feel complete. No missing sections.
+
+TWITTER / X VOICE
+
+Tone:
+- Simple, fast, direct
+- No emojis
+- No complex words
+
+Core Writing Rules:
+- Focus on value, not promotion
+- App/product name ONLY allowed in the final CTA
+
+Hook Tweet:
+- Max 220 characters
+- Must create curiosity, tension, or a strong statement
+
+Thread Rules:
+- Each tweet must be a complete thought
+- No numbered lists
+- No listicle style
+- Tweets should feel like natural speech (fast, flowing)
+- Each line break = a natural pause, not formatting
+
+Language:
+- Use short, clear sentences
+- Avoid jargon or long words
+
+CTA (Final Tweet ONLY):
+- One sentence only
+- Short and punchy
+- Only place where app name can appear
+
+Structure:
+1. Hook
+2. Expansion (context, insight, examples)
+3. More insight or contrast
+4. Final takeaway
+5. CTA (with app name)
 
 TEMPLATE STRUCTURE TO FOLLOW COMPLETELY:
 ${selectedTemplate?.structure || 'Rewrite the following draft for ' + selectedPlatform + ', fixing tone, structure, and platform fit'}
