@@ -1,38 +1,22 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
 
 const FEEDBACK_TYPES = ['Bug report', 'Feature request', 'General feedback'];
-const VISIBLE_PATHS = [
-  '/dashboard',
-  '/audience-spotter',
-  '/dashboard/results-tracker',
-  '/post-maker',
-];
 
 export default function FeedbackWidget() {
-  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [type, setType] = useState(FEEDBACK_TYPES[0]);
   const [message, setMessage] = useState('');
   const [showThanks, setShowThanks] = useState(false);
 
-  if (!VISIBLE_PATHS.includes(location.pathname)) {
-    return null;
-  }
+  const handleClose = () => setIsOpen(false);
 
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage) return;
 
     console.log('Feedback submitted:', {
       type,
       message: trimmedMessage,
-      path: location.pathname,
       submittedAt: new Date().toISOString(),
     });
 
@@ -45,7 +29,6 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      {/* Feedback Tab Button */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
@@ -55,12 +38,10 @@ export default function FeedbackWidget() {
         Feedback
       </button>
 
-      {/* Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-2xl border border-orange-500/20 bg-[#111111] p-6 text-white shadow-2xl">
-            
-            {/* Close */}
+
             <button
               type="button"
               onClick={handleClose}
@@ -76,7 +57,6 @@ export default function FeedbackWidget() {
             <p className="mt-1 text-xs text-white/40">Help us improve Vibe Hype</p>
 
             <div className="mt-5 space-y-4">
-              {/* Type */}
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-white/50 uppercase tracking-widest">
                   Type
@@ -94,7 +74,6 @@ export default function FeedbackWidget() {
                 </select>
               </div>
 
-              {/* Message */}
               <div>
                 <label className="mb-1.5 block text-xs font-semibold text-white/50 uppercase tracking-widest">
                   Message
@@ -108,7 +87,6 @@ export default function FeedbackWidget() {
                 />
               </div>
 
-              {/* Submit */}
               <button
                 onClick={handleSubmit}
                 disabled={!message.trim()}
@@ -121,7 +99,6 @@ export default function FeedbackWidget() {
         </div>
       )}
 
-      {/* Toast */}
       {showThanks && (
         <div className="fixed bottom-28 right-4 z-50 rounded-lg border border-orange-500/20 bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
           Thanks for your feedback!
