@@ -48,7 +48,15 @@ PRIMARY GOAL:
 Extract information based ONLY on what is clearly stated or strongly implied on the website.
 
 Do NOT guess. Do NOT invent features. Accuracy > completeness.
-`;
+FAIL CONDITIONS (MUST AVOID):
+
+- Hallucinated features or capabilities
+- Vague descriptions like "helps businesses grow"
+- Overly broad target customers
+- Marketing-heavy language
+- Invalid JSON formatting
+
+Return ONLY the JSON object.`;
 
     try {
       const result = await generateAICall(systemPrompt, `URL: ${url}`);
