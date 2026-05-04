@@ -16,6 +16,7 @@ import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
+import FeedbackWidget from './components/FeedbackWidget';
 import { useAuth } from './lib/AuthContext';
 
 export default function App() {
@@ -90,6 +91,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <FeedbackWidget />
     </div>
   );
 }
