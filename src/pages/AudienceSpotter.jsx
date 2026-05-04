@@ -23,7 +23,8 @@ import {
   Clock,
   Brain,
   Bell,
-  Volume2
+  Volume2,
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -48,6 +49,13 @@ const PLATFORMS = [
   { id: 'bluesky', name: 'Bluesky', icon: Globe, color: '#0560ff', available: false, comingSoon: true },
 ];
 
+const DISMISS_REASONS = [
+  { id: 'bad_post', label: 'Bad post' },
+  { id: 'bad_subreddit', label: 'Bad subreddit' },
+  { id: 'bad_reply', label: 'Bad reply' },
+  { id: 'dont_know', label: "Don't know, just don't feel like a good post" }
+];
+
 export default function AudienceSpotter() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
@@ -63,7 +71,13 @@ export default function AudienceSpotter() {
   const [keywords, setKeywords] = useState([]);
   const [newKeyword, setNewKeyword] = useState('');
 
+  const [dismissingId, setDismissingId] = useState(null);
+  const [dismissReason, setDismissReason] = useState(null);
+
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
+
+  // Filter out signals that are not 'new'
+  const activeSignals = useMemo(() => signals.filter(s => s.status === 'new'), [signals]);
 
   const skipSubreddits = useMemo(() => {
     return selectedPlatforms.includes('hn') && !selectedPlatforms.includes('reddit');
@@ -168,6 +182,19 @@ export default function AudienceSpotter() {
     } else {
       setStep(step - 1);
     }
+  };
+
+  const handleDismiss = (id) => {
+    setDismissingId(id);
+    setDismissReason(null);
+  };
+
+  const confirmDismiss = () => {
+    if (!dismissReason) return;
+    updateSignalStatus({ id: dismissingId, status: 'dismissed' });
+    setDismissingId(null);
+    setDismissReason(null);
+    toast.success("Post removed. We'll use this feedback to improve.");
   };
 
   if (isInitialLoading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
@@ -599,7 +626,7 @@ export default function AudienceSpotter() {
         </header>
 
         <div className="p-8 sm:p-12 max-w-6xl mx-auto w-full">
-          {signals.length === 0 ? (
+          {activeSignals.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
               {isLoading ? (
                 <>
@@ -639,12 +666,13 @@ export default function AudienceSpotter() {
             </div>
           ) : (
             <div className="space-y-6 pb-20">
-              {signals.map((signal) => (
+              {activeSignals.map((signal) => (
                 <motion.div 
                   layout
                   key={signal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   className="bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-700 transition-all group"
                 >
                   <div className="p-6">
@@ -692,20 +720,17 @@ export default function AudienceSpotter() {
                         </div>
                         <div className="flex items-center gap-3 border-l border-zinc-800 pl-6">
                           <button 
-                            onClick={() => updateSignalStatus(signal.id, 'replied')}
-                            className={cn(
-                              "p-2 rounded-lg border transition-all bg-transparent",
-                              signal.status === 'replied' ? "border-green-500 bg-green-500/10 text-green-500" : "border-zinc-800 text-zinc-500 hover:text-green-500"
-                            )}
+                            onClick={() => {
+                              updateSignalStatus({ id: signal.id, status: 'replied' });
+                              toast.success("Marked as replied!");
+                            }}
+                            className="p-2 rounded-lg border border-zinc-800 text-zinc-500 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                           <button 
-                            onClick={() => updateSignalStatus(signal.id, 'dismissed')}
-                            className={cn(
-                              "p-2 rounded-lg border transition-all bg-transparent",
-                              signal.status === 'dismissed' ? "border-red-500 bg-red-500/10 text-red-400" : "border-zinc-800 text-zinc-500 hover:text-red-400"
-                            )}
+                            onClick={() => handleDismiss(signal.id)}
+                            className="p-2 rounded-lg border border-zinc-800 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-all bg-transparent"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -731,6 +756,64 @@ export default function AudienceSpotter() {
                         </button>
                       </div>
                     </div>
+
+                    {/* Feedback Box for Dismissal */}
+                    <AnimatePresence>
+                      {dismissingId === signal.id && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="mt-6 pt-6 border-t border-white/5 overflow-hidden"
+                        >
+                          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6">
+                            <div className="flex items-center gap-2 mb-4">
+                              <AlertCircle className="w-4 h-4 text-primary" />
+                              <h3 className="text-sm font-bold">Why didn't you like this post?</h3>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                              {DISMISS_REASONS.map(reason => (
+                                <button
+                                  key={reason.id}
+                                  onClick={() => setDismissReason(reason.id)}
+                                  className={cn(
+                                    "px-4 py-2.5 rounded-lg border text-xs font-medium text-left transition-all",
+                                    dismissReason === reason.id 
+                                      ? "bg-primary/10 border-primary text-primary" 
+                                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                                  )}
+                                >
+                                  {reason.label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <button 
+                                onClick={() => setShowSettings(true)}
+                                className="text-[10px] font-bold text-zinc-500 hover:text-white uppercase tracking-widest bg-transparent"
+                              >
+                                Change Configuration →
+                              </button>
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => setDismissingId(null)}
+                                  className="px-4 py-2 rounded-lg text-xs font-bold text-zinc-500 hover:text-white bg-transparent"
+                                >
+                                  Cancel
+                                </button>
+                                <button 
+                                  onClick={confirmDismiss}
+                                  disabled={!dismissReason}
+                                  className="px-6 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all disabled:opacity-50"
+                                >
+                                  Remove Post
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               ))}

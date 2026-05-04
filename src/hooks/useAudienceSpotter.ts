@@ -142,7 +142,15 @@ Post body (first 300 chars): ${post.post_body.substring(0, 300)}`;
           const parsed = JSON.parse(aiResult);
 
           if (parsed.isRelevant) {
-            const replyPrompt = `You are a helpful community member. Write a short, casual reply to this post that naturally mentions ${brain.app_name} as a solution. Max 3 sentences. No emojis. No hashtags.`;
+            const replyPrompt = `You are a helpful and knowledgeable community member. Write a reply to the post below that provides 90% genuine value or advice related to the user's specific question or pain point. Only in the final sentence, add a very soft, non-pushy mention of ${brain.app_name} (e.g., "Btw, I actually built a tool called ${brain.app_name} that handles [specific feature] if you want to check it out"). 
+
+Rules:
+- Max 4 sentences.
+- No emojis.
+- No hashtags.
+- Tone: Casual, founder-to-founder.
+- Focus on being helpful first.`;
+
             const reply = await generateAICall(replyPrompt, `Post: ${post.post_title}\n${post.post_body.substring(0, 300)}`);
             
             const signal: Signal = {
