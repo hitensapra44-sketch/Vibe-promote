@@ -628,40 +628,27 @@ export default function AudienceSpotter() {
         <div className="p-8 sm:p-12 max-w-6xl mx-auto w-full">
           {activeSignals.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-              {isLoading ? (
-                <>
-                  <div className="relative w-24 h-24 mb-8">
-                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
-                    <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                      <RefreshCw className="w-10 h-10 text-primary animate-spin" style={{ animationDuration: '3s' }} />
-                    </div>
-                  </div>
-                  <h2 className="text-xl font-bold mb-2">Still scanning... we'll find your people.</h2>
-                  <div className="flex flex-wrap justify-center gap-2 mb-4">
-                    {keywords.map(k => (
-                      <span key={k} className="px-3 py-1 rounded-full bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-bold uppercase">#{k}</span>
-                    ))}
-                  </div>
-                  <p className="text-zinc-600 text-xs">
-                    Scan started {moment(config.scanStartedAt).fromNow()}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-6">
-                    <X className="w-8 h-8 text-zinc-700" />
-                  </div>
-                  <h2 className="text-xl font-bold mb-2">No signals found in the last 24 hours.</h2>
-                  <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed mb-8">
-                    Try adding more keywords or subreddits to widen your search.
-                  </p>
-                  <button 
-                    onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all"
-                  >
-                    <RefreshCw className="w-4 h-4" /> Scan Again
-                  </button>
-                </>
+              <div className="relative w-24 h-24 mb-8">
+                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+                <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                  <RefreshCw className={cn("w-10 h-10 text-primary", isLoading && "animate-spin")} style={{ animationDuration: '3s' }} />
+                </div>
+              </div>
+              <h2 className="text-xl font-bold mb-2">
+                {isLoading ? "Scanning for potential users..." : "Monitoring for new signals..."}
+              </h2>
+              <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed mb-8">
+                you will see all the potential users post here when its found
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 mb-4">
+                {keywords.map(k => (
+                  <span key={k} className="px-3 py-1 rounded-full bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-bold uppercase">#{k}</span>
+                ))}
+              </div>
+              {config.scanStartedAt && (
+                <p className="text-zinc-600 text-xs">
+                  Last scan started {moment(config.scanStartedAt).fromNow()}
+                </p>
               )}
             </div>
           ) : (
