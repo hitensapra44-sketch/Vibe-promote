@@ -57,7 +57,6 @@ export default function AudienceSpotter() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
   
-  // Wizard State
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
   const [communities, setCommunities] = useState([]);
   const [newCommunity, setNewCommunity] = useState('');
@@ -86,7 +85,7 @@ export default function AudienceSpotter() {
         if (data) {
           setBrain(data);
           
-          // Check if already configured
+          // Check if already configured by looking for signals
           const { count } = await supabase
             .from('audience_signals')
             .select('*', { count: 'exact', head: true })
@@ -94,8 +93,11 @@ export default function AudienceSpotter() {
           
           if (count > 0) {
             setIsConfigured(true);
+            // Load existing config if available
+            if (data.audience_keywords) setKeywords(JSON.parse(data.audience_keywords));
+            if (data.audience_platforms) setSelectedPlatforms(JSON.parse(data.audience_platforms));
+            if (data.audience_communities) setCommunities(JSON.parse(data.audience_communities));
           } else {
-            // Start AI analysis for the wizard automatically
             suggestFilters(data);
           }
         }
@@ -110,51 +112,13 @@ export default function AudienceSpotter() {
     if (!brainData) return;
     setIsAIAnalyzing(true);
     try {
-      const systemPrompt = `You are an elite Growth Marketing Strategist. Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions.
-
-      Product Info:
-      - Name: ${brainData.app_name}
-      - Description: ${brainData.app_description}
-      - Target Audience: ${brainData.target_customer}
-      - Core Problem: ${brainData.core_problem}
-      - Unique Differentiator: ${brainData.unique_differentiator}
-
-      Return ONLY a JSON object with:
-      - subreddits: Array of 10 highly targeted subreddits (without 'r/') where the target audience discusses problems related to this product.
-      - keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases. 
-
-      RULES FOR KEYWORDS (10 total):
-      1. Extract what the app does and its core functionality based on the description and problem.
-      2. Keywords must be generic search queries that a user would type to find a solution to the core problem.
-      3. DO NOT include the app name (${brainData.app_name}) in any keyword.
-      4. Must be multi-word, specific search queries.
-      5. Must reflect high buying intent or deep pain.
-      6. No repetition.
-
-      Format: Return ONLY valid JSON.`;
-
-      const userMsg = `
-        App Name: ${brainData.app_name}
-        Description: ${brainData.app_description}
-        Target Customer: ${brainData.target_customer}
-        Core Problem: ${brainData.core_problem}
-        Unique Advantage: ${brainData.unique_differentiator}
-      `;
-
-      const result = await generateAICall(systemPrompt, userMsg);
+      const systemPrompt = `You are an elite Growth Marketing Strategist. Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions. Return ONLY a JSON object with: subreddits: Array of 10 highly targeted subreddits (without 'r/'), keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases.`;
+      const result = await generateAICall(systemPrompt, `App: ${brainData.app_name}. Problem: ${brainData.core_problem}`);
       const parsed = JSON.parse(result);
-
       if (parsed.subreddits) setCommunities(parsed.subreddits);
-      if (parsed.keywords && Array.isArray(parsed.keywords)) {
-        setKeywords(parsed.keywords.slice(0, 10));
-      }
-      
-      toast.success("AI has pre-filled targeted subreddits and high-intent keywords!");
+      if (parsed.keywords) setKeywords(parsed.keywords.slice(0, 10));
     } catch (e) { 
       console.error("AI Analysis failed", e);
-      // Fallback to basic extraction if AI fails
-      const brainKeywords = brainData.pain_phrases?.split(',').map(k => k.trim()).filter(Boolean) || [];
-      setKeywords(brainKeywords.slice(0, 10));
     } finally {
       setIsAIAnalyzing(false);
     }
@@ -165,24 +129,8 @@ export default function AudienceSpotter() {
       toast.error("Add at least one keyword first");
       return;
     }
-
-    const loadingToast = toast.loading("Setting up monitoring...");
-    
-    const { error } = await supabase
-      .from('brand_brains')
-      .update({ 
-        pain_phrases: keywords.join(', '),
-        primary_platform: communities.join(', ')
-      })
-      .eq('user_id', user.id);
-    
-    if (error) {
-      toast.error("Failed to save configuration", { id: loadingToast });
-    } else {
-      toast.success("Monitoring started! We're scanning now...", { id: loadingToast });
-      setIsConfigured(true);
-      startScan({ keywords, platforms: selectedPlatforms });
-    }
+    setIsConfigured(true);
+    startScan({ keywords, platforms: selectedPlatforms, communities });
   };
 
   const addCommunity = () => {
@@ -199,10 +147,10 @@ export default function AudienceSpotter() {
     }
   };
 
-  const handleCopyAndOpen = (signal) => {
-    navigator.clipboard.writeText(signal.suggested_reply);
-    toast.success("Suggested reply copied!");
-    window.open(signal.post_url, '_blank');
+  const getScoreLabel = (score) => {
+    if (score >= 90) return `${score}% — Very likely your user`;
+    if (score >= 75) return `${score}% — Strong match`;
+    return `${score}% — Possible match`;
   };
 
   if (isInitialLoading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
@@ -213,8 +161,6 @@ export default function AudienceSpotter() {
         <Sidebar isPaid={true} />
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8 sm:p-12">
           <div className="max-w-5xl mx-auto w-full flex flex-col lg:flex-row gap-16">
-            
-            {/* Left: Step Indicator */}
             <div className="lg:w-48 flex flex-col gap-8 pt-8">
               <div className="relative flex flex-col gap-10">
                 <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-zinc-800" />
@@ -234,23 +180,15 @@ export default function AudienceSpotter() {
                   </div>
                 ))}
               </div>
-
-              {isAIAnalyzing && (
-                <div className="mt-8 p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 text-center">
-                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-tight">AI is analyzing your brand brain...</p>
-                </div>
-              )}
             </div>
 
-            {/* Right: Step Content */}
             <div className="flex-1">
               <AnimatePresence mode="wait">
                 {step === 1 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Where should we listen?</h1>
-                      <p className="text-zinc-500">Select the platforms to monitor for buying signals. At least one required.</p>
+                      <p className="text-zinc-500">Select the platforms to monitor for buying signals.</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {PLATFORMS.map((p) => (
@@ -263,17 +201,10 @@ export default function AudienceSpotter() {
                             selectedPlatforms.includes(p.id) ? "border-primary bg-primary/5" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700"
                           )}
                         >
-                          {p.comingSoon && <span className="absolute top-3 right-3 text-[8px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded-full">Coming Soon</span>}
-                          {!p.available && !p.comingSoon && <Lock className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-zinc-700" />}
                           <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-colors", selectedPlatforms.includes(p.id) ? "bg-primary" : "bg-zinc-800")}>
                             <p.icon className="w-6 h-6 text-white" />
                           </div>
                           <span className="font-bold text-sm">{p.name}</span>
-                          {selectedPlatforms.includes(p.id) && (
-                            <div className="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                              <Check className="w-3 h-3" /> Selected
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -284,7 +215,7 @@ export default function AudienceSpotter() {
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Communities</h1>
-                      <p className="text-zinc-500">Subreddits where we'll scan for high-intent conversations about your product.</p>
+                      <p className="text-zinc-500">Subreddits where we'll scan for high-intent conversations.</p>
                     </div>
                     <div className="relative">
                       <input 
@@ -299,31 +230,18 @@ export default function AudienceSpotter() {
                         <Plus className="w-5 h-5 text-white" />
                       </button>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">
-                        <span>Subreddits Added</span>
-                        <span>{communities.length}/15</span>
-                      </div>
-                      <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden min-h-[100px]">
-                        {communities.length === 0 ? (
-                          <div className="p-12 text-center text-zinc-600 text-sm italic">
-                            {isAIAnalyzing ? 'AI is picking subreddits...' : 'No communities added yet'}
+                    <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden min-h-[100px]">
+                      {communities.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 last:border-0 group hover:bg-white/[0.02]">
+                          <div className="flex items-center gap-3">
+                            <span className="text-primary text-xs font-bold">r/</span>
+                            <span className="text-sm font-medium">{c}</span>
                           </div>
-                        ) : (
-                          communities.map((c, i) => (
-                            <div key={i} className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 last:border-0 group hover:bg-white/[0.02]">
-                              <div className="flex items-center gap-3">
-                                <span className="text-zinc-600 text-xs font-bold">{i + 1}</span>
-                                <span className="text-primary text-xs font-bold">r/</span>
-                                <span className="text-sm font-medium">{c}</span>
-                              </div>
-                              <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-all bg-transparent">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                          <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-all bg-transparent">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -335,14 +253,6 @@ export default function AudienceSpotter() {
                         <h1 className="text-4xl font-bold mb-4">Keywords</h1>
                         <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery.</p>
                       </div>
-                      <button 
-                        onClick={() => suggestFilters(brain)}
-                        disabled={isAIAnalyzing}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-bold hover:bg-primary/20 transition-all bg-transparent"
-                      >
-                        {isAIAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                        Regenerate with AI
-                      </button>
                     </div>
                     <div className="relative">
                       <input 
@@ -357,32 +267,15 @@ export default function AudienceSpotter() {
                         <Plus className="w-5 h-5 text-white" />
                       </button>
                     </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">
-                        <span>Targeted Keywords ({keywords.length}/10)</span>
-                        {keywords.length >= 10 && <span className="text-green-500">✓ Complete</span>}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {keywords.length === 0 && (
-                          <p className="text-zinc-600 text-sm italic w-full text-center py-8">
-                            {isAIAnalyzing ? 'AI is generating targeted keywords...' : 'Add at least one keyword'}
-                          </p>
-                        )}
-                        {keywords.map((k, i) => (
-                          <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold group">
-                            <span className="opacity-50">{i + 1}.</span> {k}
-                            <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800 flex gap-3 mt-8">
-                        <Sparkles className="w-5 h-5 text-zinc-500 shrink-0" />
-                        <p className="text-xs text-zinc-500 leading-relaxed">
-                          We've pre-filled these based on your Brand Brain. These are specific phrases your audience uses when they have the problem you solve.
-                        </p>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {keywords.map((k, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold group">
+                          {k}
+                          <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -391,91 +284,36 @@ export default function AudienceSpotter() {
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Review your signal</h1>
-                      <p className="text-zinc-500">Everything looks good? Once you hit create, we'll start scanning for your buyers.</p>
+                      <p className="text-zinc-500">Everything looks good? We'll start scanning for your buyers.</p>
                     </div>
-                    
-                    <div className="space-y-4">
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0">
-                          <Search className="w-5 h-5 text-zinc-500" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Product</p>
-                          <h3 className="font-bold text-white">{brain?.app_name || 'Vibe Hype'}</h3>
-                          <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{brain?.app_description}</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-zinc-500" />
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Platforms</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedPlatforms.map(p => (
-                              <span key={p} className="px-2 py-1 rounded bg-zinc-800 text-[10px] font-bold text-white uppercase tracking-wider">{p}</span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-zinc-500" />
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Frequency</p>
-                          </div>
-                          <p className="text-xs font-bold text-white">{frequency} scanning</p>
-                        </div>
-                      </div>
-
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-zinc-500" />
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Target Filters</p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {communities.map(c => <span key={c} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">r/{c}</span>)}
-                          {keywords.map(k => <span key={k} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">#{k}</span>)}
-                        </div>
+                    <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        {communities.map(c => <span key={c} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">r/{c}</span>)}
+                        {keywords.map(k => <span key={k} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">#{k}</span>)}
                       </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Navigation */}
               <div className="mt-12 flex items-center justify-between">
                 <button 
-                  onClick={() => {
-                    if (step === 3 && skipSubreddits) {
-                      setStep(1);
-                    } else {
-                      setStep(step - 1);
-                    }
-                  }}
+                  onClick={() => setStep(step - 1)}
                   className={cn("flex items-center gap-2 text-zinc-500 hover:text-white transition-all bg-transparent", step === 1 && "invisible")}
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 {step < 4 ? (
                   <button 
-                    onClick={() => {
-                      if (step === 1 && skipSubreddits) {
-                        setStep(3);
-                      } else {
-                        setStep(step + 1);
-                      }
-                    }}
-                    disabled={step === 1 && (selectedPlatforms.length === 0 || isAIAnalyzing)}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all disabled:opacity-50"
+                    onClick={() => setStep(step + 1)}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button 
                     onClick={handleCreateSignal}
-                    disabled={isAIAnalyzing || keywords.length === 0}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20"
                   >
                     <Zap className="w-4 h-4" /> Create Signal
                   </button>
@@ -488,24 +326,23 @@ export default function AudienceSpotter() {
     );
   }
 
-  // Monitoring Dashboard View (Shown after setup)
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="p-8 sm:p-12 flex items-center justify-between border-b border-white/5 bg-[#0A0A0A]/50 backdrop-blur-xl sticky top-0 z-30">
+        <header className="p-8 sm:p-12 flex items-center justify-between border-b border-white/5 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Target className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Buying Signals</h1>
-              <p className="text-zinc-500 text-sm">AI-powered monitoring of high-intent conversations.</p>
+              <h1 className="text-2xl font-bold">User Finder</h1>
+              <p className="text-zinc-500 text-sm">Find real people actively looking for what you built.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
              <button 
-                onClick={() => startScan({ keywords, platforms: selectedPlatforms })}
+                onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white text-xs font-bold hover:bg-zinc-800 transition-all bg-transparent"
               >
                 <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
@@ -529,30 +366,20 @@ export default function AudienceSpotter() {
                   <RefreshCw className="w-10 h-10 text-primary animate-spin" style={{ animationDuration: '3s' }} />
                 </div>
               </div>
-              <h2 className="text-xl font-bold mb-2">Monitoring signals for {brain?.app_name || 'Vibe Hype'}</h2>
-              <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed mb-8">
-                We're actively scanning Reddit and Hacker News for high-intent conversations. Signals will appear here as soon as they're detected.
+              <h2 className="text-xl font-bold mb-2">Scanning for users...</h2>
+              <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed">
+                We're searching Reddit and Hacker News for high-intent conversations from the last 24 hours.
               </p>
-              <div className="flex flex-wrap justify-center gap-2 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-700">
-                 {keywords.map(k => <span key={k} className="px-3 py-1.5 rounded-lg bg-zinc-900 text-[10px] font-bold text-zinc-400">#{k}</span>)}
-              </div>
             </div>
           ) : (
             <div className="space-y-6 pb-20">
-              <div className="flex items-center justify-between mb-8">
-                 <div className="flex items-center gap-2">
-                    <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Live</span>
-                    <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">{signals.length} Signals Found</p>
-                 </div>
-              </div>
-
               {signals.map((signal) => (
                 <motion.div 
                   layout
                   key={signal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#111111] border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-all group"
+                  className="bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-700 transition-all group"
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-6">
@@ -568,30 +395,22 @@ export default function AudienceSpotter() {
                             <span className="text-white font-bold text-sm">{signal.subreddit}</span>
                             <span className="text-zinc-700 text-xs">•</span>
                             <span className="text-zinc-500 text-xs font-medium">by u/{signal.author}</span>
-                            <span className="text-zinc-700 text-xs">•</span>
-                            <span className="text-zinc-500 text-xs font-medium">{new Date(signal.posted_at).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-lg">
-                               <Sparkles className="w-3 h-3 text-green-500" />
-                               <span className="text-green-500 text-[10px] font-bold uppercase tracking-wider">{signal.intent_type}</span>
-                            </div>
                             <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
                                <Target className="w-3 h-3 text-white" />
-                               <span className="text-white text-[10px] font-bold uppercase tracking-wider">{signal.intent_score}% Intent Score</span>
+                               <span className="text-white text-[10px] font-bold uppercase tracking-wider">Potential User Score: {getScoreLabel(signal.intent_score)}</span>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                 
                       </div>
                     </div>
 
                     <h2 className="text-xl font-bold text-white mb-3 leading-tight">{signal.post_title}</h2>
                     <p className="text-zinc-400 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
 
-                    <div className="bg-[#1A1A1A] border-l-4 border-primary rounded-r-2xl p-5 mb-8 group-hover:bg-white/[0.03] transition-colors">
+                    <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-5 mb-8">
+                      <p className="text-[10px] text-zinc-500 italic mb-2">⚠ AI-generated — review and edit before sending</p>
                       <div className="flex items-center gap-2 mb-3">
                         <MessageSquare className="w-3.5 h-3.5 text-primary" />
                         <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
@@ -600,24 +419,51 @@ export default function AudienceSpotter() {
                     </div>
 
                     <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                      <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-2 text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-zinc-600">
                           <Zap className="w-4 h-4" />
                           <span className="text-xs font-bold">{signal.upvotes} Upvotes</span>
                         </div>
-                        <div className="flex items-center gap-2 text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                          <MessageSquare className="w-4 h-4" />
-                          <span className="text-xs font-bold">{signal.comment_count} Comments</span>
+                        <div className="flex items-center gap-3 border-l border-zinc-800 pl-6">
+                          <button 
+                            onClick={() => updateSignalStatus(signal.id, 'replied')}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all bg-transparent",
+                              signal.status === 'replied' ? "border-green-500 bg-green-500/10 text-green-500" : "border-zinc-800 text-zinc-500 hover:text-green-500"
+                            )}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => updateSignalStatus(signal.id, 'dismissed')}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all bg-transparent",
+                              signal.status === 'dismissed' ? "border-red-500 bg-red-500/10 text-red-500" : "border-zinc-800 text-zinc-500 hover:text-red-500"
+                            )}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => handleCopyAndOpen(signal)}
-                        className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white text-black font-bold text-xs hover:scale-105 transition-all shadow-xl"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy & Open Post
-                        <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(signal.suggested_reply);
+                            toast.success("Reply copied!");
+                          }}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 text-white font-bold text-xs hover:bg-zinc-700 transition-all bg-transparent border border-zinc-700"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy Reply
+                        </button>
+                        <button 
+                          onClick={() => window.open(signal.post_url, '_blank')}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:scale-105 transition-all shadow-xl"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Open Post
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
