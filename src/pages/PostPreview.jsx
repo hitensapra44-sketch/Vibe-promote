@@ -156,6 +156,8 @@ CTA:
 QUALITY CONTROL (MANDATORY)
 
 Before finalizing:
+- IMPORTANT remove every emoji you have
+- IMPORTANT make the post in less than 180 words
 - Check hook follows all rules
 - Ensure chosen format structure is correct
 - Ensure tone matches brand_tone exactly
