@@ -24,13 +24,10 @@ export default function FeedbackWidget() {
     setIsOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
+  const handleSubmit = (e) => {
+    e.preventDefault();
     const trimmedMessage = message.trim();
-    if (!trimmedMessage) {
-      return;
-    }
+    if (!trimmedMessage) return;
 
     console.log('Feedback submitted:', {
       type,
@@ -43,84 +40,90 @@ export default function FeedbackWidget() {
     setMessage('');
     setIsOpen(false);
     setShowThanks(true);
-
-    window.setTimeout(() => {
-      setShowThanks(false);
-    }, 2500);
+    window.setTimeout(() => setShowThanks(false), 2500);
   };
 
   return (
     <>
+      {/* Feedback Tab Button */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-3 right-0 z-3 rounded-0-xl border border-r-0 border-white/5 bg-[#1a1f2e] px-0.5 py-0.5 text-[11px] font-medium tracking-wide text-white shadow-md transition hover:bg-[#20283b] [writing-mode:vertical-rl] focus:outline-none focus:ring-1 focus:ring-[#6366f1] focus:ring-offset-0 focus:ring-offset-[#0f117]"
+        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+        className="fixed bottom-24 right-0 z-50 h-20 w-7 rounded-l-md border border-r-0 border-orange-500/20 bg-[#111111] text-[10px] font-semibold tracking-widest text-white/50 shadow-md transition-all hover:bg-[#1a1a1a] hover:text-white/80 focus:outline-none"
       >
         Feedback
       </button>
 
+      {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-0 flex items-center justify-center bg-black/20 px-1 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-1xl border border-white/10 bg-[#1a1f2e] p-2 text-[#e5e7eb] shadow-1xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-orange-500/20 bg-[#111111] p-6 text-white shadow-2xl">
+            
+            {/* Close */}
             <button
               type="button"
               onClick={handleClose}
-              aria-label="Close feedback modal"
-              className="absolute right-2 top-2 rounded-md p-1 text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+              aria-label="Close"
+              className="absolute right-4 top-4 rounded-md p-1 text-white/40 transition hover:bg-white/5 hover:text-white focus:outline-none"
             >
-              <span className="text-lg leading-none">x</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
 
-            <h2 className="text-xl font-semibold text-white">Share your feedback</h2>
-            <p className="mt-1 text-sm text-[#c9cfdd]">Help us improve Vibe Hype</p>
+            <h2 className="text-base font-bold text-white">Share your feedback</h2>
+            <p className="mt-1 text-xs text-white/40">Help us improve Vibe Hype</p>
 
-            <form onSubmit={handleSubmit} className="mt-5 space-y-2">
+            <div className="mt-5 space-y-4">
+              {/* Type */}
               <div>
-                <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium">
+                <label className="mb-1.5 block text-xs font-semibold text-white/50 uppercase tracking-widest">
                   Type
                 </label>
                 <select
-                  id="feedback-type"
                   value={type}
-                  onChange={(event) => setType(event.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-[#1e2435] px-1 py-1 text-sm text-white outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full rounded-lg border border-white/5 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white outline-none transition focus:border-orange-500/40 focus:ring-1 focus:ring-orange-500/20"
                 >
                   {FEEDBACK_TYPES.map((option) => (
-                    <option key={option} value={option}>
+                    <option key={option} value={option} className="bg-[#111111]">
                       {option}
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Message */}
               <div>
-                <label htmlFor="feedback-message" className="mb-1 block text-sm font-medium">
+                <label className="mb-1.5 block text-xs font-semibold text-white/50 uppercase tracking-widest">
                   Message
                 </label>
                 <textarea
-                  id="feedback-message"
                   value={message}
-                  onChange={(event) => setMessage(event.target.value)}
+                  onChange={(e) => setMessage(e.target.value)}
                   rows={5}
-                  placeholder="Tell us what is working or what we should improve..."
-                  className="w-full resize-none rounded-lg border border-white/10 bg-[#111827] px-2 py-2 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
+                  placeholder="Tell us what's working or what we should improve..."
+                  className="w-full resize-none rounded-lg border border-white/5 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder:text-white/20 outline-none transition focus:border-orange-500/40 focus:ring-1 focus:ring-orange-500/20"
                 />
               </div>
 
+              {/* Submit */}
               <button
-                type="submit"
-                className="w-full rounded-lg bg-[#6366f1] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#4f46e5] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 focus:ring-offset-[#1a1f2e] disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleSubmit}
                 disabled={!message.trim()}
+                className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-bold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:cursor-not-allowed disabled:opacity-30 focus:outline-none"
               >
                 Send feedback
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Toast */}
       {showThanks && (
-        <div className="fixed bottom-24 right-6 z-50 rounded-lg border border-white/10 bg-[#1a1f2e] px-4 py-2 text-sm text-white shadow-lg">
+        <div className="fixed bottom-28 right-4 z-50 rounded-lg border border-orange-500/20 bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
           Thanks for your feedback!
         </div>
       )}
