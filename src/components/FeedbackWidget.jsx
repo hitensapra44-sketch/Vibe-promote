@@ -60,8 +60,8 @@ export default function FeedbackWidget() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 px-1 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#1a1f2e] p-6 text-[#e5e7eb] shadow-1xl">
+        <div className="fixed inset-0 z-0 flex items-center justify-center bg-black/60 px-1 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-1xl border border-white/10 bg-[#1a1f2e] p-3 text-[#e5e7eb] shadow-1xl">
             <button
               type="button"
               onClick={handleClose}
