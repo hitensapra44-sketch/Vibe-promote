@@ -54,13 +54,13 @@ export default function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-14 right-0 z-40 rounded-l-xl border border-r-0 border-white/10 bg-[#1a1f2e] px-1.5 py-2 text-[11px] font-medium tracking-wide text-white shadow-md transition hover:bg-[#20283b] [writing-mode:vertical-rl] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 focus:ring-offset-[#0f1117]"
+        className="fixed bottom-10 right-0 z-20 rounded-l-xl border border-r-0 border-white/10 bg-[#1a1f2e] px-1.5 py-1 text-[11px] font-medium tracking-wide text-white shadow-md transition hover:bg-[#20283b] [writing-mode:vertical-rl] focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 focus:ring-offset-[#0f1117]"
       >
         Feedback
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-2 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#1a1f2e] p-6 text-[#e5e7eb] shadow-2xl">
             <button
               type="button"
