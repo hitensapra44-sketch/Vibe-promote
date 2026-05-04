@@ -145,7 +145,9 @@ Reddit voice:
 - Post must be complete. Every section in the template structure must be filled out fully.
 
 Twitter/X voice:
-
+- use app name only in cta in the end and make the post mostly value
+- dont use hard or any long words use easy as possible words
+- dont use any emoji
 - Hook tweet must be under 220 characters and create real tension or curiosity
 - Each tweet in a thread must stand alone as a complete thought
 - No tweet can start with an emoji
