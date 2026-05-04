@@ -31,14 +31,24 @@ export default function BrandBrainOnboarding({ onComplete }) {
     setExtracting(true);
     setHasExtracted(false);
 
-    const systemPrompt = `Analyze the SaaS product at the given URL. Return ONLY a JSON object with these 5 fields:
-- app_name: Product name.
-- app_description: 1-2 simple sentences on what it does.
-- target_customer: Specific person it's built for.
-- core_problem: The main pain it fixes.
-- category: The app category (e.g. Marketing, Productivity, DevTool).
+    const systemPrompt = `Analyze a SaaS product from a given URL and extract key information as accurately as possible.
 
-Return ONLY valid JSON. No markdown, no extra text.`;
+You must return ONLY a valid JSON object. No explanations, no markdown, no extra text.
+
+OUTPUT FORMAT (STRICT):
+{
+  "app_name": "string",
+  "app_description": "string",
+  "target_customer": "string",
+  "core_problem": "string",
+  "category": "string"
+}
+
+PRIMARY GOAL:
+Extract information based ONLY on what is clearly stated or strongly implied on the website.
+
+Do NOT guess. Do NOT invent features. Accuracy > completeness.
+`;
 
     try {
       const result = await generateAICall(systemPrompt, `URL: ${url}`);
