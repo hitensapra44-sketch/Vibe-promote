@@ -135,6 +135,8 @@ CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
 PLATFORM-SPECIFIC VOICE:
 
 Reddit voice:
+- dont use large or hard words, dont use emoji
+- for making post use 90% value in post and 10% mention in the cta, and dont make post look salesy
 - Sound like a frustrated but honest founder sharing a real experience
 - No marketing language at all. Reddit users will downvote anything that sounds like an ad.
 - First paragraph must hook with a real specific painful moment or contrarian statement — not a generic opener
