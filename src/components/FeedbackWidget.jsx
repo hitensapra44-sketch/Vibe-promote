@@ -66,7 +66,7 @@ export default function FeedbackWidget() {
               type="button"
               onClick={handleClose}
               aria-label="Close feedback modal"
-              className="absolute right-4 top-4 rounded-md p-1 text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
+              className="absolute right-2 top-2 rounded-md p-1 text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#6366f1]"
             >
               <span className="text-lg leading-none">x</span>
             </button>
@@ -83,7 +83,7 @@ export default function FeedbackWidget() {
                   id="feedback-type"
                   value={type}
                   onChange={(event) => setType(event.target.value)}
-                  className="w-full rounded-lg border border-white/10 bg-[#1e2435] px-3 py-2 text-sm text-white outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
+                  className="w-full rounded-lg border border-white/10 bg-[#1e2435] px-1 py-1 text-sm text-white outline-none transition focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/50"
                 >
                   {FEEDBACK_TYPES.map((option) => (
                     <option key={option} value={option}>
