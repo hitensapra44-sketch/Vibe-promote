@@ -87,14 +87,25 @@ export default function AudienceSpotter() {
           
           // Autofill logic for new users
           if (count === 0 && !savedConfig) {
-            // Suggest keywords from pain phrases or core problem
+            // Suggest keywords from pain phrases or core problem (up to 15)
             const suggestedKeywords = brainData.pain_phrases 
               ? brainData.pain_phrases.split(',').map(k => k.trim()).filter(Boolean)
               : [brainData.core_problem].filter(Boolean);
-            setKeywords(suggestedKeywords.slice(0, 5));
+            setKeywords(suggestedKeywords.slice(0, 15));
 
-            // Suggest default high-traffic communities
-            setCommunities(['SaaS', 'startups', 'indiehackers', 'SideProject']);
+            // Suggest 10 high-traffic communities
+            setCommunities([
+              'SaaS', 
+              'startups', 
+              'indiehackers', 
+              'SideProject', 
+              'entrepreneur', 
+              'GrowthHacking', 
+              'marketing', 
+              'Business', 
+              'smallbusiness', 
+              'solopreneur'
+            ]);
           }
         }
 
@@ -381,7 +392,7 @@ export default function AudienceSpotter() {
                 )}
 
                 {step === 2 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Communities</h1>
                       <p className="text-zinc-500">Subreddits where we'll scan for high-intent conversations.</p>
