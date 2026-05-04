@@ -79,11 +79,25 @@ export default function AudienceSpotter() {
       if (!user) return;
       try {
         const { data: brainData } = await supabase.from('brand_brains').select('*').eq('user_id', user.id).maybeSingle();
-        if (brainData) setBrain(brainData);
-
         const { count } = await supabase.from('audience_signals').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
         const savedConfig = localStorage.getItem('vh_audience_config');
         
+        if (brainData) {
+          setBrain(brainData);
+          
+          // Autofill logic for new users
+          if (count === 0 && !savedConfig) {
+            // Suggest keywords from pain phrases or core problem
+            const suggestedKeywords = brainData.pain_phrases 
+              ? brainData.pain_phrases.split(',').map(k => k.trim()).filter(Boolean)
+              : [brainData.core_problem].filter(Boolean);
+            setKeywords(suggestedKeywords.slice(0, 5));
+
+            // Suggest default high-traffic communities
+            setCommunities(['SaaS', 'startups', 'indiehackers', 'SideProject']);
+          }
+        }
+
         if (count > 0) {
           setIsConfigured(true);
           if (brainData?.audience_keywords) setKeywords(JSON.parse(brainData.audience_keywords));
@@ -126,6 +140,22 @@ export default function AudienceSpotter() {
     if (newKeyword && !keywords.includes(newKeyword)) {
       setKeywords([...keywords, newKeyword.trim()]);
       setNewKeyword('');
+    }
+  };
+
+  const handleNext = () => {
+    if (step === 1 && skipSubreddits) {
+      setStep(3);
+    } else {
+      setStep(step + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (step === 3 && skipSubreddits) {
+      setStep(1);
+    } else {
+      setStep(step - 1);
     }
   };
 
@@ -455,21 +485,23 @@ export default function AudienceSpotter() {
                       </div>
 
                       {/* Communities Section */}
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <MessageSquare className="w-5 h-5 text-zinc-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Communities</p>
-                          <div className="flex flex-wrap gap-2">
-                            {communities.map(c => (
-                              <span key={c} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
-                                r/{c}
-                              </span>
-                            ))}
+                      {!skipSubreddits && (
+                        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                            <MessageSquare className="w-5 h-5 text-zinc-400" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Communities</p>
+                            <div className="flex flex-wrap gap-2">
+                              {communities.map(c => (
+                                <span key={c} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
+                                  r/{c}
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Keywords Section */}
                       <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
@@ -494,14 +526,14 @@ export default function AudienceSpotter() {
 
               <div className="mt-12 flex items-center justify-between">
                 <button 
-                  onClick={() => setStep(step - 1)}
+                  onClick={handleBack}
                   className={cn("flex items-center gap-2 text-zinc-500 hover:text-white transition-all bg-transparent", step === 1 && "invisible")}
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 {step < 4 ? (
                   <button 
-                    onClick={() => setStep(step + 1)}
+                    onClick={handleNext}
                     className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
