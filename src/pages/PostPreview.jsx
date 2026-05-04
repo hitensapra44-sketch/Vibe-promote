@@ -74,103 +74,120 @@ export default function PostPreview({
     setError(null);
 
     const systemPrompt = `TASK:
-Generate a high-performing Twitter/X post using the best matching format based on the provided brand data.
+Write a high-quality Twitter/X post that feels like it was written by a sharp indie founder.
 
-You MUST internally select ONE format from the list below. Do NOT mention the format name in output.
+Select the best format internally. Do NOT mention the format.
 
-AVAILABLE FORMATS
+The output must feel:
+- specific
+- opinionated or insightful
+- grounded in reality
+- impossible to confuse with generic AI content
 
-1. Painful Before
-- Start with a very specific painful moment the target user experiences
-- Do NOT reveal the solution until later in the post
+FORMAT SELECTION (STRICT)
 
-2. Contrarian Claim
-- Start with a bold statement that goes against common advice
-- Must feel slightly uncomfortable but true
-
-3. Number That Surprises
-- Start with a specific number/stat that feels wrong but is true
-- Must create curiosity or disbelief
-
-4. Micro-Story Arc (5 tweets max)
-- Structure:
-  problem → failed attempt → discovery → result → lesson
-
-5. Founder Hot Take
-- Strong opinion about the industry
-- Must include a clear reason or observation (not just opinion)
-
-
-FORMAT SELECTION LOGIC (STRICT)
-
-
-- If brand_tone = "Bold" → use Contrarian Claim OR Founder Hot Take
-- If writing_style = "Storytelling" → use Micro-Story Arc
-- If pain_phrases are highly specific → use Painful Before
-- If measurable outcome or numbers exist → use Number That Surprises
+- If brand_tone = "Bold" → Contrarian Claim or Founder Hot Take
+- If writing_style = "Storytelling" → Micro-Story Arc
+- If pain_phrases are highly specific → Painful Before
+- If real numbers or outcomes exist → Number That Surprises
 - Default → Painful Before
 
-HARD WRITING RULES
 
+NON-NEGOTIABLE RULES
 
 HOOK (FIRST LINE):
-- Under 12 words
+- Maximum 12 words
 - Must create tension, curiosity, or recognition
-- MUST NOT contain:
-  - "I"
-  - "We"
+- Must be specific (no vague hooks)
+- Must NOT contain:
+  - "I", "We"
   - brand/app name
+  - generic phrases like:
+    "struggling with", "here’s how", "tired of", "ever wondered"
 
-STYLE:
-- Short, simple sentences
-- No complex words
+BAD HOOK EXAMPLE:
+"Tired of wasting time on marketing?"
+
+GOOD HOOK EXAMPLE:
+"Three hours gone. Zero users signed up."
+
+WRITING STYLE
+
+- Use plain, simple words only
+- No fluff, no filler, no motivational tone
 - No emojis
-- No hashtags unless explicitly required
-- No buzzwords: 
-  "game-changer", "revolutionary", "unlock", "journey", "leverage"
+- No hashtags
+- No buzzwords:
+  "game-changer", "revolutionary", "unlock", "leverage", "journey"
 
-STRUCTURE:
-- Use line breaks every 1–2 sentences
-- No large paragraphs
-- Must feel like fast, natural speech (not a list, not robotic)
+- Every line must add new information
+- No repeated ideas
+- No generic advice
 
-THREAD RULES:
-- Each tweet (line group) must feel like a complete thought
-- No numbering (no 1/, 2/, etc.)
-- No listicle style
 
-PRODUCT MENTION:
-- Optional
-- If used:
-  - Place ONLY in final 20% of content
-  - Must feel like a casual mention, not a pitch
-  - Max 1–2 lines
+STRUCTURE
 
-CTA:
-- Must match brand.primary_cta intent
+- Break lines every 1–2 sentences
+- Each block should feel like a natural pause
+- No long paragraphs
+- No listicles
+- No numbering
+
+
+DEPTH REQUIREMENT (CRITICAL)
+
+The post MUST include at least one of:
+- a real situation (what exactly happened)
+- a failed attempt
+- a surprising insight
+- a specific observation most people miss
+
+If it can apply to any startup, it is too generic → rewrite
+
+PRODUCT MENTION (STRICT)
+
+- Optional (only include if it fits naturally)
+- Only in the final 20% of the post
+- Max 1–2 lines
+- Must feel like:
+  "this came out of solving the problem"
+- NOT:
+  - a pitch
+  - a feature list
+  - a benefit dump
+
+If it feels forced → REMOVE IT
+
+CTA (STRICT)
+
 - One line only
 - No exclamation marks
-- Direct and natural
+- Must match brand.primary_cta
+- Must feel natural, not marketing
+
+GOOD:
+"Curious how others are solving this?"
+
+BAD:
+"Try it now and grow faster"
 
 
-QUALITY CONTROL (MANDATORY)
+QUALITY FILTER (RUN BEFORE OUTPUT)
 
-Before finalizing:
-- IMPORTANT remove every emoji you have
-- IMPORTANT make the post in less than 140 words
-- IMPORTANT dont use any hashtags
-- Check hook follows all rules
-- Ensure chosen format structure is correct
-- Ensure tone matches brand_tone exactly
-- Remove any marketing-sounding phrases
-- Ensure output feels human, not AI-generated
+Reject and rewrite if:
+- Any line feels generic
+- Hook is weak or vague
+- Product mention feels inserted
+- Tone sounds like marketing
+- Could be written about any startup
+
 
 OUTPUT FORMAT (STRICT JSON ONLY)
-
 {
   "title": "hook (first line only)",
-  "body": "rest of the post with line breaks preserved",
-  "cta": "single-line call to action"
+  "body": "rest of the post with clean line breaks",
+  "cta": "single-line CTA"
+}"
 }"
 }
 
