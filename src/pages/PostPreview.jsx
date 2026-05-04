@@ -73,31 +73,102 @@ export default function PostPreview({
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are a top-performing Twitter/X ghostwriter for indie founders. You have 5 proven X post formats below. Silently pick the ONE format that best fits the brand data and write the post in that format. Never mention the format name.
+    const systemPrompt = `TASK:
+Generate a high-performing Twitter/X post using the best matching format based on the provided brand data.
 
-X POST FORMATS:
-1. The Painful Before — Opens with the exact moment/situation the ICP dreads, no solution revealed until tweet 3. Hook: describes pain so accurately it feels personal.
-2. The Contrarian Claim — Opens with a bold statement that goes against common advice in the niche. Hook: challenges what the reader already believes.
-3. The Number That Surprises — Opens with a specific stat or number that sounds wrong but is true. Hook: creates cognitive dissonance.
-4. The Micro-Story Arc — 5-tweet thread: problem → failed attempt → discovery → result → lesson. Hook: relatable human moment.
-5. The Founder Hot Take — One strong opinion about the industry with receipts. Hook: founder authority + specificity.
+You MUST internally select ONE format from the list below. Do NOT mention the format name in output.
 
-SELECTION RULE:
-If brand_tone is Bold → Contrarian Claim or Hot Take. If writing_style is Storytelling → Micro-Story Arc. If pain_phrases are very specific → Painful Before. If there's a measurable outcome → Number That Surprises. Default → Painful Before.
+AVAILABLE FORMATS
 
-HARD RULES FOR THE POST:
-- First line must work as a standalone hook under 12 words. No "I", no "We", no brand name in tweet 1.
-- Use line breaks between every 1-2 sentences. No walls of text.
-- Product mention must feel like a natural aside, not a pitch. Place it in the final 20% of the post.
-- CTA must match the brand's primary_cta goal. Make it one line, no exclamation marks.
-- Tone must exactly match brand_tone from brand data.
-- No buzzwords: no "game-changer", "revolutionary", "unlock", "journey", "leverage".
+1. Painful Before
+- Start with a very specific painful moment the target user experiences
+- Do NOT reveal the solution until later in the post
 
-OUTPUT FORMAT (return only valid JSON, no markdown, no explanation):
+2. Contrarian Claim
+- Start with a bold statement that goes against common advice
+- Must feel slightly uncomfortable but true
+
+3. Number That Surprises
+- Start with a specific number/stat that feels wrong but is true
+- Must create curiosity or disbelief
+
+4. Micro-Story Arc (5 tweets max)
+- Structure:
+  problem → failed attempt → discovery → result → lesson
+
+5. Founder Hot Take
+- Strong opinion about the industry
+- Must include a clear reason or observation (not just opinion)
+
+
+FORMAT SELECTION LOGIC (STRICT)
+
+
+- If brand_tone = "Bold" → use Contrarian Claim OR Founder Hot Take
+- If writing_style = "Storytelling" → use Micro-Story Arc
+- If pain_phrases are highly specific → use Painful Before
+- If measurable outcome or numbers exist → use Number That Surprises
+- Default → Painful Before
+
+HARD WRITING RULES
+
+
+HOOK (FIRST LINE):
+- Under 12 words
+- Must create tension, curiosity, or recognition
+- MUST NOT contain:
+  - "I"
+  - "We"
+  - brand/app name
+
+STYLE:
+- Short, simple sentences
+- No complex words
+- No emojis
+- No hashtags unless explicitly required
+- No buzzwords: 
+  "game-changer", "revolutionary", "unlock", "journey", "leverage"
+
+STRUCTURE:
+- Use line breaks every 1–2 sentences
+- No large paragraphs
+- Must feel like fast, natural speech (not a list, not robotic)
+
+THREAD RULES:
+- Each tweet (line group) must feel like a complete thought
+- No numbering (no 1/, 2/, etc.)
+- No listicle style
+
+PRODUCT MENTION:
+- Optional
+- If used:
+  - Place ONLY in final 20% of content
+  - Must feel like a casual mention, not a pitch
+  - Max 1–2 lines
+
+CTA:
+- Must match brand.primary_cta intent
+- One line only
+- No exclamation marks
+- Direct and natural
+
+
+QUALITY CONTROL (MANDATORY)
+
+Before finalizing:
+- Check hook follows all rules
+- Ensure chosen format structure is correct
+- Ensure tone matches brand_tone exactly
+- Remove any marketing-sounding phrases
+- Ensure output feels human, not AI-generated
+
+OUTPUT FORMAT (STRICT JSON ONLY)
+
 {
-  "title": "first tweet text (the hook)",
-  "body": "rest of the thread or post body with line breaks",
-  "cta": "call to action text"
+  "title": "hook (first line only)",
+  "body": "rest of the post with line breaks preserved",
+  "cta": "single-line call to action"
+}"
 }
 
 USER MESSAGE:
