@@ -16,14 +16,14 @@ import {
   ArrowLeft,
   Globe,
   Twitter,
-  Lock,
   Settings,
   RefreshCw,
-  Search,
   ExternalLink,
   Trash2,
   Clock,
-  Wand2
+  Brain,
+  Bell,
+  Volume2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -31,8 +31,8 @@ import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { generateAICall } from '../lib/ai';
-import { useNavigate } from 'react-router-dom';
 import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
+import moment from 'moment';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -50,19 +50,18 @@ const PLATFORMS = [
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('Platforms');
   const [brain, setBrain] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
   
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
   const [communities, setCommunities] = useState([]);
   const [newCommunity, setNewCommunity] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [newKeyword, setNewKeyword] = useState('');
-  const [frequency, setFrequency] = useState('Daily');
 
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
 
@@ -71,60 +70,43 @@ export default function AudienceSpotter() {
   }, [selectedPlatforms]);
 
   const filteredSteps = useMemo(() => {
-    if (skipSubreddits) {
-      return STEPS.filter(s => s.id !== 2);
-    }
+    if (skipSubreddits) return STEPS.filter(s => s.id !== 2);
     return STEPS;
   }, [skipSubreddits]);
 
   useEffect(() => {
-    async function fetchBrainAndInit() {
+    async function init() {
       if (!user) return;
       try {
-        const { data } = await supabase.from('brand_brains').select('*').eq('user_id', user.id).maybeSingle();
-        if (data) {
-          setBrain(data);
-          
-          // Check if already configured by looking for signals
-          const { count } = await supabase
-            .from('audience_signals')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
-          
-          if (count > 0) {
+        const { data: brainData } = await supabase.from('brand_brains').select('*').eq('user_id', user.id).maybeSingle();
+        if (brainData) setBrain(brainData);
+
+        const { count } = await supabase.from('audience_signals').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+        const savedConfig = localStorage.getItem('vh_audience_config');
+        
+        if (count > 0) {
+          setIsConfigured(true);
+          if (brainData?.audience_keywords) setKeywords(JSON.parse(brainData.audience_keywords));
+          if (brainData?.audience_platforms) setSelectedPlatforms(JSON.parse(brainData.audience_platforms));
+          if (brainData?.audience_communities) setCommunities(JSON.parse(brainData.audience_communities));
+        } else if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          if (config.isScanning) {
             setIsConfigured(true);
-            // Load existing config if available
-            if (data.audience_keywords) setKeywords(JSON.parse(data.audience_keywords));
-            if (data.audience_platforms) setSelectedPlatforms(JSON.parse(data.audience_platforms));
-            if (data.audience_communities) setCommunities(JSON.parse(data.audience_communities));
-          } else {
-            suggestFilters(data);
+            setKeywords(config.keywords);
+            setSelectedPlatforms(config.platforms);
+            setCommunities(config.communities);
+            startScan({ keywords: config.keywords, platforms: config.platforms, communities: config.communities });
           }
         }
       } finally {
         setIsInitialLoading(false);
       }
     }
-    fetchBrainAndInit();
+    init();
   }, [user]);
 
-  const suggestFilters = async (brainData) => {
-    if (!brainData) return;
-    setIsAIAnalyzing(true);
-    try {
-      const systemPrompt = `You are an elite Growth Marketing Strategist. Analyze this SaaS product and identify exactly where its buyers hang out and what phrases they use when actively searching for solutions. Return ONLY a JSON object with: subreddits: Array of 10 highly targeted subreddits (without 'r/'), keywords: Array of EXACTLY 10 highly-specific, intent-driven search phrases.`;
-      const result = await generateAICall(systemPrompt, `App: ${brainData.app_name}. Problem: ${brainData.core_problem}`);
-      const parsed = JSON.parse(result);
-      if (parsed.subreddits) setCommunities(parsed.subreddits);
-      if (parsed.keywords) setKeywords(parsed.keywords.slice(0, 10));
-    } catch (e) { 
-      console.error("AI Analysis failed", e);
-    } finally {
-      setIsAIAnalyzing(false);
-    }
-  };
-
-  const handleCreateSignal = async () => {
+  const handleCreateSignal = () => {
     if (keywords.length === 0) {
       toast.error("Add at least one keyword first");
       return;
@@ -147,13 +129,170 @@ export default function AudienceSpotter() {
     }
   };
 
-  const getScoreLabel = (score) => {
-    if (score >= 90) return `${score}% — Very likely your user`;
-    if (score >= 75) return `${score}% — Strong match`;
-    return `${score}% — Possible match`;
-  };
-
   if (isInitialLoading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
+
+  if (showSettings) {
+    const tabs = ['Platforms', 'Monitoring', 'Reply Voice', 'Product', 'Notifications'];
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+        <Sidebar isPaid={true} />
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8 sm:p-12">
+          <div className="max-w-5xl mx-auto w-full">
+            <button onClick={() => setShowSettings(false)} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-8 bg-transparent">
+              <ArrowLeft className="w-4 h-4" /> Back to User Finder
+            </button>
+
+            <div className="flex items-center gap-4 mb-10">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center">
+                <Settings className="w-6 h-6 text-zinc-400" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Signal Settings</h1>
+                <p className="text-zinc-500 text-sm">Configure how we monitor the internet for buying signals.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-8 border-b border-white/5 mb-10">
+              {tabs.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setSettingsTab(t)}
+                  className={cn(
+                    "pb-4 text-sm font-bold transition-all bg-transparent relative",
+                    settingsTab === t ? "text-primary" : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  {t}
+                  {settingsTab === t && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="animate-in fade-in duration-500">
+              {settingsTab === 'Platforms' && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold">Where should we listen?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {PLATFORMS.map(p => (
+                      <div key={p.id} className={cn("p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center", p.available ? "border-zinc-800 bg-zinc-900/40" : "opacity-40 border-zinc-900 bg-zinc-900/20")}>
+                        <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center">
+                          <p.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="font-bold text-sm">{p.name}</span>
+                        {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Pro</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {settingsTab === 'Monitoring' && (
+                <div className="space-y-12">
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Keywords</h2>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        placeholder="e.g. email outreach"
+                        value={newKeyword}
+                        onChange={(e) => setNewKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
+                      />
+                      <button onClick={addKeyword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
+                        <Plus className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {keywords.map((k, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
+                          {k}
+                          <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Communities</h2>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        placeholder="e.g. SaaS or r/startups"
+                        value={newCommunity}
+                        onChange={(e) => setNewCommunity(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addCommunity()}
+                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
+                      />
+                      <button onClick={addCommunity} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
+                        <Plus className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {communities.map((c, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-800 border border-white/5 text-zinc-300 text-xs font-bold">
+                          r/{c}
+                          <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {settingsTab === 'Product' && (
+                <div className="space-y-8">
+                  <div className="p-8 rounded-2xl bg-zinc-900/40 border border-white/5 space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Brain className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">{brain?.app_name}</h3>
+                        <p className="text-zinc-500 text-sm">Using your Brand Brain for filtering.</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Description</p>
+                        <p className="text-sm text-zinc-300">{brain?.app_description}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Target Audience</p>
+                        <p className="text-sm text-zinc-300">{brain?.target_customer}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {(settingsTab === 'Reply Voice' || settingsTab === 'Notifications') && (
+                <div className="py-20 text-center">
+                  <p className="text-zinc-500">Coming soon in the next update.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-12 pt-8 border-t border-white/5 flex justify-end">
+              <button 
+                onClick={() => {
+                  handleCreateSignal();
+                  setShowSettings(false);
+                }}
+                className="px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!isConfigured) {
     return (
@@ -248,11 +387,9 @@ export default function AudienceSpotter() {
 
                 {step === 3 && (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                      <div>
-                        <h1 className="text-4xl font-bold mb-4">Keywords</h1>
-                        <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery.</p>
-                      </div>
+                    <div>
+                      <h1 className="text-4xl font-bold mb-4">Keywords</h1>
+                      <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery.</p>
                     </div>
                     <div className="relative">
                       <input 
@@ -284,12 +421,71 @@ export default function AudienceSpotter() {
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                     <div>
                       <h1 className="text-4xl font-bold mb-4">Review your signal</h1>
-                      <p className="text-zinc-500">Everything looks good? We'll start scanning for your buyers.</p>
+                      <p className="text-zinc-500">Everything looks good? Hit create and we'll start monitoring.</p>
                     </div>
-                    <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-4">
-                      <div className="flex flex-wrap gap-2">
-                        {communities.map(c => <span key={c} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">r/{c}</span>)}
-                        {keywords.map(k => <span key={k} className="px-3 py-1.5 rounded-lg bg-zinc-800 text-xs font-bold text-zinc-400">#{k}</span>)}
+                    
+                    <div className="space-y-4">
+                      {/* Product Section */}
+                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <Brain className="w-5 h-5 text-zinc-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Product</p>
+                          <h3 className="text-lg font-bold text-white mb-1">{brain?.app_name}</h3>
+                          <p className="text-xs text-zinc-400 leading-relaxed">{brain?.app_description}</p>
+                        </div>
+                      </div>
+
+                      {/* Platforms Section */}
+                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <Globe className="w-5 h-5 text-zinc-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Platforms</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedPlatforms.map(p => (
+                              <span key={p} className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase">
+                                {p}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Communities Section */}
+                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <MessageSquare className="w-5 h-5 text-zinc-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Communities</p>
+                          <div className="flex flex-wrap gap-2">
+                            {communities.map(c => (
+                              <span key={c} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
+                                r/{c}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Keywords Section */}
+                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <Target className="w-5 h-5 text-zinc-400" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Keywords</p>
+                          <div className="flex flex-wrap gap-2">
+                            {keywords.map(k => (
+                              <span key={k} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
+                                #{k}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -326,6 +522,8 @@ export default function AudienceSpotter() {
     );
   }
 
+  const config = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
@@ -349,7 +547,7 @@ export default function AudienceSpotter() {
                 Scan Now
               </button>
             <button 
-              onClick={() => setIsConfigured(false)}
+              onClick={() => setShowSettings(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all bg-transparent text-xs font-bold"
             >
               <Settings className="w-3.5 h-3.5" /> Re-Configure
@@ -360,16 +558,41 @@ export default function AudienceSpotter() {
         <div className="p-8 sm:p-12 max-w-6xl mx-auto w-full">
           {signals.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
-              <div className="relative w-24 h-24 mb-8">
-                <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
-                <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                  <RefreshCw className="w-10 h-10 text-primary animate-spin" style={{ animationDuration: '3s' }} />
-                </div>
-              </div>
-              <h2 className="text-xl font-bold mb-2">Scanning for users...</h2>
-              <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed">
-                We're searching Reddit and Hacker News for high-intent conversations from the last 24 hours.
-              </p>
+              {isLoading ? (
+                <>
+                  <div className="relative w-24 h-24 mb-8">
+                    <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+                    <div className="relative w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                      <RefreshCw className="w-10 h-10 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+                    </div>
+                  </div>
+                  <h2 className="text-xl font-bold mb-2">Still scanning... we'll find your people.</h2>
+                  <div className="flex flex-wrap justify-center gap-2 mb-4">
+                    {keywords.map(k => (
+                      <span key={k} className="px-3 py-1 rounded-full bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-bold uppercase">#{k}</span>
+                    ))}
+                  </div>
+                  <p className="text-zinc-600 text-xs">
+                    Scan started {moment(config.scanStartedAt).fromNow()}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-6">
+                    <X className="w-8 h-8 text-zinc-700" />
+                  </div>
+                  <h2 className="text-xl font-bold mb-2">No signals found in the last 24 hours.</h2>
+                  <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed mb-8">
+                    Try adding more keywords or subreddits to widen your search.
+                  </p>
+                  <button 
+                    onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
+                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Scan Again
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-6 pb-20">
@@ -399,7 +622,7 @@ export default function AudienceSpotter() {
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
                                <Target className="w-3 h-3 text-white" />
-                               <span className="text-white text-[10px] font-bold uppercase tracking-wider">Potential User Score: {getScoreLabel(signal.intent_score)}</span>
+                               <span className="text-white text-[10px] font-bold uppercase tracking-wider">Potential User Score: {signal.intent_score}%</span>
                             </div>
                           </div>
                         </div>
@@ -438,7 +661,7 @@ export default function AudienceSpotter() {
                             onClick={() => updateSignalStatus(signal.id, 'dismissed')}
                             className={cn(
                               "p-2 rounded-lg border transition-all bg-transparent",
-                              signal.status === 'dismissed' ? "border-red-500 bg-red-500/10 text-red-500" : "border-zinc-800 text-zinc-500 hover:text-red-500"
+                              signal.status === 'dismissed' ? "border-red-500 bg-red-500/10 text-red-400" : "border-zinc-800 text-zinc-500 hover:text-red-400"
                             )}
                           >
                             <X className="w-4 h-4" />

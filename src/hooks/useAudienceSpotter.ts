@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
 import { generateAICall } from '../lib/ai';
+import { useEffect } from 'react';
 
 interface Signal {
   id?: string;
@@ -42,20 +43,23 @@ export const useAudienceSpotter = (userId: string) => {
     mutationFn: async ({ keywords, platforms, communities }: { keywords: string[]; platforms: string[]; communities: string[] }) => {
       if (!userId) throw new Error("User not authenticated");
 
-      // 1. Persist Config to Brand Brains
+      // 1. Persist Config to LocalStorage
+      const config = { keywords, platforms, communities, scanStartedAt: Date.now(), isScanning: true };
+      localStorage.setItem('vh_audience_config', JSON.stringify(config));
+
+      // 2. Persist Config to Brand Brains
       await supabase
         .from('brand_brains')
         .update({
           audience_keywords: JSON.stringify(keywords),
           audience_platforms: JSON.stringify(platforms),
           audience_communities: JSON.stringify(communities),
-          // Fallback for existing columns
           pain_phrases: keywords.join(', '),
           primary_platform: communities.join(', ')
         })
         .eq('user_id', userId);
 
-      // 2. Fetch Brand Brain for AI Context
+      // 3. Fetch Brand Brain for AI Context
       const { data: brain } = await supabase
         .from('brand_brains')
         .select('*')
@@ -65,12 +69,13 @@ export const useAudienceSpotter = (userId: string) => {
       const timestamp_24h_ago = Math.floor(Date.now() / 1000) - 86400;
       let rawPosts: any[] = [];
 
-      // 3. Fetch from Reddit (Search keywords IN subreddits)
+      // 4. Fetch from Reddit
       if (platforms.includes('reddit')) {
-        for (const sub of communities) {
+        const searchCommunities = communities.length > 0 ? communities : ['SaaS', 'startups', 'indiehackers'];
+        for (const sub of searchCommunities) {
           for (const kw of keywords) {
             try {
-              const res = await fetch(`https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(kw)}&sort=new&t=day&limit=10&restrict_sr=true`, {
+              const res = await fetch(`https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(kw)}&sort=new&t=day&limit=5&restrict_sr=true`, {
                 headers: { 'User-Agent': 'VibePromote/1.0' }
               });
               if (res.ok) {
@@ -95,7 +100,7 @@ export const useAudienceSpotter = (userId: string) => {
         }
       }
 
-      // 4. Fetch from Hacker News
+      // 5. Fetch from Hacker News
       if (platforms.includes('hn')) {
         for (const kw of keywords) {
           try {
@@ -121,16 +126,12 @@ export const useAudienceSpotter = (userId: string) => {
         }
       }
 
-      // 5. Deduplicate and Keyword Match Check
+      // 6. Deduplicate
       const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.post_url, p])).values());
-      const filteredPosts = uniquePosts.filter(p => {
-        const content = `${p.post_title} ${p.post_body}`.toLowerCase();
-        return keywords.some(kw => content.includes(kw.toLowerCase()));
-      });
-
-      // 6. AI Relevance Filtering & Reply Generation
+      
+      // 7. AI Relevance Filtering
       const finalSignals: Signal[] = [];
-      for (const post of filteredPosts.slice(0, 15)) { // Limit AI calls
+      for (const post of uniquePosts.slice(0, 10)) {
         try {
           const systemPrompt = "You are a strict relevance filter. Given a SaaS product's target audience description and a Reddit/HN post, score how likely the post author is a potential customer. Return ONLY valid JSON: { \"score\": number between 1-100, \"reason\": \"string (max 10 words)\", \"isRelevant\": boolean }. Mark isRelevant: true only if score >= 65.";
           const userMsg = `Product: ${brain.app_name}. Target customer: ${brain.target_customer}. Core problem solved: ${brain.core_problem}.
@@ -141,7 +142,6 @@ Post body (first 300 chars): ${post.post_body.substring(0, 300)}`;
           const parsed = JSON.parse(aiResult);
 
           if (parsed.isRelevant) {
-            // Generate suggested reply
             const replyPrompt = `You are a helpful community member. Write a short, casual reply to this post that naturally mentions ${brain.app_name} as a solution. Max 3 sentences. No emojis. No hashtags.`;
             const reply = await generateAICall(replyPrompt, `Post: ${post.post_title}\n${post.post_body.substring(0, 300)}`);
             
@@ -152,7 +152,6 @@ Post body (first 300 chars): ${post.post_body.substring(0, 300)}`;
               suggested_reply: reply,
             };
             
-            // Save to Supabase
             const { data: savedSignal, error: saveError } = await supabase
               .from('audience_signals')
               .upsert(signal, { onConflict: 'post_url' })
@@ -163,6 +162,10 @@ Post body (first 300 chars): ${post.post_body.substring(0, 300)}`;
           }
         } catch (e) { console.error("AI filtering error", e); }
       }
+
+      // 8. Update LocalStorage on completion
+      const updatedConfig = { ...config, isScanning: false };
+      localStorage.setItem('vh_audience_config', JSON.stringify(updatedConfig));
 
       return finalSignals;
     },
