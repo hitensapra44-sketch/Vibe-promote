@@ -20,10 +20,9 @@ export async function generateAICall(systemPrompt, userMessage, userId = null, f
     }
   }
 
-  const response = await fetch('/api/ai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  // Call the Supabase Edge Function instead of the local /api/ai path
+  const { data, error } = await supabase.functions.invoke('ai-service', {
+    body: {
       feature,
       messages: [
         { role: 'system', content: finalSystemPrompt },
@@ -31,14 +30,16 @@ export async function generateAICall(systemPrompt, userMessage, userId = null, f
       ],
       max_tokens: 1024,
       temperature: 0.7,
-    }),
+    }
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(`AI call failed [${feature}]: ${response.status} — ${err?.error || 'unknown error'}`);
+  if (error) {
+    throw new Error(`AI service error: ${error.message}`);
   }
 
-  const data = await response.json();
+  if (!data?.choices?.[0]?.message?.content) {
+    throw new Error("Invalid response from AI service");
+  }
+
   return data.choices[0].message.content;
 }
