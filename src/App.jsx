@@ -16,6 +16,7 @@ import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
+import Pricing from './pages/Pricing';
 import FeedbackWidget from './components/FeedbackWidget';
 import { useAuth } from './lib/AuthContext';
 
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/survey" element={<Survey />} />
             <Route path="/pre-purchase" element={<PrePurchase />} />
+            <Route path="/pricing" element={<Pricing />} />
 
             {/* Protected Routes */}
             <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/auth" />} />
