@@ -59,7 +59,7 @@ FAIL CONDITIONS (MUST AVOID):
 Return ONLY the JSON object.`;
 
     try {
-      const result = await generateAICall(systemPrompt, `URL: ${url}`);
+      const result = await generateAICall(systemPrompt, `URL: ${url}`, null, 'onboarding');
       const parsed = JSON.parse(result);
 
       setAppName(parsed.app_name || '');

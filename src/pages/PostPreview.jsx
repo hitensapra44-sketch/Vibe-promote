@@ -187,8 +187,6 @@ OUTPUT FORMAT (STRICT JSON ONLY)
   "title": "hook (first line only)",
   "body": "rest of the post with clean line breaks",
   "cta": "single-line CTA"
-}"
-}"
 }
 
 USER MESSAGE:
@@ -205,7 +203,7 @@ Brand data: ${JSON.stringify({
     })}`;
 
     try {
-      const result = await generateAICall(systemPrompt, "Write the post now.");
+      const result = await generateAICall(systemPrompt, "Write the post now.", null, 'onboarding');
       const parsed = JSON.parse(result);
       setPost(`${parsed.title}\n\n${parsed.body}\n\n${parsed.cta}`);
     } catch (err) {

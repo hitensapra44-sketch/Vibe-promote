@@ -61,7 +61,7 @@ Keep replies to 3‑5 sentences unless the user explicitly asks for a full break
 Reference the supplied numbers directly; do not fabricate any data.`;
 
     try {
-      const response = await generateAICall(systemPrompt, msg, user?.id);
+      const response = await generateAICall(systemPrompt, msg, user?.id, 'analytics');
       setMessages(prev => [...prev, { role: 'buddy', text: response }]);
     } catch (err) {
       console.error("AI Error:", err);

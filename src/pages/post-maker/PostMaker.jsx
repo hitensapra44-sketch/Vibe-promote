@@ -261,7 +261,7 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
 
     const attemptGeneration = async () => {
       try {
-        const result = await generateAICall(prompt, "Generate the post now.");
+        const result = await generateAICall(prompt, "Generate the post now.", null, 'post');
         return JSON.parse(result);
       } catch (e) {
         return null;
@@ -543,7 +543,7 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
 
               <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6">
                 <div className="flex">
-                  <span className="bg-[#1F1F1F] text-zinc-400 text-xs font-medium rounded-full px-3 py-1">
+                  <span className="bg-[#111111] text-zinc-400 text-xs font-medium rounded-full px-3 py-1">
                     {selectedPlatform}
                   </span>
                 </div>

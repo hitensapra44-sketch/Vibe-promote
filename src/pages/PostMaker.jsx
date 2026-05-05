@@ -119,7 +119,7 @@ export default function PostMaker() {
     }`;
 
     try {
-      const result = await generateAICall(systemPrompt, "Generate the post now.");
+      const result = await generateAICall(systemPrompt, "Generate the post now.", null, 'post');
       const parsed = JSON.parse(result);
       setPost(parsed);
       supabase.rpc('increment_posts_generated', { user_uuid: user.id });

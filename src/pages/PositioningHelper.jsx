@@ -40,7 +40,7 @@ USER MESSAGE:
 Brand data: ${JSON.stringify(appData)}`;
 
     try {
-      const result = await generateAICall(systemPrompt, "Generate the positioning now.");
+      const result = await generateAICall(systemPrompt, "Generate the positioning now.", null, 'onboarding');
       const parsed = JSON.parse(result);
       setAiPositioning(parsed);
     } catch (err) {
@@ -148,7 +148,7 @@ Brand data: ${JSON.stringify(appData)}`;
             </div>
             <div className="flex-1 bg-[#141414] border border-[#F97316]/30 rounded-lg p-8 flex flex-col relative">
               <div className="absolute top-6 right-6 flex items-center gap-2">
-                <div className="flex flex-col items-end">
+                <div className="flex col items-end">
                   <span className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest">Confidence</span>
                   <span className="text-sm font-bold text-[#F97316]">92%</span>
                 </div>

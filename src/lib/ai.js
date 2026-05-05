@@ -1,59 +1,44 @@
-import { OpenAI } from 'openai';
 import { supabase } from '../supabaseClient';
 
-const client = new OpenAI({
-  apiKey: "placeholder",
-  baseURL: `${window.location.origin}/api/ai`,
-  dangerouslyAllowBrowser: true
-});
+export async function generateAICall(systemPrompt, userMessage, userId = null, feature = 'onboarding') {
+  let finalSystemPrompt = systemPrompt;
 
-export const generateAICall = async (systemPrompt, userMessage, userId = null) => {
-  // If user ID is provided, fetch brand brain and inject its context into the system prompt
+  // If userId is passed, inject brand brain into system prompt
   if (userId) {
-    const { data: brain, error } = await supabase
-      .from('brand_brains')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    try {
+      const { data: brandBrain } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (!error && brain) {
-      const brandContext = `Brand Name: ${brain.app_name}
-Tone: ${brain.brand_tone}
-Writing Style: ${brain.writing_style}
-Target Audience: ${brain.target_customer}
-Core Problem: ${brain.core_problem}
-Unique Differentiator: ${brain.unique_differentiator}
-Primary CTA: ${brain.primary_cta}`;
-      
-      systemPrompt = `${systemPrompt}\n\nBrand Context:\n${brandContext}`;
+      if (brandBrain) {
+        finalSystemPrompt = systemPrompt + `\n\nBRAND CONTEXT:\n${JSON.stringify(brandBrain)}`;
+      }
+    } catch (e) {
+      console.warn('Could not fetch brand brain:', e);
     }
   }
 
-  try {
-    const completion = await client.chat.completions.create({
-      model: "nvidia/nemotron-mini-4b-instruct",
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      feature,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage }
+        { role: 'system', content: finalSystemPrompt },
+        { role: 'user', content: userMessage }
       ],
-      temperature: 0.2,
-      top_p: 0.7,
       max_tokens: 1024,
-      stream: false
-    });
+      temperature: 0.7,
+    }),
+  });
 
-    if (!completion.choices || !completion.choices[0] || !completion.choices[0].message) {
-      throw new Error("AI returned an empty response.");
-    }
-
-    let content = completion.choices[0].message.content;
-    content = content.replace(/```json\n?|```/g, '').trim();
-    return content;
-  } catch (err) {
-    console.error("AI Call Error:", err.message);
-    if (err.message.includes('404')) {
-      throw new Error("Proxy not active. Please click the 'Restart' button above.");
-    }
-    throw err;
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(`AI call failed [${feature}]: ${response.status} — ${err?.error || 'unknown error'}`);
   }
-};
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}

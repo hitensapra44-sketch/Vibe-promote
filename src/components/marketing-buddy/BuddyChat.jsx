@@ -49,7 +49,7 @@ export default function BuddyChat() {
 
     try {
       // The generateAICall utility automatically fetches and injects the brand brain when userId is passed
-      const response = await generateAICall(systemPrompt, msgText, user?.id);
+      const response = await generateAICall(systemPrompt, msgText, user?.id, 'copilot');
       
       const buddyMsg = { 
         role: 'buddy', 
