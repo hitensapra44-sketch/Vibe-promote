@@ -38,7 +38,7 @@ serve(async (req) => {
 
     if (feature === 'onboarding') {
       apiKey = KEYS.MINIMAX;
-      model = 'meta/llama-3.3-70b-instruct';
+      model = 'mistralai/mistral-small-4-119b-2603';
     } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
       model = 'meta/llama-3.1-8b-instruct';
