@@ -155,7 +155,7 @@ export default function Settings() {
               {!isPaid && (
                 <button
                   type="button"
-                  onClick={() => navigate('/pre-purchase')}
+                  onClick={() => navigate('/pricing')}
                   className="w-full border border-white/10 bg-transparent hover:bg-white/5 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   Upgrade to Lifetime — $49
