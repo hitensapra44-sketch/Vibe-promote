@@ -85,112 +85,44 @@ The output must feel:
 - impossible to confuse with generic AI content
 
 FORMAT SELECTION (STRICT)
-
 - If brand_tone = "Bold" → Contrarian Claim or Founder Hot Take
 - If writing_style = "Storytelling" → Micro-Story Arc
 - If pain_phrases are highly specific → Painful Before
 - If real numbers or outcomes exist → Number That Surprises
 - Default → Painful Before
 
-
 NON-NEGOTIABLE RULES
-
 HOOK (FIRST LINE):
 - Maximum 12 words
 - Must create tension, curiosity, or recognition
 - Must be specific (no vague hooks)
-- Must NOT contain:
-  - "I", "We"
-  - brand/app name
-  - generic phrases like:
-    "struggling with", "here’s how", "tired of", "ever wondered"
+- Must NOT contain: "I", "We", brand/app name, or generic phrases like "struggling with", "here’s how", "tired of", "ever wondered"
 
-BAD HOOK EXAMPLE:
-"Tired of wasting time on marketing?"
-
-GOOD HOOK EXAMPLE:
-"Three hours gone. Zero users signed up."
-
-WRITING STYLE
-
+WRITING STYLE:
 - Use plain, simple words only
 - No fluff, no filler, no motivational tone
-- No emojis
-- No hashtags
-- No buzzwords:
-  "game-changer", "revolutionary", "unlock", "leverage", "journey"
-
+- No emojis, no hashtags, no buzzwords
 - Every line must add new information
-- No repeated ideas
-- No generic advice
-
-
-STRUCTURE
-
 - Break lines every 1–2 sentences
-- Each block should feel like a natural pause
-- No long paragraphs
-- No listicles
-- No numbering
 
-
-DEPTH REQUIREMENT (CRITICAL)
-
-The post MUST include at least one of:
-- a real situation (what exactly happened)
-- a failed attempt
-- a surprising insight
-- a specific observation most people miss
-
-If it can apply to any startup, it is too generic → rewrite
-
-PRODUCT MENTION (STRICT)
-
+PRODUCT MENTION (STRICT):
 - Optional (only include if it fits naturally)
 - Only in the final 20% of the post
 - Max 1–2 lines
-- Must feel like:
-  "this came out of solving the problem"
-- NOT:
-  - a pitch
-  - a feature list
-  - a benefit dump
 
-If it feels forced → REMOVE IT
-
-CTA (STRICT)
-
+CTA (STRICT):
 - One line only
 - No exclamation marks
 - Must match brand.primary_cta
-- Must feel natural, not marketing
 
-GOOD:
-"Curious how others are solving this?"
-
-BAD:
-"Try it now and grow faster"
-
-
-QUALITY FILTER (RUN BEFORE OUTPUT)
-
-Reject and rewrite if:
-- Any line feels generic
-- Hook is weak or vague
-- Product mention feels inserted
-- Tone sounds like marketing
-- Could be written about any startup
-
-
-OUTPUT FORMAT (STRICT JSON ONLY)
+OUTPUT FORMAT (STRICT JSON ONLY, NO MARKDOWN):
 {
   "title": "hook (first line only)",
   "body": "rest of the post with clean line breaks",
   "cta": "single-line CTA"
-}
+}`;
 
-USER MESSAGE:
-Brand data: ${JSON.stringify({
+    const userMessage = `Brand data: ${JSON.stringify({
       app_name,
       app_description,
       target_customer,
@@ -203,12 +135,20 @@ Brand data: ${JSON.stringify({
     })}`;
 
     try {
-      const result = await generateAICall(systemPrompt, "Write the post now.", null, 'onboarding');
-      const parsed = JSON.parse(result);
-      setPost(`${parsed.title}\n\n${parsed.body}\n\n${parsed.cta}`);
+      const result = await generateAICall(systemPrompt, userMessage, null, 'onboarding');
+      
+      // Clean the result in case the AI included markdown blocks
+      const cleanResult = result.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleanResult);
+      
+      if (parsed.title && parsed.body && parsed.cta) {
+        setPost(`${parsed.title}\n\n${parsed.body}\n\n${parsed.cta}`);
+      } else {
+        throw new Error("Incomplete post data received");
+      }
     } catch (err) {
       console.error("Generation failed:", err);
-      setError("Something went wrong generating your post.");
+      setError(err.message || "Something went wrong generating your post.");
     } finally {
       setLoading(false);
     }
@@ -233,7 +173,7 @@ Brand data: ${JSON.stringify({
     );
   }
 
-  const handle = `@${app_name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+  const handle = `@${app_name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'founder'}`;
   const timestamp = "Just now";
 
   return (
@@ -274,7 +214,13 @@ Brand data: ${JSON.stringify({
               <div className="p-4">
                 {error ? (
                   <div className="py-10 text-center">
-                    <p className="text-red-400 text-sm mb-4">{error}</p>
+                    <p className="text-red-400 text-sm mb-4">Failed to generate: {error}</p>
+                    <button 
+                      onClick={generatePost}
+                      className="text-xs text-primary hover:underline font-bold uppercase tracking-widest bg-transparent"
+                    >
+                      Try Again
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-4">
