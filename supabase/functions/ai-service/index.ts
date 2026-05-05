@@ -5,6 +5,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/*
+================================================================
+  API KEYS — UPDATE THESE WHEN ROTATING KEYS
+================================================================
+  MINIMAX key  → used for: onboarding (BrandBrainOnboarding, 
+                 PositioningHelper, PostPreview)
+  MISTRAL_1    → used for: post maker, buddy chat, analytics buddy
+  MISTRAL_2    → used for: user finder / audience spotter
+  FALLBACK     → used by all features if primary fails
+================================================================
+*/
+
 // Keys provided by the user
 const KEYS = {
   MINIMAX: "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",
@@ -26,10 +38,13 @@ serve(async (req) => {
 
     if (feature === 'onboarding') {
       apiKey = KEYS.MINIMAX;
-      model = 'minimaxai/minimax-m2.7';
-    } else if (['post', 'copilot', 'analytics', 'userfinder'].includes(feature)) {
+      model = 'meta/llama-3.3-70b-instruct';
+    } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
-      model = 'mistralai/mistral-large-3-675b-instruct-2512';
+      model = 'meta/llama-3.1-8b-instruct';
+    } else if (feature === 'userfinder') {
+      apiKey = KEYS.MISTRAL_2;
+      model = 'meta/llama-3.3-70b-instruct';
     }
 
     const tryCall = async (key: string, modelName: string) => {
