@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+// No JWT verification needed - webhook uses signature verification
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SIGNING_SECRET = "whsec_rsRgodyOYqtiGmyXFSClN92XxPcmwRAu";
@@ -47,7 +47,7 @@ async function verifySignature(req, body) {
   return expectedSignatures.includes(actualSignature);
 }
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -68,7 +68,12 @@ serve(async (req) => {
 
   const data = payload.data;
   const email = data.customer?.email || data.billing?.email || data.email;
-  const productId = data.product_id || data.items?.[0]?.product_id || data.line_items?.[0]?.product_id;
+  
+  const productId =
+    data?.product_cart?.[0]?.product_id ||
+    data?.product_id ||
+    data?.items?.[0]?.product_id ||
+    null;
 
   if (!email || !productId) {
     console.log("[dodo-webhook] Missing email or product_id", data);
@@ -84,8 +89,8 @@ serve(async (req) => {
   }
 
   const supabase = createClient(
-    Deno.env.get("SUPABASE_URL"),
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    Deno.env.get("SUPABASE_URL") || "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
   );
 
   const { data: users, error: listError } = await supabase.auth.admin.listUsers();
