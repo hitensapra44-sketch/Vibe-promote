@@ -15,18 +15,20 @@ const PRODUCT_TO_AMOUNT = {
   "pdt_0NeCAkzcVSNwW1PqKCAjA": "99"
 };
 
-async function verifySignature(req, body) {
+async function verifySignature(req: Request, body: string): Promise<boolean> {
   const svix_id = req.headers.get("svix-id");
   const svix_timestamp = req.headers.get("svix-timestamp");
   const svix_signature = req.headers.get("svix-signature");
-
-  if (!svix_id || !svix_timestamp || !svix_signature) return false;
-
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    console.log("[dodo-webhook] Missing svix headers");
+    return false;
+  }
   const signedContent = `${svix_id}.${svix_timestamp}.${body}`;
   const secret = SIGNING_SECRET.replace("whsec_", "");
-  
+  // Svix uses standard base64 — pad it correctly
+  const paddedSecret = secret + "=".repeat((4 - secret.length % 4) % 4);
+  const keyData = Uint8Array.from(atob(paddedSecret), c => c.charCodeAt(0));
   const encoder = new TextEncoder();
-  const keyData = Uint8Array.from(atob(secret), c => c.charCodeAt(0));
   const key = await crypto.subtle.importKey(
     "raw",
     keyData,
@@ -34,17 +36,16 @@ async function verifySignature(req, body) {
     false,
     ["sign"]
   );
-
   const signature = await crypto.subtle.sign(
     "HMAC",
     key,
     encoder.encode(signedContent)
   );
-
-  const actualSignature = `v1,${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
+  const computedSig = `v1,${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
+  console.log("[dodo-webhook] Computed:", computedSig);
+  console.log("[dodo-webhook] Expected:", svix_signature);
   const expectedSignatures = svix_signature.split(" ");
-
-  return expectedSignatures.includes(actualSignature);
+  return expectedSignatures.some(sig => sig === computedSig);
 }
 
 Deno.serve(async (req: Request) => {
@@ -90,7 +91,7 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") || "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+    Deno.env.get("SERVICE_ROLE_KEY") || ""
   );
 
   const { data: users, error: listError } = await supabase.auth.admin.listUsers();
