@@ -20,6 +20,9 @@ import { generateAICall } from '../../lib/ai';
 import { toast } from 'sonner';
 import Sidebar from '../../components/Sidebar';
 import { cn } from "@/lib/utils";
+import { usePlan } from '../../lib/usePlan';
+import { useUsage, incrementUsage } from '../../lib/useUsage';
+import PlanGate from '../../components/PlanGate';
 
 const platformTemplates = {
   Reddit: [
@@ -68,7 +71,9 @@ const postingTips = {
 };
 
 export default function PostMaker() {
-  const { user } = useAuth();
+  const { user, plan } = useAuth();
+  const { limits } = usePlan();
+  const { used: postsUsed, isLoading: usageLoading } = useUsage('post_maker');
   const [step, setStep] = useState(1);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
@@ -108,6 +113,10 @@ export default function PostMaker() {
   };
 
   const generatePost = async () => {
+    if (limits.postMaker !== "unlimited" && postsUsed >= limits.postMaker) {
+      toast.error(`You've used all ${limits.postMaker} posts this month. Upgrade to get more.`);
+      return;
+    }
     setIsLoading(true);
     setStep(5);
 
@@ -275,6 +284,7 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
       setGeneratedPost(parsed);
       setIsLoading(false);
       setStep(6);
+      await incrementUsage(supabase, user.id, 'post_maker');
     } else {
       toast.error("Couldn't generate post. Try again.");
       setIsLoading(false);

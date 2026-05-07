@@ -7,11 +7,14 @@ import { Sparkles, MessageSquare, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { useAuth } from '../../lib/AuthContext';
+import { usePlan } from '../../lib/usePlan';
+import PlanGate from '../../components/PlanGate';
 
 export default function MarketingBuddy() {
   const [activeTab, setActiveTab] = useState('chat');
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, plan } = useAuth();
+  const { limits } = usePlan();
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
@@ -69,7 +72,13 @@ export default function MarketingBuddy() {
               </header>
               
               <div className="flex-1 overflow-hidden p-4 sm:p-6">
-                <BuddyChat />
+                <PlanGate
+                  feature="copilot"
+                  plan={plan}
+                  limit={limits.copilot}
+                >
+                  <BuddyChat />
+                </PlanGate>
               </div>
             </div>
           </div>

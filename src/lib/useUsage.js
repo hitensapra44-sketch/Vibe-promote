@@ -51,16 +51,21 @@ export async function incrementUsage(supabaseClient, userId, feature) {
     .eq('month', currentMonth)
     .maybeSingle();
 
-  const newCount = (existing?.count || 0) + 1;
-
-  return await supabaseClient
-    .from('user_usage')
-    .upsert({
-      user_id: userId,
-      feature,
-      month: currentMonth,
-      count: newCount
-    }, {
-      onConflict: 'user_id,feature,month'
-    });
+  if (existing) {
+    return await supabaseClient
+      .from('user_usage')
+      .update({ count: existing.count + 1 })
+      .eq('user_id', userId)
+      .eq('feature', feature)
+      .eq('month', currentMonth);
+  } else {
+    return await supabaseClient
+      .from('user_usage')
+      .insert({
+        user_id: userId,
+        feature,
+        month: currentMonth,
+        count: 1
+      });
+  }
 }

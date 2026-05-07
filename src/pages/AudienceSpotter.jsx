@@ -34,6 +34,8 @@ import { toast } from 'sonner';
 import { generateAICall } from '../lib/ai';
 import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
 import moment from 'moment';
+import { usePlan } from '../lib/usePlan';
+import { useUsage, incrementUsage } from '../lib/useUsage';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -58,6 +60,8 @@ const DISMISS_REASONS = [
 
 export default function AudienceSpotter() {
   const { user } = useAuth();
+  const { limits } = usePlan();
+  const { used: scansUsed } = useUsage('user_finder');
   const [step, setStep] = useState(1);
   const [isConfigured, setIsConfigured] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -145,13 +149,18 @@ export default function AudienceSpotter() {
     init();
   }, [user]);
 
-  const handleCreateSignal = () => {
+  const handleCreateSignal = async () => {
+    if (limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder) {
+      toast.error(`You've used all ${limits.userFinder} scans this month. Upgrade to get more.`);
+      return;
+    }
     if (keywords.length === 0) {
       toast.error("Add at least one keyword first");
       return;
     }
     setIsConfigured(true);
     startScan({ keywords, platforms: selectedPlatforms, communities });
+    await incrementUsage(supabase, user.id, 'user_finder');
   };
 
   const addCommunity = () => {

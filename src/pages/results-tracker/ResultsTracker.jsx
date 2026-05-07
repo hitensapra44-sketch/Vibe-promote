@@ -12,9 +12,12 @@ import { cn } from "@/lib/utils";
 import { supabase } from '../../supabaseClient';
 import { useAuth } from '../../lib/AuthContext';
 import { Plus, X } from 'lucide-react';
+import { usePlan } from '../../lib/usePlan';
+import PlanGate from '../../components/PlanGate';
 
 export default function ResultsTracker() {
-  const { user } = useAuth();
+  const { user, plan } = useAuth();
+  const { canAccess } = usePlan();
   const [hasConnectedAccounts, setHasConnectedAccounts] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
@@ -235,69 +238,77 @@ export default function ResultsTracker() {
             <ConnectAccounts onConnect={() => { handleRefresh(); setIsConnecting(false); }} />
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-white">Analytics</h1>
-              <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
-            </div>
-
-            <div className="flex items-center">
-              <button 
-                onClick={() => setIsConnecting(true)}
-                className="px-4 py-2.5 rounded-xl bg-[#111111] border border-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2"
-              >
-                <Plus size={14} className="text-orange-500" />
-                Connect Account
-              </button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <PeriodSelector 
-                selected={selectedPeriod}
-                onChange={setSelectedPeriod}
-              />
-              
-              <div className="flex gap-6 border-b border-[#1F1F1F]">
-                {["Reddit"].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActivePlatform(tab)}
-                    className={cn(
-                      "text-sm font-medium pb-2 transition-all bg-transparent",
-                      activePlatform === tab 
-                        ? "text-white border-b-2 border-orange-500" 
-                        : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
-                    )}
-                  >
-                    {tab}
-                  </button>
-                ))}
+          <PlanGate
+            feature="analytics"
+            plan={plan}
+            limit={canAccess.analyticsPreview ? "unlimited" : "locked"}
+          >
+            <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-white">Analytics</h1>
+                <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
               </div>
-            </div>
 
-            <MetricCards metrics={metrics} />
+              <div className="flex items-center">
+                <button 
+                  onClick={() => setIsConnecting(true)}
+                  className="px-4 py-2.5 rounded-xl bg-[#111111] border border-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2"
+                >
+                  <Plus size={14} className="text-orange-500" />
+                  Connect Account
+                </button>
+              </div>
 
-            <div className="space-y-6">
-              <div className="min-w-0">
-                <PostPerformanceTable 
-                  posts={displayedPosts} 
-                  showAll={showAllPosts}
-                  onToggleShowAll={() => setShowAllPosts(!showAllPosts)}
-                  platform={activePlatform}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <PeriodSelector 
+                  selected={selectedPeriod}
+                  onChange={setSelectedPeriod}
                 />
+                
+                <div className="flex gap-6 border-b border-[#1F1F1F]">
+                  {["Reddit"].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActivePlatform(tab)}
+                      className={cn(
+                        "text-sm font-medium pb-2 transition-all bg-transparent",
+                        activePlatform === tab 
+                          ? "text-white border-b-2 border-orange-500" 
+                          : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
+                      )}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="w-full">
-                <PlatformBreakdownBar 
-                  breakdown={breakdown} 
-                  metric={breakdownMetric}
-                  onMetricChange={setBreakdownMetric}
-                />
+
+              <MetricCards metrics={metrics} />
+
+              <div className="space-y-6">
+                <div className="min-w-0">
+                  <PostPerformanceTable 
+                    posts={displayedPosts} 
+                    showAll={showAllPosts}
+                    onToggleShowAll={() => setShowAllPosts(!showAllPosts)}
+                    platform={activePlatform}
+                  />
+                </div>
+                <div className="w-full">
+                  <PlatformBreakdownBar 
+                    breakdown={breakdown} 
+                    metric={breakdownMetric}
+                    onMetricChange={setBreakdownMetric}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </PlanGate>
         )}
 
-        {hasConnectedAccounts && <AnalyticsBuddy dataContext={analyticsContext} />}
+        {hasConnectedAccounts && canAccess.analyticsFull && (
+          <AnalyticsBuddy dataContext={analyticsContext} />
+        )}
       </main>
     </div>
   );
