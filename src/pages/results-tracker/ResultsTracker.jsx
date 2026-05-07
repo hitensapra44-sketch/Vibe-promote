@@ -43,9 +43,8 @@ export default function ResultsTracker() {
 
     if (account?.username) {
       try {
-        const { data, error } = await supabase.functions.invoke('reddit-proxy', {
-          method: 'GET',
-          queryParams: { username: account.username, type: 'about' }
+        const { data, error } = await supabase.functions.invoke(`reddit-proxy?username=${encodeURIComponent(account.username)}&type=about`, {
+          method: 'GET'
         });
         if (!error && data) {
           setProfileKarma(data.karma || 0);

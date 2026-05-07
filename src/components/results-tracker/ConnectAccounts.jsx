@@ -51,14 +51,13 @@ export default function ConnectAccounts({ onConnect }) {
   }, [user]);
 
   const fetchRedditData = async (userHandle) => {
-    const { data, error } = await supabase.functions.invoke('reddit-proxy', {
-      method: 'GET',
-      queryParams: { username: userHandle, type: 'posts' }
+    // Manually construct the URL with query params for the Edge Function
+    const { data, error } = await supabase.functions.invoke(`reddit-proxy?username=${encodeURIComponent(userHandle)}&type=posts`, {
+      method: 'GET'
     });
 
     if (error) {
-      const errData = await error.context?.json();
-      throw new Error(errData?.error || 'Failed to fetch Reddit data.');
+      throw new Error('Failed to fetch Reddit data. Please check the username.');
     }
 
     return { posts: data };
