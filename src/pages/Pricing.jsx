@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const PLAN_LINKS = {
-  starter_monthly: "YOUR_STARTER_MONTHLY_LINK",
+  starter_monthly: "https://test.checkout.dodopayments.com/buy/pdt_0NeG6AUiZKRYSbt4nLnM9?quantity=1",
   starter_annual: "YOUR_STARTER_ANNUAL_LINK",
   pro_monthly: "YOUR_PRO_MONTHLY_LINK",
   pro_annual: "YOUR_PRO_ANNUAL_LINK",
