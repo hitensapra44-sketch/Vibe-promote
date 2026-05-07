@@ -28,7 +28,7 @@ const platforms = [
 
 export default function ConnectAccounts({ onConnect }) {
   const { user } = useAuth();
-  const [step, setStep] = useState('platform-select'); // 'platform-select', 'input', 'preview'
+  const [step, setStep] = useState('platform-select'); 
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,125 +50,18 @@ export default function ConnectAccounts({ onConnect }) {
     fetchConnected();
   }, [user]);
 
-  const fetchRedditPosts = async (userHandle) => {
-    try {
-      const [submittedRes, aboutRes] = await Promise.all([
-        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/submitted.json?limit=25&sort=new`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        }),
-        fetch(`https://www.reddit.com/user/${encodeURIComponent(userHandle)}/about.json`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        })
-      ]);
+  const fetchRedditData = async (userHandle) => {
+    const { data, error } = await supabase.functions.invoke('reddit-proxy', {
+      method: 'GET',
+      queryParams: { username: userHandle, type: 'posts' }
+    });
 
-      if (submittedRes.status === 404 || aboutRes.status === 404) {
-        throw new Error('Reddit user not found.');
-      }
-      if (submittedRes.status === 403 || aboutRes.status === 403) {
-        throw new Error('This Reddit profile is private.');
-      }
-      if (!submittedRes.ok || !aboutRes.ok) {
-        throw new Error('Failed to fetch Reddit data. Try again.');
-      }
-
-      const [submittedData, aboutData] = await Promise.all([
-        submittedRes.json(),
-        aboutRes.json()
-      ]);
-
-      const posts = (submittedData.data?.children || []).map(child => ({
-        title: child.data.title,
-        subreddit: child.data.subreddit_name_prefixed,
-        score: child.data.score,
-        num_comments: child.data.num_comments,
-        url: `https://reddit.com${child.data.permalink}`,
-        created_at: new Date(child.data.created_utc * 1000).toISOString(),
-        engagement: (child.data.score || 0) + (child.data.num_comments || 0)
-      }));
-
-      if (posts.length === 0) throw new Error('This user has no submitted posts.');
-
-      return { posts, karma: aboutData.data?.total_karma || 0 };
-    } catch (err) {
-      throw err;
+    if (error) {
+      const errData = await error.context?.json();
+      throw new Error(errData?.error || 'Failed to fetch Reddit data.');
     }
-  };
 
-  const fetchProductHuntPosts = async (userHandle) => {
-    const PH_ENDPOINT = 'https://api.producthunt.com/v2/api/graphql';
-    const PH_TOKEN = import.meta.env.VITE_PH_DEV_TOKEN;
-
-    const phHeaders = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PH_TOKEN}`
-    };
-
-    try {
-      const postsQuery = `
-        query GetUserPosts($username: String!) {
-          user(username: $username) {
-            madePosts(first: 20) {
-              edges {
-                node {
-                  id
-                  name
-                  tagline
-                  votesCount
-                  commentsCount
-                  createdAt
-                  url
-                }
-              }
-            }
-            votedPosts(first: 20) {
-              edges {
-                node {
-                  id
-                  name
-                  tagline
-                  votesCount
-                  commentsCount
-                  createdAt
-                  url
-                }
-              }
-            }
-          }
-        }
-      `;
-
-      const postsRes = await fetch(PH_ENDPOINT, {
-        method: 'POST',
-        headers: phHeaders,
-        body: JSON.stringify({
-          query: postsQuery,
-          variables: { username: userHandle }
-        })
-      });
-
-      const postsData = await postsRes.json();
-      if (postsData.errors) throw new Error(postsData.errors[0].message);
-
-      const madePosts = (postsData.data?.user?.madePosts?.edges || []);
-      const votedPosts = (postsData.data?.user?.votedPosts?.edges || []);
-      const allEdges = madePosts.length > 0 ? madePosts : votedPosts;
-
-      const posts = allEdges.map(edge => ({
-        id: edge.node.id,
-        title: edge.node.name,
-        subreddit: 'Product Hunt',
-        score: edge.node.votesCount,
-        num_comments: edge.node.commentsCount,
-        engagement: (edge.node.votesCount || 0) + (edge.node.commentsCount || 0),
-        url: edge.node.url,
-        created_at: edge.node.createdAt
-      }));
-
-      if (posts.length === 0) throw new Error('This user has no posts on Product Hunt.');
-      return { posts, profile: null };
-    } catch (err) {
-      throw err;
-    }
+    return { posts: data };
   };
 
   const handleStartFetch = async (e) => {
@@ -182,11 +75,9 @@ export default function ConnectAccounts({ onConnect }) {
     setError(null);
 
     try {
-      let result = { posts: [], profile: null };
+      let result = { posts: [] };
       if (selectedPlatform.id === 'Reddit') {
-        result = await fetchRedditPosts(username.trim());
-      } else if (selectedPlatform.id === 'Product Hunt') {
-        result = await fetchProductHuntPosts(username.trim());
+        result = await fetchRedditData(username.trim());
       }
       
       setFetchedPosts(result.posts);

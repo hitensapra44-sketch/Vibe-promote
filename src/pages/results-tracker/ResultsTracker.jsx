@@ -43,10 +43,12 @@ export default function ResultsTracker() {
 
     if (account?.username) {
       try {
-        const res = await fetch(`https://www.reddit.com/user/${encodeURIComponent(account.username)}/about.json`);
-        if (res.ok) {
-          const data = await res.json();
-          setProfileKarma(data.data?.total_karma || 0);
+        const { data, error } = await supabase.functions.invoke('reddit-proxy', {
+          method: 'GET',
+          queryParams: { username: account.username, type: 'about' }
+        });
+        if (!error && data) {
+          setProfileKarma(data.karma || 0);
         }
       } catch (e) {
         console.error("Failed to fetch profile karma", e);
@@ -186,7 +188,6 @@ export default function ResultsTracker() {
 
   const displayedPosts = showAllPosts ? posts : posts.slice(0, 4);
 
-  // Prepare data context for Analytics Buddy
   const analyticsContext = {
     selectedPeriod,
     activePlatform,

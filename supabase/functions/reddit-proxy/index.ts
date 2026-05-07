@@ -7,40 +7,22 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // 1. Validate Authentication
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      console.error("[reddit-proxy] Missing Authorization header");
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
         status: 401, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
 
-    const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    )
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      console.error("[reddit-proxy] Auth error:", authError)
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
-    }
-
-    // 2. Get and validate username
     const url = new URL(req.url)
     const username = url.searchParams.get('username')
+    const type = url.searchParams.get('type') || 'posts' // 'posts' or 'about'
 
     if (!username) {
       return new Response(JSON.stringify({ error: 'Username is required' }), { 
@@ -49,11 +31,10 @@ serve(async (req) => {
       })
     }
 
-    console.log(`[reddit-proxy] Fetching posts for user: ${username}`);
+    const redditUrl = type === 'about' 
+      ? `https://www.reddit.com/user/${username}/about.json`
+      : `https://www.reddit.com/user/${username}/submitted.json?limit=25&sort=new`;
 
-    // 3. Fetch from Reddit API with proper User-Agent
-    // Format: platform:app_id:version (by /u/reddit_username)
-    const redditUrl = `https://www.reddit.com/user/${username}/submitted.json?limit=25&sort=new`
     const response = await fetch(redditUrl, {
       headers: { 
         'User-Agent': 'web:vibehype:1.0.0 (by /u/VibePromote)' 
@@ -61,58 +42,36 @@ serve(async (req) => {
     })
 
     if (!response.ok) {
-      console.error(`[reddit-proxy] Reddit API error: ${response.status} for user ${username}`);
-      
-      if (response.status === 403) {
-        return new Response(JSON.stringify({ 
-          error: 'Reddit access forbidden. This user might have a private profile or Reddit is blocking the request.' 
-        }), { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        })
-      }
-      
-      if (response.status === 404) {
-        return new Response(JSON.stringify({ error: 'Reddit user not found' }), { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        })
-      }
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Reddit rate limit exceeded. Please try again in a few minutes.' }), { 
-          status: 429, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        })
-      }
-      
-      throw new Error(`Reddit API returned ${response.status}`)
+      if (response.status === 403) return new Response(JSON.stringify({ error: 'Private profile' }), { status: 403, headers: corsHeaders });
+      if (response.status === 404) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: corsHeaders });
+      throw new Error(`Reddit API error: ${response.status}`);
     }
 
     const data = await response.json()
     
-    // 4. Map Reddit data to the application's post structure
+    if (type === 'about') {
+      return new Response(JSON.stringify({ karma: data.data?.total_karma || 0 }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      })
+    }
+
     const posts = (data.data?.children || []).map((child: any) => ({
       title: child.data.title,
       subreddit: child.data.subreddit_name_prefixed,
       score: child.data.score,
       num_comments: child.data.num_comments,
       url: `https://reddit.com${child.data.permalink}`,
-      created_at: new Date(child.data.created_utc * 1000).toISOString()
+      created_at: new Date(child.data.created_utc * 1000).toISOString(),
+      engagement: (child.data.score || 0) + (child.data.num_comments || 0)
     }))
 
-    // 5. Return response with caching headers (5 minutes)
     return new Response(JSON.stringify(posts), {
-      headers: { 
-        ...corsHeaders, 
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
 
   } catch (error: any) {
-    console.error("[reddit-proxy] Global error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
