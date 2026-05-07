@@ -43,10 +43,18 @@ export default function ResultsTracker() {
 
     if (account?.username) {
       try {
-        const { data, error } = await supabase.functions.invoke(`reddit-proxy?username=${encodeURIComponent(account.username)}&type=about`, {
-          method: 'GET'
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const url = `${supabaseUrl}/functions/v1/reddit-proxy?username=${encodeURIComponent(account.username)}&type=about`;
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+          }
         });
-        if (!error && data) {
+        if (response.ok) {
+          const data = await response.json();
           setProfileKarma(data.karma || 0);
         }
       } catch (e) {
