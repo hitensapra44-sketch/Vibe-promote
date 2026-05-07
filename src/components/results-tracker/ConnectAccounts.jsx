@@ -50,27 +50,33 @@ export default function ConnectAccounts({ onConnect }) {
     fetchConnected();
   }, [user]);
 
-const fetchRedditData = async (userHandle) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  const url = `${supabaseUrl}/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}&type=posts`;
-  
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${supabaseAnonKey}`,
-      'Content-Type': 'application/json',
+  const fetchRedditData = async (userHandle) => {
+    const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Missing Supabase environment variables.');
     }
-  });
+    const url = `${supabaseUrl}/functions/v1/reddit-proxy?username=${encodeURIComponent(userHandle)}&type=posts`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey,
+      }
+    });
 
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to fetch Reddit data. Please check the username.');
-  }
-  
-  const posts = await response.json();
-  return { posts };
-};
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Edge Function unreachable (status ${response.status}). Check that the reddit-proxy function is deployed in Supabase.`);
+    }
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || `Request failed with status ${response.status}`);
+    }
+    return { posts: result };
+  };
 
   const handleStartFetch = async (e) => {
     e?.preventDefault();
