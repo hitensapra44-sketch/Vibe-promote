@@ -43,19 +43,15 @@ export default function ResultsTracker() {
 
     if (account?.username) {
       try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        const url = `${supabaseUrl}/functions/v1/reddit-proxy?username=${encodeURIComponent(account.username)}&type=about`;
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${supabaseAnonKey}`,
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `https://www.reddit.com/user/${encodeURIComponent(account.username)}/about.json`,
+          {
+            headers: { 'User-Agent': 'web:vibehype:1.0.0' }
           }
-        });
+        );
         if (response.ok) {
           const data = await response.json();
-          setProfileKarma(data.karma || 0);
+          setProfileKarma(data.data?.total_karma || 0);
         }
       } catch (e) {
         console.error("Failed to fetch profile karma", e);
