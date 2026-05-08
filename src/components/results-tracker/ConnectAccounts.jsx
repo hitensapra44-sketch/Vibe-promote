@@ -53,12 +53,7 @@ export default function ConnectAccounts({ onConnect }) {
   const fetchRedditData = async (userHandle) => {
     const res = await fetch(
       `https://www.reddit.com/user/${userHandle}/submitted.json?limit=30&sort=new`,
-      { 
-        headers: { 
-          'Accept': 'application/json',
-          'User-Agent': 'web:vibehype:1.0 (by /u/hiten1818726363)'
-        } 
-      }
+      { headers: { 'Accept': 'application/json' } }
     );
 
     if (res.status === 404) throw new Error('Reddit user not found. Check the username.');

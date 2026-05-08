@@ -48,12 +48,7 @@ export default function ResultsTracker() {
       // Fetch profile karma
       const aboutRes = await fetch(
         `https://www.reddit.com/user/${account.username}/about.json`,
-        { 
-          headers: { 
-            'Accept': 'application/json',
-            'User-Agent': 'web:vibehype:1.0 (by /u/hiten1818726363)'
-          } 
-        }
+        { headers: { 'Accept': 'application/json' } }
       );
       if (!aboutRes.ok) throw new Error(`about.json failed: ${aboutRes.status}`);
       const aboutJson = await aboutRes.json();
@@ -63,12 +58,7 @@ export default function ResultsTracker() {
       // Fetch recent posts with upvotes and comments
       const postsRes = await fetch(
         `https://www.reddit.com/user/${account.username}/submitted.json?limit=25`,
-        { 
-          headers: { 
-            'Accept': 'application/json',
-            'User-Agent': 'web:vibehype:1.0 (by /u/hiten1818726363)'
-          } 
-        }
+        { headers: { 'Accept': 'application/json' } }
       );
       if (!postsRes.ok) throw new Error(`submitted.json failed: ${postsRes.status}`);
       const postsJson = await postsRes.json();
