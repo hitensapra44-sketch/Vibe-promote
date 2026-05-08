@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,17 +11,18 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
-        status: 401, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
-    }
+    let username = '';
+    let type = 'posts';
 
-    const url = new URL(req.url)
-    const username = url.searchParams.get('username')
-    const type = url.searchParams.get('type') || 'posts' // 'posts' or 'about'
+    if (req.method === 'POST') {
+      const body = await req.json();
+      username = body.username;
+      type = body.type || 'posts';
+    } else {
+      const url = new URL(req.url);
+      username = url.searchParams.get('username') || '';
+      type = url.searchParams.get('type') || 'posts';
+    }
 
     if (!username) {
       return new Response(JSON.stringify({ error: 'Username is required' }), { 
@@ -34,6 +34,8 @@ serve(async (req) => {
     const redditUrl = type === 'about' 
       ? `https://www.reddit.com/user/${username}/about.json`
       : `https://www.reddit.com/user/${username}/submitted.json?limit=25&sort=new`;
+
+    console.log(`[reddit-proxy] Fetching: ${redditUrl}`);
 
     const response = await fetch(redditUrl, {
       headers: { 
@@ -47,7 +49,7 @@ serve(async (req) => {
       throw new Error(`Reddit API error: ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
     
     if (type === 'about') {
       return new Response(JSON.stringify({ karma: data.data?.total_karma || 0 }), {
@@ -72,6 +74,7 @@ serve(async (req) => {
     })
 
   } catch (error: any) {
+    console.error(`[reddit-proxy] Error: ${error.message}`);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500

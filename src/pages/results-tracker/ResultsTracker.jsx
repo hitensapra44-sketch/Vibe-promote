@@ -43,15 +43,11 @@ export default function ResultsTracker() {
 
     if (account?.username) {
       try {
-        const response = await fetch(
-          `https://www.reddit.com/user/${encodeURIComponent(account.username)}/about.json`,
-          {
-            headers: { 'User-Agent': 'web:vibehype:1.0.0' }
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setProfileKarma(data.data?.total_karma || 0);
+        const { data, error } = await supabase.functions.invoke('reddit-proxy', {
+          body: { username: account.username, type: 'about' }
+        });
+        if (!error && data) {
+          setProfileKarma(data.karma || 0);
         }
       } catch (e) {
         console.error("Failed to fetch profile karma", e);
