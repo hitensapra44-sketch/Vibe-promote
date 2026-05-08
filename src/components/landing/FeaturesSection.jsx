@@ -1,97 +1,339 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Search, Target, PenTool, FileText, Send, Eye, TrendingUp, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ScrollReveal from './ScrollReveal';
 
-const features = [
-  {
-    icon: Search,
-    title: 'Audience Spotter',
-    desc: 'Shows you exactly who wants your app and where they hang out online right now. It finds real conversations (Reddit, Twitter, TikTok, forums) where people talk about the problems your app solve.',
-  },
-  {
-    icon: Target,
-    title: 'Positioning Helper',
-    desc: 'Tells you the best way to describe your app so people instantly get why they need it. It studies your niche and audience, then gives you clear ideas to use right away.',
-  },
-  {
-    icon: PenTool,
-    title: 'Hook Maker',
-    desc: 'Creates short, powerful opening lines that make people stop scrolling and read your post. Not random GPT. It create  ready-to-use hooks made specially for your audience\'s problems.',
-  },
-  {
-    icon: FileText,
-   title: 'Ready Posts',
-    desc: 'Gives you full posts, captions, hashtags, and the best time to share them. Choose a platform. It makes everything sound natural and ready to copy-paste.',
-  },
-  {
-    icon: Send,
-    title: 'Auto Poster',
-    desc: ' Posts and schedules your content for you on Instagram, TikTok, Twitter, LinkedIn, Reddit and more. Turn it on once. it keeps posting at the perfect times.',
-  },
-  {
-    icon: Eye,
-    title: 'Competitor Watcher',
-    desc: 'Shows what your competitors and popular creators in your niche are posting. Shows you their best content quickly and give you fresh ideas to try yourself.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Results Tracker',
-    desc: 'Gives you clear and detailed analytics of your posts and sends simple daily and weekly updates. It tells you what\'s working, what to change, and how much you\'re really growing.',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Your 24/7 Marketing Buddy',
-    desc: 'A helper that knows everything about your app. Ask anything anytime "Give me a Reddit idea" or "What should I do next week?"  it answers like an expert.',
-  },
+const tabs = [
+  { id: 'dashboard', label: 'Dashboard', color: '#E85D04' },
+  { id: 'userfinder', label: 'User Finder', color: '#F97316' },
+  { id: 'postmaker', label: 'Post Maker', color: '#00ba7c' },
+  { id: 'analytics', label: 'Analytics', color: '#1d9bf0' },
+  { id: 'copilot', label: 'Co-pilot', color: '#a855f7' },
 ];
 
-export default function FeaturesSection() {
+const tabContent = {
+  dashboard: {
+    tag: 'Dashboard',
+    title: 'Your marketing HQ, at a glance.',
+    desc: 'See your Brand Brain status, recent activity, and key metrics the moment you log in. Everything surfaced — nothing buried in settings.',
+    bullets: [
+      'Real-time activity: posts generated, audience found, channels connected',
+      'One-click access to every tool from a single view',
+      'Brand Brain status and quick update prompt if your product changes',
+      'Target audience, platform, and marketing goal always visible',
+    ],
+  },
+  userfinder: {
+    tag: 'User Finder',
+    title: 'Find people already looking for your product.',
+    desc: "Stop guessing who your customers are. User Finder scans Reddit and communities in real-time to surface people actively asking for what you built.",
+    bullets: [
+      'AI-generated keyword list from your Brand Brain, no manual setup',
+      'Scans Reddit threads and posts for intent signals',
+      "See potential users' posts, engagement levels, and subreddit context",
+      'Re-scan anytime as your targeting evolves',
+    ],
+  },
+  postmaker: {
+    tag: 'Post Maker',
+    title: 'From idea to ready-to-post in 60 seconds.',
+    desc: 'Generate Reddit posts, X threads, and LinkedIn content — scored, structured, and CTA-ready. All written to sound like you.',
+    bullets: [
+      'AI scores your post 0–100 before you publish',
+      'Platform-specific format: Reddit storytelling, X threads, LinkedIn thought leadership',
+      'Copy, Regenerate, or Try Different Template with one click',
+      'CTA automatically embedded in your brand voice',
+    ],
+  },
+  analytics: {
+    tag: 'Analytics',
+    title: "Know what's actually working.",
+    desc: 'Track performance across Reddit, X, and LinkedIn in real-time. Karma, upvotes, comments, engagement — all in one place.',
+    bullets: [
+      'Weekly, monthly, and custom date range views',
+      'Per-post breakdown: upvotes, comments, engagement score',
+      'Connect your Reddit account to pull live data automatically',
+      'AI co-pilot can analyze your analytics and suggest next steps',
+    ],
+  },
+  copilot: {
+    tag: 'Co-pilot',
+    title: 'Your 24/7 AI marketing strategist.',
+    desc: "Ask anything about your marketing. The Co-pilot has read your Brand Brain and knows your product — it gives advice specific to you, not generic tips.",
+    bullets: [
+      'Pre-loaded with your Brand Brain: knows your niche, audience, and goals',
+      '"How should I pitch on Reddit?" — get a product-specific answer',
+      'Quick-start prompts for common founder marketing questions',
+      "Tied to your analytics — ask what's working and what to change",
+    ],
+  },
+};
+
+function BrowserChrome({ url, children }) {
   return (
-    <section id="features" className="py-24 px-4 sm:px-6 font-poppins bg-transparent">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16 px-2"
-        >
+    <div className="rounded-xl overflow-hidden" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
+          <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
+          <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
+        </div>
+        <div className="flex-1 ml-3">
+          <div className="font-dm text-xs text-muted-foreground px-3 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            {url}
+          </div>
+        </div>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
 
-          <h2 className="text-3xl sm:text-5xl font-bold text-white break-words" style={{ letterSpacing: '-1px', lineHeight: 1.2 }}>
-            Vibe Promote Fixes Marketing Problems{' '}
-            <span className="text-primary">
-              In One Click
-            </span>
-          </h2>
-          <p className="mt-4 text-base sm:text-lg max-w-xl mx-auto text-text-secondary">
-            Everything your app/saas needs to grow.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {features.map((f, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="group relative p-6 rounded-2xl border border-border-muted bg-bg-surface hover:bg-bg-elevated transition-all duration-300 hover:border-primary/30 hover:-translate-y-1"
-            >
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: 'linear-gradient(180deg, rgba(181,89,51,0.08) 0%, transparent 100%)' }} />
-              <div className="relative">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-primary/10">
-                  <f.icon className="w-5 h-5 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{f.title}</h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  {f.desc}
-                </p>
-              </div>
-            </motion.div>
+function DashboardMockup() {
+  return (
+    <div className="space-y-3">
+      <div className="p-4 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <p className="font-syne text-lg text-foreground" style={{ fontWeight: 700 }}>Welcome, Founder 👋</p>
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {[['25', 'Posts Generated'], ['3', 'Audience Found'], ['1', 'Channels']].map(([n, l]) => (
+            <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="font-syne text-xl text-primary" style={{ fontWeight: 800 }}>{n}</p>
+              <p className="font-dm text-xs text-muted-foreground mt-1">{l}</p>
+            </div>
           ))}
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {['Post Maker', 'User Finder'].map(t => (
+          <div key={t} className="p-3 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="font-dm text-sm text-foreground font-medium">{t}</p>
+            <p className="font-dm text-xs text-muted-foreground mt-1">Quick access →</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UserFinderMockup() {
+  return (
+    <div className="flex flex-col items-center py-6 space-y-4">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center animate-spin" style={{ border: '3px solid rgba(232,93,4,0.2)', borderTopColor: '#E85D04', animationDuration: '1.5s' }} />
+      <p className="font-syne text-lg text-foreground" style={{ fontWeight: 700 }}>Scanning for potential users...</p>
+      <p className="font-dm text-xs text-muted-foreground">Searching Reddit communities for intent signals</p>
+      <div className="flex flex-wrap gap-2 mt-4 justify-center">
+        {['#marketing-automation', '#saas-tools', '#growth-hacking', '#indiehackers'].map(tag => (
+          <span key={tag} className="font-dm text-xs px-3 py-1.5 rounded-full text-muted-foreground"
+            style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PostMakerMockup() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="font-dm text-xs px-2.5 py-1 rounded-full text-white" style={{ background: '#00ba7c' }}>Great Post</span>
+        <span className="font-dm text-xs text-muted-foreground">Score: 82/100</span>
+      </div>
+      <div className="p-4 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <span className="font-dm text-xs text-primary">Reddit</span>
+        <p className="font-syne text-sm text-foreground mt-2" style={{ fontWeight: 700 }}>
+          When I spent 3 months searching for the perfect influencer...
+        </p>
+        <p className="font-dm text-xs text-muted-foreground mt-2 leading-relaxed">
+          I was doing outreach for my SaaS and nothing was landing. The messaging was generic, the targeting was off, and I was burning hours every week...
+        </p>
+        <p className="font-dm text-xs text-primary mt-2">
+          Built VibePromote to fix this – if anyone's curious
+        </p>
+      </div>
+      <div className="flex gap-2">
+        {['Copy Post', 'Regenerate', 'Try Different Template'].map(btn => (
+          <button key={btn} className="font-dm text-xs px-3 py-2 rounded-lg text-foreground transition-colors"
+            style={{ background: 'transparent', border: '1px solid rgba(232,93,4,0.3)' }}>
+            {btn}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsMockup() {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          ['359', 'Total Karma', '#f0ede8'],
+          ['14', 'Upvotes', '#E85D04'],
+          ['55', 'Comments', '#1d9bf0'],
+          ['69', 'Engagement', '#00ba7c'],
+        ].map(([n, l, c]) => (
+          <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="font-syne text-lg" style={{ fontWeight: 800, color: c }}>{n}</p>
+            <p className="font-dm text-xs text-muted-foreground mt-1">{l}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-lg overflow-hidden" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="grid grid-cols-4 px-3 py-2 text-xs font-dm text-muted-foreground" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <span>POST</span><span>↑</span><span>💬</span><span>ENG</span>
+        </div>
+        {[['Reddit launch post', '12', '8', '47'], ['X product thread', '24', '15', '62']].map(([p, u, c, e]) => (
+          <div key={p} className="grid grid-cols-4 px-3 py-2.5 text-xs font-dm" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <span className="text-foreground truncate">{p}</span>
+            <span className="text-muted-foreground">{u}</span>
+            <span className="text-muted-foreground">{c}</span>
+            <span className="text-primary">{e}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CopilotMockup() {
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-3">
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)' }}>🤖</div>
+        <div className="p-3 rounded-lg font-dm text-xs text-foreground leading-relaxed" style={{ background: '#161616' }}>
+          Hey! I've studied your Brand Brain and I'm ready to help you grow.
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <div className="p-3 rounded-lg font-dm text-xs text-foreground max-w-[80%]"
+          style={{ background: 'rgba(232,93,4,0.08)', border: '1px solid rgba(232,93,4,0.3)' }}>
+          improve my saas marketing strategy
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)' }}>🤖</div>
+        <div className="p-3 rounded-lg font-dm text-xs text-foreground leading-relaxed" style={{ background: '#161616' }}>
+          Your core value: delivering faster, higher-ROI results by replacing guesswork with AI-powered positioning...
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1.5 mt-2">
+        {['How should I pitch my SaaS on Reddit?', 'What onboarding emails fit my product?', 'Ideas to differentiate from competitors?', 'Landing page headlines for my app'].map(p => (
+          <span key={p} className="font-dm text-xs px-2.5 py-1.5 rounded-lg text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+            style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {p}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const mockups = {
+  dashboard: DashboardMockup,
+  userfinder: UserFinderMockup,
+  postmaker: PostMakerMockup,
+  analytics: AnalyticsMockup,
+  copilot: CopilotMockup,
+};
+
+export default function FeaturesSection() {
+  const [active, setActive] = useState('dashboard');
+  const [animKey, setAnimKey] = useState(0);
+  const timerRef = useRef(null);
+  const inactivityRef = useRef(null);
+
+  const startAutoAdvance = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActive(prev => {
+        const idx = tabs.findIndex(t => t.id === prev);
+        return tabs[(idx + 1) % tabs.length].id;
+      });
+      setAnimKey(k => k + 1);
+    }, 5000);
+  }, []);
+
+  useEffect(() => {
+    startAutoAdvance();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (inactivityRef.current) clearTimeout(inactivityRef.current);
+    };
+  }, [startAutoAdvance]);
+
+  const handleTabClick = (id) => {
+    setActive(id);
+    setAnimKey(k => k + 1);
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (inactivityRef.current) clearTimeout(inactivityRef.current);
+    inactivityRef.current = setTimeout(() => startAutoAdvance(), 8000);
+  };
+
+  const content = tabContent[active];
+  const Mockup = mockups[active];
+
+  return (
+    <section id="features" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="max-w-[1100px] mx-auto">
+        <div className="text-center mb-12">
+          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Features</span>
+          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Everything in one marketing co-pilot.
+          </h2>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab.id)}
+              className="font-dm text-sm px-5 py-2.5 rounded-full flex items-center gap-2 transition-all duration-300"
+              style={active === tab.id ? {
+                background: 'linear-gradient(135deg, #E85D04, #F97316)',
+                color: '#fff',
+                boxShadow: '0 0 20px rgba(232,93,4,0.3)',
+              } : {
+                background: '#161616',
+                color: '#888888',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ background: active === tab.id ? '#fff' : tab.color }} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Panel */}
+        <ScrollReveal key={animKey}>
+          <div className="flex flex-col md:flex-row gap-10 items-start">
+            {/* Left text */}
+            <div className="flex-1 space-y-4">
+              <span className="font-dm text-xs px-3 py-1 rounded-full text-primary" style={{ background: 'rgba(232,93,4,0.12)', border: '1px solid rgba(232,93,4,0.3)' }}>
+                {content.tag}
+              </span>
+              <h3 className="font-syne text-2xl sm:text-3xl text-foreground" style={{ fontWeight: 700 }}>
+                {content.title}
+              </h3>
+              <p className="font-dm text-muted-foreground leading-relaxed">{content.desc}</p>
+              <ul className="space-y-2.5 mt-4">
+                {content.bullets.map((b, i) => (
+                  <li key={i} className="font-dm text-sm text-muted-foreground flex items-start gap-2">
+                    <span className="text-primary mt-0.5 flex-shrink-0">→</span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* Right mockup */}
+            <div className="flex-1 w-full">
+              <BrowserChrome url={`localhost:32110/${active === 'dashboard' ? 'dashboard' : active === 'userfinder' ? 'audience-spotter' : active === 'postmaker' ? 'post-maker' : active === 'analytics' ? 'dashboard/analytics' : 'marketing-buddy'}`}>
+                <Mockup />
+              </BrowserChrome>
+            </div>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );

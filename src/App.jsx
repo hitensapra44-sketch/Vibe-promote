@@ -17,6 +17,8 @@ import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
 import Pricing from './pages/Pricing';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import FeedbackWidget from './components/FeedbackWidget';
 import { useAuth } from './lib/AuthContext';
 
@@ -24,7 +26,7 @@ export default function App() {
   const { user, isAuthenticated, isLoadingAuth } = useAuth();
   const location = useLocation();
 
-  const publicRoutes = ['/', '/auth', '/survey', '/pre-purchase'];
+  const publicRoutes = ['/', '/auth', '/survey', '/pre-purchase', '/privacy', '/terms'];
   const isPublicRoute = publicRoutes.includes(location.pathname);
 
   if (isLoadingAuth) {
@@ -46,6 +48,8 @@ export default function App() {
             <Route path="/survey" element={<Survey />} />
             <Route path="/pre-purchase" element={<PrePurchase />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
 
             {/* Protected Routes */}
             <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/auth" />} />

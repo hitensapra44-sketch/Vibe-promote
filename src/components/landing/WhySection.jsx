@@ -1,0 +1,69 @@
+import React from 'react';
+import ScrollReveal from './ScrollReveal';
+
+const cards = [
+  {
+    num: '01 / FOUNDER-LED',
+    title: "You're the marketer, developer, and support team",
+    desc: 'Vibe Promote is built for the solo founder context. No marketing degree required. It guides you from blank page to published post.',
+  },
+  {
+    num: '02 / POSITIONING',
+    title: 'Your product is good but nobody gets it',
+    desc: "If you've ever explained your SaaS and watched eyes glaze over, your positioning needs work. Our AI fixes that in minutes.",
+  },
+  {
+    num: '03 / CONSISTENCY',
+    title: 'You post in bursts then go silent for weeks',
+    desc: "Content generation is friction-free. When posting takes 60 seconds, you actually do it consistently.",
+  },
+  {
+    num: '04 / BUDGET',
+    title: "You're not spending $300/month on marketing tools",
+    desc: 'Pay once. No subscription. Full access forever. Built for bootstrapped founders who are careful with every dollar of runway.',
+  },
+];
+
+export default function WhySection() {
+  return (
+    <section id="why-us" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="max-w-[1100px] mx-auto">
+        <div className="text-center mb-16">
+          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Why Vibe Promote</span>
+          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Your SaaS needs this if any of these are true.
+          </h2>
+          <p className="font-dm text-muted-foreground mt-3 max-w-lg mx-auto">
+            If even one of these hits home, you're exactly who we built this for.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {cards.map((card, i) => (
+            <ScrollReveal key={i} delay={i * 80}>
+              <div
+                className="p-8 rounded-xl h-full transition-all duration-300 group cursor-default"
+                style={{
+                  background: '#111111',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,93,4,0.3)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+              >
+                <span className="font-dm text-xs tracking-[0.15em] text-primary" style={{ fontFamily: 'monospace' }}>
+                  {card.num}
+                </span>
+                <h4 className="font-syne text-xl text-foreground mt-3 mb-3" style={{ fontWeight: 700 }}>
+                  {card.title}
+                </h4>
+                <p className="font-dm text-sm text-muted-foreground leading-relaxed">
+                  {card.desc}
+                </p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

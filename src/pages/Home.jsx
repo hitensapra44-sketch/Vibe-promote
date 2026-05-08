@@ -1,145 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import { logEvent } from "../lib/analytics";
-
-import { useSearchParams } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import Navbar from '../components/landing/navbar';
+import React, { useEffect } from 'react';
+import NavBar from '../components/landing/navbar';
 import HeroSection from '../components/landing/HeroSection';
-import ProblemSection from '../components/landing/problemsection';
-import FeaturesSection from '../components/landing/FeaturesSection';
 import HowItWorks from '../components/landing/howitworks';
-import BenefitsTable from '../components/landing/BenefitsTable';
-import Testimonials from '../components/landing/testimnonials';
-import FAQSection from '../components/landing/faqs';
-import CTASection from '../components/landing/CTAsection';
-import FooterSection from '../components/landing/fottersection';
-
-const isValidEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!regex.test(email)) return false;
-
-  const blocked = ["test@", "fake@", "abc@", "123@", "temp@"];
-  if (blocked.some(word => email.toLowerCase().includes(word))) {
-    return false;
-  }
-
-  return true;
-};
-
-const commonTypos = {
-  "gmial.com": "gmail.com",
-  "gamil.com": "gmail.com",
-  "gmai.com": "gmail.com",
-  "yaho.com": "yahoo.com",
-};
-
-const fixEmailTypos = (email) => {
-  const parts = email.split("@");
-  if (parts.length !== 2) return email;
-
-  const [name, domain] = parts;
-
-  if (commonTypos[domain]) {
-    return `${name}@${commonTypos[domain]}`;
-  }
-
-  return email;
-};
-
-const disposableDomains = [
-  "mailinator.com",
-  "10minutemail.com",
-  "tempmail.com",
-  "guerrillamail.com"
-];
-
-const isDisposable = (email) => {
-  const domain = email.split("@")[1];
-  return disposableDomains.includes(domain);
-};
+import FeaturesSection from '../components/landing/FeaturesSection';
+import BeforeAfter from '../components/landing/BeforeAfter';
+import XPostToggle from '../components/landing/XPostToggle';
+import WhySection from '../components/landing/WhySection';
+import FAQ from '../components/landing/faqs';
+import Footer from '../components/landing/fottersection';
 
 export default function Home() {
-  const [joined, setJoined] = useState(() => localStorage.getItem('joined_waitlist') === 'true');
-  const [searchParams] = useSearchParams();
-  const [showPopup, setShowPopup] = useState(false);
-  const [email, setEmail] = useState("");
-
   useEffect(() => {
-    if (searchParams.get("paid") === "true") {
-      setShowPopup(true);
-    }
-  }, [searchParams]);
+    // Spotlight card mouse tracking
+    const onMouseMove = (e) => {
+      document.querySelectorAll('.spotlight-card').forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width * 100;
+        const y = (e.clientY - rect.top) / rect.height * 100;
+        card.style.setProperty('--mx', x + '%');
+        card.style.setProperty('--my', y + '%');
+      });
+    };
+    window.addEventListener('mousemove', onMouseMove);
 
-   const handlePaymentSubmit = async (e) => {
-     e.preventDefault();
-     if (!email) return;
-
-     await supabase.from("user_payments").insert({
-       email: email,
-       payment_status: true
-     });
-
-     setShowPopup(false);
-     window.history.replaceState({}, "", "/");
-     localStorage.setItem('pre_purchase_email_confirmed', 'true');
-   };
-
-  const onValidateEmail = (email) => {
-    if (!isValidEmail(email)) {
-      alert("Please enter a valid email address");
-      return null;
-    }
-
-    if (isDisposable(email)) {
-      alert("Please use a real email address");
-      return null;
-    }
-
-    return fixEmailTypos(email);
-  };
-
-  // @ts-ignore
-  const handleJoined = () => {
-    setJoined(true);
-    localStorage.setItem('joined_waitlist', 'true');
-    logEvent("waitlist", "signup", "email submitted");
-  };
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
 
   return (
-    <div className="font-poppins bg-transparent">
-      {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-          <div className="bg-bg-surface p-8 rounded-lg max-w-sm w-full mx-4 shadow-xl border border-border-muted">
-            <h2 className="text-white text-lg font-bold mb-4 text-center">Confirm you paid by wiritng the your gmail</h2>
-            <form onSubmit={handlePaymentSubmit}>
-              <input
-                type="email"
-                required
-                className="w-full px-4 py-2 mb-4 bg-bg-elevated border border-border-muted rounded focus:outline-none focus:ring-1 focus:ring-primary/30 text-text-primary"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded transition-all duration-200"
-              >
-                Submit
-              </button>
-            </form>
+    <div className="bg-[#06060A] min-h-screen font-inter">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
+        
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-syne { font-family: 'Syne', sans-serif; }
+        .font-dm { font-family: 'Inter', sans-serif; } /* Using Inter as fallback for DM Sans */
+
+        /* Spotlight card effect */
+        .spotlight-card {
+          position: relative;
+          background: #0F0F14;
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 12px;
+          transition: border-color 0.25s ease;
+          overflow: hidden;
+        }
+        .spotlight-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(156,32,0,0.12) 0%, transparent 60%);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+        .spotlight-card:hover { border-color: rgba(156,32,0,0.45); }
+        .spotlight-card > * { position: relative; z-index: 1; }
+      `}</style>
+      
+      <NavBar />
+      <HeroSection />
+      <HowItWorks />
+      <FeaturesSection />
+      <BeforeAfter />
+      <XPostToggle />
+      <WhySection />
+      <FAQ />
+      
+      {/* CTA Section */}
+      <section id="cta" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="max-w-[1100px] mx-auto">
+          <div className="relative border border-[#9C2000]/35 rounded-2xl p-12 sm:p-20 text-center overflow-hidden" style={{ background: '#0F0F14' }}>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-0.5 bg-[#9C2000]" />
+            <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Start Today</span>
+            <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-4 mb-6" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+              Stop overthinking your <span className="text-primary">marketing.</span>
+            </h2>
+            <p className="font-dm text-muted-foreground text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+              Join 2,400+ indie founders who shipped their marketing in one afternoon.
+            </p>
+            <a
+              href="/auth"
+              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-[#9C2000] text-white font-bold text-lg transition-all hover:bg-[#E85D04] hover:shadow-[0_8px_28px_rgba(156,32,0,0.45)]"
+            >
+              Start for Free
+              <ArrowRight className="w-5 h-5" />
+            </a>
+            <p className="font-dm text-xs text-muted-foreground mt-6">
+              No subscription. One payment. Full access forever.
+            </p>
           </div>
         </div>
-      )}
-      <Navbar joined={joined} onJoinWaitlist={undefined} />
-      <HeroSection joined={joined} onJoined={handleJoined} onValidateEmail={onValidateEmail} />
-      <HowItWorks />
-      <ProblemSection />
-      <FeaturesSection />
-      <BenefitsTable />
-      <Testimonials />
-      <FAQSection />
-      <CTASection />
-      <FooterSection joined={joined} onJoined={handleJoined} onValidateEmail={onValidateEmail} />
+      </section>
+
+      <Footer />
     </div>
   );
 }
+
+const ArrowRight = ({ className }) => (
+  <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);

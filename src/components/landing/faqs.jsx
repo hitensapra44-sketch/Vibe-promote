@@ -1,103 +1,97 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    q: "I'm a solo founder and I barely have time for marketing.will this actually save me time?",
-    a: "Yes you will save a lot of time. You do one quick 5-minute setup, then the AI handles everything else.",
+    q: 'What exactly is Vibe Promote?',
+    a: "Vibe Promote is an AI marketing co-pilot built specifically for bootstrapped SaaS founders. It learns your product through what we call your \"Brand Brain\" — your positioning, audience, tone, and goals — then generates ready-to-post content for Reddit, X, and LinkedIn. It also finds potential users in real conversations and gives you analytics to track what's working.",
   },
   {
-    q: "I hate generic AI content that doesn't sound like me. Will the posts actually feel authentic?",
-    a: "100%. You describe your app and your vibe once. The AI learns your product, your voice, and your audience so every post sounds exactly like something you would write.",
+    q: 'Is this actually a one-time payment? No hidden subscriptions?',
+    a: "Yes. One payment, full access, forever. No monthly fees, no usage limits, no \"pro tier\" upsell. We built this for founders who are tired of yet another $49/month tool eating into their runway. You buy it once, and it's yours.",
   },
   {
-    q: "How do I know it's finding the right audience for my specific SaaS?",
-    a: "It scans real-time conversations on Reddit, X, TikTok, and forums about the exact problems you solve. You'll see the actual threads where people are already looking for your app.",
+    q: 'How is this different from just using ChatGPT?',
+    a: "ChatGPT doesn't know your product, your audience, or your positioning. Every prompt starts from zero. Vibe Promote has your Brand Brain loaded — it knows your niche, your voice, your competitors, and your goals. The output is specific to your SaaS, not generic marketing advice anyone could Google.",
   },
   {
-    q: "Is this just another content tool, or does it actually drive sign-ups and growth?",
-    a: "It's end-to-end growth. It tracks real engagement, reach, and sign-ups, then tells you exactly what to change so you get measurable increases. not just more posts.",
+    q: 'What platforms does the content work for?',
+    a: "Right now we generate content optimised for Reddit, X (Twitter), and LinkedIn — the three platforms where SaaS founders see the most organic traction. Each platform gets its own format: storytelling for Reddit, threads for X, thought leadership for LinkedIn.",
   },
   {
-    q: "What happens if I pre-purchase the early bird now?",
-    a: "You lock in early access at $1.99 — the lowest price we'll ever charge. You get notified first when the full tool goes. live, and you skip the waitlist completely.",
+    q: 'Do I need to be a good writer to use this?',
+    a: "Not at all. That's the whole point. You answer questions about your product and the AI handles the writing. You can tweak the output if you want, but most founders copy and post directly. The content is scored before you publish so you know it's good.",
+  },
+  {
+    q: 'Will the AI content sound generic or robotic?',
+    a: "No, and here's why: the Brand Brain captures your unique voice and positioning. The AI writes as if it were you — not a corporate blog. We specifically tuned the output to avoid that \"we leverage synergies\" energy. It sounds human because it's modeled on how real founders actually talk.",
+  },
+  {
+    q: 'How long does onboarding take?',
+    a: "About 5 minutes. You answer 8 questions about your product — or just paste your URL and the AI extracts everything automatically. Your Brand Brain is built instantly, and you can start generating content right away.",
+  },
+  {
+    q: 'I just launched my product. Is it too early to use this?',
+    a: "It's actually the perfect time. Most products fail because of marketing, not features. Getting your positioning right early means every post, every pitch, and every landing page works harder from day one. The earlier you start, the faster you grow.",
+  },
+  {
+    q: "What if I'm not happy with it?",
+    a: "We offer a no-questions-asked refund within 14 days. If Vibe Promote doesn't help you create better marketing content, you get your money back. Simple as that. We're confident you'll stay — but we don't want your money if it's not working for you.",
+  },
+  {
+    q: 'Is my product data kept private?',
+    a: "Absolutely. Your Brand Brain data is encrypted and never shared with other users or used to train models. Your product information, positioning, and content are yours alone. We take founder privacy seriously — your competitive advantage stays yours.",
   },
 ];
 
-function FAQItem({ faq, index }) {
-  const [open, setOpen] = useState(false);
+export default function FAQ() {
+  const [openIdx, setOpenIdx] = useState(-1);
+
+  const toggle = (i) => {
+    setOpenIdx(openIdx === i ? -1 : i);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
-      className="border border-border-muted rounded-2xl overflow-hidden"
-    >
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5 text-left bg-bg-surface hover:bg-bg-elevated transition-colors"
-      >
-        <span className="text-sm sm:text-base font-semibold text-white leading-snug">{faq.q}</span>
-        <motion.div
-          animate={{ rotate: open ? 180 : 0 }}
-          transition={{ duration: 0.25 }}
-          className="flex-shrink-0"
-        >
-          <ChevronDown className="w-5 h-5 text-primary" />
-        </motion.div>
-      </button>
-
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <p className="px-5 sm:px-6 pb-5 pt-1 text-sm sm:text-base leading-relaxed text-text-secondary">
-              {faq.a}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-export default function FAQSection() {
-  return (
-    <section className="py-20 sm:py-24 px-4 sm:px-6 font-poppins bg-transparent">
-      <div className="max-w-3xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <span className="text-xs font-semibold tracking-widest uppercase text-primary">
-            FAQs
-          </span>
-          <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold text-white" style={{ letterSpacing: '-1px', lineHeight: 1.1 }}>
-            Got{' '}
-            <span className="text-primary">
-              Questions?
-            </span>
+    <section id="faq" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="max-w-[760px] mx-auto">
+        <div className="mb-12">
+          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">FAQ</span>
+          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            Questions founders ask before buying.
           </h2>
-          <p className="mt-3 text-base text-text-secondary">
-            Everything you need to know before joining the hype.
-          </p>
-        </motion.div>
+        </div>
 
-        <div className="space-y-3">
-          {faqs.map((faq, i) => (
-            <FAQItem key={i} faq={faq} index={i} />
-          ))}
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+          {faqs.map((faq, i) => {
+            const isOpen = openIdx === i;
+            return (
+              <div key={i} style={{ borderBottom: i < faqs.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none', background: '#111111' }}>
+                <button
+                  className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors"
+                  onClick={() => toggle(i)}
+                >
+                  <span className="font-dm text-sm text-foreground font-medium pr-4">{faq.q}</span>
+                  <span
+                    className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-xs transition-all duration-300"
+                    style={{
+                      border: `1px solid ${isOpen ? 'rgba(232,93,4,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                      color: isOpen ? '#E85D04' : '#888',
+                      transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                    }}
+                  >
+                    +
+                  </span>
+                </button>
+                <div
+                  className="overflow-hidden transition-all duration-300"
+                  style={{ maxHeight: isOpen ? '300px' : '0', opacity: isOpen ? 1 : 0 }}
+                >
+                  <p className="font-dm text-sm text-muted-foreground leading-relaxed px-6 pb-5">
+                    {faq.a}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
