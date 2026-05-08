@@ -34,6 +34,7 @@ export default function ResultsTracker() {
 
   const fetchProfileKarma = useCallback(async () => {
     if (!user) return;
+
     const { data: account } = await supabase
       .from('social_accounts')
       .select('username')
@@ -41,19 +42,48 @@ export default function ResultsTracker() {
       .eq('platform', 'Reddit')
       .maybeSingle();
 
-    if (account?.username) {
-      try {
-        const { data, error } = await supabase.functions.invoke('reddit-proxy', {
-          body: { username: account.username, type: 'about' }
-        });
-        if (!error && data) {
-          setProfileKarma(data.karma || 0);
-        }
-      } catch (e) {
-        console.error("Failed to fetch profile karma", e);
+    if (!account?.username) return;
+
+    try {
+      // Fetch profile karma
+      const aboutRes = await fetch(
+        `https://www.reddit.com/user/${account.username}/about.json`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (!aboutRes.ok) throw new Error(`about.json failed: ${aboutRes.status}`);
+      const aboutJson = await aboutRes.json();
+      const totalKarma = (aboutJson?.data?.link_karma ?? 0) + (aboutJson?.data?.comment_karma ?? 0);
+      setProfileKarma(totalKarma);
+
+      // Fetch recent posts with upvotes and comments
+      const postsRes = await fetch(
+        `https://www.reddit.com/user/${account.username}/submitted.json?limit=25`,
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (!postsRes.ok) throw new Error(`submitted.json failed: ${postsRes.status}`);
+      const postsJson = await postsRes.json();
+      const redditPosts = (postsJson?.data?.children ?? []).map(child => ({
+        title: child.data.title,
+        url: `https://reddit.com${child.data.permalink}`,
+        upvotes: child.data.score ?? 0,
+        comments: child.data.num_comments ?? 0,
+        engagement: (child.data.score ?? 0) + (child.data.num_comments ?? 0),
+        platform: 'Reddit',
+        created_at: new Date(child.data.created_utc * 1000).toISOString()
+      }));
+
+      // Only use redditPosts if Supabase social_posts has no data for this user
+      // This is a fallback display — do not overwrite Supabase data
+      if (posts.length === 0 && redditPosts.length > 0) {
+        setPosts(redditPosts);
+        setHasConnectedAccounts(true);
       }
+
+    } catch (e) {
+      console.error("Failed to fetch Reddit data:", e);
+      setProfileKarma(0);
     }
-  }, [user]);
+  }, [user, posts.length]);
 
   const fetchPosts = useCallback(async () => {
     if (!user) return;
