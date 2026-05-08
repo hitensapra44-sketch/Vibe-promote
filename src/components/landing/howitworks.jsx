@@ -1,108 +1,110 @@
 import React from 'react';
-import ScrollReveal from './ScrollReveal';
+import { motion } from 'framer-motion';
+import { MessageSquare, Sparkles, Play, Rocket } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const steps = [
   {
-    num: '01',
-    title: 'Tell us about your product',
-    desc: 'Answer 8 quick questions or just drop your URL and our AI fills in the gaps. We extract your positioning, audience, and tone automatically.',
-    label: 'Product Onboarding',
+    icon: MessageSquare,
+    number: '01',
+    title: 'Describe',
+    items: [
+      'Describe your app in normal words',
+      'Tell us who you\'re targeting and what problems it solves',
+      'Paste your SaaS link or set your app/SaaS tone',
+      'One-time setup and Vibe Hype learns your brand forever',
+    ],
   },
   {
-    num: '02',
-    title: 'Get your positioning dialed in',
-    desc: 'Our AI rewrites your messaging using proven frameworks — giving you a before/after card you can actually use.',
-    label: 'Positioning Engine',
+    icon: Sparkles,
+    number: '02',
+    title: 'Generate',
+    items: [
+      'Vibe Promote will find real people who need your app right now',
+      'Spots where they\'re talking about it — Reddit, X, TikTok & more',
+      'Generates hooks, captions, scripts & hashtags instantly',
+      'Picks the perfect platform and best posting times for you',
+    ],
   },
   {
-    num: '03',
-    title: 'Generate and post your content',
-    desc: 'One click generates X threads, LinkedIn posts, and hook variations — all written in your brand voice. Preview, copy, post.',
-    label: 'Content Generator',
+    icon: Play,
+    number: '03',
+    title: 'Decide',
+    items: [
+      'Get ready-to-post content and decide exactly what goes live',
+      'Hit "Post Now" for instant fire or "Schedule" your week',
+      'Or upload & schedule your own content effortlessly',
+      'Full control you approve, Vibe Promote execute',
+    ],
+  },
+  {
+    icon: Rocket,
+    number: '04',
+    title: 'Scale',
+    items: [
+      'Autopilot agents spot new trends every few days',
+      'Make fresh, engaging, on-brand content automatically',
+      'Post automatically at peak times across perfect platforms',
+      'Track every piece of content with daily/weekly/monthly insights',
+      'Strategy auto-fixes for next week based on today\'s real growth',
+    ],
   },
 ];
 
-function VideoPlaceholder({ label }) {
-  return (
-    <div
-      className="relative w-full rounded-xl overflow-hidden"
-      style={{
-        background: '#111111',
-        border: '1px solid rgba(255,255,255,0.07)',
-        aspectRatio: '16/9',
-      }}
-    >
-      {/* Orange gradient overlay */}
-      <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none"
-        style={{ background: 'radial-gradient(circle at top left, rgba(232,93,4,0.15), transparent 70%)' }} />
-      
-      {/* Play button */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(232,93,4,0.2)', border: '1px solid rgba(232,93,4,0.4)' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#E85D04">
-            <polygon points="6 3 20 12 6 21 6 3"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* Label */}
-      <div className="absolute bottom-3 left-3">
-        <span className="font-dm text-xs text-muted-foreground px-2 py-1 rounded"
-          style={{ background: 'rgba(0,0,0,0.5)' }}>
-          {label}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-      <div className="max-w-[1100px] mx-auto">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">How It Works</span>
-          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Three steps to a marketing machine.
+    <section id="howitworks" className="py-24 px-4 sm:px-6 font-poppins bg-transparent">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-6"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white" style={{ letterSpacing: '-1px', lineHeight: 1.1 }}>
+            Headache Marketing Into{' '}
+            <span className="text-primary">
+              Vibe Marketing
+            </span>{' '}
+            in Seconds
           </h2>
+          <p className="mt-4 text-lg max-w-xl mx-auto text-text-secondary">
+            HOW IT WORKS
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+          {steps.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              className="relative p-6 rounded-2xl border border-border-muted bg-bg-surface"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-3xl font-bold text-primary">
+                  {s.number}
+                </span>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
+                  <s.icon className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-4">{s.title}</h3>
+              <ul className="space-y-2">
+                {s.items.map((item, j) => (
+                  <li key={j} className="flex items-start gap-2 text-sm text-text-secondary">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Steps */}
-        <div className="space-y-20">
-          {steps.map((step, i) => {
-            const reversed = i === 1;
-            return (
-              <ScrollReveal key={step.num}>
-                <div className={`flex flex-col ${reversed ? 'md:flex-row-reverse' : 'md:flex-row'} gap-10 md:gap-16 items-center`}>
-                  {/* Text */}
-                  <div className="flex-1 space-y-5">
-                    <div
-                      className="w-20 h-20 rounded-xl flex items-center justify-center font-syne text-2xl text-primary"
-                      style={{
-                        fontWeight: 800,
-                        background: 'rgba(232,93,4,0.12)',
-                        border: '1px solid rgba(232,93,4,0.3)',
-                      }}
-                    >
-                      {step.num}
-                    </div>
-                    <h3 className="font-syne text-2xl sm:text-3xl text-foreground" style={{ fontWeight: 700 }}>
-                      {step.title}
-                    </h3>
-                    <p className="font-dm text-muted-foreground leading-relaxed text-base">
-                      {step.desc}
-                    </p>
-                  </div>
-                  {/* Video */}
-                  <div className="flex-1 w-full">
-                    <VideoPlaceholder label={step.label} />
-                  </div>
-                </div>
-              </ScrollReveal>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
