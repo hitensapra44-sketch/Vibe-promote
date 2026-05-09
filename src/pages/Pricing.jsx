@@ -311,7 +311,7 @@ export default function Pricing() {
           <span style={{ color: '#9C2000' }}>Remove Marketing Headache today.</span>
         </h1>
         <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
-          No hidden fees. Cancel anytime. Start free and upgrade when you're ready.
+          Refund anytime. No hidden fees. Cancel anytime..
         </p>
       </div>
 
