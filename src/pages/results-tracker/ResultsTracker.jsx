@@ -225,7 +225,7 @@ export default function ResultsTracker() {
               )}
             </div>
             
-            <ConnectAccounts onConnect={() => { handleRefresh(); setIsConnecting(false); }} />
+            <ConnectAccounts onConnect={() => { setHasConnectedAccounts(true); setIsConnecting(false); handleRefresh(); }} />
           </div>
         ) : (
           <PlanGate
