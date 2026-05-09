@@ -30,6 +30,7 @@ export default function ResultsTracker() {
   const [breakdown, setBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [accountKarma, setAccountKarma] = useState(0);
 
   const fetchPosts = useCallback(async () => {
     if (!user) return;
@@ -81,9 +82,23 @@ export default function ResultsTracker() {
     setIsLoading(false);
   }, [user, activePlatform, selectedPeriod]);
 
+  const fetchAccountKarma = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('social_accounts')
+      .select('karma')
+      .eq('user_id', user.id)
+      .eq('platform', 'Reddit')
+      .maybeSingle();
+    if (data?.karma) {
+      setAccountKarma(data.karma);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts, refreshKey]);
+    fetchAccountKarma();
+  }, [fetchPosts, fetchAccountKarma, refreshKey]);
 
   useEffect(() => {
     const totals = posts.reduce(
@@ -101,7 +116,7 @@ export default function ResultsTracker() {
 
     setMetrics({
       views: { 
-        value: isRedditFilter ? 0 : totals.views, 
+        value: isRedditFilter ? accountKarma : totals.views, 
         change: 0, 
         label: isRedditFilter ? 'Karma' : 'Views' 
       },
@@ -121,7 +136,7 @@ export default function ResultsTracker() {
         label: isRedditFilter ? 'Engagement' : 'Link Taps' 
       },
     });
-  }, [posts, activePlatform]);
+  }, [posts, activePlatform, accountKarma]);
 
   useEffect(() => {
     if (!posts.length) {
