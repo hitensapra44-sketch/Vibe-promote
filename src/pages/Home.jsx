@@ -29,14 +29,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-[#06060A] min-h-screen font-inter">
+    <div className="bg-black min-h-screen font-geist">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
-        .font-inter { font-family: 'Inter', sans-serif; }
-        .font-syne { font-family: 'Syne', sans-serif; }
-        .font-dm { font-family: 'Inter', sans-serif; } /* Using Inter as fallback for DM Sans */
-
         /* Spotlight card effect */
         .spotlight-card {
           position: relative;
@@ -76,11 +72,11 @@ export default function Home() {
         <div className="max-w-[1100px] mx-auto">
           <div className="relative border border-[#9C2000]/35 rounded-2xl p-12 sm:p-20 text-center overflow-hidden" style={{ background: '#0F0F14' }}>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-0.5 bg-[#9C2000]" />
-            <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Start Today</span>
-            <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-4 mb-6" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+            <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">Start Today</span>
+            <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-4 mb-6" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
               Stop overthinking your <span className="text-primary">marketing.</span>
             </h2>
-            <p className="font-dm text-muted-foreground text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+            <p className="font-geist text-muted-foreground text-lg max-w-lg mx-auto mb-10 leading-relaxed">
               Join 2,400+ indie founders who shipped their marketing in one afternoon.
             </p>
             <a
@@ -90,7 +86,7 @@ export default function Home() {
               Start for Free
               <ArrowRight className="w-5 h-5" />
             </a>
-            <p className="font-dm text-xs text-muted-foreground mt-6">
+            <p className="font-geist text-xs text-muted-foreground mt-6">
               No subscription. One payment. Full access forever.
             </p>
           </div>

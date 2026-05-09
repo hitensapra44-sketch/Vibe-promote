@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ScrollReveal from './ScrollReveal';
 
 const offStats = { likes: 3, comments: 1, reposts: 0, views: 214 };
@@ -46,7 +46,7 @@ function StatItem({ icon, value, duration, enabled, colorOn }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-sm">{icon}</span>
-      <span className="font-dm text-sm transition-colors duration-300" style={{ color: enabled ? colorOn : '#666' }}>
+      <span className="font-geist text-sm transition-colors duration-300" style={{ color: enabled ? colorOn : '#666' }}>
         {formatNum(animated)}
       </span>
     </div>
@@ -60,16 +60,16 @@ export default function XPostToggle() {
     <section className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="max-w-[1100px] mx-auto">
         <div className="text-center mb-12">
-          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">See The Impact</span>
-          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+          <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">See The Impact</span>
+          <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
             Your SaaS post, with and without Vibe Promote.
           </h2>
-          <p className="font-dm text-muted-foreground mt-3">Toggle Vibe Promote on and watch what happens to your reach.</p>
+          <p className="font-geist text-muted-foreground mt-3">Toggle Vibe Promote on and watch what happens to your reach.</p>
         </div>
 
         {/* Toggle */}
         <div className="flex items-center justify-center gap-4 mb-10">
-          <span className="font-dm text-sm text-muted-foreground">Without</span>
+          <span className="font-geist text-sm text-muted-foreground">Without</span>
           <button
             onClick={() => setEnabled(!enabled)}
             className="relative w-[52px] h-7 rounded-full transition-all duration-300 cursor-pointer"
@@ -86,7 +86,7 @@ export default function XPostToggle() {
               }}
             />
           </button>
-          <span className="font-dm text-sm" style={{ color: enabled ? '#E85D04' : '#888' }}>With Vibe Promote</span>
+          <span className="font-geist text-sm" style={{ color: enabled ? '#E85D04' : '#888' }}>With Vibe Promote</span>
         </div>
 
         {/* X Post Card */}
@@ -95,7 +95,7 @@ export default function XPostToggle() {
             {/* Badge */}
             {enabled && (
               <div
-                className="absolute -top-3 right-5 z-10 font-dm text-xs font-medium px-3 py-1 rounded-full text-white"
+                className="absolute -top-3 right-5 z-10 font-geist text-xs font-medium px-3 py-1 rounded-full text-white"
                 style={{
                   background: '#E85D04',
                   animation: 'fadeInBadge 0.3s ease',
@@ -115,13 +115,13 @@ export default function XPostToggle() {
             >
               {/* Author */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-syne text-sm text-white"
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-geist text-sm text-white"
                   style={{ fontWeight: 700, background: 'linear-gradient(135deg, #E85D04, #F97316)' }}>
                   VP
                 </div>
                 <div className="flex-1">
-                  <span className="font-dm text-sm text-foreground font-medium">VibeFounder</span>
-                  <span className="font-dm text-sm text-muted-foreground ml-2">@vibefounderhq</span>
+                  <span className="font-geist text-sm text-foreground font-medium">VibeFounder</span>
+                  <span className="font-geist text-sm text-muted-foreground ml-2">@vibefounderhq</span>
                 </div>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="#f0ede8">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -129,7 +129,7 @@ export default function XPostToggle() {
               </div>
 
               {/* Post content */}
-              <p className="font-dm text-sm text-foreground leading-relaxed mb-4">
+              <p className="font-geist text-sm text-foreground leading-relaxed mb-4">
                 I spent 6 months building my SaaS and nobody was using it. Not because the product was bad — because nobody could understand what it actually did.
                 <br /><br />
                 Fixed my positioning last week using @VibePromote. 3 days later: 47 signups from a single Reddit post.
@@ -147,7 +147,7 @@ export default function XPostToggle() {
             </div>
 
             {/* Note */}
-            <p className="font-dm text-sm text-center mt-4 transition-colors duration-300"
+            <p className="font-geist text-sm text-center mt-4 transition-colors duration-300"
               style={{ color: enabled ? '#E85D04' : '#888' }}>
               {enabled
                 ? '✦ Vibe Promote optimised — this post is performing 12x better than average.'

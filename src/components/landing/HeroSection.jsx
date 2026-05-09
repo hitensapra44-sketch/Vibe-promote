@@ -24,30 +24,37 @@ export default function HeroSection() {
             width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
             display: 'inline-block', flexShrink: 0
           }} />
-          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
             AI CO-PILOT FOR BOOTSTRAPPED FOUNDERS
           </span>
         </div>
 
         {/* H1 */}
         <h1 style={{
-          fontFamily: 'Inter', fontWeight: 900,
-          fontSize: 'clamp(44px, 7vw, 88px)',
-          letterSpacing: '-0.04em', lineHeight: 0.95,
-          color: '#F2EDE8', textAlign: 'center', maxWidth: '900px',
+          fontFamily: 'Geist', fontWeight: 900,
+          fontSize: 'clamp(40px, 6vw, 72px)',
+          letterSpacing: '-0.04em', lineHeight: 1.1,
+          color: '#F2EDE8', textAlign: 'center', maxWidth: '1000px',
           margin: '0 0 24px'
         }}>
-          Marketing that actually<br />
-          <span style={{ color: '#9C2000' }}>sounds like you.</span>
+          Love Building But Hate Marketing? <br />
+          <span style={{ color: '#9C2000' }}>You Are in Right Place.</span>
         </h1>
+
+        <h2 style={{
+          fontFamily: 'Geist', fontWeight: 700, fontSize: '24px',
+          color: '#F2EDE8', textAlign: 'center', marginBottom: '24px'
+        }}>
+          93% Of App/Saas Fails Due To Bad Marketing. Don't Be One Of Them.
+        </h2>
 
         {/* Subtext */}
         <p style={{
-          fontFamily: 'Inter', fontWeight: 400, fontSize: '18px',
-          color: '#7A7672', maxWidth: '500px', textAlign: 'center',
+          fontFamily: 'Geist', fontWeight: 400, fontSize: '18px',
+          color: '#7A7672', maxWidth: '800px', textAlign: 'center',
           lineHeight: 1.7, margin: '0 0 40px'
         }}>
-          Vibe Promote turns your product knowledge into sharp positioning, on-brand posts, and messaging that converts — without hiring a marketing team.
+          You didn’t build your product to become a full-time marketer. Vibe Promote finds your audience in real conversations, tells you what to say, generates posts that converts and sound like you not gpt, and gives you clear analytics and strategies to grow. so you know what’s working and what’s not. This is app marketing on autopilot.
         </p>
 
         {/* CTAs */}
@@ -58,7 +65,7 @@ export default function HeroSection() {
           </a>
           <a href="#how-it-works"
           style={{
-            fontFamily: 'Inter', fontWeight: 700, fontSize: '16px',
+            fontFamily: 'Geist', fontWeight: 700, fontSize: '16px',
             background: 'transparent', color: '#7A7672',
             border: '1px solid rgba(255,255,255,0.12)',
             padding: '14px 36px', borderRadius: '10px',
@@ -83,8 +90,8 @@ export default function HeroSection() {
           <React.Fragment key={s.num}>
               {i > 0 && <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.08)' }} />}
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: '26px', color: '#F2EDE8' }}>{s.num}</div>
-                <div style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C' }}>{s.label}</div>
+                <div style={{ fontFamily: 'Geist', fontWeight: 800, fontSize: '26px', color: '#F2EDE8' }}>{s.num}</div>
+                <div style={{ fontFamily: 'Geist', fontWeight: 400, fontSize: '13px', color: '#44403C' }}>{s.label}</div>
               </div>
             </React.Fragment>
           )}
@@ -101,7 +108,7 @@ export default function HeroSection() {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Geist', sans-serif;
           font-weight: 700;
           font-size: 16px;
           background: #9C2000;

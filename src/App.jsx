@@ -1,8 +1,16 @@
 "use client";
 
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClientInstance } from '@/lib/query-client';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import Auth from './pages/Auth';
 import Survey from './pages/Survey';
 import PrePurchase from './pages/PrePurchase';
@@ -13,64 +21,62 @@ import PostMaker from './pages/post-maker/PostMaker';
 import AudienceSpotter from './pages/AudienceSpotter';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
-import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
 import Pricing from './pages/Pricing';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Terms from './pages/Terms';
 import FeedbackWidget from './components/FeedbackWidget';
-import { useAuth } from './lib/AuthContext';
 
-export default function App() {
-  const { user, isAuthenticated, isLoadingAuth } = useAuth();
-  const location = useLocation();
-
-  const publicRoutes = ['/', '/auth', '/survey', '/pre-purchase', '/privacy', '/terms'];
-  const isPublicRoute = publicRoutes.includes(location.pathname);
+const AuthenticatedApp = () => {
+  const { isLoadingAuth, isAuthenticated } = useAuth();
 
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="fixed inset-0 flex items-center justify-center bg-black">
+        <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex">
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/survey" element={<Survey />} />
-            <Route path="/pre-purchase" element={<PrePurchase />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<Terms />} />
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/survey" element={<Survey />} />
+      <Route path="/pre-purchase" element={<PrePurchase />} />
+      <Route path="/pricing" element={<Pricing />} />
+      
+      {/* Protected Routes */}
+      <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Home />} />
+      <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Home />} />
+      <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : <Home />} />
+      <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : <Home />} />
+      <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : <Home />} />
+      <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : <Home />} />
+      <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : <Home />} />
+      <Route path="/settings" element={isAuthenticated ? <Settings /> : <Home />} />
+      <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : <Home />} />
+      
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
+  );
+};
 
-            {/* Protected Routes */}
-            <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Navigate to="/auth" />} />
-            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" />} />
-            <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : <Navigate to="/auth" />} />
-            <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : <Navigate to="/auth" />} />
-            <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : <Navigate to="/auth" />} />
-            <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : <Navigate to="/auth" />} />
-            <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : <Navigate to="/auth" />} />
-            <Route path="/analytics" element={isAuthenticated ? <Analytics /> : <Navigate to="/auth" />} />
-            <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/auth" />} />
-            <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : <Navigate to="/auth" />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-
-      {/* FeedbackWidget outside all layout containers so fixed positioning works correctly */}
-      <FeedbackWidget />
-    </>
+function App() {
+  return (
+    <AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <div className="min-h-screen bg-black text-white font-geist">
+            <AuthenticatedApp />
+            <FeedbackWidget />
+          </div>
+        </Router>
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
+
+export default App;
