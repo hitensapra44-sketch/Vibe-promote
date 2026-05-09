@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Chrome, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Mail, Lock, ArrowRight, Chrome, User, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'sonner';
@@ -15,6 +15,8 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showStart, setShowStart] = useState(false);
@@ -31,6 +33,7 @@ export default function Auth() {
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setAuthError('');
     try {
       const trimmedName = name.trim();
       const { data, error } = isSignIn
@@ -43,7 +46,13 @@ export default function Auth() {
               : {}),
           });
 
-      if (error) throw error;
+      if (error) {
+        if (isSignIn && (error.message.includes('invalid') || error.message.includes('credentials'))) {
+          setAuthError('email or password is wrong');
+          return;
+        }
+        throw error;
+      }
 
       if (!isSignIn && data?.user?.identities?.length === 0) {
         toast.error("Email already registered. Try signing in.");
@@ -51,7 +60,7 @@ export default function Auth() {
         setShowWelcome(true);
       } else {
         localStorage.setItem('joined_waitlist', 'true');
-        navigate('/onboarding');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error(error.message);
@@ -151,14 +160,24 @@ export default function Auth() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary/50" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-bg-elevated border border-border-muted text-text-primary placeholder-text-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  className="w-full pl-12 pr-12 py-4 rounded-xl bg-bg-elevated border border-border-muted text-text-primary placeholder-text-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/50 hover:text-white transition-colors bg-transparent"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
+              {authError && (
+                <p className="text-red-500 text-xs font-medium ml-1 mt-1">{authError}</p>
+              )}
             </div>
 
             <button
@@ -173,7 +192,10 @@ export default function Auth() {
 
           <div className="mt-10 text-center">
             <button
-              onClick={() => setIsSignIn(!isSignIn)}
+              onClick={() => {
+                setIsSignIn(!isSignIn);
+                setAuthError('');
+              }}
               className="text-sm text-text-secondary hover:text-text-primary transition-colors"
             >
               {isSignIn ? "Don't have an account? " : "Already signed up? "}

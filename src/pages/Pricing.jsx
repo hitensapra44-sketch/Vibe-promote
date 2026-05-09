@@ -1,299 +1,505 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 
-const PLAN_LINKS = {
-  starter_monthly: "https://test.checkout.dodopayments.com/buy/pdt_0NeG6AUiZKRYSbt4nLnM9?quantity=1",
-  starter_annual: "YOUR_STARTER_ANNUAL_LINK",
-  pro_monthly: "YOUR_PRO_MONTHLY_LINK",
-  pro_annual: "YOUR_PRO_ANNUAL_LINK",
-  founder_monthly: "YOUR_FOUNDER_MONTHLY_LINK",
-  founder_annual: "YOUR_FOUNDER_ANNUAL_LINK",
-};
+const PLANS = [
+  {
+    id: 'free',
+    name: 'Free',
+    tagline: 'Explore the core tools, free forever.',
+    price: 0,
+    period: '/month',
+    cta: 'Get Started Free',
+    ctaHref: '/auth',
+    featured: false,
+    features: [
+      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Post Preview', value: 'Unlimited' },
+      { label: 'User Finder', value: '10 searches/month' },
+      { label: 'Post Maker', value: '15 posts/month' },
+      { label: 'Co-Pilot', value: 'Locked', locked: true },
+      { label: 'Analytics', value: 'Locked', locked: true },
+      { label: 'Connected Accounts', value: '1' },
+      { label: 'Brand Profiles', value: '1' },
+      { label: 'PDF Guide', value: 'Reddit and X guidebook' },
+      { label: 'Support', value: 'Email' },
+    ],
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    tagline: 'More power for growing founders.',
+    price: 19,
+    period: '/month',
+    cta: 'Start Starter',
+    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
+    featured: false,
+    features: [
+      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Post Preview', value: 'Unlimited' },
+      { label: 'User Finder', value: '50 searches/month' },
+      { label: 'Post Maker', value: '35 posts/month' },
+      { label: 'Co-Pilot', value: 'Unlimited' },
+      { label: 'Analytics', value: 'Preview only' },
+      { label: 'Connected Accounts', value: '2' },
+      { label: 'Brand Profiles', value: '1' },
+      { label: 'PDF Guide', value: 'Reddit, X, LinkedIn, IndieHackers' },
+      { label: 'Support', value: 'Priority Email' },
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    tagline: 'The full toolkit for serious founders.',
+    price: 49,
+    period: '/month',
+    cta: 'Start Pro',
+    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0Ne1moGR0X9lBvhgme2rO?quantity=1',
+    featured: true,
+    badge: 'Most Popular',
+    features: [
+      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Post Preview', value: 'Unlimited' },
+      { label: 'User Finder', value: 'Unlimited' },
+      { label: 'Post Maker', value: 'Unlimited' },
+      { label: 'Co-Pilot', value: 'Unlimited' },
+      { label: 'Analytics', value: 'Full access' },
+      { label: 'Connected Accounts', value: 'All platforms' },
+      { label: 'Brand Profiles', value: '1' },
+      { label: 'PDF Guide', value: 'Every platform' },
+      { label: 'Support', value: '24/7 Proper Support' },
+    ],
+  },
+  {
+    id: 'founder',
+    name: 'Founder',
+    tagline: 'For multi-product founders and consultants.',
+    price: 99,
+    period: '/month',
+    cta: 'Go Founder',
+    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0NeCAkzcVSNwW1PqKCAjA?quantity=1',
+    featured: false,
+    features: [
+      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Post Preview', value: 'Unlimited' },
+      { label: 'User Finder', value: 'Unlimited' },
+      { label: 'Post Maker', value: 'Unlimited' },
+      { label: 'Co-Pilot', value: 'Unlimited' },
+      { label: 'Analytics', value: 'Full access + AI insights' },
+      { label: 'Connected Accounts', value: 'All platforms' },
+      { label: 'Brand Profiles', value: 'Unlimited' },
+      { label: 'PDF Guide', value: 'Every platform + exclusive Founder PDF' },
+      { label: 'Support', value: 'Direct Founder Support' },
+    ],
+  },
+];
 
-function CheckIcon() {
+const SOCIAL_PROOF = [
+  { ini: 'MR', name: 'Marcus R.', text: 'Switched from $79/month tool. Got better results immediately.' },
+  { ini: 'SP', name: 'Sara P.', text: 'The Pro plan paid for itself with the first Reddit post.' },
+  { ini: 'JK', name: 'James K.', text: 'As a dev, writing copy was my nightmare. Not anymore.' },
+];
+
+function CheckIcon({ color = '#9C2000' }) {
   return (
-    <svg
-      className="h-3 w-3 shrink-0 text-green-500"
-      viewBox="0 0 12 12"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M2 6.4L4.7 9L10 3.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M20 6L9 17l-5-5" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function LockIcon() {
   return (
-    <svg
-      className="h-3 w-3 shrink-0 text-gray-600"
-      viewBox="0 0 12 12"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M3.5 5V4a2.5 2.5 0 115 0v1M3 5h6a.5.5 0 01.5.5v3A1.5 1.5 0 018 10h-4A1.5 1.5 0 012.5 8.5v-3A.5.5 0 013 5z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#44403C" strokeWidth="2" strokeLinecap="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   );
 }
 
-function FeatureRow({ label, value, status }) {
-  const isLocked = status === "locked";
-
-  return (
-    <div className="flex items-start justify-between gap-3 border-b border-white/5 py-3 last:border-b-0">
-      <div className={`flex items-center gap-2 text-sm ${isLocked ? "text-gray-600" : "text-white"}`}>
-        {isLocked ? <LockIcon /> : <CheckIcon />}
-        <span>{label}</span>
-      </div>
-      <span className={`text-sm ${isLocked ? "text-gray-600" : "text-gray-400"}`}>{value}</span>
-    </div>
-  );
-}
-
-function BillingToggle({ billing, onChange }) {
-  return (
-    <div className="mt-8 flex justify-center">
-      <div className="inline-flex rounded-xl border border-white/10 bg-[#1a1a1a] p-1">
-        <button
-          type="button"
-          onClick={() => onChange("monthly")}
-          className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-            billing === "monthly" ? "bg-violet-500 text-white" : "text-gray-300 hover:text-white"
-          }`}
-        >
-          Monthly
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange("annual")}
-          className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
-            billing === "annual" ? "bg-violet-500 text-white" : "text-gray-300 hover:text-white"
-          }`}
-        >
-          <span>Annual</span>
-          <span className="ml-2 text-green-500">Save 33%</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PricingCard({
-  name,
-  tagline,
-  monthlyPrice,
-  annualPrice,
-  annualYearlyBilled,
-  features,
-  ctaLabel,
-  ctaHref,
-  billing,
-  isRecommended = false,
-  ctaClassName,
-}) {
-  const displayPrice = billing === "annual" ? annualPrice : monthlyPrice;
-
-  return (
-    <div
-      className={`relative flex h-full flex-col justify-between rounded-2xl border p-8 ${
-        isRecommended ? "border-violet-500/60" : "border-white/10"
-      } bg-[#1a1a1a]`}
-      style={
-        isRecommended
-          ? {
-              boxShadow:
-                "0 0 0 1px rgba(139,92,246,0.6), 0 0 40px rgba(139,92,246,0.2), 0 0 80px rgba(167,139,250,0.1)",
-            }
-          : undefined
-      }
-    >
-      {isRecommended ? (
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-500/40 bg-[#151515] px-3 py-1 text-xs font-semibold text-violet-300">
-          Most Popular
-        </div>
-      ) : null}
-
-      <div>
-        <h3 className="text-xl font-semibold text-white">{name}</h3>
-        <p className="mb-6 mt-1 text-sm text-gray-400">{tagline}</p>
-
-        <div className="mb-6">
-          <div className="flex items-end gap-2">
-            <span className="text-5xl font-bold text-white">${displayPrice}</span>
-            <span className="pb-1 text-lg text-gray-400">/month</span>
-          </div>
-          {billing === "annual" ? (
-            <div className="mt-2 flex items-center gap-3 text-sm">
-              <span className="text-gray-500 line-through">${monthlyPrice}/month</span>
-              <span className="text-green-500">Save 33%</span>
-              {annualYearlyBilled ? <span className="text-gray-500">billed ${annualYearlyBilled}/year</span> : null}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="flex-1 space-y-0">
-          {features.map((feature) => (
-            <FeatureRow
-              key={`${name}-${feature.label}`}
-              label={feature.label}
-              value={feature.value}
-              status={feature.status}
-            />
-          ))}
-        </div>
-      </div>
-
-      <a
-        href={ctaHref}
-        className={`mt-8 block w-full rounded-xl py-3 text-center text-sm font-semibold transition-colors ${ctaClassName}`}
-      >
-        {ctaLabel}
-      </a>
-    </div>
-  );
-}
-
-const PLANS = [
-  {
-    name: "Free",
-    tagline: "Explore the core tools, free forever.",
-    monthlyPrice: "0",
-    annualPrice: "0",
-    annualYearlyBilled: null,
-    ctaLabel: "Get Started Free",
-    getCtaHref: () => "/",
-    ctaClassName: "border border-white/20 text-white hover:border-white/40",
-    features: [
-      { label: "Positioning Helper", value: "Unlimited", status: "included" },
-      { label: "Post Preview", value: "Unlimited", status: "included" },
-      { label: "User Finder", value: "10 searches/month", status: "limited" },
-      { label: "Post Maker", value: "15 posts/month", status: "limited" },
-      { label: "Co-Pilot", value: "Locked", status: "locked" },
-      { label: "Analytics", value: "Locked", status: "locked" },
-      { label: "Connected Accounts", value: "1", status: "limited" },
-      { label: "Brand Profiles", value: "1", status: "limited" },
-      { label: "PDF Guide", value: "Reddit and X guidebook", status: "limited" },
-      { label: "Support", value: "Email", status: "limited" },
-    ],
-  },
-  {
-    name: "Starter",
-    tagline: "More power for growing founders.",
-    monthlyPrice: "19",
-    annualPrice: "13",
-    annualYearlyBilled: "156",
-    ctaLabel: "Start Starter",
-    getCtaHref: (billing) => (billing === "annual" ? PLAN_LINKS.starter_annual : PLAN_LINKS.starter_monthly),
-    ctaClassName: "bg-violet-500 text-white hover:bg-violet-400",
-    features: [
-      { label: "Positioning Helper", value: "Unlimited", status: "included" },
-      { label: "Post Preview", value: "Unlimited", status: "included" },
-      { label: "User Finder", value: "50 searches/month", status: "limited" },
-      { label: "Post Maker", value: "35 posts/month", status: "limited" },
-      { label: "Co-Pilot", value: "Unlimited", status: "included" },
-      { label: "Analytics", value: "Preview only (view data, no AI assistant)", status: "limited" },
-      { label: "Connected Accounts", value: "2", status: "limited" },
-      { label: "Brand Profiles", value: "1", status: "limited" },
-      { label: "PDF Guide", value: "Reddit, X, LinkedIn, IndieHackers", status: "limited" },
-      { label: "Support", value: "Priority Email", status: "limited" },
-    ],
-  },
-  {
-    name: "Pro",
-    tagline: "The full toolkit for serious founders.",
-    monthlyPrice: "49",
-    annualPrice: "33",
-    annualYearlyBilled: "396",
-    ctaLabel: "Start Pro",
-    getCtaHref: (billing) => (billing === "annual" ? PLAN_LINKS.pro_annual : PLAN_LINKS.pro_monthly),
-    ctaClassName: "bg-violet-500 text-white hover:bg-violet-400",
-    isRecommended: true,
-    features: [
-      { label: "Positioning Helper", value: "Unlimited", status: "included" },
-      { label: "Post Preview", value: "Unlimited", status: "included" },
-      { label: "User Finder", value: "Unlimited", status: "included" },
-      { label: "Post Maker", value: "Unlimited", status: "included" },
-      { label: "Co-Pilot", value: "Unlimited", status: "included" },
-      { label: "Analytics", value: "Full access", status: "included" },
-      { label: "Connected Accounts", value: "All platforms", status: "included" },
-      { label: "Brand Profiles", value: "1", status: "limited" },
-      { label: "PDF Guide", value: "Every platform", status: "included" },
-      { label: "Support", value: "24/7 Proper Support", status: "included" },
-    ],
-  },
-  {
-    name: "Founder",
-    tagline: "For multi-product founders and consultants.",
-    monthlyPrice: "99",
-    annualPrice: "66",
-    annualYearlyBilled: "792",
-    ctaLabel: "Go Founder",
-    getCtaHref: (billing) => (billing === "annual" ? PLAN_LINKS.founder_annual : PLAN_LINKS.founder_monthly),
-    ctaClassName: "border border-violet-500/40 bg-violet-900 text-white hover:bg-violet-800",
-    features: [
-      { label: "Positioning Helper", value: "Unlimited", status: "included" },
-      { label: "Post Preview", value: "Unlimited", status: "included" },
-      { label: "User Finder", value: "Unlimited", status: "included" },
-      { label: "Post Maker", value: "Unlimited", status: "included" },
-      { label: "Co-Pilot", value: "Unlimited", status: "included" },
-      { label: "Analytics", value: "Full access with AI insights", status: "included" },
-      { label: "Connected Accounts", value: "All platforms", status: "included" },
-      { label: "Brand Profiles", value: "Unlimited", status: "included" },
-      {
-        label: "PDF Guide",
-        value: "Every platform plus exclusive Founder marketing PDF",
-        status: "included",
-      },
-      { label: "Support", value: "Direct Founder Support", status: "included" },
-    ],
-  },
-];
-
 export default function Pricing() {
-  const [billing, setBilling] = useState("monthly");
-
   return (
-    <section className="min-h-screen bg-[#0f0f0f] px-4 py-24">
-      <div className="mx-auto max-w-7xl">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white">Simple, honest pricing.</h1>
-          <p className="mt-3 text-gray-400">No hidden fees. Cancel anytime.</p>
+    <div style={{ background: '#000', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(20px); }
+          to { opacity:1; transform:translateY(0); }
+        }
+        @keyframes glowPulse {
+          0%,100% { box-shadow: 0 0 18px rgba(156,32,0,0.5), 0 0 36px rgba(232,93,4,0.25); }
+          50% { box-shadow: 0 0 28px rgba(156,32,0,0.8), 0 0 56px rgba(232,93,4,0.4); }
+        }
+
+        .pricing-card {
+          position: relative;
+          background: #0A0A0F;
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 16px;
+          transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+          overflow: hidden;
+        }
+        .pricing-card::before {
+          content:'';
+          position:absolute;
+          inset:0;
+          border-radius:inherit;
+          opacity:0;
+          transition:opacity 0.4s ease;
+          background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(156,32,0,0.1) 0%, transparent 60%);
+          pointer-events:none;
+          z-index:0;
+        }
+        .pricing-card:hover::before { opacity:1; }
+        .pricing-card > * { position:relative; z-index:1; }
+        .pricing-card:hover { transform: translateY(-4px); }
+
+        .pro-card {
+          background: linear-gradient(160deg, #0F0800 0%, #0A0A0F 40%);
+          border: 1px solid rgba(156,32,0,0.5) !important;
+          box-shadow: 0 0 60px rgba(156,32,0,0.12), 0 0 120px rgba(156,32,0,0.05);
+        }
+        .pro-card:hover {
+          border-color: rgba(156,32,0,0.8) !important;
+          box-shadow: 0 0 80px rgba(156,32,0,0.2), 0 20px 60px rgba(0,0,0,0.5) !important;
+        }
+
+        .pro-badge {
+          background: linear-gradient(90deg, #9C2000, #E85D04, #9C2000);
+          background-size: 200% auto;
+          animation: shimmer 3s linear infinite;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .cta-btn {
+          display:block; width:100%; text-align:center;
+          padding:13px 20px;
+          font-family:'Inter',sans-serif; font-weight:700; font-size:14px;
+          border-radius:10px; text-decoration:none;
+          transition:all 0.25s ease;
+          cursor:pointer; border:none;
+        }
+        .cta-btn-default {
+          background: transparent;
+          color: #7A7672;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+        .cta-btn-default:hover {
+          border-color: rgba(255,255,255,0.25);
+          color: #F2EDE8;
+        }
+        .cta-btn-pro {
+          background: #9C2000;
+          color: #fff;
+          animation: glowPulse 2.5s ease-in-out infinite;
+        }
+        .cta-btn-pro:hover {
+          background: linear-gradient(135deg, #9C2000, #E85D04);
+          box-shadow: 0 8px 28px rgba(156,32,0,0.5);
+          animation: none;
+        }
+        .cta-btn-founder {
+          background: rgba(156,32,0,0.12);
+          color: #E85D04;
+          border: 1px solid rgba(156,32,0,0.35);
+        }
+        .cta-btn-founder:hover {
+          background: rgba(156,32,0,0.2);
+          border-color: rgba(156,32,0,0.6);
+          color: #F2EDE8;
+        }
+
+        .feature-row {
+          display:flex; align-items:flex-start; justify-content:space-between;
+          gap:12px; padding: 9px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .feature-row:last-child { border-bottom: none; }
+
+        .social-proof-bar {
+          animation: fadeUp 0.6s ease 0.2s both;
+        }
+
+        @media(max-width:900px) {
+          .plans-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media(max-width:600px) {
+          .plans-grid { grid-template-columns: 1fr !important; }
+          .pricing-header { padding: 60px 20px 40px !important; }
+        }
+      `}</style>
+
+      {/* NAV */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        height: '60px', display: 'flex', alignItems: 'center', padding: '0 40px',
+        background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)'
+      }}>
+        <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#F2EDE8', textDecoration: 'none', flex: '0 0 auto' }}>
+          Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+        </a>
+        <div style={{ flex: 1 }} />
+        <a href="/" style={{
+          fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672',
+          textDecoration: 'none', marginRight: '24px', transition: 'color 0.2s'
+        }}
+          onMouseEnter={e => e.target.style.color = '#F2EDE8'}
+          onMouseLeave={e => e.target.style.color = '#7A7672'}>
+          Back to home
+        </a>
+        <a href="/auth" style={{
+          fontFamily: 'Inter', fontWeight: 600, fontSize: '14px',
+          background: '#9C2000', color: '#fff', padding: '9px 20px', borderRadius: '8px',
+          textDecoration: 'none', transition: 'all 0.25s ease'
+        }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#9C2000'; e.currentTarget.style.boxShadow = 'none'; }}>
+          Get Started
+        </a>
+      </nav>
+
+      {/* HEADER */}
+      <div className="pricing-header" style={{ paddingTop: '120px', paddingBottom: '56px', textAlign: 'center', padding: '120px 40px 56px' }}>
+
+        {/* Social proof bar */}
+        <div className="social-proof-bar" style={{
+          display: 'inline-flex', alignItems: 'center', gap: '10px',
+          background: 'rgba(156,32,0,0.1)', border: '1px solid rgba(156,32,0,0.25)',
+          borderRadius: '100px', padding: '8px 18px', marginBottom: '32px'
+        }}>
+          {/* Avatars */}
+          <div style={{ display: 'flex', marginRight: '4px' }}>
+            {['MR', 'SP', 'JK', 'AL'].map((ini, i) => (
+              <div key={ini} style={{
+                width: '24px', height: '24px', borderRadius: '50%',
+                background: i % 2 === 0 ? '#9C2000' : '#5A1200',
+                border: '2px solid #000',
+                marginLeft: i === 0 ? 0 : '-6px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Inter', fontWeight: 700, fontSize: '9px', color: '#fff'
+              }}>{ini}</div>
+            ))}
+          </div>
+          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#E85D04' }}>
+            100+ builders went Pro and automated their marketing
+          </span>
+          <span className="pulse-dot" style={{
+            width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
+            display: 'inline-block', animation: 'pulse 2s infinite'
+          }} />
         </div>
 
-        <BillingToggle billing={billing} onChange={setBilling} />
+        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '14px' }}>
+          Pricing
+        </div>
+        <h1 style={{
+          fontFamily: 'Inter', fontWeight: 900,
+          fontSize: 'clamp(36px,5vw,64px)',
+          letterSpacing: '-0.04em', lineHeight: 1,
+          color: '#F2EDE8', marginBottom: '16px'
+        }}>
+          Pick your plan.<br />
+          <span style={{ color: '#9C2000' }}>Start building today.</span>
+        </h1>
+        <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
+          No hidden fees. Cancel anytime. Start free and upgrade when you're ready.
+        </p>
+      </div>
 
-        <div className="mt-12 grid items-stretch gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => (
-            <PricingCard
-              key={plan.name}
-              name={plan.name}
-              tagline={plan.tagline}
-              monthlyPrice={plan.monthlyPrice}
-              annualPrice={plan.annualPrice}
-              annualYearlyBilled={plan.annualYearlyBilled}
-              features={plan.features}
-              ctaLabel={plan.ctaLabel}
-              ctaHref={plan.getCtaHref(billing)}
-              billing={billing}
-              isRecommended={plan.isRecommended}
-              ctaClassName={plan.ctaClassName}
-            />
+      {/* PLANS GRID */}
+      <div style={{ padding: '0 40px 80px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div
+          className="plans-grid"
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', alignItems: 'start' }}
+          onMouseMove={e => {
+            document.querySelectorAll('.pricing-card').forEach(card => {
+              const rect = card.getBoundingClientRect();
+              card.style.setProperty('--mx', ((e.clientX - rect.left) / rect.width * 100) + '%');
+              card.style.setProperty('--my', ((e.clientY - rect.top) / rect.height * 100) + '%');
+            });
+          }}
+        >
+          {PLANS.map(plan => {
+            const isPro = plan.id === 'pro';
+            const isFounder = plan.id === 'founder';
+            return (
+              <div
+                key={plan.id}
+                className={`pricing-card ${isPro ? 'pro-card' : ''}`}
+              >
+                {/* Pro top accent line */}
+                {isPro && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+                    width: '60%', height: '2px',
+                    background: 'linear-gradient(90deg, transparent, #9C2000, #E85D04, #9C2000, transparent)'
+                  }} />
+                )}
+
+                <div style={{ padding: '28px 24px' }}>
+                  {/* Badge */}
+                  {plan.badge && (
+                    <div style={{ marginBottom: '14px' }}>
+                      <span style={{
+                        fontFamily: 'Inter', fontWeight: 700, fontSize: '11px',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.4)',
+                        borderRadius: '100px', padding: '4px 12px',
+                        color: '#E85D04'
+                      }}>{plan.badge}</span>
+                    </div>
+                  )}
+
+                  {/* Plan name & tagline */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{
+                      fontFamily: 'Inter', fontWeight: 800, fontSize: '20px',
+                      color: isPro ? '#F2EDE8' : '#F2EDE8',
+                      letterSpacing: '-0.02em', marginBottom: '4px'
+                    }}>
+                      {isPro ? (
+                        <span style={{
+                          background: 'linear-gradient(135deg, #F2EDE8 40%, #E85D04 100%)',
+                          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text'
+                        }}>{plan.name}</span>
+                      ) : plan.name}
+                    </div>
+                    <div style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.4 }}>{plan.tagline}</div>
+                  </div>
+
+                  {/* Price */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+                    <span style={{
+                      fontFamily: 'Inter', fontWeight: 900,
+                      fontSize: plan.price === 0 ? '44px' : '48px',
+                      letterSpacing: '-0.04em', lineHeight: 1,
+                      color: isPro ? '#F2EDE8' : '#F2EDE8'
+                    }}>
+                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                    </span>
+                    {plan.price > 0 && (
+                      <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#44403C' }}>{plan.period}</span>
+                    )}
+                  </div>
+
+                  {/* CTA */}
+                  <a
+                    href={plan.ctaHref}
+                    className={`cta-btn ${isPro ? 'cta-btn-pro' : isFounder ? 'cta-btn-founder' : 'cta-btn-default'}`}
+                    style={{ marginBottom: '24px' }}
+                  >
+                    {plan.cta}
+                  </a>
+
+                  {/* Divider */}
+                  <div style={{ height: '1px', background: isPro ? 'rgba(156,32,0,0.2)' : 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+
+                  {/* Features */}
+                  <div>
+                    {plan.features.map((f, i) => (
+                      <div key={i} className="feature-row">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                          <span style={{ flexShrink: 0 }}>
+                            {f.locked ? <LockIcon /> : <CheckIcon color={isPro ? '#E85D04' : '#9C2000'} />}
+                          </span>
+                          <span style={{
+                            fontFamily: 'Inter', fontSize: '13px',
+                            color: f.locked ? '#333' : '#7A7672'
+                          }}>{f.label}</span>
+                        </div>
+                        <span style={{
+                          fontFamily: 'Inter', fontSize: '12px', fontWeight: 500,
+                          color: f.locked ? '#2A2A2A' : isPro ? '#E85D04' : '#F2EDE8',
+                          textAlign: 'right', maxWidth: '100px'
+                        }}>{f.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom strip */}
+        <div style={{
+          marginTop: '48px', padding: '28px 32px',
+          background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '14px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
+            {[
+              { icon: '✓', text: '14-day money-back guarantee' },
+              { icon: '✓', text: 'Cancel anytime' },
+              { icon: '✓', text: 'Instant access on signup' },
+              { icon: '✓', text: 'No credit card tricks' },
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#9C2000', fontWeight: 700, fontSize: '14px' }}>{item.icon}</span>
+                <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672' }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+          <a href="mailto:vibepromote@gmail.com" style={{
+            fontFamily: 'Inter', fontSize: '13px', color: '#44403C',
+            textDecoration: 'none', transition: 'color 0.2s'
+          }}
+            onMouseEnter={e => e.target.style.color = '#9C2000'}
+            onMouseLeave={e => e.target.style.color = '#44403C'}>
+            Questions? Contact us
+          </a>
+        </div>
+
+        {/* Testimonial strip */}
+        <div style={{ marginTop: '48px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+          {SOCIAL_PROOF.map((t, i) => (
+            <div key={i} style={{
+              background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '12px', padding: '20px 22px',
+              display: 'flex', gap: '12px', alignItems: 'flex-start'
+            }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Inter', fontWeight: 800, fontSize: '12px', color: '#fff', flexShrink: 0
+              }}>{t.ini}</div>
+              <div>
+                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8', marginBottom: '4px' }}>{t.name}</div>
+                <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.55, margin: 0 }}>"{t.text}"</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>
-    </section>
+
+      {/* Footer */}
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
+            Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+          </div>
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <a href="/privacy" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#7A7672'} onMouseLeave={e => e.target.style.color = '#44403C'}>Privacy</a>
+            <a href="/terms" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#7A7672'} onMouseLeave={e => e.target.style.color = '#44403C'}>Terms</a>
+            <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#9C2000'} onMouseLeave={e => e.target.style.color = '#44403C'}>Support</a>
+            <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#2A2A2A' }}>2025 Vibe Promote</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

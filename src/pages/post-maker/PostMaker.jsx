@@ -39,35 +39,19 @@ const platformTemplates = {
     { name: "The Before/After", why: "Contrast creates curiosity. People want to know what caused the change.", structure: "Tweet 1 before state specific and painful → Tweet 2 one thing that changed without revealing → Tweets 3-4 what you actually did → Tweet 5 after state with numbers → Tweet 6 underlying principle → Final CTA" },
     { name: "The Unpopular Opinion With Receipts", why: "Disagreement drives replies. Proof stops it being dismissed.", structure: "State opinion plainly no hedging → acknowledge mainstream view → your specific contradicting experience → data or result backing you up → nuance when mainstream view is right → question to reader" }
   ],
-  LinkedIn: [
-    { name: "Personal Story With Business Lesson", why: "LinkedIn rewards vulnerability plus professionalism. Story plus takeaway equals shares.", structure: "Opening line a moment not a statement → 2-3 short paragraphs full story with specifics → turning point paragraph → lesson stated clearly → 3 bullet takeaways for skimmers → closing question" },
-    { name: "The Counterintuitive Numbers Post", why: "Numbers stop the scroll. Counterintuitive angle makes people want to understand why.", structure: "Open with surprising number → brief context → break down why number looks wrong but isn't → the principle behind it → what this means practically → question relating to their experience" },
-    { name: "The Honest Lessons Post", why: "LinkedIn is full of success theatre. Honest failure stands out immediately.", structure: "Open line here's what I got wrong → context what you believed and why → 3-4 numbered lessons each specific → for each what you thought vs what happened vs what you'd do now → one mindset shift that changed everything → CTA" },
-    { name: "The Industry Insight", why: "Positions you as a thinker not just a builder. Gets shared across the industry.", structure: "Trend or shift you've noticed specific not vauge → why most people are missing it → what data or experience shows → what it means for next 12 months → what you're doing about it → call for others' perspective" },
-    { name: "Build In Public Update", why: "Consistency builds audience. Real updates with real numbers get saved and followed.", structure: "Month and milestone with specific number → what you set out to do → what actually happened wins and losses equally → one decision you made and why → one thing you'd do differently → what's next specific → CTA" }
-  ],
   "Indie Hackers": [
     { name: "The Milestone Full Breakdown", why: "IH community runs on transparency. Full breakdowns with real numbers get referenced for months.", structure: "Headline milestone plus time taken → what you built who it's for → exact steps that led to milestone → what didn't work required for credibility → current metrics table → what you're doing next and why → advice for someone 2 steps behind" },
     { name: "The Failure Autopsy", why: "IH loves honest failure more than polished success. These posts get the most comments.", structure: "What failed and how badly with numbers → what you were trying and why you thought it'd work → exact moment you knew it wasn't working → root cause real reason not surface reason → what you salvaged → what you'd do differently → question has anyone been through this" },
     { name: "The Technical Process Post", why: "IH audience are builders. Showing HOW you did something plus business result is gold.", structure: "Headline outcome plus method → problem it solved → exact tools and approach used → step by step what you built → time taken plus result produced → what broke and how fixed → honest recommendation" },
     { name: "The Audience Research Post", why: "Shows strategic thinking. Other founders learn from your process and engage heavily.", structure: "Why you did research and when → how you found people to talk to exact method → questions you asked list them → 3 most surprising things you heard → how it changed what you were building → what you wish you'd asked → invite others to share their process" },
     { name: "What's Actually Working Right Now", why: "Cuts through theory. Real tactical wins with attribution get bookmarked constantly.", structure: "Open what's actually working for goal right now not 2 years ago → tactic 1 specific with numbers → tactic 2 specific with numbers → tactic 3 specific with numbers → what stopped working → why these work now underlying reason → CTA" }
-  ],
-  "Product Hunt": [
-    { name: "The Maker Story Launch", why: "PH community votes for makers they believe in not just products. Story equals votes.", structure: "Why you personally built this specific moment → who it's for exact person exact situation → what it does in 2 sentences no jargon → one thing that makes it different → where you are right now → what you're asking community for → CTA" },
-    { name: "The Problem First Post", why: "Leading with pain before solution makes the solution feel inevitable.", structure: "Open with problem as a scene → how they currently solve it ugly workaround → why every existing solution misses the point → what you built to fix it → 2-3 specific features addressing exact pain → early results or feedback quote → CTA" },
-    { name: "The Before/After Post", why: "Concrete transformation is easier to upvote than abstract features.", structure: "Before describe workflow without your product specific and painful → friction points list them → after describe same workflow with your product → specific things now easier or gone → real user quote if available → metric that changed → CTA" },
-    { name: "The Why Now Post", why: "PH voters want to back timely things. Showing why this moment matters drives urgency.", structure: "Shift happening in market right now → why problem is more urgent than 2 years ago → why you're the right person → what you've built → what changes if this succeeds → what you need from community → CTA" },
-    { name: "The Social Proof First Post", why: "Validation from others reduces risk of upvoting.", structure: "Open with what early users said specific → problem those users had before → what they're using it for now → result they got even if small → what the product actually is explained simply → where you're taking it → CTA" }
   ]
 };
 
 const postingTips = {
   Reddit: "Post between 9am-12pm EST on weekdays. Add a genuine comment yourself right after posting to start the conversation. Never reply to your own post with a link immediately.",
   Twitter: "Post between 8am-10am or 6pm-9pm in your audience's timezone. Reply to the first few comments fast — early engagement signals matter most.",
-  LinkedIn: "Tuesday to Thursday 7am-9am gets the most reach. End your post with a direct question — posts with questions in comments get 3x more distribution.",
-  "Indie Hackers": "Post on weekday mornings. Give the community something genuinely useful and the upvotes follow. Don't cross-post the same day you post elsewhere.",
-  "Product Hunt": "Launch on Tuesday or Wednesday between 12:01am and 3am PST. Have 5 people ready to upvote and comment in the first hour — early velocity is everything."
+  "Indie Hackers": "Post on weekday mornings. Give the community something genuinely useful and the upvotes follow. Don't cross-post the same day you post elsewhere."
 };
 
 export default function PostMaker() {
@@ -241,9 +225,7 @@ CTA RULES:
 - The CTA must match the brand's actual marketing goal from the brand information above
 - For Reddit: CTA is a question or soft mention — "Built X to fix this if anyone's curious: [link]"
 - For Twitter: CTA is one short punchy line max
-- For LinkedIn: CTA is a direct question to the reader
 - For Indie Hackers: CTA invites discussion or links to the product naturally
-- For Product Hunt: CTA is a direct ask to check it out or upvote
 - Never write a CTA that sounds like an ad. It must feel like a natural next line.
 
 SCORING RULES:

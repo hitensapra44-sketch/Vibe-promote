@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import BuddyChat from '../../components/marketing-buddy/BuddyChat';
-import { Sparkles, MessageSquare, Brain } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Sparkles, MessageSquare, Brain, Lock } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { useAuth } from '../../lib/AuthContext';
 import { usePlan } from '../../lib/usePlan';
@@ -76,6 +76,23 @@ export default function MarketingBuddy() {
                   feature="copilot"
                   plan={plan}
                   limit={limits.copilot}
+                  fallback={
+                    <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                      <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6">
+                        <Lock className="w-8 h-8 text-orange-500" />
+                      </div>
+                      <h3 className="text-white font-bold text-xl mb-2">Co-pilot is a Pro Feature</h3>
+                      <p className="text-zinc-500 text-sm max-w-sm mb-8">
+                        Get your own 24/7 AI marketing strategist that knows your product inside out.
+                      </p>
+                      <Link 
+                        to="/pricing" 
+                        className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all shadow-lg shadow-orange-500/20"
+                      >
+                        View Plans
+                      </Link>
+                    </div>
+                  }
                 >
                   <BuddyChat />
                 </PlanGate>
