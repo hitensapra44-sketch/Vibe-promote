@@ -51,17 +51,29 @@ export default function ConnectAccounts({ onConnect }) {
   }, [user]);
 
   const fetchRedditData = async (userHandle) => {
-    const { data, error } = await supabase.functions.invoke('reddit-proxy', {
-      body: { username: userHandle, type: 'posts' }
-    });
+    const cleanHandle = userHandle.replace(/^u\//, '').trim();
 
-    if (error) {
-      if (error.status === 404) throw new Error('Reddit user not found. Check the username.');
-      if (error.status === 403) throw new Error('This Reddit profile is private.');
-      throw new Error(error.message || 'Failed to fetch Reddit data.');
-    }
+    const res = await fetch(
+      `https://www.reddit.com/user/${cleanHandle}/submitted.json?limit=30&sort=new`,
+      { headers: { 'Accept': 'application/json' } }
+    );
 
-    return { posts: data };
+    if (res.status === 404) throw new Error('Reddit user not found. Check the username.');
+    if (res.status === 403) throw new Error('This Reddit profile is private.');
+    if (!res.ok) throw new Error(`Reddit error: ${res.status}. Try again in a moment.`);
+
+    const json = await res.json();
+    const posts = (json?.data?.children ?? []).map(child => ({
+      title: child.data.title,
+      subreddit: child.data.subreddit_name_prefixed,
+      score: child.data.score ?? 0,
+      num_comments: child.data.num_comments ?? 0,
+      url: `https://reddit.com${child.data.permalink}`,
+      created_at: new Date(child.data.created_utc * 1000).toISOString(),
+      engagement: (child.data.score ?? 0) + (child.data.num_comments ?? 0)
+    }));
+
+    return { posts };
   };
 
   const handleStartFetch = async (e) => {

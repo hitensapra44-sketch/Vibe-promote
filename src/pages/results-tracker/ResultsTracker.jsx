@@ -30,32 +30,6 @@ export default function ResultsTracker() {
   const [breakdown, setBreakdown] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [profileKarma, setProfileKarma] = useState(0);
-
-  const fetchProfileKarma = useCallback(async () => {
-    if (!user) return;
-
-    const { data: account } = await supabase
-      .from('social_accounts')
-      .select('username')
-      .eq('user_id', user.id)
-      .eq('platform', 'Reddit')
-      .maybeSingle();
-
-    if (!account?.username) return;
-
-    try {
-      const { data, error } = await supabase.functions.invoke('reddit-proxy', {
-        body: { username: account.username, type: 'about' }
-      });
-      if (!error && data) {
-        setProfileKarma(data.karma || 0);
-      }
-    } catch (e) {
-      console.error("Failed to fetch Reddit karma:", e);
-      setProfileKarma(0);
-    }
-  }, [user]);
 
   const fetchPosts = useCallback(async () => {
     if (!user) return;
@@ -109,8 +83,7 @@ export default function ResultsTracker() {
 
   useEffect(() => {
     fetchPosts();
-    fetchProfileKarma();
-  }, [fetchPosts, fetchProfileKarma, refreshKey]);
+  }, [fetchPosts, refreshKey]);
 
   useEffect(() => {
     const totals = posts.reduce(
@@ -128,9 +101,9 @@ export default function ResultsTracker() {
 
     setMetrics({
       views: { 
-        value: isRedditFilter ? profileKarma : totals.views, 
+        value: isRedditFilter ? 0 : totals.views, 
         change: 0, 
-        label: isRedditFilter ? 'Total Karma' : 'Views' 
+        label: isRedditFilter ? 'Karma' : 'Views' 
       },
       engagements: { 
         value: isRedditFilter ? totals.upvotes : totals.totalEngagement, 
@@ -148,7 +121,7 @@ export default function ResultsTracker() {
         label: isRedditFilter ? 'Engagement' : 'Link Taps' 
       },
     });
-  }, [posts, activePlatform, profileKarma]);
+  }, [posts, activePlatform]);
 
   useEffect(() => {
     if (!posts.length) {
