@@ -95,10 +95,23 @@ export default function ResultsTracker() {
     }
   }, [user]);
 
+  const checkConnectedAccount = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('social_accounts')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (data?.id) {
+      setHasConnectedAccounts(true);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchPosts();
     fetchAccountKarma();
-  }, [fetchPosts, fetchAccountKarma, refreshKey]);
+    checkConnectedAccount();
+  }, [fetchPosts, fetchAccountKarma, checkConnectedAccount, refreshKey]);
 
   useEffect(() => {
     const totals = posts.reduce(
@@ -208,7 +221,22 @@ export default function ResultsTracker() {
       <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
-        {(!hasConnectedAccounts && posts.length === 0) || isConnecting ? (
+        {plan === 'free' ? (
+          <div className="max-w-[560px] mx-auto py-20 w-full flex flex-col items-center justify-center text-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-orange-500">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-white text-xl font-bold">Analytics is a Pro Feature</h2>
+              <p className="text-zinc-400 text-sm max-w-sm">Upgrade to Pro to connect your Reddit account and track post performance, karma, and engagement.</p>
+            </div>
+            <a href="/dashboard/upgrade" className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all text-sm">
+              Upgrade to Pro
+            </a>
+          </div>
+        ) : (!hasConnectedAccounts && posts.length === 0) || isConnecting ? (
           <div className="max-w-[680px] mx-auto py-10 w-full">
             <div className="flex items-center justify-between mb-8">
               <div className="space-y-1">
