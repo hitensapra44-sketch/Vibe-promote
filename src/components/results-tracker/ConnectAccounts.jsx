@@ -53,16 +53,16 @@ export default function ConnectAccounts({ onConnect }) {
   const fetchRedditData = async (userHandle) => {
     const cleanHandle = userHandle.replace(/^u\//, '').trim();
 
-    const res = await fetch(
-      `https://www.reddit.com/user/${cleanHandle}/submitted.json?limit=30&sort=new`,
-      { headers: { 'Accept': 'application/json' } }
-    );
+    const [postsRes, aboutRes] = await Promise.all([
+      fetch(`https://www.reddit.com/user/${cleanHandle}/submitted.json?limit=30&sort=new`, { headers: { 'Accept': 'application/json' } }),
+      fetch(`https://www.reddit.com/user/${cleanHandle}/about.json`, { headers: { 'Accept': 'application/json' } })
+    ]);
 
-    if (res.status === 404) throw new Error('Reddit user not found. Check the username.');
-    if (res.status === 403) throw new Error('This Reddit profile is private.');
-    if (!res.ok) throw new Error(`Reddit error: ${res.status}. Try again in a moment.`);
+    if (postsRes.status === 404) throw new Error('Reddit user not found. Check the username.');
+    if (postsRes.status === 403) throw new Error('This Reddit profile is private.');
+    if (!postsRes.ok) throw new Error(`Reddit error: ${postsRes.status}. Try again in a moment.`);
 
-    const json = await res.json();
+    const json = await postsRes.json();
     const posts = (json?.data?.children ?? []).map(child => ({
       title: child.data.title,
       subreddit: child.data.subreddit_name_prefixed,
@@ -73,7 +73,13 @@ export default function ConnectAccounts({ onConnect }) {
       engagement: (child.data.score ?? 0) + (child.data.num_comments ?? 0)
     }));
 
-    return { posts };
+    let karma = 0;
+    if (aboutRes.ok) {
+      const aboutJson = await aboutRes.json();
+      karma = aboutJson?.data?.total_karma ?? (aboutJson?.data?.link_karma || 0) + (aboutJson?.data?.comment_karma || 0);
+    }
+
+    return { posts, karma };
   };
 
   const handleStartFetch = async (e) => {
@@ -87,12 +93,14 @@ export default function ConnectAccounts({ onConnect }) {
     setError(null);
 
     try {
-      let result = { posts: [] };
+      let result = { posts: [], karma: 0 };
       if (selectedPlatform.id === 'Reddit') {
         result = await fetchRedditData(username.trim());
       }
       
-      setFetchedPosts(result.posts);
+      const postsWithKarma = result.posts;
+      postsWithKarma._karma = result.karma ?? 0;
+      setFetchedPosts(postsWithKarma);
       setStep('preview');
     } catch (err) {
       setError(err.message || "Something went wrong while fetching data.");
@@ -111,15 +119,17 @@ export default function ConnectAccounts({ onConnect }) {
         .eq('platform', selectedPlatform.id)
         .maybeSingle();
 
+      const karma = fetchedPosts._karma ?? 0;
+
       if (existingAccount) {
         await supabase
           .from('social_accounts')
-          .update({ username: username.trim() })
+          .update({ username: username.trim(), karma })
           .eq('id', existingAccount.id);
       } else {
         await supabase
           .from('social_accounts')
-          .insert({ user_id: user.id, platform: selectedPlatform.id, username: username.trim() });
+          .insert({ user_id: user.id, platform: selectedPlatform.id, username: username.trim(), karma });
       }
 
       await supabase.from('social_posts').delete().eq('user_id', user.id).eq('platform', selectedPlatform.id);
