@@ -1,31 +1,53 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../lib/AuthContext';
+import { toast } from 'sonner';
 
 const FEEDBACK_TYPES = ['Bug report', 'Feature request', 'General feedback'];
-const SHOW_ON = ['/dashboard', '/post-maker', '/dashboard/results-tracker'];
+const SHOW_ON = ['/dashboard', '/post-maker', '/dashboard/results-tracker', '/audience-spotter', '/marketing-buddy'];
 
 export default function FeedbackWidget() {
   const location = useLocation();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [type, setType] = useState(FEEDBACK_TYPES[0]);
   const [message, setMessage] = useState('');
-  const [showThanks, setShowThanks] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!SHOW_ON.includes(location.pathname)) return null;
 
-  const handleSubmit = () => {
-    if (!message.trim()) return;
-    console.log('Feedback:', { type, message, path: location.pathname });
-    setType(FEEDBACK_TYPES[0]);
-    setMessage('');
-    setIsOpen(false);
-    setShowThanks(true);
-    setTimeout(() => setShowThanks(false), 2500);
+  const handleSubmit = async () => {
+    if (!message.trim() || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user?.id || null,
+          type,
+          message: message.trim(),
+          path: location.pathname
+        });
+
+      if (error) throw error;
+
+      toast.success('Thanks for your feedback! 🙌');
+      setType(FEEDBACK_TYPES[0]);
+      setMessage('');
+      setIsOpen(false);
+    } catch (err) {
+      console.error('Feedback error:', err);
+      toast.error('Failed to send feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <>
-      {/* Tab button — fixed to viewport, not inside any overflow container */}
+      {/* Tab button */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
@@ -54,7 +76,7 @@ export default function FeedbackWidget() {
             </button>
 
             <h2 className="text-base font-bold text-white">Share your feedback</h2>
-            <p className="mt-1 text-xs text-white/40">Help us improve Vibe Hype</p>
+            <p className="mt-1 text-xs text-white/40">Help us improve Vibe Promote</p>
 
             <div className="mt-5 space-y-4">
               <div>
@@ -87,20 +109,13 @@ export default function FeedbackWidget() {
 
               <button
                 onClick={handleSubmit}
-                disabled={!message.trim()}
+                disabled={!message.trim() || isSubmitting}
                 className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-bold text-white transition hover:from-orange-600 hover:to-amber-600 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
               >
-                Send feedback
+                {isSubmitting ? 'Sending...' : 'Send feedback'}
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Toast */}
-      {showThanks && (
-        <div className="fixed bottom-32 right-12 z-[9999] rounded-lg border border-orange-500/20 bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
-          Thanks for your feedback! 🙌
         </div>
       )}
     </>

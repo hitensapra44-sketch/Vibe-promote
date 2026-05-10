@@ -129,13 +129,29 @@ export default function XPostToggle() {
               </div>
 
               {/* Post content */}
-              <p className="font-geist text-sm text-foreground leading-relaxed mb-4">
-                I spent 6 months building my SaaS and nobody was using it. Not because the product was bad — because nobody could understand what it actually did.
-                <br /><br />
-                Fixed my positioning last week using @VibePromote. 3 days later: 47 signups from a single Reddit post.
-                <br /><br />
-                Stop building in silence. Your message matters.
-              </p>
+              <div className="font-geist text-sm text-foreground leading-relaxed mb-4 whitespace-pre-line">
+                {enabled ? (
+                  <>
+                    Started using @VibePromote last week and marketing finally feels manageable.
+                    {"\n\n"}
+                    It helped me:
+                    {"\n"}• fix my positioning
+                    {"\n"}• find people already talking about my niche
+                    {"\n"}• create posts that actually sound like me
+                    {"\n"}• understand what content is working
+                    {"\n\n"}
+                    First time it feels like I have a real marketing system instead of guessing every day.
+                  </>
+                ) : (
+                  <>
+                    I have no idea where to find users.
+                    {"\n"}No idea what to post.
+                    {"\n"}And every time I try writing content it either sounds cringe or gets zero engagement.
+                    {"\n\n"}
+                    Feels like I'm just building in silence.
+                  </>
+                )}
+              </div>
 
               {/* Stats */}
               <div className="flex items-center gap-6 pt-4" style={{ borderTop: '1px solid #2f3336' }}>

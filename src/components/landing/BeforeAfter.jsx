@@ -9,7 +9,6 @@ const withoutItems = [
   'Marketing taking more time than building the product',
   'Using too many tools that still require manual work',
   'Dont know what to improve or change according to current analytics',
-
 ];
 
 const withItems = [
@@ -19,12 +18,11 @@ const withItems = [
   'Know what content and platforms drive real growth',
   'More time building, less time stressing about marketing',
   'Everything — audience discovery, content, and analytics from one place',
-
 ];
 
 export default function BeforeAfter() {
   return (
-    <section className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+    <section id="difference" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="max-w-[1100px] mx-auto">
         <div className="text-center mb-16">
           <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">The Difference</span>
@@ -36,18 +34,19 @@ export default function BeforeAfter() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* WITHOUT */}
           <ScrollReveal>
-            <div className="rounded-xl overflow-hidden h-full" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-xl overflow-hidden h-full flex flex-col" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.07)' }}>
               <div className="px-6 py-4" style={{ background: '#161616' }}>
                 <span className="font-geist text-sm text-muted-foreground">You without Vibe Promote</span>
               </div>
-              <img
-                src="/without-vibe.gif"
-                alt="Stressed founder"
-                loading="lazy"
-                className="w-full object-cover"
-                style={{ height: '220px' }}
-              />
-              <div className="p-6 space-y-3">
+              <div className="w-full overflow-hidden" style={{ height: '320px' }}>
+                <img
+                  src="/without-vibe.gif"
+                  alt="Stressed founder"
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6 space-y-3 flex-1">
                 {withoutItems.map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs"
@@ -61,18 +60,19 @@ export default function BeforeAfter() {
 
           {/* WITH */}
           <ScrollReveal delay={100}>
-            <div className="rounded-xl overflow-hidden h-full" style={{ background: '#111111', border: '1px solid rgba(232,93,4,0.3)' }}>
+            <div className="rounded-xl overflow-hidden h-full flex flex-col" style={{ background: '#111111', border: '1px solid rgba(232,93,4,0.3)' }}>
               <div className="px-6 py-4" style={{ background: 'rgba(232,93,4,0.12)', borderBottom: '1px solid rgba(232,93,4,0.3)' }}>
                 <span className="font-geist text-sm text-primary">You with Vibe Promote</span>
               </div>
-              <img
-                src="/with-vibe.gif"
-                alt="Success celebrating"
-                loading="lazy"
-                className="w-full object-cover"
-                style={{ height: '220px' }}
-              />
-              <div className="p-6 space-y-3">
+              <div className="w-full overflow-hidden" style={{ height: '320px' }}>
+                <img
+                  src="/with-vibe.gif"
+                  alt="Success celebrating"
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-6 space-y-3 flex-1">
                 {withItems.map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 text-xs"

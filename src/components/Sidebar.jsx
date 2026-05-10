@@ -17,14 +17,15 @@ import {
   Menu,
   BarChart2,
   PenLine,
-  Settings
+  Settings,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 
 export default function Sidebar({ isPaid }) {
-  const { user, logout } = useAuth();
+  const { user, logout, plan } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -128,6 +129,16 @@ export default function Sidebar({ isPaid }) {
           </nav>
 
           <div className="p-3 border-t border-white/5 space-y-3">
+            {plan === 'free' && !sidebarCollapsed && (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500/20 transition-all"
+              >
+                <Zap className="w-4 h-4 flex-shrink-0 fill-orange-500" />
+                Upgrade Now
+              </button>
+            )}
+
             <button
               onClick={() => {
                 navigate('/connected-accounts');
