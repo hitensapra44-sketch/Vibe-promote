@@ -18,7 +18,7 @@ const cards = [
     desc: "Posting consistently is hard when every post takes too much time and mental energy. When posting takes 60 seconds, you actually do it consistently.",
   },
   {
-    num: '04 / BUDGET',
+    num: '04 / TOO MANY TOOLS',
     title: "You're not spending $300/month on marketing tools",
     desc: 'Pay once. No subscription. Full access forever. Built for bootstrapped founders who are careful with every dollar of runway.',
   },
