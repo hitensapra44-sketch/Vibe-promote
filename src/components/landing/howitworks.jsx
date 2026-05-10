@@ -5,7 +5,7 @@ const steps = [
   {
     num: '01',
     title: 'Build your brand brain',
-    desc: 'Drop your website link or answer a few questions about your brand. Vibe Promote learns your product, audience, positioning, and brand voice so every post feels like its just for your app.',
+    desc: 'Drop your website link or answer a few questions about your brand. Vibe Promote learns your product, audience, positioning, and brand voice so every post feels like its just for your ICP.',
     label: 'Product Onboarding',
   },
   {
@@ -16,8 +16,8 @@ const steps = [
   },
   {
     num: '03',
-    title: 'Find users, track growth, and improve your strategy',
-    desc: 'Discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using real analytics',
+    title: 'It find users, track growth, and improve your strategy',
+    desc: 'It discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using real analytics',
     label: 'Growth Dashboard',
   },
 ];
