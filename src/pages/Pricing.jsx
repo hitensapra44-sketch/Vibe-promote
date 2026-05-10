@@ -440,7 +440,7 @@ export default function Pricing() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
             {[
-              { icon: '✓', text: '14-day money-back guarantee' },
+              { icon: '✓', text: 'Refund avalabile' },
               { icon: '✓', text: 'Cancel anytime' },
               { icon: '✓', text: 'Instant access on signup' },
               { icon: '✓', text: 'No credit card tricks' },
