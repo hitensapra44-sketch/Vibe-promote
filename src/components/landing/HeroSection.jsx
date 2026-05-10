@@ -59,7 +59,7 @@ export default function HeroSection() {
         {/* CTAs */}
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <a href="/auth" className="hero-glow-btn">
-            Start for Free
+            Start Free Now
             <ArrowRight className="w-4 h-4" />
           </a>
           <a href="#how-it-works"
