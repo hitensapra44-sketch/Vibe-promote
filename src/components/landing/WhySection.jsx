@@ -13,8 +13,8 @@ const cards = [
     desc: "You know your app is valuable but explaining it clearly is harder than building it. Vibe Promote helps you sharpen your positioning so people instantly understand why it matters and why its fo them.",
   },
   {
-    num: '03 / CONSISTENCY',
-    title: 'You post in bursts then go silent for weeks',
+    num: '03 / BAD CONSISTENCY',
+    title: 'You disappear for days because marketing feels exhaustings',
     desc: "Content generation is friction-free. When posting takes 60 seconds, you actually do it consistently.",
   },
   {
