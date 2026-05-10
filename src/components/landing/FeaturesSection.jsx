@@ -24,7 +24,7 @@ const tabContent = {
   userfinder: {
     tag: 'User Finder',
     title: 'Find people that are talking about the proble your app/saas solves',
-    desc: "Stop guessing who your customers are. User Finder scans Reddit and communities in real-time to surface people actively asking for what you built.",
+    desc: "Stop guessing who your customers are. User Finder scans Reddit and hacker news communities in real-time to surface people actively asking for what you built.",
     bullets: [
       'AI-generated keyword list from your Brand Brain, no manual setup',
       'Scans Reddit threads and posts for intent signals',
