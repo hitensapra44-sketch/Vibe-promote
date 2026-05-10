@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [plan, setPlan] = useState('free');
   const [planLoading, setPlanLoading] = useState(true);
+  const [authEvent, setAuthEvent] = useState(null);
 
   useEffect(() => {
     const fetchPlan = async (userId) => {
@@ -46,14 +47,16 @@ export const AuthProvider = ({ children }) => {
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setIsAuthenticated(!!currentUser);
       setIsLoadingAuth(false);
       if (currentUser) {
+        setAuthEvent(event);
         fetchPlan(currentUser.id);
       } else {
+        setAuthEvent(null);
         setPlan('free');
         setPlanLoading(false);
       }
@@ -73,7 +76,8 @@ export const AuthProvider = ({ children }) => {
       isLoadingAuth,
       logout,
       plan,
-      planLoading
+      planLoading,
+      authEvent
     }}>
       {children}
     </AuthContext.Provider>

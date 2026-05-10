@@ -25,13 +25,13 @@ import Pricing from './pages/Pricing';
 import FeedbackWidget from './components/FeedbackWidget';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isAuthenticated, user } = useAuth();
+  const { isLoadingAuth, isAuthenticated, user, authEvent } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Only redirect if the user is authenticated and on the landing page or auth page
-    if (!isLoadingAuth && isAuthenticated && user?.id && (location.pathname === '/' || location.pathname === '/auth')) {
+    // Trigger redirect logic when a user successfully signs in
+    if (!isLoadingAuth && isAuthenticated && user?.id && authEvent === 'SIGNED_IN') {
       const checkUserStatus = async () => {
         try {
           const { data } = await supabase
@@ -55,7 +55,7 @@ const AuthenticatedApp = () => {
       };
       checkUserStatus();
     }
-  }, [isAuthenticated, isLoadingAuth, location.pathname, user, navigate]);
+  }, [isAuthenticated, isLoadingAuth, user, navigate, authEvent]);
 
   if (isLoadingAuth) {
     return (
