@@ -18,7 +18,7 @@ const steps = [
     num: '03',
     title: 'Find users, track growth, and improve your strategy',
     desc: 'Discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using real analytics',
-    label: 'Content Generator',
+    label: 'Growth Dashboard',
   },
 ];
 
