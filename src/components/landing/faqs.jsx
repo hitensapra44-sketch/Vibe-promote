@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 const faqs = [
-  const faqs = [
   {
     q: 'What exactly is Vibe Promote?',
     a: 'Vibe Promote is a marketing co-pilot built for SaaS founders and indie hackers. It helps you position your app better, find potential users, generate content for Reddit, X, and LinkedIn, and improve your marketing strategy using real performance insights.',
@@ -47,8 +46,8 @@ const faqs = [
     a: 'Yes. You can connect platforms like Reddit, X, and LinkedIn to sync analytics and manage your marketing workflow from one dashboard.',
   },
   {
-    q: 'Is this a subscription?',
-    a: 'No monthly subscription. Pay once and get lifetime access. We built Vibe Promote for bootstrapped founders who are tired of stacking expensive monthly tools.',
+   q: 'Why not just use multiple free tools?',
+  a: 'You can — but most founders end up wasting hours switching between tools for research, writing, analytics, and strategy. Vibe Promote brings everything into one workflow built specifically for marketing apps and SaaS products.',
   },
   {
     q: 'Is my product data private?',
