@@ -10,7 +10,7 @@ const steps = [
   },
   {
     num: '02',
-    title: 'Get your positioning dialed in',
+    title: 'Get better positioning and content',
     desc: 'Our AI rewrites your messaging using proven frameworks — giving you a before/after card you can actually use.',
     label: 'Positioning Engine',
   },
