@@ -16,7 +16,7 @@ const steps = [
   },
   {
     num: '03',
-    title: 'Generate and post your content',
+    title: 'Find users, track growth, and improve your strategy',
     desc: 'One click generates X threads, LinkedIn posts, and hook variations — all written in your brand voice. Preview, copy, post.',
     label: 'Content Generator',
   },
