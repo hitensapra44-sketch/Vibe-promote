@@ -1,10 +1,11 @@
 "use client";
 
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import PageNotFound from './lib/PageNotFound';
 import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/supabaseClient';
 import Home from './pages/Home';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
@@ -24,7 +25,37 @@ import Pricing from './pages/Pricing';
 import FeedbackWidget from './components/FeedbackWidget';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isAuthenticated, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Only redirect if the user is authenticated and on the landing page or auth page
+    if (!isLoadingAuth && isAuthenticated && user?.id && (location.pathname === '/' || location.pathname === '/auth')) {
+      const checkUserStatus = async () => {
+        try {
+          const { data } = await supabase
+            .from('brand_brains')
+            .select('user_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (data) {
+            // User has already completed onboarding
+            navigate('/dashboard');
+          } else {
+            // New user, needs onboarding
+            navigate('/onboarding');
+          }
+        } catch (err) {
+          console.error("Error checking user status:", err);
+          // Fallback to onboarding if check fails
+          navigate('/onboarding');
+        }
+      };
+      checkUserStatus();
+    }
+  }, [isAuthenticated, isLoadingAuth, location.pathname, user, navigate]);
 
   if (isLoadingAuth) {
     return (
