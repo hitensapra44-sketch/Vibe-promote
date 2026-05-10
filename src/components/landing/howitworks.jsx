@@ -7,22 +7,25 @@ const steps = [
     title: 'Build your brand brain',
     desc: 'Drop your website link or answer a few questions about your brand. Vibe Promote learns your product, audience, positioning, and brand voice so every post feels like its just for your ICP.',
     label: 'Product Onboarding',
+    video: '/videos/video1.mp4'
   },
   {
     num: '02',
     title: 'Get better positioning and content',
     desc: 'It will sharpen your messaging, generate stronger hooks, and create posts for Reddit, X, and LinkedIn that sound like you and attracts the right users.',
     label: 'Positioning And Content Engine',
+    video: '/videos/postioningvideo.mp4'
   },
   {
     num: '03',
     title: 'It find users, track growth, and improve your strategy',
     desc: 'It discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using current analytics',
     label: 'Growth Dashboard',
+    video: '/videos/app-video.mp4'
   },
 ];
 
-function VideoPlaceholder({ label }) {
+function VideoPlayer({ src, label }) {
   return (
     <div
       className="relative w-full rounded-xl overflow-hidden"
@@ -32,18 +35,18 @@ function VideoPlaceholder({ label }) {
         aspectRatio: '16/9',
       }}
     >
+      <video
+        src={src}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="w-full h-full object-cover"
+      />
+      
       {/* Orange gradient overlay */}
       <div className="absolute top-0 left-0 w-32 h-32 pointer-events-none"
         style={{ background: 'radial-gradient(circle at top left, rgba(232,93,4,0.15), transparent 70%)' }} />
-      
-      {/* Play button */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: 'rgba(232,93,4,0.2)', border: '1px solid rgba(232,93,4,0.4)' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#E85D04">
-            <polygon points="6 3 20 12 6 21 6 3"/>
-          </svg>
-        </div>
-      </div>
 
       {/* Label */}
       <div className="absolute bottom-3 left-3">
@@ -96,7 +99,7 @@ export default function HowItWorks() {
                   </div>
                   {/* Video */}
                   <div className="flex-1 w-full">
-                    <VideoPlaceholder label={step.label} />
+                    <VideoPlayer src={step.video} label={step.label} />
                   </div>
                 </div>
               </ScrollReveal>

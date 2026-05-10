@@ -5,8 +5,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'sonner';
 import ParticleBackground from '@/components/landing/particlebackground';
-import WelcomeScreen from '@/components/auth/WelcomeScreen';
-import StartScreen from '@/components/auth/StartScreen';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -18,8 +16,6 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [showStart, setShowStart] = useState(false);
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
@@ -56,11 +52,10 @@ export default function Auth() {
 
       if (!isSignIn && data?.user?.identities?.length === 0) {
         toast.error("Email already registered. Try signing in.");
-      } else if (!isSignIn) {
-        setShowWelcome(true);
       } else {
         localStorage.setItem('joined_waitlist', 'true');
-        navigate('/dashboard');
+        // Redirect straight to onboarding for both sign in and sign up
+        navigate(isSignIn ? '/dashboard' : '/onboarding');
       }
     } catch (error) {
       toast.error(error.message);
@@ -68,20 +63,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  if (showWelcome) {
-    return <WelcomeScreen onComplete={() => {
-      setShowWelcome(false);
-      setShowStart(true);
-    }} />;
-  }
-
-  if (showStart) {
-    return <StartScreen onStart={() => {
-      localStorage.setItem('joined_waitlist', 'true');
-      navigate('/onboarding');
-    }} />;
-  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-poppins bg-transparent">
