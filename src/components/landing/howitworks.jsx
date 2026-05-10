@@ -4,7 +4,7 @@ import ScrollReveal from './ScrollReveal';
 const steps = [
   {
     num: '01',
-    title: 'Tell us about your product',
+    title: 'Build your brand brain',
     desc: 'Answer 8 quick questions or just drop your URL and our AI fills in the gaps. We extract your positioning, audience, and tone automatically.',
     label: 'Product Onboarding',
   },
