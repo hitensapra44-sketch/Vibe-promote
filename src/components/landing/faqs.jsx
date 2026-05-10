@@ -1,45 +1,66 @@
 import React, { useState } from 'react';
 
 const faqs = [
+  const faqs = [
   {
     q: 'What exactly is Vibe Promote?',
-    a: "Vibe Promote is an AI marketing co-pilot built specifically for bootstrapped SaaS founders. It learns your product through what we call your \"Brand Brain\" — your positioning, audience, tone, and goals — then generates ready-to-post content for Reddit, X, and LinkedIn. It also finds potential users in real conversations and gives you analytics to track what's working.",
+    a: 'Vibe Promote is a marketing co-pilot built for SaaS founders and indie hackers. It helps you position your app better, find potential users, generate content for Reddit, X, and LinkedIn, and improve your marketing strategy using real performance insights.',
   },
   {
-    q: 'Is this actually a one-time payment? No hidden subscriptions?',
-    a: "Yes. One payment, full access, forever. No monthly fees, no usage limits, no \"pro tier\" upsell. We built this for founders who are tired of yet another $49/month tool eating into their runway. You buy it once, and it's yours.",
+    q: 'Who is this built for?',
+    a: 'Vibe Promote is built for founders who are doing their own marketing — especially solo founders, indie hackers, and small SaaS teams. If you hate spending hours figuring out what to post or where to find users, this is for you.',
   },
   {
-    q: 'How is this different from just using ChatGPT?',
-    a: "ChatGPT doesn't know your product, your audience, or your positioning. Every prompt starts from zero. Vibe Promote has your Brand Brain loaded — it knows your niche, your voice, your competitors, and your goals. The output is specific to your SaaS, not generic marketing advice anyone could Google.",
+    q: 'How is this different from ChatGPT?',
+    a: 'ChatGPT starts from zero every time. Vibe Promote learns your product, audience, positioning, and brand voice through your Brand Brain, so the content and recommendations are tailored specifically to your app instead of generic marketing advice.',
   },
   {
-    q: 'What platforms does the content work for?',
-    a: "Right now we generate content optimised for Reddit, X (Twitter), and LinkedIn — the three platforms where SaaS founders see the most organic traction. Each platform gets its own format: storytelling for Reddit, threads for X, thought leadership for LinkedIn.",
+    q: 'What platforms does it support?',
+    a: 'Right now Vibe Promote is optimized for Reddit, X (Twitter), and LinkedIn — the platforms where most SaaS founders get organic traction. Each platform gets content tailored to how people actually engage there.',
   },
   {
-    q: 'Do I need to be a good writer to use this?',
-    a: "Not at all. That's the whole point. You answer questions about your product and the AI handles the writing. You can tweak the output if you want, but most founders copy and post directly. The content is scored before you publish so you know it's good.",
+    q: 'Can it really help me find users?',
+    a: 'Yes. User Finder scans Reddit and online communities to surface conversations from people actively discussing problems your product solves. Instead of guessing where your audience is, you see real opportunities to engage.',
   },
   {
-    q: 'Will the AI content sound generic or robotic?',
-    a: "No, and here's why: the Brand Brain captures your unique voice and positioning. The AI writes as if it were you — not a corporate blog. We specifically tuned the output to avoid that \"we leverage synergies\" energy. It sounds human because it's modeled on how real founders actually talk.",
+    q: 'Will the content sound robotic or AI-generated?',
+    a: 'No. Vibe Promote uses your Brand Brain to match your positioning, tone, and writing style so the content feels natural and authentic instead of generic AI copy.',
+  },
+  {
+    q: 'Do I need marketing experience to use this?',
+    a: 'Not at all. Vibe Promote is designed for technical founders and builders, not marketers. The goal is to remove the guesswork and make marketing easier to execute consistently.',
   },
   {
     q: 'How long does onboarding take?',
-    a: "About 5 minutes. You answer 8 questions about your product — or just paste your URL and the AI extracts everything automatically. Your Brand Brain is built instantly, and you can start generating content right away.",
+    a: 'Usually under 5 minutes. You answer a few questions about your app or paste your website URL, and Vibe Promote builds your Brand Brain automatically.',
   },
   {
-    q: 'I just launched my product. Is it too early to use this?',
-    a: "It's actually the perfect time. Most products fail because of marketing, not features. Getting your positioning right early means every post, every pitch, and every landing page works harder from day one. The earlier you start, the faster you grow.",
+    q: 'Can I edit the generated content?',
+    a: 'Of course. You can edit, regenerate, change tone, try different hooks, and experiment with multiple content variations before posting.',
   },
   {
-    q: "What if I'm not happy with it?",
-    a: "We offer a no-questions-asked refund within 14 days. If Vibe Promote doesn't help you create better marketing content, you get your money back. Simple as that. We're confident you'll stay — but we don't want your money if it's not working for you.",
+    q: 'What kind of analytics does it provide?',
+    a: 'You can track engagement, post performance, audience activity, and growth trends across platforms. Vibe Promote also helps you understand what content is actually driving results.',
   },
   {
-    q: 'Is my product data kept private?',
-    a: "Absolutely. Your Brand Brain data is encrypted and never shared with other users or used to train models. Your product information, positioning, and content are yours alone. We take founder privacy seriously — your competitive advantage stays yours.",
+    q: 'Can I connect my own accounts?',
+    a: 'Yes. You can connect platforms like Reddit, X, and LinkedIn to sync analytics and manage your marketing workflow from one dashboard.',
+  },
+  {
+    q: 'Is this a subscription?',
+    a: 'No monthly subscription. Pay once and get lifetime access. We built Vibe Promote for bootstrapped founders who are tired of stacking expensive monthly tools.',
+  },
+  {
+    q: 'Is my product data private?',
+    a: 'Yes. Your product information, positioning, and content stay private and are never shared with other users.',
+  },
+  {
+    q: 'What if my positioning changes later?',
+    a: 'No problem. You can update your Brand Brain anytime as your product, audience, or strategy evolves.',
+  },
+  {
+    q: 'Is this only for SaaS founders?',
+    a: 'SaaS founders are the primary focus, but any builder, indie hacker, or startup creating content-driven growth can benefit from Vibe Promote.',
   },
 ];
 
