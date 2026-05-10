@@ -45,8 +45,8 @@ const tabContent = {
   },
   analytics: {
     tag: 'Analytics',
-    title: "Know what's actually working.",
-    desc: 'Track performance across Reddit, X, and LinkedIn in real-time. Karma, upvotes, comments, engagement — all in one place.',
+    title: "Make better stratgies using your current analytics.",
+    desc: 'Track performance across Redditd (X an LinkedIn coming soon) in real-time. Karma, upvotes, comments, engagement — all in one place.',
     bullets: [
       'Weekly, monthly, and custom date range views',
       'Per-post breakdown: upvotes, comments, engagement score',
@@ -56,7 +56,7 @@ const tabContent = {
   },
   copilot: {
     tag: 'Co-pilot',
-    title: 'Your 24/7 AI marketing strategist.',
+    title: 'Your 24/7 AI marketing strategist for your app/saas.',
     desc: "Ask anything about your marketing. The Co-pilot has read your Brand Brain and knows your product — it gives advice specific to you, not generic tips.",
     bullets: [
       'Pre-loaded with your Brand Brain: knows your niche, audience, and goals',
