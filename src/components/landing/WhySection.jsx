@@ -5,7 +5,7 @@ const cards = [
   {
     num: '01 / FOUNDER-LED',
     title: "You're building, marketing, and supporting your product alone",
-    desc: 'Vibe Promote is built for the solo founder context. No marketing degree required. It guides you from blank page to published post.',
+    desc: 'Vibe Promote is built for the solo founder. You don’t have time to learn marketing frameworks, brainstorm content daily, or manage five different tools. You just need a faster way to grow your app/saas',
   },
   {
     num: '02 / POSITIONING',
