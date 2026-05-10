@@ -12,7 +12,7 @@ const tabs = [
 const tabContent = {
   dashboard: {
     tag: 'Dashboard',
-    title: 'Your marketing HQ, at a glance.',
+    title: 'Track everything from one place',
     desc: 'See your Brand Brain status, recent activity, and key metrics the moment you log in. Everything surfaced — nothing buried in settings.',
     bullets: [
       'Real-time activity: posts generated, audience found, channels connected',
