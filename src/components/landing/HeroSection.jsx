@@ -37,8 +37,8 @@ export default function HeroSection() {
           color: '#F2EDE8', textAlign: 'center', maxWidth: '1000px',
           margin: '0 0 24px'
         }}>
-          Love Building But Hate Marketing? <br />
-          <span style={{ color: '#9C2000' }}>You Are in Right Place.</span>
+          You Didn’t Build Your SaaS? <br />
+          <span style={{ color: '#9C2000' }}>To Become a Full-Time Marketer.</span>
         </h1>
 
         <h2 style={{
