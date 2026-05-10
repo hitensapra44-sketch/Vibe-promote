@@ -4,7 +4,7 @@ import ScrollReveal from './ScrollReveal';
 const cards = [
   {
     num: '01 / FOUNDER-LED',
-    title: "You're the marketer, developer, and support team",
+    title: "You're building, marketing, and supporting your product alone",
     desc: 'Vibe Promote is built for the solo founder context. No marketing degree required. It guides you from blank page to published post.',
   },
   {
