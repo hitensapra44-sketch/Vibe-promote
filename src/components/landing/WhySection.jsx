@@ -10,7 +10,7 @@ const cards = [
   {
     num: '02 / POSITIONING',
     title: 'Your product is good but nobody gets it',
-    desc: "If you've ever explained your SaaS and watched eyes glaze over, your positioning needs work. Our AI fixes that in minutes.",
+    desc: "You know your app is valuable but explaining it clearly is harder than building it. Vibe Promote helps you sharpen your positioning so people instantly understand why it matters and why its fo them.",
   },
   {
     num: '03 / CONSISTENCY',
