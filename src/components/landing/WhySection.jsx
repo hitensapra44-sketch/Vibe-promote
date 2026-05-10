@@ -10,7 +10,7 @@ const cards = [
   {
     num: '02 / POSITIONING',
     title: 'Your product is good but nobody gets it',
-    desc: "You know your app is valuable but explaining it clearly is harder than building it. Vibe Promote helps you sharpen your positioning so people instantly understand why it matters and why its fo them.",
+    desc: "You know your app is valuable but explaining it clearly is harder than building it. Vibe Promote helps you sharpen your positioning so people instantly understand why it matters and why its for them.",
   },
   {
     num: '03 / BAD CONSISTENCY',
