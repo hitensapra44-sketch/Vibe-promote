@@ -93,9 +93,9 @@ const PLANS = [
 ];
 
 const SOCIAL_PROOF = [
-  { ini: 'MR', name: 'Marcus R.', text: 'Switched from $79/month tool. Got better results immediately.' },
-  { ini: 'SP', name: 'Sara P.', text: 'The Pro plan paid for itself with the first Reddit post.' },
-  { ini: 'JK', name: 'James K.', text: 'As a dev, writing copy was my nightmare. Not anymore.' },
+  { ini: 'MR', name: 'Marcus R.', text: 'It removes alot of jumping between tool problem' },
+  { ini: 'SP', name: 'Sara P.', text: 'Pro is good and i didnt seen any tool that provides this much from on place' },
+  { ini: 'JK', name: 'James K.', text: 'As a dev, I like to build but hate to market this product helps me does that.' },
 ];
 
 function CheckIcon({ color = '#9C2000' }) {
