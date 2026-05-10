@@ -17,7 +17,7 @@ const steps = [
   {
     num: '03',
     title: 'Find users, track growth, and improve your strategy',
-    desc: 'One click generates X threads, LinkedIn posts, and hook variations — all written in your brand voice. Preview, copy, post.',
+    desc: 'Discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using real analytics',
     label: 'Content Generator',
   },
 ];
