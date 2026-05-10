@@ -278,7 +278,7 @@ export default function FeaturesSection() {
         <div className="text-center mb-12">
           <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">Features</span>
           <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Everything in one marketing co-pilot.
+            Everyhting you need to automate marketing.
           </h2>
         </div>
 
