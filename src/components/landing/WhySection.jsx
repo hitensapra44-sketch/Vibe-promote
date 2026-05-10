@@ -15,7 +15,7 @@ const cards = [
   {
     num: '03 / BAD CONSISTENCY',
     title: 'You disappear for days because marketing feels exhaustings',
-    desc: "Content generation is friction-free. When posting takes 60 seconds, you actually do it consistently.",
+    desc: "Posting consistently is hard when every post takes too much time and mental energy. When posting takes 60 seconds, you actually do it consistently.",
   },
   {
     num: '04 / BUDGET',
