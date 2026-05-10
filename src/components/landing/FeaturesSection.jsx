@@ -23,7 +23,7 @@ const tabContent = {
   },
   userfinder: {
     tag: 'User Finder',
-    title: 'Find people already looking for your product.',
+    title: '',
     desc: "Stop guessing who your customers are. User Finder scans Reddit and communities in real-time to surface people actively asking for what you built.",
     bullets: [
       'AI-generated keyword list from your Brand Brain, no manual setup',
