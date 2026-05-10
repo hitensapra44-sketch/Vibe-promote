@@ -11,8 +11,8 @@ const steps = [
   {
     num: '02',
     title: 'Get better positioning and content',
-    desc: 'Sharpen your messaging, generate stronger hooks, and create posts for Reddit, X, and LinkedIn that sound like you and attract the right users.',
-    label: 'Positioning and content Engine',
+    desc: 'It will sharpen your messaging, generate stronger hooks, and create posts for Reddit, X, and LinkedIn that sound like you and attracts the right users.',
+    label: 'Positioning And Content Engine',
   },
   {
     num: '03',
