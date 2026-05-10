@@ -34,8 +34,8 @@ const tabContent = {
   },
   postmaker: {
     tag: 'Post Maker',
-    title: 'From idea to ready-to-post in 60 seconds.',
-    desc: 'Generate Reddit posts, X threads, and LinkedIn content — scored, structured, and CTA-ready. All written to sound like you.',
+    title: 'Create content that sounds like you and converts.',
+    desc: 'Generate Reddit posts, X threads, and LinkedIn content — scored, structured, and CTA-ready. All written to sound like you and to convert your ICP.',
     bullets: [
       'AI scores your post 0–100 before you publish',
       'Platform-specific format: Reddit storytelling, X threads, LinkedIn thought leadership',
