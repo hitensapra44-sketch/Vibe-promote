@@ -13,12 +13,13 @@ const withoutItems = [
 ];
 
 const withItems = [
-  'Ready-to-post content in under 60 seconds',
-  'Sharp positioning that actually converts',
-  'AI that sounds like you, not a corporate bot',
-  'More time to build, less time on copy',
-  'Consistent voice everywhere you show up',
-  'One-time payment, yours forever',
+  'Find people already talking about problem your app solves',
+  'Create posts that actually convert and sound natural',
+  'Clear positioning that makes your app easy to understand with Detailed ICP',
+  'Know what content and platforms drive real growth',
+  'More time building, less time stressing about marketing',
+  'Everything — audience discovery, content, and analytics from one place',
+
 ];
 
 export default function BeforeAfter() {
