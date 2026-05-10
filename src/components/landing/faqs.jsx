@@ -76,7 +76,7 @@ export default function FAQ() {
         <div className="mb-12">
           <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">FAQ</span>
           <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Questions founders ask before buying.
+            Questions you might be asking.
           </h2>
         </div>
 
