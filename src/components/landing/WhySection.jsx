@@ -20,7 +20,7 @@ const cards = [
   {
     num: '04 / TOO MANY TOOLS',
     title: "You're tired of jumping between 10 different tools just to market your app",
-    desc: 'Pay once. No subscription. Full access forever. Built for bootstrapped founders who are careful with every dollar of runway.',
+    desc: 'One tool for analytics, another for writing, another for research, another for planning and somehow marketing still feels messy. Vibe Promote brings everything into one workflow built for founders.',
   },
 ];
 
