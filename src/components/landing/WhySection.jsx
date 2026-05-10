@@ -19,7 +19,7 @@ const cards = [
   },
   {
     num: '04 / TOO MANY TOOLS',
-    title: "You're not spending $300/month on marketing tools",
+    title: "You're tired of jumping between 10 different tools just to market your app",
     desc: 'Pay once. No subscription. Full access forever. Built for bootstrapped founders who are careful with every dollar of runway.',
   },
 ];
