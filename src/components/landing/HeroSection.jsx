@@ -44,7 +44,7 @@ export default function HeroSection() {
           fontFamily: 'Geist', fontWeight: 700, fontSize: '24px',
           color: '#F2EDE8', textAlign: 'center', marginBottom: '24px'
         }}>
-          93% Of App/Saas Fails Due To Bad Marketing. Don't Be One Of Them.
+          
         </h2>
 
         {/* Subtext */}
