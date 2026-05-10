@@ -5,7 +5,7 @@ const steps = [
   {
     num: '01',
     title: 'Build your brand brain',
-    desc: 'Answer 8 quick questions or just drop your URL and our AI fills in the gaps. We extract your positioning, audience, and tone automatically.',
+    desc: 'Drop your website link or answer a few questions about your brand. Vibe Promote learns your product, audience, positioning, and brand voice so every post feels like its just for your app.',
     label: 'Product Onboarding',
   },
   {
