@@ -11,8 +11,8 @@ const steps = [
   {
     num: '02',
     title: 'Get better positioning and content',
-    desc: 'Our AI rewrites your messaging using proven frameworks — giving you a before/after card you can actually use.',
-    label: 'Positioning Engine',
+    desc: 'Sharpen your messaging, generate stronger hooks, and create posts for Reddit, X, and LinkedIn that sound like you and attract the right users.',
+    label: 'Positioning and content Engine',
   },
   {
     num: '03',
