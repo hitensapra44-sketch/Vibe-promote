@@ -31,7 +31,7 @@ export default function WhySection() {
         <div className="text-center mb-16">
           <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Why Vibe Promote</span>
           <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-             Built for founders trying to grow without becoming marketers.          </h2>
+             Built for founders trying to grow their app/saas without becoming marketers.          </h2>
           <p className="font-dm text-muted-foreground mt-3 max-w-lg mx-auto">
             If any of these sound familiar, Vibe Promote was made for you..
           </p>
