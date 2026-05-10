@@ -59,8 +59,8 @@ const faqs = [
     a: 'No problem. You can update your Brand Brain anytime as your product, audience, or strategy evolves.',
   },
   {
-    q: 'Is this only for SaaS founders?',
-    a: 'SaaS founders are the primary focus, but any builder, indie hacker, or startup creating content-driven growth can benefit from Vibe Promote.',
+    q: 'What stage is Vibe Promote best for?',  
+    a: 'Vibe Promote is especially useful for founders in the MVP, launch, and early growth stages who need help finding users, improving positioning, and marketing consistently without hiring a team.',
   },
 ];
 
