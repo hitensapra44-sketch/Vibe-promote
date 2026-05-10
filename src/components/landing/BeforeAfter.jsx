@@ -2,12 +2,14 @@ import React from 'react';
 import ScrollReveal from './ScrollReveal';
 
 const withoutItems = [
-  'Staring at a blank page every time you need to post',
-  "Positioning that's vague and forgettable",
-  'Generic AI output that sounds nothing like you',
-  'Hours on marketing instead of building',
-  'Inconsistent brand voice across platforms',
-  "$100+/month on tools that still don't know your product",
+  "I have no idea where my audience hangs out",
+  'Spending hours writing posts that get zero traction',
+  'Staring at a blank page not knowing what to post',
+  'Generic content that sounds robotic and fake',
+  'Marketing taking more time than building the product',
+  'Using too many tools that still require manual work',
+  'Dont know what to improve or change according to current analytics',
+
 ];
 
 const withItems = [
