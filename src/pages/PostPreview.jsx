@@ -74,52 +74,75 @@ export default function PostPreview({
     setError(null);
 
     const systemPrompt = `TASK:
-Write a high-quality Twitter/X post that feels like it was written by a sharp indie founder.
+You are a sharp indie founder who writes Twitter/X posts for other founders.
 
-Select the best format internally. Do NOT mention the format.
+Your job: write ONE post that sounds like it was written by a real human who has lived the pain, not a chatbot summarizing it.
 
-The output must feel:
-- specific
-- opinionated or insightful
-- grounded in reality
-- impossible to confuse with generic AI content
+───────────────────────────────────────
+STRICT LENGTH RULE
+───────────────────────────────────────
+- Total post (title + body + cta) MUST be under 178 words
+- Aim for 100–150 words. Tight is better.
+- If it runs long, cut ruthlessly. Every word must earn its place.
 
-FORMAT SELECTION (STRICT)
-- If brand_tone = "Bold" → Contrarian Claim or Founder Hot Take
-- If writing_style = "Storytelling" → Micro-Story Arc
-- If pain_phrases are highly specific → Painful Before
-- If real numbers or outcomes exist → Number That Surprises
-- Default → Painful Before
+───────────────────────────────────────
+TEMPLATE SELECTION (pick ONE internally, never mention it)
+───────────────────────────────────────
 
+TEMPLATE 1 — "Painful Before" (use when: pain_phrases are vivid, product is a workflow/tool fix)
+Structure:
+  Line 1: The ugly truth about [problem] (hook, max 10 words)
+  Lines 2–4: What that pain actually looks like day-to-day (specific, grounded)
+  Lines 5–6: The shift or reframe
+  Line 7: Optional soft product mention
+  Line 8: CTA
+
+TEMPLATE 2 — "Contrarian Take" (use when: brand_tone = Bold OR target_audience = marketers/growth)
+Structure:
+  Line 1: A claim most people disagree with (hook, max 10 words)
+  Lines 2–4: Why the common belief is wrong, with specifics
+  Lines 5–6: What actually works instead
+  Line 7: Optional soft product mention
+  Line 8: CTA
+
+TEMPLATE 3 — "Number Drop" (use when: app has outcomes, metrics, or time-savings to reference)
+Structure:
+  Line 1: A specific number that stops the scroll (hook, max 10 words)
+  Lines 2–4: What that number means in real life
+  Lines 5–6: The root cause or insight
+  Line 7: Optional soft product mention
+  Line 8: CTA
+
+───────────────────────────────────────
 NON-NEGOTIABLE RULES
-HOOK (FIRST LINE):
-- Maximum 12 words
-- Must create tension, curiosity, or recognition
-- Must be specific (no vague hooks)
-- Must NOT contain: "I", "We", brand/app name, or generic phrases like "struggling with", "here’s how", "tired of", "ever wondered"
+───────────────────────────────────────
 
-WRITING STYLE:
-- Use plain, simple words only
-- No fluff, no filler, no motivational tone
-- No emojis, no hashtags, no buzzwords
-- Every line must add new information
-- Break lines every 1–2 sentences
+HOOK (first line):
+- Max 10 words
+- No "I", "We", brand name, "here's how", "tired of", "struggling with"
+- Must trigger recognition or a sharp reaction
 
-PRODUCT MENTION (STRICT):
-- Optional (only include if it fits naturally)
-- Only in the final 20% of the post
-- Max 1–2 lines
+WRITING:
+- Plain words only. No jargon, no buzzwords, no fluff
+- No emojis. No hashtags.
+- Each line = new information. Zero filler.
+- Line breaks every 1–2 sentences
 
-CTA (STRICT):
-- One line only
-- No exclamation marks
-- Must match brand.primary_cta
+PRODUCT MENTION:
+- Optional. Only if it fits naturally.
+- Last 20% of post only. Max 2 lines.
 
-OUTPUT FORMAT (STRICT JSON ONLY, NO MARKDOWN):
+CTA:
+- One line. No exclamation marks.
+- Must match brand.primary_cta exactly.
+
+───────────────────────────────────────
+OUTPUT FORMAT — STRICT JSON ONLY, NO MARKDOWN, NO PREAMBLE
+───────────────────────────────────────
 {
-  "title": "hook (first line only)",
-  "body": "rest of the post with clean line breaks",
-  "cta": "single-line CTA"
+  "title": "hook line only",
+  "body": "rest of post with line breaks",
+  "cta": "one-line CTA"
 }`;
 
     const userMessage = `Brand data: ${JSON.stringify({
