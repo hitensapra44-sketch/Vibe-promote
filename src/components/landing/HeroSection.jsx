@@ -25,8 +25,7 @@ export default function HeroSection() {
             display: 'inline-block', flexShrink: 0
           }} />
           <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
-            AI CO-PILOT FOR BOOTSTRAPPED FOUNDERS
-          </span>
+            Built for founders who love building but hate marketing</span>
         </div>
 
         {/* H1 */}
