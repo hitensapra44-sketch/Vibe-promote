@@ -53,7 +53,7 @@ export default function HeroSection() {
           color: '#7A7672', maxWidth: '800px', textAlign: 'center',
           lineHeight: 1.7, margin: '0 0 40px'
         }}>
-          You didn’t build your product to become a full-time marketer. Vibe Promote finds your audience in real conversations, tells you what to say, generates posts that converts and sound like you not gpt, and gives you clear analytics and strategies to grow. so you know what’s working and what’s not. This is app marketing on autopilot.
+          Vibe Promote helps you position your app better, find your audience, create posts that sound like you not gpt, and improve your content strategy according to current analytics. without wasting hours on marketing.
         </p>
 
         {/* CTAs */}
