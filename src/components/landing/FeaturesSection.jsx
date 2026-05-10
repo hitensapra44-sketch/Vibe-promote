@@ -13,7 +13,7 @@ const tabContent = {
   dashboard: {
     tag: 'Dashboard',
     title: 'Track everything from one place',
-    desc: 'See your Brand Brain status, recent activity, and key metrics the moment you log in. Everything surfaced — nothing buried in settings.',
+    desc: 'Track your audience insights, content performance, connected accounts, and growth activity from a single dashboard. So, you dont waste time tracking everything manualy',
     bullets: [
       'Real-time activity: posts generated, audience found, channels connected',
       'One-click access to every tool from a single view',
