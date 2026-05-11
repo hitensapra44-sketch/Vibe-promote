@@ -232,7 +232,7 @@ export default function ResultsTracker() {
               <h2 className="text-white text-xl font-bold">Analytics is a Pro Feature</h2>
               <p className="text-zinc-400 text-sm max-w-sm">Upgrade to Pro to connect your Reddit account and track post performance, karma, and engagement.</p>
             </div>
-            <a href="/dashboard/upgrade" className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all text-sm">
+            <a href="/pricing" className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all text-sm">
               Upgrade to Pro
             </a>
           </div>
