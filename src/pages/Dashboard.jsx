@@ -356,7 +356,7 @@ export default function Dashboard() {
                   </p>
                   <button
                     disabled={!tool.available}
-                    onClick={() => isPaid ? navigate(tool.path) : navigate('/pre-purchase')}
+                    onClick={() => isPaid ? navigate(tool.path) : navigate('/pricing')}
                     className={cn(
                       "w-full py-2.5 rounded-lg text-xs font-bold transition-all border bg-transparent",
                       tool.available 
