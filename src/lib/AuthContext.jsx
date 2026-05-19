@@ -34,6 +34,23 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
+    // Synchronous check for cached session to avoid loading flicker
+    try {
+      const storageKeys = Object.keys(localStorage);
+      const authKey = storageKeys.find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+      if (authKey) {
+        const cachedSession = JSON.parse(localStorage.getItem(authKey));
+        if (cachedSession?.user) {
+          setUser(cachedSession.user);
+          setIsAuthenticated(true);
+          setIsLoadingAuth(false);
+          fetchPlan(cachedSession.user.id);
+        }
+      }
+    } catch (e) {
+      console.warn('Auth cache read failed', e);
+    }
+
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
