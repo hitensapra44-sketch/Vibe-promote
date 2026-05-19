@@ -9,9 +9,9 @@ import { generateAICall } from '../lib/ai';
 
 async function fetchAndCleanPage(url) {
   try {
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-    const html = data.contents;
+  const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+if (!res.ok) throw new Error('Could not fetch page. Check the URL and try again.');
+const html = await res.text();
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
