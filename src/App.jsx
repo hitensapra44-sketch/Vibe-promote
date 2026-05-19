@@ -30,8 +30,10 @@ const AuthenticatedApp = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Trigger redirect logic when a user successfully signs in
     if (!isLoadingAuth && isAuthenticated && user?.id && authEvent === 'SIGNED_IN') {
+      // Only redirect if currently on /auth page — not from feature pages
+      if (location.pathname !== '/auth') return;
+
       const checkUserStatus = async () => {
         try {
           const { data } = await supabase
@@ -39,23 +41,14 @@ const AuthenticatedApp = () => {
             .select('user_id')
             .eq('user_id', user.id)
             .maybeSingle();
-          
-          if (data) {
-            // User has already completed onboarding
-            navigate('/dashboard');
-          } else {
-            // New user, needs onboarding
-            navigate('/onboarding');
-          }
+          navigate(data ? '/dashboard' : '/onboarding');
         } catch (err) {
-          console.error("Error checking user status:", err);
-          // Fallback to onboarding if check fails
           navigate('/onboarding');
         }
       };
       checkUserStatus();
     }
-  }, [isAuthenticated, isLoadingAuth, user, navigate, authEvent]);
+  }, [isAuthenticated, isLoadingAuth, user, navigate, authEvent, location.pathname]);
 
   if (isLoadingAuth) {
     return (
@@ -76,15 +69,15 @@ const AuthenticatedApp = () => {
       <Route path="/pricing" element={<Pricing />} />
       
       {/* Protected Routes */}
-      <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : <Home />} />
-      <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Home />} />
-      <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : <Home />} />
-      <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : <Home />} />
-      <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : <Home />} />
-      <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : <Home />} />
-      <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : <Home />} />
-      <Route path="/settings" element={isAuthenticated ? <Settings /> : <Home />} />
-      <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : <Home />} />
+      <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/settings" element={isAuthenticated ? <Settings /> : (isLoadingAuth ? null : <Home />)} />
+      <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : (isLoadingAuth ? null : <Home />)} />
       
       <Route path="*" element={<PageNotFound />} />
     </Routes>

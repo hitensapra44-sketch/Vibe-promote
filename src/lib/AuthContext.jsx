@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(undefined);
@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [plan, setPlan] = useState('free');
   const [planLoading, setPlanLoading] = useState(true);
   const [authEvent, setAuthEvent] = useState(null);
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     const fetchPlan = async (userId) => {
@@ -52,14 +53,22 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(!!currentUser);
       setIsLoadingAuth(false);
+
       if (currentUser) {
-        setAuthEvent(event);
+        // Only treat as a real sign-in event if it's not the initial load
+        if (event === 'SIGNED_IN' && !isInitialLoad.current) {
+          setAuthEvent('SIGNED_IN');
+        } else {
+          setAuthEvent(null); // session restore — do NOT trigger redirect
+        }
         fetchPlan(currentUser.id);
       } else {
         setAuthEvent(null);
         setPlan('free');
         setPlanLoading(false);
       }
+
+      isInitialLoad.current = false; // after first event, mark initial load done
     });
 
     return () => subscription.unsubscribe();
