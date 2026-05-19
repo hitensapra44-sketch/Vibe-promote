@@ -12,6 +12,7 @@ import Terms from './pages/Terms';
 import Auth from './pages/Auth';
 import Survey from './pages/Survey';
 import PrePurchase from './pages/PrePurchase';
+import Pricing from './pages/Pricing';
 import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import BrandBrainView from './pages/BrandBrainView';
@@ -21,7 +22,6 @@ import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
-import Pricing from './pages/Pricing';
 import FeedbackWidget from './components/FeedbackWidget';
 
 const AuthenticatedApp = () => {
@@ -31,8 +31,20 @@ const AuthenticatedApp = () => {
 
   useEffect(() => {
     if (!isLoadingAuth && isAuthenticated && user?.id && authEvent === 'SIGNED_IN') {
-      // Only redirect if currently on /auth page — not from feature pages
-      if (location.pathname !== '/auth') return;
+      // Define paths that should not trigger an automatic redirect if the user is already there
+      const protectedPaths = [
+        '/dashboard',
+        '/onboarding',
+        '/post-maker',
+        '/audience-spotter',
+        '/brand-brain',
+        '/marketing-buddy',
+        '/settings',
+        '/connected-accounts',
+        '/dashboard/results-tracker'
+      ];
+
+      if (protectedPaths.includes(location.pathname)) return;
 
       const checkUserStatus = async () => {
         try {

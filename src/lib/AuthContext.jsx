@@ -10,9 +10,10 @@ export const AuthProvider = ({ children }) => {
   const [plan, setPlan] = useState('free');
   const [planLoading, setPlanLoading] = useState(true);
   const [authEvent, setAuthEvent] = useState(null);
-  const isInitialLoad = useRef(true);
 
   useEffect(() => {
+    let initialSessionResolved = false;
+
     const fetchPlan = async (userId) => {
       setPlanLoading(true);
       try {
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }) => {
         setPlan('free');
         setPlanLoading(false);
       }
+      initialSessionResolved = true;
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
@@ -55,11 +57,11 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(false);
 
       if (currentUser) {
-        // Only treat as a real sign-in event if it's not the initial load
-        if (event === 'SIGNED_IN' && !isInitialLoad.current) {
+        // Only treat as a real sign-in event if the initial session check has already finished
+        if (event === 'SIGNED_IN' && initialSessionResolved) {
           setAuthEvent('SIGNED_IN');
         } else {
-          setAuthEvent(null); // session restore — do NOT trigger redirect
+          setAuthEvent(null); // session restore or initial load — do NOT trigger redirect
         }
         fetchPlan(currentUser.id);
       } else {
@@ -67,8 +69,6 @@ export const AuthProvider = ({ children }) => {
         setPlan('free');
         setPlanLoading(false);
       }
-
-      isInitialLoad.current = false; // after first event, mark initial load done
     });
 
     return () => subscription.unsubscribe();
