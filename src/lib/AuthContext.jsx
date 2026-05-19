@@ -10,10 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [plan, setPlan] = useState('free');
   const [planLoading, setPlanLoading] = useState(true);
   const [authEvent, setAuthEvent] = useState(null);
+  const initialSessionResolved = useRef(false);
 
   useEffect(() => {
-    let initialSessionResolved = false;
-
     const fetchPlan = async (userId) => {
       setPlanLoading(true);
       try {
@@ -63,7 +62,7 @@ export const AuthProvider = ({ children }) => {
         setPlan('free');
         setPlanLoading(false);
       }
-      initialSessionResolved = true;
+      initialSessionResolved.current = true;
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
@@ -75,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 
       if (currentUser) {
         // Only treat as a real sign-in event if the initial session check has already finished
-        if (event === 'SIGNED_IN' && initialSessionResolved) {
+        if (event === 'SIGNED_IN' && initialSessionResolved.current) {
           setAuthEvent('SIGNED_IN');
         } else {
           setAuthEvent(null); // session restore or initial load — do NOT trigger redirect
