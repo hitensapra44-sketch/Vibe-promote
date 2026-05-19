@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(undefined);
@@ -10,7 +10,6 @@ export const AuthProvider = ({ children }) => {
   const [plan, setPlan] = useState('free');
   const [planLoading, setPlanLoading] = useState(true);
   const [authEvent, setAuthEvent] = useState(null);
-  const initialSessionResolved = useRef(false);
 
   useEffect(() => {
     const fetchPlan = async (userId) => {
@@ -62,7 +61,6 @@ export const AuthProvider = ({ children }) => {
         setPlan('free');
         setPlanLoading(false);
       }
-      initialSessionResolved.current = true;
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
@@ -72,16 +70,17 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(!!currentUser);
       setIsLoadingAuth(false);
 
+      if (event === 'INITIAL_SESSION') {
+        setAuthEvent(null);
+      } else if (event === 'SIGNED_IN') {
+        setAuthEvent('SIGNED_IN');
+      } else if (event === 'SIGNED_OUT') {
+        setAuthEvent(null);
+      }
+
       if (currentUser) {
-        // Only treat as a real sign-in event if the initial session check has already finished
-        if (event === 'SIGNED_IN' && initialSessionResolved.current) {
-          setAuthEvent('SIGNED_IN');
-        } else {
-          setAuthEvent(null); // session restore or initial load — do NOT trigger redirect
-        }
         fetchPlan(currentUser.id);
       } else {
-        setAuthEvent(null);
         setPlan('free');
         setPlanLoading(false);
       }
