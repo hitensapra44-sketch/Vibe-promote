@@ -7,6 +7,39 @@ import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
 
+async function fetchAndCleanPage(url) {
+  try {
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    const html = data.contents;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    ['script', 'style', 'nav', 'footer', 'aside', 'noscript', 'iframe', 'svg'].forEach(tag => {
+      doc.querySelectorAll(tag).forEach(el => el.remove());
+    });
+
+    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    const metaOg = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
+    const h1 = doc.querySelector('h1')?.textContent?.trim() || '';
+    const h2s = Array.from(doc.querySelectorAll('h2, h3')).map(el => el.textContent.trim()).join('\n');
+    const mainText = (doc.querySelector('main') || doc.querySelector('body'))?.textContent || '';
+
+    const cleaned = [
+      `H1: ${h1}`,
+      `Meta Description: ${metaDesc}`,
+      `OG Description: ${metaOg}`,
+      `Headings:\n${h2s}`,
+      `Page Text:\n${mainText.replace(/\s+/g, ' ').trim()}`
+    ].join('\n\n').slice(0, 5000);
+
+    return cleaned;
+  } catch (err) {
+    throw new Error('Could not fetch page. Check the URL and try again.');
+  }
+}
+
 export default function BrandBrainOnboarding({ onComplete }) {
   const [url, setUrl] = useState('');
   const [appName, setAppName] = useState('');
@@ -31,36 +64,40 @@ export default function BrandBrainOnboarding({ onComplete }) {
     setExtracting(true);
     setHasExtracted(false);
 
-    const systemPrompt = `Analyze a SaaS product from a given URL and extract key information as accurately as possible.
+    const systemPrompt = `You are a SaaS product analyst. You will be given extracted text content scraped from a SaaS product landing page.
 
-You must return ONLY a valid JSON object. No explanations, no markdown, no extra text.
+Your job is to extract structured product information based ONLY on what is explicitly stated or clearly implied in the provided text.
+Do NOT invent, assume, or hallucinate anything that is not present in the text.
 
-OUTPUT FORMAT (STRICT):
+EXTRACTION RULES:
+- app_name: The product brand name. Look for it in the H1 or page title first.
+- app_description: 1-2 sentences maximum. Describe what the product actually does in plain terms. No marketing fluff. Be specific.
+- target_customer: Who this is specifically built for. Be narrow and precise (e.g. "solo SaaS founders", "freelance designers", NOT "businesses" or "teams").
+- core_problem: The specific pain point or frustration the product solves. Must be grounded in the page text.
+- category: Pick exactly one from this list: [productivity, marketing, analytics, developer-tools, CRM, finance, HR, design, other]
+
+STRICT RULES:
+- If you cannot confidently determine a field from the provided text, set that field to "unclear". Do NOT guess.
+- Do NOT use vague phrases like "helps businesses grow", "boosts productivity", "streamlines workflows"
+- Do NOT reproduce marketing taglines as the description
+- No markdown formatting, no code fences, no explanation text, no preamble
+- Return ONLY a single valid JSON object and nothing else
+
+OUTPUT FORMAT (return exactly this structure):
 {
   "app_name": "string",
   "app_description": "string",
   "target_customer": "string",
   "core_problem": "string",
   "category": "string"
-}
-
-PRIMARY GOAL:
-Extract information based ONLY on what is clearly stated or strongly implied on the website.
-
-Do NOT guess. Do NOT invent features. Accuracy > completeness.
-FAIL CONDITIONS (MUST AVOID):
-
-- Hallucinated features or capabilities
-- Vague descriptions like "helps businesses grow"
-- Overly broad target customers
-- Marketing-heavy language
-- Invalid JSON formatting
-
-Return ONLY the JSON object.`;
+}`;
 
     try {
-      const result = await generateAICall(systemPrompt, `URL: ${url}`, null, 'onboarding');
-      const parsed = JSON.parse(result);
+      const pageContent = await fetchAndCleanPage(url);
+      const result = await generateAICall(systemPrompt, `Here is the extracted landing page content. Analyze it and return the JSON:\n\n${pageContent}`, null, 'onboarding');
+
+      const clean = result.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
@@ -70,6 +107,7 @@ Return ONLY the JSON object.`;
       setHasExtracted(true);
     } catch (err) {
       console.error("Extraction failed:", err);
+      alert(err.message || 'Extraction failed. Try filling details manually.');
       setHasExtracted(true);
     } finally {
       setExtracting(false);

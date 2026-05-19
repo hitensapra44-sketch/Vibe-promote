@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import BrandBrainOnboarding from './BrandBrainOnboarding';
 import PositioningHelper from './PositioningHelper';
 import BrandBrainOnboarding2 from './BrandBrainOnboarding2';
-import PostPreview from './PostPreview';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -36,10 +35,10 @@ export default function Onboarding() {
 
   const handleStep2Complete = (data) => {
     setStep2Data(data);
-    setStep(3);
+    handleFinalComplete(data);
   };
 
-  const handleFinalComplete = async () => {
+  const handleFinalComplete = async (step2 = step2Data) => {
     if (!user) {
       toast.error("You must be logged in to save your progress.");
       navigate('/auth');
@@ -57,14 +56,14 @@ export default function Onboarding() {
         core_problem: step1Data.core_problem,
         suggested_tagline: step1Data.suggested_tagline || '',
         core_value: step1Data.core_value || '',
-        unique_differentiator: step2Data.unique_differentiator,
-        pain_phrases: step2Data.pain_phrases,
-        brand_tone: step2Data.brand_tone,
-        writing_style: step2Data.writing_style,
-        primary_platform: step2Data.primary_platform,
-        primary_cta: step2Data.primary_cta,
+        unique_differentiator: step2.unique_differentiator,
+        pain_phrases: step2.pain_phrases,
+        brand_tone: step2.brand_tone,
+        writing_style: step2.writing_style,
+        primary_platform: step2.primary_platform,
+        primary_cta: step2.primary_cta,
         current_stage: 'MVP',
-        posting_frequency: step2Data.posting_frequency || 'Daily'
+        posting_frequency: step2.posting_frequency || 'Daily'
       };
 
       const { error } = await supabase
@@ -96,13 +95,6 @@ export default function Onboarding() {
         <BrandBrainOnboarding2 
           {...step1Data} 
           onComplete={handleStep2Complete} 
-        />
-      )}
-      {step === 3 && (
-        <PostPreview 
-          {...step1Data} 
-          {...step2Data} 
-          onComplete={handleFinalComplete} 
         />
       )}
     </div>
