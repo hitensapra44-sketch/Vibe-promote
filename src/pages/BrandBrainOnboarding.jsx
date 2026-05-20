@@ -6,37 +6,19 @@ import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon }
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
+import { supabase } from '../supabaseClient';
 
 async function fetchAndCleanPage(url) {
   try {
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    if (!res.ok) throw new Error('Could not fetch page. Check the URL and try again.');
-    const html = await res.text();
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    ['script', 'style', 'nav', 'footer', 'aside', 'noscript', 'iframe', 'svg'].forEach(tag => {
-      doc.querySelectorAll(tag).forEach(el => el.remove());
+    const { data, error } = await supabase.functions.invoke('ai-service', {
+      body: { feature: 'scrape', url }
     });
-
-    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-    const metaOg = doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
-    const h1 = doc.querySelector('h1')?.textContent?.trim() || '';
-    const h2s = Array.from(doc.querySelectorAll('h2, h3')).map(el => el.textContent.trim()).join('\n');
-    const mainText = (doc.querySelector('main') || doc.querySelector('body'))?.textContent || '';
-
-    const cleaned = [
-      `H1: ${h1}`,
-      `Meta Description: ${metaDesc}`,
-      `OG Description: ${metaOg}`,
-      `Headings:\n${h2s}`,
-      `Page Text:\n${mainText.replace(/\s+/g, ' ').trim()}`
-    ].join('\n\n').slice(0, 5000);
-
-    return cleaned;
+    if (error || !data?.content) {
+      throw new Error(error?.message || 'Could not fetch page. Check the URL and try again.');
+    }
+    return data.content;
   } catch (err) {
-    throw new Error('Could not fetch page. Check the URL and try again.');
+    throw new Error(err.message || 'Could not fetch page. Check the URL and try again.');
   }
 }
 

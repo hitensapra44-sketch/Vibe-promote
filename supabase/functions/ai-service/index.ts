@@ -31,7 +31,89 @@ serve(async (req) => {
   }
 
   try {
-    const { feature, messages, temperature, max_tokens } = await req.json();
+    const bodyJson = await req.json();
+    const { feature, messages, temperature, max_tokens } = bodyJson;
+
+    if (feature === 'scrape') {
+      const { url } = bodyJson;
+      if (!url) {
+        return new Response(JSON.stringify({ error: "URL is required" }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
+
+      try {
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          }
+        });
+
+        if (!res.ok) {
+          return new Response(JSON.stringify({ error: `Failed to fetch URL: ${res.statusText}` }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          });
+        }
+
+        const html = await res.text();
+
+        // Simple regex-based extraction
+        const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const title = titleMatch ? titleMatch[1].trim() : '';
+
+        const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        const h1 = h1Match ? h1Match[1].replace(/<[^>]*>/g, '').trim() : '';
+
+        const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([\s\S]*?)["']/i) || 
+                             html.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+name=["']description["']/i);
+        const metaDesc = metaDescMatch ? metaDescMatch[1].trim() : '';
+
+        const ogDescMatch = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([\s\S]*?)["']/i) ||
+                            html.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+property=["']og:description["']/i);
+        const ogDesc = ogDescMatch ? ogDescMatch[1].trim() : '';
+
+        // Extract H2 and H3 headings
+        const headings: string[] = [];
+        const headingRegex = /<(h2|h3)[^>]*>([\s\S]*?)<\/\1>/gi;
+        let match;
+        while ((match = headingRegex.exec(html)) !== null) {
+          const text = match[2].replace(/<[^>]*>/g, '').trim();
+          if (text) headings.push(text);
+        }
+
+        // Strip script, style, and HTML tags to get clean body text
+        let bodyText = html;
+        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bodyMatch) {
+          bodyText = bodyMatch[1];
+        }
+        bodyText = bodyText.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '');
+        bodyText = bodyText.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, '');
+        bodyText = bodyText.replace(/<[^>]*>/g, ' ');
+        bodyText = bodyText.replace(/\s+/g, ' ').trim();
+
+        const content = [
+          `Title: ${title}`,
+          `H1: ${h1}`,
+          `Meta Description: ${metaDesc}`,
+          `OG Description: ${ogDesc}`,
+          `Headings:\n${headings.slice(0, 15).join('\n')}`,
+          `Page Text:\n${bodyText.slice(0, 4000)}`
+        ].join('\n\n').slice(0, 5000);
+
+        return new Response(JSON.stringify({ content }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message || "Failed to scrape URL" }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        });
+      }
+    }
 
     let apiKey = KEYS.FALLBACK;
     let model = 'nvidia/nemotron-mini-4b-instruct';
