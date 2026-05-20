@@ -5,19 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-/*
-================================================================
-  API KEYS — UPDATE THESE WHEN ROTATING KEYS
-================================================================
-  MINIMAX key  → used for: onboarding (BrandBrainOnboarding, 
-                 PositioningHelper, PostPreview)
-  MISTRAL_1    → used for: post maker, buddy chat, analytics buddy
-  MISTRAL_2    → used for: user finder / audience spotter
-  FALLBACK     → used by all features if primary fails
-================================================================
-*/
-
-// Keys provided by the user
 const KEYS = {
   MINIMAX: "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",
   MISTRAL_1: "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",
@@ -59,9 +46,9 @@ serve(async (req) => {
         }
 
         const text = await res.text();
-        const slicedText = text.slice(0, 5000);
+        const content = `URL: ${url}\n\n${text.slice(0, 5000)}`;
 
-        return new Response(JSON.stringify({ content: "URL: " + url + "\n\n" + slicedText }), {
+        return new Response(JSON.stringify({ content }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200
         });
@@ -105,7 +92,6 @@ serve(async (req) => {
 
     let response = await tryCall(apiKey, model);
 
-    // Fallback logic if primary key for the feature fails
     if (!response.ok && feature !== 'onboarding') {
       console.log(`[ai-service] Primary key failed for ${feature}, trying secondary Mistral key...`);
       response = await tryCall(KEYS.MISTRAL_2, model);
