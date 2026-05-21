@@ -23,7 +23,7 @@ async function fetchAndCleanPage(url) {
 }
 
 export default function BrandBrainOnboarding({ onComplete }) {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState('https://');
   const [appName, setAppName] = useState('');
   const [appDescription, setAppDescription] = useState('');
   const [targetCustomer, setTargetCustomer] = useState('');
@@ -41,7 +41,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
 
   const handleExtract = async (e) => {
     e?.preventDefault();
-    if (!url) return;
+    if (!url || url === 'https://') return;
 
     setExtracting(true);
     setHasExtracted(false);
@@ -155,7 +155,7 @@ OUTPUT FORMAT (return exactly this structure):
                   </div>
                   <button
                     type="submit"
-                    disabled={extracting || !url}
+                    disabled={extracting || !url || url === 'https://'}
                     className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20"
                   >
                     {extracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> Analyze</>}
@@ -244,5 +244,3 @@ OUTPUT FORMAT (return exactly this structure):
         )}
       </div>
     </div>
-  );
-}

@@ -9,7 +9,6 @@ import { supabase } from '@/supabaseClient';
 import Home from './pages/Home';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
-import Auth from './pages/Auth';
 import Survey from './pages/Survey';
 import PrePurchase from './pages/PrePurchase';
 import Pricing from './pages/Pricing';
@@ -41,7 +40,8 @@ const AuthenticatedApp = () => {
         '/marketing-buddy',
         '/settings',
         '/connected-accounts',
-        '/dashboard/results-tracker'
+        '/dashboard/results-tracker',
+        '/pricing'
       ];
 
       if (protectedPaths.includes(location.pathname)) return;
