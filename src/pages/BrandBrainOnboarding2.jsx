@@ -132,7 +132,7 @@ export default function BrandBrainOnboarding2({ app_name, onComplete }) {
               onClick={handleContinue}
               className="w-full py-5 rounded-2xl bg-primary hover:bg-primary-hover text-white font-bold text-lg transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
             >
-              Generate my first post
+              Go to dashboard
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
