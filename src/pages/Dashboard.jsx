@@ -260,7 +260,7 @@ export default function Dashboard() {
             </div>
             <button 
               onClick={() => navigate('/audience-spotter')}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
             >
               Start User Finder
               <ArrowRight className="w-3 h-3" />
@@ -358,7 +358,7 @@ export default function Dashboard() {
                     disabled={!tool.available}
                     onClick={() => isPaid ? navigate(tool.path) : navigate('/pricing')}
                     className={cn(
-                      "w-full py-2.5 rounded-lg text-xs font-bold transition-all border bg-transparent",
+                      "w-full py-2.5 rounded-lg text-xs font-medium transition-all border bg-transparent",
                       tool.available 
                         ? "border-white/10 text-white hover:bg-white/5" 
                         : "border-white/5 text-gray-700 cursor-not-allowed"
