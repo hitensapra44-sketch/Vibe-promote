@@ -7,72 +7,39 @@ export function useAudienceSpotter(userId: string) {
   const pollRef = useRef<any>(null);
   const pollCountRef = useRef(0);
 
-  // Load existing signals from DB on mount
-  useEffect(() => {
-    if (!userId) return;
-    loadSignals();
-  }, [userId]);
-
   const loadSignals = async () => {
+    if (!userId) return;
     const { data } = await supabase
       .from('audience_signals')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    if (data) setSignals(data);
+    if (data) {
+      setSignals(data);
+      return data;
+    }
+    return [];
   };
 
-  const startPolling = () => {
-    if (pollRef.current) return; // already polling
-    pollCountRef.current = 0;
-    
-    pollRef.current = setInterval(async () => {
-      pollCountRef.current += 1;
-      
-      // Stop polling after 10 minutes (20 x 30s)
-      if (pollCountRef.current > 20) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-        setIsLoading(false);
-        
-        // Update localStorage
-        const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
-        localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
-        return;
-      }
-
-      const { data } = await supabase
-        .from('audience_signals')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      
-      if (data && data.length > 0) {
-        setSignals(data);
-        // Only stop loading if we have new signals
-        const newCount = data.filter(s => s.status === 'new').length;
-        if (newCount > 0) {
-          setIsLoading(false);
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-          
-          const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
-          localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
-        }
-      }
-    }, 30000); // every 30 seconds
-  };
+  // Load existing signals on mount or when userId changes
+  useEffect(() => {
+    if (userId) {
+      loadSignals();
+    }
+  }, [userId]);
 
   const startScan = async ({ keywords, platforms, communities }: { keywords: string[], platforms: string[], communities: string[] }) => {
     if (!userId) return;
     setIsLoading(true);
+
+    const scanStartedAt = Date.now();
 
     // Save config to localStorage
     localStorage.setItem('vh_audience_config', JSON.stringify({
       keywords,
       platforms,
       communities,
-      scanStartedAt: Date.now(),
+      scanStartedAt,
       isScanning: true
     }));
 
@@ -88,19 +55,54 @@ export function useAudienceSpotter(userId: string) {
 
     // Invoke Edge Function
     try {
-      await supabase.functions.invoke('audience-scanner');
+      await supabase.functions.invoke('audience-scanner', {
+        body: { user_id: userId }
+      });
     } catch (e) {
       console.error('Edge function invoke error:', e);
     }
 
     // Start polling for results
-    startPolling();
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollCountRef.current = 0;
+
+    pollRef.current = setInterval(async () => {
+      pollCountRef.current += 1;
+
+      // Stop polling after 6 minutes max (24 polls of 15s)
+      if (pollCountRef.current > 24) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+        setIsLoading(false);
+
+        const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
+        localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
+        return;
+      }
+
+      const currentSignals = await loadSignals();
+      
+      // Check if any new signals appeared since scanStartedAt
+      const newSignals = currentSignals.filter(s => {
+        const createdTime = new Date(s.created_at).getTime();
+        return s.status === 'new' && createdTime > scanStartedAt;
+      });
+
+      if (newSignals.length > 0) {
+        setIsLoading(false);
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+
+        const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
+        localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
+      }
+    }, 15000); // every 15 seconds
   };
 
   const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
     // Optimistic update
     setSignals(prev => prev.map(s => s.id === id ? { ...s, status } : s));
-    
+
     await supabase
       .from('audience_signals')
       .update({ status })
