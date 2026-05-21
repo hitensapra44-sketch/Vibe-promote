@@ -7,6 +7,7 @@ import PageNotFound from './lib/PageNotFound';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/supabaseClient';
 import Home from './pages/Home';
+import Auth from './pages/Auth';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import Survey from './pages/Survey';
