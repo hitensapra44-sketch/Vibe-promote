@@ -496,7 +496,7 @@ export default function Pricing() {
               onMouseEnter={e => e.target.style.color = '#7A7672'} onMouseLeave={e => e.target.style.color = '#44403C'}>Terms</a>
             <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
               onMouseEnter={e => e.target.style.color = '#9C2000'} onMouseLeave={e => e.target.style.color = '#44403C'}>Support</a>
-            <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#2A2A2A' }}>2025 Vibe Promote</span>
+            <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#2A2A2A' }}>2026 Vibe Promote</span>
           </div>
         </div>
       </footer>
