@@ -6,15 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Fallback key in case env var is missing
+const FALLBACK_NVIDIA_KEY = "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";
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const NVIDIA_API_KEY = Deno.env.get('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');
+    const NVIDIA_API_KEY = Deno.env.get('NVIDIA_API_KEY') || FALLBACK_NVIDIA_KEY;
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+    console.log(`[audience-scanner] NVIDIA key present: ${!!NVIDIA_API_KEY}`);
+    console.log(`[audience-scanner] Supabase URL present: ${!!SUPABASE_URL}`);
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing Supabase environment variables.");
@@ -27,6 +33,8 @@ serve(async (req) => {
       const body = await req.json();
       user_id = body?.user_id || null;
     } catch (_) {}
+
+    console.log(`[audience-scanner] user_id from request: ${user_id}`);
 
     let brains: any[] = [];
     if (user_id) {
@@ -46,7 +54,7 @@ serve(async (req) => {
       brains = data || [];
     }
 
-    console.log(`[audience-scanner] Processing ${brains.length} brand brains`);
+    console.log(`[audience-scanner] Found ${brains.length} brand brains to process`);
 
     let processedCount = 0;
     let totalInserted = 0;
@@ -54,6 +62,8 @@ serve(async (req) => {
     for (const brain of brains) {
       try {
         const currentUserId = brain.user_id;
+        console.log(`[audience-scanner] Processing user: ${currentUserId}`);
+        console.log(`[audience-scanner] app_name: ${brain.app_name}, core_problem: ${brain.core_problem}`);
 
         const { count, error: countError } = await supabase
           .from('audience_signals')
@@ -62,39 +72,44 @@ serve(async (req) => {
           .eq('status', 'new');
 
         if (countError) throw countError;
+        console.log(`[audience-scanner] Current new signals count: ${count}`);
 
         if (count !== null && count >= 15) {
-          console.log(`[audience-scanner] User ${currentUserId} already has 15+ signals. Skipping.`);
+          console.log(`[audience-scanner] Already has 15+ signals. Skipping.`);
           continue;
         }
 
         const needed = 15 - (count || 0);
+        console.log(`[audience-scanner] Need to find: ${needed} more signals`);
 
         const keywords: string[] = JSON.parse(brain.audience_keywords || '[]');
         const communities: string[] = JSON.parse(brain.audience_communities || '[]');
         const platforms: string[] = JSON.parse(brain.audience_platforms || '[]');
 
+        console.log(`[audience-scanner] keywords: ${JSON.stringify(keywords)}`);
+        console.log(`[audience-scanner] platforms: ${JSON.stringify(platforms)}`);
+        console.log(`[audience-scanner] communities: ${JSON.stringify(communities)}`);
+
         if (keywords.length === 0) {
-          console.log(`[audience-scanner] No keywords for user ${currentUserId}. Skipping.`);
+          console.log(`[audience-scanner] No keywords. Skipping.`);
           continue;
         }
 
-        console.log(`[audience-scanner] User ${currentUserId} — keywords: ${keywords.slice(0,4).join(', ')}, communities: ${communities.slice(0,3).join(', ')}, platforms: ${platforms.join(', ')}`);
-
+        // Use 7 days instead of 48 hours to get more posts
         const now = Math.floor(Date.now() / 1000);
-        const fortyEightHoursAgo = now - (48 * 60 * 60);
+        const sevenDaysAgo = now - (7 * 24 * 60 * 60);
 
         const rawPosts: any[] = [];
 
         for (const keyword of keywords.slice(0, 4)) {
+          console.log(`[audience-scanner] Searching keyword: "${keyword}"`);
 
-          // REDDIT — use old.reddit.com to force HTTP/1.1 and avoid datacenter IP blocks
+          // REDDIT via old.reddit.com (HTTP/1.1, avoids datacenter IP block)
           if (platforms.includes('reddit')) {
-
-            // Global search via old.reddit.com
             try {
-              const globalUrl = `https://old.reddit.com/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=day&limit=25`;
-              console.log(`[audience-scanner] Fetching Reddit global: ${globalUrl}`);
+              const globalUrl = `https://old.reddit.com/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=25`;
+              console.log(`[audience-scanner] Reddit URL: ${globalUrl}`);
+
               const globalRes = await fetch(globalUrl, {
                 headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VibehypeBot/1.0)' }
               });
@@ -102,15 +117,17 @@ serve(async (req) => {
               console.log(`[audience-scanner] Reddit global status: ${globalRes.status}`);
 
               if (globalRes.status === 429) {
-                console.warn(`[audience-scanner] Reddit 429 on global search. Waiting 5s...`);
+                console.warn(`[audience-scanner] Reddit 429. Waiting 5s...`);
                 await new Promise(r => setTimeout(r, 5000));
               } else if (globalRes.ok) {
                 const data = await globalRes.json();
                 const children = data.data?.children || [];
-                console.log(`[audience-scanner] Reddit global returned ${children.length} posts for "${keyword}"`);
+                console.log(`[audience-scanner] Reddit returned ${children.length} raw posts for "${keyword}"`);
+                
                 children.forEach((child: any) => {
                   const p = child.data;
-                  if (p.created_utc > fortyEightHoursAgo) {
+                  // Use 7 days filter
+                  if (p.created_utc > sevenDaysAgo) {
                     rawPosts.push({
                       title: p.title,
                       body: p.selftext || '',
@@ -124,32 +141,31 @@ serve(async (req) => {
                     });
                   }
                 });
+              } else {
+                const errText = await globalRes.text();
+                console.error(`[audience-scanner] Reddit error body: ${errText.substring(0, 200)}`);
               }
             } catch (e) {
-              console.error(`[audience-scanner] Reddit global failed for "${keyword}":`, e);
+              console.error(`[audience-scanner] Reddit global fetch failed:`, e);
             }
 
-            // Subreddit-specific search via old.reddit.com
+            // Also search subreddit-specific
             for (const community of communities.slice(0, 3)) {
               try {
-                const subUrl = `https://old.reddit.com/r/${community}/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=day&limit=10&restrict_sr=true`;
-                console.log(`[audience-scanner] Fetching r/${community}: ${subUrl}`);
+                const subUrl = `https://old.reddit.com/r/${community}/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=10&restrict_sr=true`;
                 const subRes = await fetch(subUrl, {
                   headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VibehypeBot/1.0)' }
                 });
 
                 console.log(`[audience-scanner] r/${community} status: ${subRes.status}`);
 
-                if (subRes.status === 429) {
-                  console.warn(`[audience-scanner] Reddit 429 on r/${community}. Waiting 5s...`);
-                  await new Promise(r => setTimeout(r, 5000));
-                } else if (subRes.ok) {
+                if (subRes.ok) {
                   const data = await subRes.json();
                   const children = data.data?.children || [];
                   console.log(`[audience-scanner] r/${community} returned ${children.length} posts for "${keyword}"`);
                   children.forEach((child: any) => {
                     const p = child.data;
-                    if (p.created_utc > fortyEightHoursAgo) {
+                    if (p.created_utc > sevenDaysAgo) {
                       rawPosts.push({
                         title: p.title,
                         body: p.selftext || '',
@@ -160,151 +176,153 @@ serve(async (req) => {
                         comments: p.num_comments || 0,
                         created_at: p.created_utc * 1000,
                         platform: 'reddit'
-                    });
-                  }
+                      });
+                    }
+                  });
+                }
+              } catch (e) {
+                console.error(`[audience-scanner] r/${community} failed:`, e);
+              }
+            }
+          }
+
+          // HACKER NEWS
+          if (platforms.includes('hn')) {
+            try {
+              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${sevenDaysAgo},points>1&hitsPerPage=15`;
+              const hnRes = await fetch(hnUrl);
+              if (hnRes.ok) {
+                const data = await hnRes.json();
+                const hits = data.hits || [];
+                console.log(`[audience-scanner] HN returned ${hits.length} posts for "${keyword}"`);
+                hits.forEach((hit: any) => {
+                  rawPosts.push({
+                    title: hit.title,
+                    body: hit.story_text || '',
+                    url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
+                    author: hit.author,
+                    subreddit: 'HackerNews',
+                    upvotes: hit.points || 0,
+                    comments: hit.num_comments || 0,
+                    created_at: hit.created_at_i * 1000,
+                    platform: 'hacker_news'
+                  });
                 });
               }
             } catch (e) {
-              console.error(`[audience-scanner] Reddit r/${community} failed for "${keyword}":`, e);
+              console.error(`[audience-scanner] HN failed:`, e);
             }
           }
         }
 
-        // HACKER NEWS — works perfectly from server, no changes needed
-        if (platforms.includes('hn')) {
+        console.log(`[audience-scanner] Total raw posts collected: ${rawPosts.length}`);
+
+        const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.url, p])).values());
+        console.log(`[audience-scanner] After dedup: ${uniquePosts.length}`);
+
+        const { data: existingSignals } = await supabase
+          .from('audience_signals')
+          .select('post_url')
+          .eq('user_id', currentUserId);
+
+        const existingUrls = new Set((existingSignals || []).map((s: any) => s.post_url));
+        const filteredPosts = uniquePosts.filter(p => !existingUrls.has(p.url));
+        console.log(`[audience-scanner] New posts to score: ${filteredPosts.length}`);
+
+        let insertedCount = 0;
+
+        for (const post of filteredPosts) {
+          if (insertedCount >= needed) break;
+
           try {
-            const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${fortyEightHoursAgo},points>2&hitsPerPage=15`;
-            const hnRes = await fetch(hnUrl);
-            if (hnRes.ok) {
-              const data = await hnRes.json();
-              const hits = data.hits || [];
-              console.log(`[audience-scanner] HN returned ${hits.length} posts for "${keyword}"`);
-              hits.forEach((hit: any) => {
-                rawPosts.push({
-                  title: hit.title,
-                  body: hit.story_text || '',
-                  url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
-                  author: hit.author,
-                  subreddit: 'HackerNews',
-                  upvotes: hit.points || 0,
-                  comments: hit.num_comments || 0,
-                  created_at: hit.created_at_i * 1000,
-                  platform: 'hacker_news'
-                });
-              });
+            console.log(`[audience-scanner] Scoring post: "${post.title.substring(0, 60)}"`);
+
+            const aiRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${NVIDIA_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "meta/llama-3.1-8b-instruct",
+                messages: [
+                  {
+                    role: "system",
+                    content: `You are a SaaS buyer intent classifier. Respond ONLY with valid JSON, no markdown, no explanation. Format: {"score": 1-100, "intent_type": "Seeking Solution" | "Frustrated User" | "Comparison Shopping" | "Pain Point", "suggested_reply": "2 sentences max, casual founder tone, mention product naturally only if directly relevant", "isRelevant": boolean}`
+                  },
+                  {
+                    role: "user",
+                    content: `Product: ${brain.app_name}. Solves: ${brain.core_problem}. For: ${brain.target_customer}. Differentiator: ${brain.unique_differentiator}. Post title: ${post.title}. Post body (first 350 chars): ${post.body.substring(0, 350)}`
+                  }
+                ],
+                temperature: 0.2,
+                max_tokens: 250
+              })
+            });
+
+            if (!aiRes.ok) {
+              const errText = await aiRes.text();
+              console.error(`[audience-scanner] NVIDIA error ${aiRes.status}: ${errText}`);
+              continue;
+            }
+
+            const aiData = await aiRes.json();
+            const rawContent = aiData.choices?.[0]?.message?.content || "";
+            console.log(`[audience-scanner] AI raw response: ${rawContent.substring(0, 150)}`);
+
+            const match = rawContent.match(/\{[\s\S]*\}/);
+            if (!match) {
+              console.warn(`[audience-scanner] No JSON in AI response`);
+              continue;
+            }
+
+            const aiResult = JSON.parse(match[0]);
+            console.log(`[audience-scanner] Score: ${aiResult.score}, Relevant: ${aiResult.isRelevant}`);
+
+            if (aiResult.isRelevant === true && aiResult.score >= 65) {
+              const { error: insertError } = await supabase
+                .from('audience_signals')
+                .upsert({
+                  user_id: currentUserId,
+                  post_title: post.title,
+                  post_body: post.body.substring(0, 600),
+                  post_url: post.url,
+                  author: post.author,
+                  subreddit: post.subreddit,
+                  platform: post.platform,
+                  intent_score: aiResult.score,
+                  intent_type: aiResult.intent_type,
+                  suggested_reply: aiResult.suggested_reply,
+                  upvotes: post.upvotes || 0,
+                  comment_count: post.comments || 0,
+                  posted_at: new Date(post.created_at).toISOString(),
+                  status: 'new',
+                  created_at: new Date().toISOString()
+                }, { onConflict: 'post_url' });
+
+              if (!insertError) {
+                insertedCount++;
+                totalInserted++;
+                console.log(`[audience-scanner] INSERTED: "${post.title.substring(0, 60)}"`);
+              } else {
+                console.error(`[audience-scanner] Insert error:`, insertError);
+              }
             }
           } catch (e) {
-            console.error(`[audience-scanner] HN failed for "${keyword}":`, e);
+            console.error(`[audience-scanner] AI scoring failed:`, e);
           }
         }
-      }
 
-      console.log(`[audience-scanner] Total raw posts collected: ${rawPosts.length}`);
+        await supabase
+          .from('brand_brains')
+          .update({ last_scanned_at: new Date().toISOString() })
+          .eq('user_id', currentUserId);
 
-      // Deduplicate by URL
-      const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.url, p])).values());
-      console.log(`[audience-scanner] After dedup: ${uniquePosts.length} posts`);
-
-      // Filter already seen URLs
-      const { data: existingSignals } = await supabase
-        .from('audience_signals')
-        .select('post_url')
-        .eq('user_id', currentUserId);
-
-      const existingUrls = new Set((existingSignals || []).map((s: any) => s.post_url));
-      const filteredPosts = uniquePosts.filter(p => !existingUrls.has(p.url));
-      console.log(`[audience-scanner] After filtering existing: ${filteredPosts.length} new posts to score`);
-
-      let insertedCount = 0;
-
-      for (const post of filteredPosts) {
-        if (insertedCount >= needed) break;
-
-        try {
-          const aiRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${NVIDIA_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "meta/llama-3.1-8b-instruct",
-              messages: [
-                {
-                  role: "system",
-                  content: `You are a SaaS buyer intent classifier. Respond ONLY with valid JSON, no markdown, no explanation. Format: {"score": 1-100, "intent_type": "Seeking Solution" | "Frustrated User" | "Comparison Shopping" | "Pain Point", "suggested_reply": "2 sentences max, casual founder tone, mention product naturally only if directly relevant", "isRelevant": boolean}`
-                },
-                {
-                  role: "user",
-                  content: `Product: ${brain.app_name}. Solves: ${brain.core_problem}. For: ${brain.target_customer}. Differentiator: ${brain.unique_differentiator}. Post title: ${post.title}. Post body (first 350 chars): ${post.body.substring(0, 350)}`
-                }
-              ],
-              temperature: 0.2,
-              max_tokens: 250
-            })
-          });
-
-          if (!aiRes.ok) {
-            console.error(`[audience-scanner] NVIDIA API error: ${aiRes.status} ${await aiRes.text()}`);
-            continue;
-          }
-
-          const aiData = await aiRes.json();
-          const rawContent = aiData.choices?.[0]?.message?.content || "";
-
-          const match = rawContent.match(/\{[\s\S]*\}/);
-          if (!match) {
-            console.warn(`[audience-scanner] Could not extract JSON from AI response: ${rawContent}`);
-            continue;
-          }
-
-          const aiResult = JSON.parse(match[0]);
-          console.log(`[audience-scanner] AI scored post "${post.title.substring(0,50)}" — score: ${aiResult.score}, relevant: ${aiResult.isRelevant}`);
-
-          if (aiResult.isRelevant === true && aiResult.score >= 65) {
-            const { error: insertError } = await supabase
-              .from('audience_signals')
-              .upsert({
-                user_id: currentUserId,
-                post_title: post.title,
-                post_body: post.body.substring(0, 600),
-                post_url: post.url,
-                author: post.author,
-                subreddit: post.subreddit,
-                platform: post.platform,
-                intent_score: aiResult.score,
-                intent_type: aiResult.intent_type,
-                suggested_reply: aiResult.suggested_reply,
-                upvotes: post.upvotes || 0,
-                comment_count: post.comments || 0,
-                posted_at: new Date(post.created_at).toISOString(),
-                status: 'new',
-                created_at: new Date().toISOString()
-              }, { onConflict: 'post_url' });
-
-            if (!insertError) {
-              insertedCount++;
-              totalInserted++;
-              console.log(`[audience-scanner] Inserted signal for "${post.title.substring(0,50)}"`);
-            } else {
-              console.error(`[audience-scanner] Insert error:`, insertError);
-            }
-          }
-        } catch (e) {
-          console.error(`[audience-scanner] AI scoring failed for post ${post.url}:`, e);
-        }
-      }
-
-      await supabase
-        .from('brand_brains')
-        .update({ last_scanned_at: new Date().toISOString() })
-        .eq('user_id', currentUserId);
-
-      console.log(`[audience-scanner] Done for user ${currentUserId}. Inserted: ${insertedCount}`);
-      processedCount++;
+        console.log(`[audience-scanner] Done for user ${currentUserId}. Inserted: ${insertedCount}`);
+        processedCount++;
 
       } catch (userError) {
-        console.error(`[audience-scanner] Error processing user ${brain.user_id}:`, userError);
+        console.error(`[audience-scanner] Error for user ${brain.user_id}:`, userError);
       }
     }
 
