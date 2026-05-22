@@ -279,7 +279,7 @@ serve(async (req) => {
             const aiResult = JSON.parse(match[0]);
             console.log(`[audience-scanner] Score: ${aiResult.score}, Relevant: ${aiResult.isRelevant}`);
 
-            if (aiResult.isRelevant === true && aiResult.score >= 65) {
+            if (aiResult.isRelevant === true && aiResult.score >= 40) {
               const { error: insertError } = await supabase
                 .from('audience_signals')
                 .upsert({
