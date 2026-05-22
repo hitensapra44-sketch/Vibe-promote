@@ -18,7 +18,7 @@ const steps = [
   },
   {
     num: '03',
-    title: 'It find users, track growth, and improve your strategy',
+    title: 'It starts finding potential users posts, tracking analytics, and improves your strategy',
     desc: 'It discover where your audience hangs out, connect your accounts, track what’s performing across platforms, and chat with your copilot to improve your content strategy using current analytics',
     label: 'Growth Dashboard',
     video: '/videos/app-video.mp4'
