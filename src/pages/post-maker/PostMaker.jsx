@@ -212,6 +212,7 @@ Structure:
 4. Final takeaway
 5. CTA (with app name)
 
+
 TEMPLATE STRUCTURE TO FOLLOW COMPLETELY:
 ${selectedTemplate?.structure || 'Rewrite the following draft for ' + selectedPlatform + ', fixing tone, structure, and platform fit'}
 
