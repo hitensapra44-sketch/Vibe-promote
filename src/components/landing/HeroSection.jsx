@@ -43,7 +43,7 @@ export default function HeroSection() {
         {/* Subtext */}
         <p style={{
           fontFamily: 'Geist, sans-serif', fontWeight: 400, fontSize: '18px',
-          color: '#7A7672', maxWidth: '800px', textAlign: 'center',
+          color: '#FFFFFF', maxWidth: '800px', textAlign: 'center',
           lineHeight: 1.7, margin: '0 0 40px'
         }}>
           Vibe Promote helps you position your app better, find your audience, create posts that sound like you not AI, and improve your content strategy using your current analytics. without wasting hours on marketing.
