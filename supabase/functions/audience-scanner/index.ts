@@ -104,85 +104,88 @@ serve(async (req) => {
         for (const keyword of keywords.slice(0, 4)) {
           console.log(`[audience-scanner] Searching keyword: "${keyword}"`);
 
-          // REDDIT via old.reddit.com (HTTP/1.1, avoids datacenter IP block)
+          // REDDIT via RSS proxy — bypasses cloud IP blocks
           if (platforms.includes('reddit')) {
-            try {
-              const globalUrl = `https://old.reddit.com/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=25`;
-              console.log(`[audience-scanner] Reddit URL: ${globalUrl}`);
+            const shortKeyword = keyword.split(' ').slice(0, 4).join(' ');
 
-              const globalRes = await fetch(globalUrl, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VibehypeBot/1.0)' }
-              });
+            // Search across user's communities
+            for (const community of communities.slice(0, 5)) {
+              try {
+                const rssUrl = `https://www.reddit.com/r/${community}/search.rss?q=${encodeURIComponent(shortKeyword)}&sort=new&restrict_sr=on&t=week`;
+                const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`;
+                console.log(`[audience-scanner] RSS proxy fetch for r/${community} keyword "${shortKeyword}"`);
 
-              console.log(`[audience-scanner] Reddit global status: ${globalRes.status}`);
+                const proxyRes = await fetch(proxyUrl, {
+                  headers: { 'User-Agent': 'VibehypeBot/1.0' }
+                });
 
-              if (globalRes.status === 429) {
-                console.warn(`[audience-scanner] Reddit 429. Waiting 5s...`);
-                await new Promise(r => setTimeout(r, 5000));
-              } else if (globalRes.ok) {
-                const data = await globalRes.json();
-                const children = data.data?.children || [];
-                console.log(`[audience-scanner] Reddit returned ${children.length} raw posts for "${keyword}"`);
-                
-                children.forEach((child: any) => {
-                  const p = child.data;
-                  // Use 7 days filter
-                  if (p.created_utc > sevenDaysAgo) {
-                    rawPosts.push({
-                      title: p.title,
-                      body: p.selftext || '',
-                      url: `https://reddit.com${p.permalink}`,
-                      author: p.author,
-                      subreddit: p.subreddit,
-                      upvotes: p.score || 0,
-                      comments: p.num_comments || 0,
-                      created_at: p.created_utc * 1000,
-                      platform: 'reddit'
+                console.log(`[audience-scanner] RSS proxy status for r/${community}: ${proxyRes.status}`);
+
+                if (proxyRes.ok) {
+                  const proxyData = await proxyRes.json();
+                  console.log(`[audience-scanner] RSS proxy returned status: ${proxyData.status}, items: ${proxyData.items?.length || 0}`);
+
+                  if (proxyData.status === 'ok' && proxyData.items) {
+                    proxyData.items.forEach((item: any) => {
+                      const pubDate = new Date(item.pubDate).getTime();
+                      const sevenDaysMs = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                      if (pubDate > sevenDaysMs) {
+                        rawPosts.push({
+                          title: item.title || '',
+                          body: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+                          url: item.link || '',
+                          author: item.author || 'unknown',
+                          subreddit: community,
+                          upvotes: 0,
+                          comments: 0,
+                          created_at: pubDate,
+                          platform: 'reddit'
+                        });
+                      }
                     });
                   }
-                });
-              } else {
-                const errText = await globalRes.text();
-                console.error(`[audience-scanner] Reddit error body: ${errText.substring(0, 200)}`);
+                }
+              } catch (e) {
+                console.error(`[audience-scanner] RSS proxy failed for r/${community}:`, e);
               }
-            } catch (e) {
-              console.error(`[audience-scanner] Reddit global fetch failed:`, e);
             }
 
-            // Also search subreddit-specific
-            for (const community of communities.slice(0, 3)) {
-              try {
-                const subUrl = `https://old.reddit.com/r/${community}/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=10&restrict_sr=true`;
-                const subRes = await fetch(subUrl, {
-                  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VibehypeBot/1.0)' }
-                });
+            // Also do a global Reddit search via RSS proxy
+            try {
+              const globalRssUrl = `https://www.reddit.com/search.rss?q=${encodeURIComponent(shortKeyword)}&sort=new&t=week`;
+              const globalProxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(globalRssUrl)}&count=25`;
+              console.log(`[audience-scanner] RSS global search for "${shortKeyword}"`);
 
-                console.log(`[audience-scanner] r/${community} status: ${subRes.status}`);
+              const globalRes = await fetch(globalProxyUrl, {
+                headers: { 'User-Agent': 'VibehypeBot/1.0' }
+              });
 
-                if (subRes.ok) {
-                  const data = await subRes.json();
-                  const children = data.data?.children || [];
-                  console.log(`[audience-scanner] r/${community} returned ${children.length} posts for "${keyword}"`);
-                  children.forEach((child: any) => {
-                    const p = child.data;
-                    if (p.created_utc > sevenDaysAgo) {
+              if (globalRes.ok) {
+                const globalData = await globalRes.json();
+                console.log(`[audience-scanner] Global RSS status: ${globalData.status}, items: ${globalData.items?.length || 0}`);
+
+                if (globalData.status === 'ok' && globalData.items) {
+                  globalData.items.forEach((item: any) => {
+                    const pubDate = new Date(item.pubDate).getTime();
+                    const sevenDaysMs = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                    if (pubDate > sevenDaysMs) {
                       rawPosts.push({
-                        title: p.title,
-                        body: p.selftext || '',
-                        url: `https://reddit.com${p.permalink}`,
-                        author: p.author,
-                        subreddit: p.subreddit,
-                        upvotes: p.score || 0,
-                        comments: p.num_comments || 0,
-                        created_at: p.created_utc * 1000,
+                        title: item.title || '',
+                        body: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+                        url: item.link || '',
+                        author: item.author || 'unknown',
+                        subreddit: item.categories?.[0] || 'reddit',
+                        upvotes: 0,
+                        comments: 0,
+                        created_at: pubDate,
                         platform: 'reddit'
                       });
                     }
                   });
                 }
-              } catch (e) {
-                console.error(`[audience-scanner] r/${community} failed:`, e);
               }
+            } catch (e) {
+              console.error(`[audience-scanner] Global RSS failed:`, e);
             }
           }
 
