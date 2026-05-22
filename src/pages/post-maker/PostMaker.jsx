@@ -248,6 +248,7 @@ WRITING RULES:
 17. Never say "DM me"
 18. Never say "link in bio"
 19. Output ONLY the tweets
+20.keep post under 100 words
 
 THREAD STRUCTURE:
 1. Hook
