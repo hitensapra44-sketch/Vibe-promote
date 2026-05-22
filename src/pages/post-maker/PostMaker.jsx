@@ -189,7 +189,7 @@ LENGTH RULE:
 - Not long
 - Usually 1 to 3 short sentences
 - Aim for about 80 to 100 characters when possible
-- Never go over 120 characters unless the user explicitly asks for a longer post
+- Never go over 100 characters unless the user explicitly asks for a longer post
 - Keep each tweet to one clear idea
 
 VOICE:
