@@ -18,6 +18,7 @@ serve(async (req) => {
     const NVIDIA_API_KEY = Deno.env.get('NVIDIA_API_KEY') || FALLBACK_NVIDIA_KEY;
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const REDDIT_WORKER_URL = Deno.env.get('REDDIT_WORKER_URL') || '';
 
     console.log(`[audience-scanner] NVIDIA key present: ${!!NVIDIA_API_KEY}`);
     console.log(`[audience-scanner] Supabase URL present: ${!!SUPABASE_URL}`);
@@ -104,88 +105,84 @@ serve(async (req) => {
         for (const keyword of keywords.slice(0, 4)) {
           console.log(`[audience-scanner] Searching keyword: "${keyword}"`);
 
-          // REDDIT via RSS proxy — bypasses cloud IP blocks
           if (platforms.includes('reddit')) {
-            const shortKeyword = keyword.split(' ').slice(0, 4).join(' ');
+            const shortKeyword = keyword.split(' ').slice(0, 5).join(' ');
 
-            // Search across user's communities
-            for (const community of communities.slice(0, 5)) {
+            if (!REDDIT_WORKER_URL) {
+              console.error('[audience-scanner] REDDIT_WORKER_URL not set in secrets. Skipping Reddit.');
+            } else {
+              // Global search
               try {
-                const rssUrl = `https://www.reddit.com/r/${community}/search.rss?q=${encodeURIComponent(shortKeyword)}&sort=new&restrict_sr=on&t=week`;
-                const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=20`;
-                console.log(`[audience-scanner] RSS proxy fetch for r/${community} keyword "${shortKeyword}"`);
+                const workerUrl = `${REDDIT_WORKER_URL}?q=${encodeURIComponent(shortKeyword)}&sort=new&t=week`;
+                console.log(`[audience-scanner] Calling Cloudflare Worker: ${workerUrl}`);
+                const workerRes = await fetch(workerUrl);
+                console.log(`[audience-scanner] Worker global status: ${workerRes.status}`);
 
-                const proxyRes = await fetch(proxyUrl, {
-                  headers: { 'User-Agent': 'VibehypeBot/1.0' }
-                });
+                if (workerRes.ok) {
+                  const data = await workerRes.json();
+                  const children = data.data?.children || [];
+                  console.log(`[audience-scanner] Worker global returned ${children.length} posts for "${shortKeyword}"`);
 
-                console.log(`[audience-scanner] RSS proxy status for r/${community}: ${proxyRes.status}`);
+                  const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+                  children.forEach((child: any) => {
+                    const p = child.data;
+                    if (p && p.created_utc > sevenDaysAgo) {
+                      rawPosts.push({
+                        title: p.title || '',
+                        body: p.selftext || '',
+                        url: `https://reddit.com${p.permalink}`,
+                        author: p.author || 'unknown',
+                        subreddit: p.subreddit || 'reddit',
+                        upvotes: p.score || 0,
+                        comments: p.num_comments || 0,
+                        created_at: p.created_utc * 1000,
+                        platform: 'reddit'
+                      });
+                    }
+                  });
+                } else {
+                  const errText = await workerRes.text();
+                  console.error(`[audience-scanner] Worker error: ${workerRes.status} — ${errText.substring(0, 200)}`);
+                }
+              } catch (e) {
+                console.error(`[audience-scanner] Worker global fetch failed:`, e);
+              }
 
-                if (proxyRes.ok) {
-                  const proxyData = await proxyRes.json();
-                  console.log(`[audience-scanner] RSS proxy returned status: ${proxyData.status}, items: ${proxyData.items?.length || 0}`);
+              // Subreddit-specific search
+              for (const community of communities.slice(0, 5)) {
+                try {
+                  const subWorkerUrl = `${REDDIT_WORKER_URL}?q=${encodeURIComponent(shortKeyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week`;
+                  console.log(`[audience-scanner] Worker subreddit fetch: r/${community}`);
+                  const subRes = await fetch(subWorkerUrl);
+                  console.log(`[audience-scanner] Worker r/${community} status: ${subRes.status}`);
 
-                  if (proxyData.status === 'ok' && proxyData.items) {
-                    proxyData.items.forEach((item: any) => {
-                      const pubDate = new Date(item.pubDate).getTime();
-                      const sevenDaysMs = Date.now() - (7 * 24 * 60 * 60 * 1000);
-                      if (pubDate > sevenDaysMs) {
+                  if (subRes.ok) {
+                    const data = await subRes.json();
+                    const children = data.data?.children || [];
+                    console.log(`[audience-scanner] Worker r/${community} returned ${children.length} posts`);
+
+                    const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+                    children.forEach((child: any) => {
+                      const p = child.data;
+                      if (p && p.created_utc > sevenDaysAgo) {
                         rawPosts.push({
-                          title: item.title || '',
-                          body: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
-                          url: item.link || '',
-                          author: item.author || 'unknown',
-                          subreddit: community,
-                          upvotes: 0,
-                          comments: 0,
-                          created_at: pubDate,
+                          title: p.title || '',
+                          body: p.selftext || '',
+                          url: `https://reddit.com${p.permalink}`,
+                          author: p.author || 'unknown',
+                          subreddit: p.subreddit || community,
+                          upvotes: p.score || 0,
+                          comments: p.num_comments || 0,
+                          created_at: p.created_utc * 1000,
                           platform: 'reddit'
                         });
                       }
                     });
                   }
-                }
-              } catch (e) {
-                console.error(`[audience-scanner] RSS proxy failed for r/${community}:`, e);
-              }
-            }
-
-            // Also do a global Reddit search via RSS proxy
-            try {
-              const globalRssUrl = `https://www.reddit.com/search.rss?q=${encodeURIComponent(shortKeyword)}&sort=new&t=week`;
-              const globalProxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(globalRssUrl)}&count=25`;
-              console.log(`[audience-scanner] RSS global search for "${shortKeyword}"`);
-
-              const globalRes = await fetch(globalProxyUrl, {
-                headers: { 'User-Agent': 'VibehypeBot/1.0' }
-              });
-
-              if (globalRes.ok) {
-                const globalData = await globalRes.json();
-                console.log(`[audience-scanner] Global RSS status: ${globalData.status}, items: ${globalData.items?.length || 0}`);
-
-                if (globalData.status === 'ok' && globalData.items) {
-                  globalData.items.forEach((item: any) => {
-                    const pubDate = new Date(item.pubDate).getTime();
-                    const sevenDaysMs = Date.now() - (7 * 24 * 60 * 60 * 1000);
-                    if (pubDate > sevenDaysMs) {
-                      rawPosts.push({
-                        title: item.title || '',
-                        body: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
-                        url: item.link || '',
-                        author: item.author || 'unknown',
-                        subreddit: item.categories?.[0] || 'reddit',
-                        upvotes: 0,
-                        comments: 0,
-                        created_at: pubDate,
-                        platform: 'reddit'
-                      });
-                    }
-                  });
+                } catch (e) {
+                  console.error(`[audience-scanner] Worker r/${community} failed:`, e);
                 }
               }
-            } catch (e) {
-              console.error(`[audience-scanner] Global RSS failed:`, e);
             }
           }
 
