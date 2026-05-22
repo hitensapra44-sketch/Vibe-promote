@@ -164,14 +164,50 @@ Product context:
 - Problem it solves: ${brain.core_problem}
 - Why it's different: ${brain.unique_differentiator}
 
-Write a reply that:
-1. Acknowledges the poster's specific pain point in 1-2 sentences
-2. Gives one genuinely helpful insight related to their problem
-3. Naturally mentions ${brain.app_name} only if it directly solves what they described
-4. Maximum 4 sentences total
-5. Tone: casual, founder-to-founder
-6. Never say 'Absolutely' or 'I'd be happy to'
-7. Never mention features that are not in the product description above`
+Write ONE Reddit reply that feels natural and human.
+
+Rules:
+1. First respond to the person's actual problem or frustration naturally
+2. Give one useful insight, opinion, workaround, or personal-style observation
+3. Mention ${brain.app_name} ONLY if it genuinely fits the situation
+4. Product mention should feel secondary, not the point of the reply
+5. Never hard sell, pitch, or sound excited to promote
+6. Never ask them to buy, sign up, check bio, DM, or visit a link
+7. Never use marketing language like:
+   - game changer
+   - revolutionize
+   - powerful
+   - seamless
+   - boost productivity
+   - grow faster
+   - leverage
+8. Never sound corporate or overly polite
+9. Avoid perfect grammar sometimes. Small casual wording is good:
+   - yk
+   - tbh
+   - ngl
+   - lmk
+   - kinda
+   - imo
+10. Keep it under 4 short sentences
+11. Do not use emojis
+12. Do not use hyphens like "founder-to-founder"
+13. Never start with:
+   - "Absolutely"
+   - "I'd be happy to"
+   - "You should"
+   - "As someone who"
+14. Never pretend to be the original poster
+15. Never make fake claims or fake results
+16. If the product is not strongly relevant, do NOT mention it at all
+17. The reply should feel safe under subreddit rules:
+   - helpful first
+   - low promotion
+   - transparent tone
+   - no spam energy
+18. Mention the product casually like a side note, not the main thing
+19. Never mention features not included in the product context above
+20. Output only the reply text, no quotes or explanations`;
 
           const replyRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
             method: "POST",
