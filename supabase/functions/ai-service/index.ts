@@ -6,7 +6,7 @@ const corsHeaders = {
 }
 
 const KEYS = {
-  MINIMAX: "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",
+  MINIMAX: "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",
   MISTRAL_1: "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",
   MISTRAL_2: "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",
   FALLBACK: "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"
@@ -43,7 +43,7 @@ serve(async (req) => {
           body: JSON.stringify({
             url,
             formats: ['markdown'],
-            onlyMainContent: true
+            onlyMainMainContent: true
           })
         });
 
@@ -79,7 +79,7 @@ serve(async (req) => {
 
     if (feature === 'onboarding') {
       apiKey = KEYS.MINIMAX;
-      model = 'mistralai/mistral-small-4-119b-2603';
+      model = 'mistralai/mistral-large-3-675b-instruct-2512';
     } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
       model = 'meta/llama-3.1-8b-instruct';
