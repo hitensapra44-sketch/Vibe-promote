@@ -18,7 +18,8 @@ import {
   BarChart2,
   PenLine,
   Settings,
-  Zap
+  Zap,
+  Target
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -38,6 +39,7 @@ export default function Sidebar({ isPaid }) {
 
   const navLinks = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', available: true },
+    { icon: Target, label: 'My Progress', path: '/progress', available: true },
     { icon: Brain, label: 'Brand Brain', path: '/brand-brain', available: true },
     { icon: Search, label: 'User Finder', path: '/audience-spotter', available: true },
     { icon: PenLine, label: 'Post Maker', path: '/post-maker', available: true },

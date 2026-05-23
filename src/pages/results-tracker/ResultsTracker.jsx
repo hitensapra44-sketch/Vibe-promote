@@ -14,6 +14,7 @@ import { useAuth } from '../../lib/AuthContext';
 import { Plus, X } from 'lucide-react';
 import { usePlan } from '../../lib/usePlan';
 import PlanGate from '../../components/PlanGate';
+import { markTaskComplete } from '../../components/TaskWidget';
 
 export default function ResultsTracker() {
   const { user, plan } = useAuth();
@@ -31,6 +32,12 @@ export default function ResultsTracker() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [accountKarma, setAccountKarma] = useState(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      markTaskComplete(user.id, 'check_analytics', supabase);
+    }
+  }, [user]);
 
   const fetchPosts = useCallback(async () => {
     if (!user) return;

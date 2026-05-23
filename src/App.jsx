@@ -23,6 +23,8 @@ import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
 import FeedbackWidget from './components/FeedbackWidget';
+import TaskWidget from './components/TaskWidget';
+import ProgressPage from './pages/ProgressPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated, user, authEvent } = useAuth();
@@ -42,7 +44,8 @@ const AuthenticatedApp = () => {
         '/settings',
         '/connected-accounts',
         '/dashboard/results-tracker',
-        '/pricing'
+        '/pricing',
+        '/progress'
       ];
 
       if (protectedPaths.includes(location.pathname)) return;
@@ -72,28 +75,32 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<Terms />} />
-      <Route path="/survey" element={<Survey />} />
-      <Route path="/pre-purchase" element={<PrePurchase />} />
-      <Route path="/pricing" element={<Pricing />} />
-      
-      {/* Protected Routes */}
-      <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/settings" element={isAuthenticated ? <Settings /> : (isLoadingAuth ? null : <Home />)} />
-      <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : (isLoadingAuth ? null : <Home />)} />
-      
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/survey" element={<Survey />} />
+        <Route path="/pre-purchase" element={<PrePurchase />} />
+        <Route path="/pricing" element={<Pricing />} />
+        
+        {/* Protected Routes */}
+        <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/settings" element={isAuthenticated ? <Settings /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : (isLoadingAuth ? null : <Home />)} />
+        
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      {isAuthenticated && <TaskWidget />}
+    </>
   );
 };
 

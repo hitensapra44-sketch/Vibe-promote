@@ -80,7 +80,7 @@ serve(async (req) => {
           continue;
         }
 
-        const needed = 15 - (count || 0);
+        const needed = Math.min(5, 15 - (count || 0));
         console.log(`[audience-scanner] Need to find: ${needed} more signals`);
 
         const keywords: string[] = JSON.parse(brain.audience_keywords || '[]');

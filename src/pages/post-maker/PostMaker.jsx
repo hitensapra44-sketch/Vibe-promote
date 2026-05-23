@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { usePlan } from '../../lib/usePlan';
 import { useUsage, incrementUsage } from '../../lib/useUsage';
 import PlanGate from '../../components/PlanGate';
+import { markTaskComplete } from '../../components/TaskWidget';
 
 const platformTemplates = {
   Reddit: [
@@ -69,6 +70,7 @@ export default function PostMaker() {
   const [brain, setBrain] = useState(null);
   const [expandedTemplate, setExpandedTemplate] = useState(null);
   const [copyStatus, setCopyStatus] = useState("Copy Post");
+  const [currentDay, setCurrentDay] = useState(1);
 
   useEffect(() => {
     async function fetchBrain() {
@@ -79,6 +81,23 @@ export default function PostMaker() {
         .eq('user_id', user.id)
         .maybeSingle();
       if (data) setBrain(data);
+
+      // Fetch current day
+      const { data: tasksData } = await supabase
+        .from('user_tasks')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1);
+      if (tasksData && tasksData[0]) {
+        const firstDate = new Date(tasksData[0].created_at);
+        firstDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = Math.abs(today.getTime() - firstDate.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        setCurrentDay(Math.min(4, diffDays + 1));
+      }
     }
     fetchBrain();
   }, [user]);
@@ -246,6 +265,10 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
       setIsLoading(false);
       setStep(6);
       await incrementUsage(supabase, user.id, 'post_maker');
+      
+      const isReddit = selectedPlatform === 'Reddit';
+      const taskKey = isReddit ? `reddit_post_d${currentDay}` : `x_post_d${currentDay}`;
+      markTaskComplete(user.id, taskKey, supabase);
     } else {
       toast.error("Couldn't generate post. Try again.");
       setIsLoading(false);

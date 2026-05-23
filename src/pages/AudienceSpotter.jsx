@@ -36,6 +36,7 @@ import { useAudienceSpotter } from '../hooks/useAudienceSpotter';
 import moment from 'moment';
 import { usePlan } from '../lib/usePlan';
 import { useUsage, incrementUsage } from '../lib/useUsage';
+import { markTaskComplete } from '../components/TaskWidget';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -68,6 +69,7 @@ export default function AudienceSpotter() {
   const [settingsTab, setSettingsTab] = useState('Platforms');
   const [brain, setBrain] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [currentDay, setCurrentDay] = useState(1);
   
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
   const [communities, setCommunities] = useState([]);
@@ -142,6 +144,23 @@ export default function AudienceSpotter() {
             startScan({ keywords: config.keywords, platforms: config.platforms, communities: config.communities });
           }
         }
+
+        // Fetch current day
+        const { data: tasksData } = await supabase
+          .from('user_tasks')
+          .select('created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1);
+        if (tasksData && tasksData[0]) {
+          const firstDate = new Date(tasksData[0].created_at);
+          firstDate.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diffTime = Math.abs(today.getTime() - firstDate.getTime());
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          setCurrentDay(Math.min(4, diffDays + 1));
+        }
       } finally {
         setIsInitialLoading(false);
       }
@@ -161,6 +180,7 @@ export default function AudienceSpotter() {
     setIsConfigured(true);
     startScan({ keywords, platforms: selectedPlatforms, communities });
     await incrementUsage(supabase, user.id, 'user_finder');
+    markTaskComplete(user.id, 'run_user_finder', supabase);
   };
 
   const addCommunity = () => {
@@ -719,6 +739,8 @@ export default function AudienceSpotter() {
                             onClick={() => {
                               updateSignalStatus({ id: signal.id, status: 'replied' });
                               toast.success("Marked as replied!");
+                              const replyTaskKey = `reply_posts_d${currentDay}`;
+                              markTaskComplete(user.id, replyTaskKey, supabase);
                             }}
                             className="p-2 rounded-lg border border-zinc-800 text-zinc-500 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
                           >

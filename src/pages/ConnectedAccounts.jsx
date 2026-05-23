@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import ConnectAccounts from '../components/results-tracker/ConnectAccounts';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
+import { markTaskComplete } from '../components/TaskWidget';
 
 export default function ConnectedAccounts() {
   const { user } = useAuth();
@@ -61,6 +62,7 @@ export default function ConnectedAccounts() {
 
           <ConnectAccounts
             onConnect={() => {
+              markTaskComplete(user.id, 'connect_reddit', supabase);
               navigate('/dashboard/results-tracker');
             }}
           />
