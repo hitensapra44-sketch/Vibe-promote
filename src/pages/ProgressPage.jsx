@@ -7,6 +7,7 @@ import { Target, CheckSquare, Check, Lock, Sparkles, Loader2, ArrowRight } from 
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import Sidebar from '../components/Sidebar';
+import { cn } from "@/lib/utils";
 
 const GOAL_OPTIONS = [
   { goal_type: 'users_100', goal_label: 'Get first 100 users', goal_target: 100 },
@@ -188,7 +189,7 @@ export default function ProgressPage() {
         </header>
 
         <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full space-y-8 pb-24">
-          {progress && !progress.goal_type ? (
+          {!progress || !progress.goal_type ? (
             /* Goal Selection Screen */
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h2 className="text-xl font-bold text-white mb-2">What are you working toward?</h2>

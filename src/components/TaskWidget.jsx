@@ -6,6 +6,7 @@ import { CheckSquare, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
+import { cn } from "@/lib/utils";
 
 const SEED_TASKS = [
   { day: 1, task_key: 'run_user_finder', task_title: 'Run User Finder', task_description: 'Scan Reddit for people already talking about the problem your product solves. Save the best posts to reply to later.', task_time: '~10 min', route: '/audience-spotter' },
@@ -193,7 +194,6 @@ export default function TaskWidget() {
                         )}>
                           {task.task_title}
                         </p>
-                        <span className="text-[10px] text-gray-600 block mt-0.5">{task.task_time}</span>
                       </div>
                     </div>
                     {!isCompleted && (
