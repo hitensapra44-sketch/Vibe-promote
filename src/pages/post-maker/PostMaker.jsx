@@ -40,9 +40,9 @@ const platformTemplates = {
     { name: "The Unpopular Opinion With Receipts", why: "Disagreement drives replies. Proof stops it being dismissed.", structure: "State opinion plainly no hedging → acknowledge mainstream view → your specific contradicting experience → data or result backing you up → nuance when mainstream view is right → question to reader" }
   ],
   "Indie Hackers": [
-    { name: "The Milestone Full Breakdown", why: "IH community runs on transparency. Full breakdowns with real numbers get referenced for months.", structure: "Headline milestone plus time taken → what you built who it's for → exact steps that led to milestone → what didn't work required for credibility → current metrics table → what you're doing next and why → advice for someone 2 steps behind" },
-    { name: "The Failure Autopsy", why: "IH loves honest failure more than polished success. These posts get the most comments.", structure: "What failed and how badly with numbers → what you were trying and why you thought it'd work → exact moment you knew it wasn't working → root cause real reason not surface reason → what you salvaged → what you'd do differently → question has anyone been through this" },
-    { name: "The Technical Process Post", why: "IH audience are builders. Showing HOW you did something plus business result is gold.", structure: "Headline outcome plus method → problem it solved → exact tools and approach used → step by step what you built → time taken plus result produced → what broke and how fixed → honest recommendation" },
+    { name: "The Milestone Full Breakdown", why: "Indie Hackers community runs on transparency. Full breakdowns with real numbers get referenced for months.", structure: "Headline milestone plus time taken → what you built who it's for → exact steps that led to milestone → what didn't work required for credibility → current metrics table → what you're doing next and why → advice for someone 2 steps behind" },
+    { name: "The Failure Autopsy", why: "Indie Hackers loves honest failure more than polished success. These posts get the most comments.", structure: "What failed and how badly with numbers → what you were trying and why you thought it'd work → exact moment you knew it wasn't working → root cause real reason not surface reason → what you salvaged → what you'd do differently → question has anyone been through this" },
+    { name: "The Technical Process Post", why: "Indie Hackers audience are builders. Showing HOW you did something plus business result is gold.", structure: "Headline outcome plus method → problem it solved → exact tools and approach used → step by step what you built → time taken plus result produced → what broke and how fixed → honest recommendation" },
     { name: "The Audience Research Post", why: "Shows strategic thinking. Other founders learn from your process and engage heavily.", structure: "Why you did research and when → how you found people to talk to exact method → questions you asked list them → 3 most surprising things you heard → how it changed what you were building → what you wish you'd asked → invite others to share their process" },
     { name: "What's Actually Working Right Now", why: "Cuts through theory. Real tactical wins with attribution get bookmarked constantly.", structure: "Open what's actually working for goal right now not 2 years ago → tactic 1 specific with numbers → tactic 2 specific with numbers → tactic 3 specific with numbers → what stopped working → why these work now underlying reason → CTA" }
   ]
@@ -120,6 +120,7 @@ CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
 - ZERO hashtags. Not at the end, not in the middle. Never.
 - ZERO corporate buzzwords. No "streamline", "leverage", "optimize", "synergy", "game-changer", "revolutionize".
 - ZERO incomplete posts. The post MUST be fully written from first word to last word. Never cut off mid-sentence or mid-point.
+FOR TWITTER/X ONLY: The entire post must be under 80 words. This overrides the completeness rule. Cut to fit.
 - Write like a real person talking to another real person. Short sentences. Direct language.
 - Never start a sentence with "I" twice in a row.
 - No em-dashes. No bullet points unless the template structure explicitly calls for them.
@@ -174,94 +175,26 @@ Structure (MANDATORY):
 
 Post must feel complete. No missing sections.
 
-const TWITTER_CONTEXT = "You are writing posts for X/Twitter like a real founder or internet user.
+${`TWITTER/X POST RULES — THESE OVERRIDE EVERYTHING ELSE IN THIS PROMPT:
 
-GOAL:
-- stop the scroll
-- create replies
-- create saves
-- sound human
-- never sound like AI or marketing
+LENGTH: Hard limit. The entire post including hook, body, and CTA must be under 80 words total. Count them. If over 80 words, cut until it is under. No exceptions.
 
-LENGTH RULE:
-- Make posts medium-short
-- Not tiny
-- Not long
-- Usually 1 to 3 short sentences
-- Aim for about 80 to 100 characters when possible
-- Never go over 100 characters unless the user explicitly asks for a longer post
-- Keep each tweet to one clear idea
+FORMAT: 1 to 4 short paragraphs separated by a blank line. No lists. No numbered points. No threads unless the template explicitly says "thread".
 
-VOICE:
-- fast
-- direct
-- casual
-- conversational
-- slightly imperfect sometimes
-- lowercase is okay
+VOICE: Casual. Fast. Sounds like a real person typing on a phone. Lowercase is fine. Short sentences only.
 
-Natural short words are good sometimes:
-- yk
-- ngl
-- tbh
-- imo
-- kinda
-- lmk
+NEVER USE: emojis, hashtags, "game-changer", "revolutionize", "unlock", "supercharge", "leverage", "seamless", "in today's world", "here's the thing", exclamation marks unless absolutely necessary.
 
-NEVER SOUND:
-- corporate
-- linkedin style
-- polished marketing copy
-- fake motivational
-- overly inspirational
+HOOK: First line must be under 12 words. Creates curiosity, tension, or a strong opinion. No generic openers.
 
-NEVER USE:
-- emojis
-- too many hashtags
-- "game changer"
-- "revolutionary"
-- "unlock"
-- "supercharge"
-- "leverage"
-- "boost productivity"
-- "seamless"
-- "in today's world"
-- "here's the thing"
+CTA: One line max. Soft. Natural. Never "DM me", never "link in bio", never hard sell.
 
-WRITING RULES:
-1. First line must create curiosity, tension, emotion, or disagreement
-2. Hook should usually stay under 12 words
-3. Keep the whole post short enough to read instantly
-4. Every post must feel like a natural complete thought
-5. No listicle energy
-6. No fake stories
-7. No filler
-8. Use specifics instead of vague claims
-9. Keep numbers believable
-10. Write like someone typed it fast on a phone
-11. Imperfect grammar is okay sometimes
-12. Focus on pain, insight, mistakes, opinions, lessons, or observations
-13. Value first. Promotion second.
-14. Product name can ONLY appear in final CTA
-15. CTA must be short
-16. Never hard sell
-17. Never say "DM me"
-18. Never say "link in bio"
-19. Output ONLY the tweets
-20.keep post under 100 words
+PRODUCT NAME: Only appears in the CTA line. Nowhere else in the post body.
 
-THREAD STRUCTURE:
-1. Hook
-2. Context or tension
-3. Insight or contrast
-4. Example or proof
-5. Deeper takeaway
-6. Final CTA ";
+THE POST MUST FEEL COMPLETE. Do not cut off mid-thought. If you cannot fit everything under 80 words, cut the middle — never cut the ending.`}
 
 TEMPLATE STRUCTURE TO FOLLOW COMPLETELY:
 ${selectedTemplate?.structure || 'Rewrite the following draft for ' + selectedPlatform + ', fixing tone, structure, and platform fit'}
-
-${selectedMode === 'write' ? 'USER DRAFT TO IMPROVE:\n' + customContext : ''}
 
 TONE: ${selectedTone}
 

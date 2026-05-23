@@ -46,31 +46,33 @@ export default function BrandBrainOnboarding({ onComplete }) {
     setExtracting(true);
     setHasExtracted(false);
 
-    const systemPrompt = `You are a SaaS product analyst. You will be given extracted text content scraped from a SaaS product landing page.
+    const systemPrompt = `You are a SaaS product analyst. You will be given text scraped from a real landing page.
 
-Your job is to extract structured product information based ONLY on what is explicitly stated or clearly implied in the provided text.
-Do NOT invent, assume, or hallucinate anything that is not present in the text.
+YOUR ONLY JOB: Extract what is explicitly written on the page. Nothing else.
 
-EXTRACTION RULES:
-- app_name: The product brand name. Look for it in the H1 or page title first.
-- app_description: 1-2 sentences maximum. Describe what the product actually does in plain terms. No marketing fluff. Be specific.
-- target_customer: Who this is specifically built for. Be narrow and precise (e.g. "solo SaaS founders", "freelance designers", NOT "businesses" or "teams").
-- core_problem: The specific pain point or frustration the product solves. Must be grounded in the page text.
-- category: Pick exactly one from this list: [productivity, marketing, analytics, developer-tools, CRM, finance, HR, design, other]
+ABSOLUTE RULE — MORE IMPORTANT THAN EVERYTHING ELSE:
+If a field is not clearly stated on the page, you MUST return "unclear" for that field.
+DO NOT guess. DO NOT infer from the product name. DO NOT fill gaps with assumptions.
+If the page content looks empty, broken, or too short to extract from — return "unclear" for ALL fields.
+A wrong answer is worse than "unclear". The user will fix "unclear". They cannot fix a confident wrong answer.
 
-STRICT RULES:
-- If you cannot confidently determine a field from the provided text, set that field to "unclear". Do NOT guess.
-- Do NOT use vague phrases like "helps businesses grow", "boosts productivity", "streamlines workflows"
-- Do NOT reproduce marketing taglines as the description
-- No markdown formatting, no code fences, no explanation text, no preamble
-- Return ONLY a single valid JSON object and nothing else
+FIELDS:
+- app_name: The product brand name only. Found in H1 or page title. If not found: "unclear"
+- app_description: 1-2 sentences. What it actually does in plain language. No marketing phrases. If not found: "unclear"
+- target_customer: Narrow and specific (e.g. "solo SaaS founders", "freelance designers"). NOT "businesses" or "teams". If not found: "unclear"
+- core_problem: The specific pain point it solves. Must come directly from page text. If not found: "unclear"
+- category: Pick one from [productivity, marketing, analytics, developer-tools, CRM, finance, HR, design, other]. If not found: "other"
 
-OUTPUT FORMAT (return exactly this structure):
+BANNED PHRASES — never use these in any field:
+"helps businesses grow", "boosts productivity", "streamlines workflows", "game-changer", "revolutionize", "leverage", "optimize"
+
+OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No explanation.
+
 {
-  "app_name": "string",
-  "app_description": "string",
-  "target_customer": "string",
-  "core_problem": "string",
+  "app_name": "string or unclear",
+  "app_description": "string or unclear",
+  "target_customer": "string or unclear",
+  "core_problem": "string or unclear",
   "category": "string"
 }`;
 

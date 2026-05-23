@@ -46,7 +46,8 @@ serve(async (req) => {
         }
 
         const text = await res.text();
-        const content = `URL: ${url}\n\n${text.slice(0, 5000)}`;
+        const trimmed = text.slice(0, 12000);
+        const content = `URL: ${url}\n\n${trimmed}`;
 
         return new Response(JSON.stringify({ content }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
