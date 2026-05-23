@@ -17,6 +17,9 @@ import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import BrandBrainView from './pages/BrandBrainView';
 import PostMaker from './pages/post-maker/PostMaker';
+import RedditPost from './pages/post-maker/RedditPost';
+import XPost from './pages/post-maker/XPost';
+import IndieHackersPost from './pages/post-maker/IndieHackersPost';
 import AudienceSpotter from './pages/AudienceSpotter';
 import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
@@ -38,6 +41,9 @@ const AuthenticatedApp = () => {
         '/dashboard',
         '/onboarding',
         '/post-maker',
+        '/post-maker/reddit',
+        '/post-maker/x',
+        '/post-maker/indiehackers',
         '/audience-spotter',
         '/brand-brain',
         '/marketing-buddy',
@@ -90,6 +96,9 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/brand-brain" element={isAuthenticated ? <BrandBrainView /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/post-maker" element={isAuthenticated ? <PostMaker /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/post-maker/reddit" element={isAuthenticated ? <RedditPost /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/post-maker/x" element={isAuthenticated ? <XPost /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/post-maker/indiehackers" element={isAuthenticated ? <IndieHackersPost /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/audience-spotter" element={isAuthenticated ? <AudienceSpotter /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/dashboard/results-tracker" element={isAuthenticated ? <ResultsTracker /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/marketing-buddy" element={isAuthenticated ? <MarketingBuddy /> : (isLoadingAuth ? null : <Home />)} />

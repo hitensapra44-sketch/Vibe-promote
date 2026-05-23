@@ -126,7 +126,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
       <GridBackground />
       <ParticleBackground />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-20">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-20">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,8 +180,9 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-start"
           >
+            {/* Left Column — inputs */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">App Name</label>
@@ -201,9 +202,6 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   className={`w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all resize-none`}
                 />
               </div>
-            </div>
-
-            <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-text-secondary uppercase tracking-widest ml-1">Target Audience</label>
                 <input
@@ -231,16 +229,77 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   className="w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border border-white/5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
                 />
               </div>
+              <div className="pt-6 flex justify-start">
+                <button
+                  onClick={handleContinue}
+                  className="group inline-flex items-center gap-3 px-10 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-base transition-all shadow-xl shadow-primary/20 w-full justify-center"
+                >
+                  Everything looks good
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
             </div>
 
-            <div className="md:col-span-2 pt-6 flex justify-center">
-              <button
-                onClick={handleContinue}
-                className="group inline-flex items-center gap-3 px-10 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-base transition-all shadow-xl shadow-primary/20"
-              >
-                Everything looks good
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+            {/* Right Column — live preview card */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-6 sticky top-8">
+              {/* Top section inside card */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-primary" />
+                  <span className="text-white/40 text-[10px] tracking-widest font-bold uppercase">YOUR BRAND BRAIN</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-white/60 text-xs">Building live</span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-white/10 my-4" />
+
+              {/* Inner preview section */}
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-2 block">BRAND</span>
+                  {appName ? (
+                    <h3 className="text-white text-2xl font-bold">{appName}</h3>
+                  ) : (
+                    <h3 className="text-white/20 italic text-2xl font-bold">Your brand name</h3>
+                  )}
+                </div>
+
+                <div>
+                  {appDescription ? (
+                    <p className="text-white/70 text-sm leading-relaxed">{appDescription}</p>
+                  ) : (
+                    <p className="text-white/20 text-sm italic">Your one-sentence pitch will appear here as Vibe Hype builds your brand brain in real time.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Second divider */}
+              <div className="border-t border-white/10 my-4" />
+
+              {/* Two more small preview rows */}
+              <div className="space-y-4">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1 block">AUDIENCE</span>
+                  {targetCustomer ? (
+                    <p className="text-white/70 text-sm">{targetCustomer}</p>
+                  ) : (
+                    <p className="text-white/20 text-sm italic">Who you're building for</p>
+                  )}
+                </div>
+
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1 block">PROBLEM</span>
+                  {coreProblem ? (
+                    <p className="text-white/70 text-sm">{coreProblem}</p>
+                  ) : (
+                    <p className="text-white/20 text-sm italic">The pain you solve</p>
+                  )}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
