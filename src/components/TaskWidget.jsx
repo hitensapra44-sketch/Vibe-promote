@@ -80,10 +80,12 @@ export default function TaskWidget() {
         return;
       }
 
-      setTasks(data);
+      // Deduplicate tasks by task_key to prevent duplicates
+      const uniqueTasks = Array.from(new Map(data.map(t => [t.task_key, t])).values());
+      setTasks(uniqueTasks);
 
       // Calculate current day based on first task's created_at
-      const firstTask = data[0];
+      const firstTask = uniqueTasks[0];
       if (firstTask && firstTask.created_at) {
         const firstDate = new Date(firstTask.created_at);
         firstDate.setHours(0, 0, 0, 0);
@@ -156,7 +158,7 @@ export default function TaskWidget() {
             {/* Header */}
             <div className="p-4 pb-3 flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white">Day {currentDay} of 4</span>
+                <span className="text-xs font-bold text-white">Day {currentDay}</span>
                 <button 
                   onClick={toggleOpen}
                   className="text-gray-500 hover:text-white bg-transparent border-none p-0 cursor-pointer"
@@ -219,7 +221,9 @@ export default function TaskWidget() {
               {hasIncomplete ? (
                 <span className="text-[10px] text-gray-600">{completedCount} of {totalCount} done today</span>
               ) : (
-                <span className="text-[10px] text-orange-500 font-bold">Come back tomorrow</span>
+                <span className="text-[10px] text-orange-500 font-bold leading-relaxed">
+                  Now you can go and keep developing your app. Today's marketing is done!
+                </span>
               )}
             </div>
           </motion.div>

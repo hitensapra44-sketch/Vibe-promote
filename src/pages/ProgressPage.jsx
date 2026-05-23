@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckSquare, Check, Lock, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Target, CheckSquare, Check, Lock, Sparkles, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -12,7 +12,11 @@ import { cn } from "@/lib/utils";
 const GOAL_OPTIONS = [
   { goal_type: 'users_100', goal_label: 'Get first 100 users', goal_target: 100 },
   { goal_type: 'paying_10', goal_label: 'Get first 10 paying users', goal_target: 10 },
+  { goal_type: 'paying_50', goal_label: 'Get first 50 paying users', goal_target: 50 },
   { goal_type: 'mrr_100', goal_label: 'Touch $100 MRR', goal_target: 100 },
+  { goal_type: 'mrr_1000', goal_label: 'Touch $1,000 MRR', goal_target: 1000 },
+  { goal_type: 'newsletter_100', goal_label: 'Get 100 newsletter subscribers', goal_target: 100 },
+  { goal_type: 'launch_ph', goal_label: 'Launch on Product Hunt', goal_target: 1 },
   { goal_type: 'consistency', goal_label: 'Consistency in marketing', goal_target: 0, sublabel: 'Auto-fills as you complete daily tasks' }
 ];
 
@@ -66,10 +70,13 @@ export default function ProgressPage() {
         .order('created_at', { ascending: true });
 
       if (tasksError) throw tasksError;
-      setTasks(tasksData || []);
+      
+      // Deduplicate tasks by task_key to prevent duplicates
+      const uniqueTasks = Array.from(new Map((tasksData || []).map(t => [t.task_key, t])).values());
+      setTasks(uniqueTasks);
 
-      if (tasksData && tasksData.length > 0) {
-        const firstTask = tasksData[0];
+      if (uniqueTasks.length > 0) {
+        const firstTask = uniqueTasks[0];
         const firstDate = new Date(firstTask.created_at);
         firstDate.setHours(0, 0, 0, 0);
         const today = new Date();
@@ -149,6 +156,35 @@ export default function ProgressPage() {
     }
   };
 
+  const handleChangeGoal = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('user_progress')
+        .update({
+          goal_type: null,
+          goal_label: null,
+          goal_target: null,
+          current_value: 0
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setProgress(prev => ({
+        ...prev,
+        goal_type: null,
+        goal_label: null,
+        goal_target: null,
+        current_value: 0
+      }));
+      setSelectedGoal(null);
+    } catch (err) {
+      console.error('Error resetting goal:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpdateProgress = async () => {
     const val = parseInt(updateValue, 10);
     if (isNaN(val)) return;
@@ -178,6 +214,8 @@ export default function ProgressPage() {
       </div>
     );
   }
+
+  const isGoalCompleted = progress?.goal_type && progress?.goal_type !== 'consistency' && (progress?.current_value || 0) >= (progress?.goal_target || 1);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-poppins flex relative overflow-hidden">
@@ -229,9 +267,19 @@ export default function ProgressPage() {
             <div className="space-y-8 animate-in fade-in duration-500">
               {/* Section 1: Goal Card */}
               <div className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-4">
-                <div>
-                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block mb-1">Current Goal</span>
-                  <h2 className="text-xl font-bold text-white">{progress?.goal_label}</h2>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block mb-1">Current Goal</span>
+                    <h2 className="text-xl font-bold text-white">
+                      {isGoalCompleted ? "Congratulations, you did it! 🎉" : progress?.goal_label}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={handleChangeGoal}
+                    className="text-xs text-zinc-400 hover:text-white bg-transparent border border-white/10 rounded-lg px-3 py-1.5 transition-all"
+                  >
+                    Change Goal
+                  </button>
                 </div>
 
                 {progress?.goal_type !== 'consistency' ? (
