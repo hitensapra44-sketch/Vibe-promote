@@ -31,30 +31,43 @@ serve(async (req) => {
       }
 
       try {
-        const res = await fetch(`https://r.jina.ai/${url}`, {
+        const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
+        if (!firecrawlKey) throw new Error('Firecrawl key not configured');
+
+        const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+          method: 'POST',
           headers: {
-            'Accept': 'text/plain',
-            'User-Agent': 'Mozilla/5.0'
-          }
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${firecrawlKey}`
+          },
+          body: JSON.stringify({
+            url,
+            formats: ['markdown'],
+            onlyMainContent: true
+          })
         });
 
         if (!res.ok) {
-          return new Response(JSON.stringify({ error: "Could not fetch page" }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400
-          });
+          const errText = await res.text();
+          throw new Error(`Firecrawl error: ${errText}`);
         }
 
-        const text = await res.text();
-        const trimmed = text.slice(0, 12000);
-        const content = `URL: ${url}\n\n${trimmed}`;
+        const json = await res.json();
+        const markdown = json?.data?.markdown || json?.markdown || '';
+
+        if (!markdown || markdown.length < 100) {
+          throw new Error('Page returned no usable content. Check the URL and try again.');
+        }
+
+        const content = `URL: ${url}\n\n${markdown.slice(0, 12000)}`;
 
         return new Response(JSON.stringify({ content }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200
         });
+
       } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message || "Could not fetch page" }), {
+        return new Response(JSON.stringify({ error: err.message || 'Could not fetch page.' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400
         });
