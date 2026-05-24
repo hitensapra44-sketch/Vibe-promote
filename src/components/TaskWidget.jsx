@@ -13,7 +13,7 @@ const SEED_TASKS = [
   { day: 1, task_key: 'reddit_post_d1', task_title: 'Make a Reddit Post', task_description: 'Write a build in public post for r/buildingpublic using Post Maker. Use the Vulnerable Founder template.', task_time: '~15 min', route: '/post-maker' },
   { day: 1, task_key: 'x_post_d1', task_title: 'Generate an X Post', task_description: 'Generate a hook-format X post using Post Maker. Copy it and post it yourself.', task_time: '~5 min', route: '/post-maker' },
   { day: 1, task_key: 'connect_reddit', task_title: 'Connect Your Reddit Account', task_description: 'Connect your Reddit account so your replies feel native and build real karma.', task_time: '~3 min', route: '/connected-accounts' },
-  { day: 1, task_key: 'add_goal', task_title: 'Add your marketing goal', task_description: 'Add a marketing goal you want to achieve this month and it will track every progress.', task_time: '~3 min', route: '/progress' },
+  { day: 1, task_key: 'add_goal', task_title: 'Add your marketing goal', task_description: 'Add a marketing goal you want to achieve this month and it will track every progress.', task_time: '~3 min', route: '/progresspage' },
 
   { day: 2, task_key: 'reply_posts_d2', task_title: 'Reply to Saved Posts', task_description: 'Go to User Finder and reply to the posts you saved yesterday using the suggested replies.', task_time: '~15 min', route: '/audience-spotter' },
   { day: 2, task_key: 'reddit_post_d2', task_title: 'Make a Reddit Post', task_description: 'Write a problem/solution post for your top extracted subreddit using the Contrarian Insight template.', task_time: '~15 min', route: '/post-maker' },
