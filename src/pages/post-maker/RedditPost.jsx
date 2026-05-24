@@ -117,101 +117,54 @@ export default function RedditPost() {
     setStep(5);
 
     const prompt = `
-You are a world-class ghostwriter for indie founders and bootstrapped SaaS builders. You write like a real human, not a marketer.
+You are a ghostwriter for indie founders. Write honest, value-first Reddit posts that feel like real experiences, not marketing.
 
-BRAND INFORMATION:
+BRAND:
 ${JSON.stringify(brain)}
 
-TASK:
-Write a complete, high-performing Reddit post using the "${selectedTemplate?.name || 'custom'}" format.
+TASK: Write one complete Reddit post using the "${selectedTemplate?.name || 'custom'}" template.
 
-CRITICAL WRITING RULES — VIOLATING ANY OF THESE MEANS THE POST FAILS:
-- ZERO emojis. None. Not a single one.
-- Dont use app name on the headline make it look like a founder build something around that problem
-- DONT USE ANY LARGE OR HARD WORDS
-- ZERO hashtags. Not at the end, not in the middle. Never.
-- ZERO corporate buzzwords. No "streamline", "leverage", "optimize", "synergy", "game-changer", "revolutionize".
-- ZERO incomplete posts. The post MUST be fully written from first word to last word. Never cut off mid-sentence or mid-point.
-- Write like a real person talking to another real person. Short sentences. Direct language.
-- Never start a sentence with "I" twice in a row.
-- No em-dashes. No bullet points unless the template structure explicitly calls for them.
-- No hype. No exclamation marks unless the template genuinely needs one.
+HARD RULES — break any of these and the post fails:
+- Zero emojis. Zero hashtags.
+- No corporate words (leverage, streamline, optimize, game-changer, revolutionize).
+- No exclamation marks unless the story genuinely needs one.
+- No em-dashes.
+- Write like a frustrated or honest founder sharing a real experience.
+- Simple everyday words only. If a word sounds like a LinkedIn post, replace it.
+- 90% of the post = pure value, story, or insight. 10% max = product mention.
+- The post must never feel like an ad.
 
-REDDIT VOICE
+HOOK (first paragraph):
+Start with ONE of these — no exceptions:
+- A specific painful moment with a detail ("I spent 3 hours on a Thursday...")
+- A strong contrarian statement that makes people stop scrolling
+Never open with: "I've been working on...", "I wanted to share...", "Has anyone else..."
 
-Tone:
-- Write like a frustrated but honest founder sharing a real experience
-- No hype, no marketing tone, no buzzwords
-- Use simple, everyday language (no complex or “fancy” words)
-- No emojis
+STRUCTURE — follow this order:
+1. Hook — pain point or contrarian opener
+2. Context — what you built and who it's for (2-3 sentences max)
+3. Struggle or insight — be specific, use real numbers or actions
+4. Outcome or lesson — what changed or what you learned
+5. CTA — a genuine question to the community OR a soft one-liner like "built X to fix this if anyone's curious"
 
-Core Writing Rules:
-- 90% of the post = pure value, story, or insight
-- 10% or less = product mention (if included)
-- The post must NEVER feel like an ad
+PRODUCT MENTION RULES:
+- Optional. If included: appears naturally inside the story, reads like a side note, max 1-2 lines.
+- Never a pitch. Never a link unless CTA asks for it.
 
-Hook:
-- First paragraph must start with:
-  - A specific painful moment OR
-  - A strong contrarian statement
-- No generic intros (e.g. "I’ve been working on..." is banned)
-
-Body:
-- Tell a real story, struggle, mistake, or lesson
-- Be specific (numbers, actions, failures)
-- Avoid vague advice
-
-Product Mention:
-- Optional
-- If included, it must:
-  - Appear naturally in the story
-  - NOT sound like a pitch
-  - Be 1–2 lines max
-
-CTA:
-- Must NOT sell anything
-- Must be one of:
-  - A genuine question to the community
-  - OR a soft mention like: "I ended up building X to fix this"
-- Never include links or aggressive promotion
-
-Structure (MANDATORY):
-1. Hook (pain / contrarian)
-2. Context (what happened)
-3. Struggle / insight
-4. Outcome or lesson
-5. Soft CTA
-
-Post must feel complete. No missing sections.
-
-TEMPLATE STRUCTURE TO FOLLOW COMPLETELY:
-${selectedTemplate?.structure || 'Rewrite the following draft for Reddit, fixing tone, structure, and platform fit'}
-
+TEMPLATE: ${selectedTemplate?.structure || 'write a value-first Reddit post that fits the brand'}
 TONE: ${selectedTone}
+EXTRA CONTEXT: ${customContext || 'None'}
 
-ADDITIONAL CONTEXT FROM USER: ${customContext || 'None'}
+SCORING:
+Score out of 100 on: hook strength, value ratio (90/10 rule), platform authenticity, CTA quality, no rule violations (emoji/hashtag = -30, feels like ad = -25), completeness.
+scoreLabel: 75-100 = "Great Post", 50-74 = "Decent Post", 0-49 = "Needs Work"
+scoreColor: "green" / "yellow" / "red"
 
-CTA RULES:
-- The CTA must match the brand's actual marketing goal from the brand information above
-- CTA is a question or soft mention — "Built X to fix this if anyone's curious: [link]"
-- Never write a CTA that sounds like an ad. It must feel like a natural next line.
-
-SCORING RULES:
-Score the post out of 100 based on: hook strength, platform fit, CTA quality, no rule violations (emojis/hashtags = automatic -30), completeness of post, and tone match.
-Then assign a scoreLabel:
-- 75 to 100: "Great Post"
-- 50 to 74: "Decent Post"
-- 0 to 49: "Needs Work"
-And a scoreColor:
-- Great Post: "green"
-- Decent Post: "yellow"
-- Needs Work: "red"
-
-Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No explanation outside the JSON:
+Return ONLY valid JSON, no markdown, no backticks:
 {
-  "title": "hook line or post title",
-  "body": "full complete post body — every section of the template filled out",
-  "cta": "the call to action — one line, natural, no hype",
+  "title": "post title",
+  "body": "full complete post body following the 5-part structure",
+  "cta": "one natural CTA line",
   "score": 82,
   "scoreLabel": "Great Post",
   "scoreColor": "green"
