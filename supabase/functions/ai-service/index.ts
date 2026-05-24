@@ -12,7 +12,7 @@ const KEYS = {
   FALLBACK: "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"
 };
 
-serve(async (req) => {
+serve(async (req: { method: string; json: () => any; }) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
