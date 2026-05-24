@@ -77,12 +77,11 @@ export default function Dashboard() {
           });
         }
 
-        // Fetch social posts for streak and count
-        const { data: postsData, count: postCount } = await supabase
+        // Fetch social posts for count
+        const { count: postCount } = await supabase
           .from('social_posts')
-          .select('platform, created_at', { count: 'exact' })
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+          .select('platform, created_at', { count: 'exact', head: true })
+          .eq('user_id', user.id);
 
         // Connected channels count
         const { count: channelCount } = await supabase
@@ -96,39 +95,14 @@ export default function Dashboard() {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
-        let streak = 0;
-        if (postsData && postsData.length > 0) {
-          const selectedPlatforms = brainData?.primary_platform 
-            ? brainData.primary_platform.toLowerCase().split(',').map(p => p.trim())
-            : [];
+        // Fetch streak from user_progress table to sync with Progress Page
+        const { data: progressData } = await supabase
+          .from('user_progress')
+          .select('streak')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-          const filteredPosts = selectedPlatforms.length > 0
-            ? postsData.filter(p => selectedPlatforms.some(sp => p.platform.toLowerCase().includes(sp) || sp.includes(p.platform.toLowerCase())))
-            : postsData;
-
-          if (filteredPosts.length > 0) {
-            const postDays = [...new Set(filteredPosts.map(p => 
-              new Date(p.created_at).toDateString()
-            ))];
-            
-            const today = new Date();
-            const lastPostDate = new Date(postDays[0]);
-            const diffTime = Math.abs(today - lastPostDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays <= 1) {
-              for (let i = 0; i < 365; i++) {
-                const day = new Date(today);
-                day.setDate(today.getDate() - i);
-                if (postDays.includes(day.toDateString())) {
-                  streak++;
-                } else if (i > 0) {
-                  break;
-                }
-              }
-            }
-          }
-        }
+        const streak = progressData?.streak || 0;
 
         setStats({
           postsGenerated: postCount || 0,

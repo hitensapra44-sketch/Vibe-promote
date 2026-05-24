@@ -11,7 +11,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
@@ -466,6 +467,15 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
                   {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copyStatus}
                 </button>
+                <a 
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-orange-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-orange-600 transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open X
+                </a>
                 <button 
                   onClick={generatePost}
                   className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"

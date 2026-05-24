@@ -11,12 +11,11 @@ const PLANS = [
     ctaHref: '/auth',
     featured: false,
     features: [
-      { label: 'Positioning Helper', value: '10/month' },
-      { label: 'Post Preview', value: 'Unlimited' },
+      { label: 'Positioning Helper', value: '1 use' },
       { label: 'User Finder', value: '5 searches/month' },
-      { label: 'Post Maker', value: '10 posts/month' },
+      { label: 'Post Maker', value: '8 posts/month' },
       { label: 'Co-Pilot', value: 'Locked', locked: true },
-      { label: 'Analytics', value: 'Preview only' },
+      { label: 'Analytics', value: 'Locked', locked: true },
       { label: 'Connected Accounts', value: '1' },
       { label: 'Brand Profiles', value: '1' },
       { label: 'PDF Guide', value: 'Reddit + X guidebook' },
@@ -37,7 +36,7 @@ const PLANS = [
     cta: 'Start 3-day free trial',
     featured: false,
     features: [
-      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Positioning Helper', value: '10 uses' },
       { label: 'Post Preview', value: 'Unlimited' },
       { label: 'User Finder', value: '50 searches/month' },
       { label: 'Post Maker', value: '60 posts/month' },
@@ -302,7 +301,7 @@ export default function Pricing() {
           Refund anytime. No hidden fees. Cancel anytime..
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '14px', marginTop: '32px' }}>
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
             color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
@@ -488,7 +487,6 @@ export default function Pricing() {
               { icon: '✓', text: 'Refund avalabile' },
               { icon: '✓', text: 'Cancel anytime' },
               { icon: '✓', text: 'Instant access on signup' },
-              { icon: '✓', text: 'No credit card tricks' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: '#9C2000', fontWeight: 700, fontSize: '14px' }}>{item.icon}</span>

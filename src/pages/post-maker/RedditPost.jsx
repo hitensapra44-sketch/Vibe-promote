@@ -11,7 +11,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
@@ -29,7 +30,7 @@ const selectedPlatform = "Reddit";
 const platformTemplates = {
   Reddit: [
     { name: "The Vulnerable Founder", why: "Reddit rewards honesty over marketing. Specific painful moments get upvoted hard.", structure: "Open with one painful specific moment → full context of what you built → what went wrong → what you learned → genuine question to community, no pitch" },
-    { name: "The Transparent Numbers Update", why: "Real data = instant credibility on Reddit. Founders love specifics.", structure: "Headline with exact numbers → break down what drove each metric → one thing that surprised you → one thing changing next month → what you're watching next" },
+    { name: "The Transparent Numbers Update", why: "Real data = instant credibility on Reddit. Founders love specifics.", structure: "Headline milestone plus time taken → what you built who it's for → exact steps that led to milestone → what didn't work required for credibility → current metrics table → what you're doing next and why → advice for someone 2 steps behind" },
     { name: "The Contrarian Insight", why: "Goes against common advice, people stop scrolling when they disagree or get curious.", structure: "Unpopular opinion stated plainly → why most people believe the opposite → your specific experience proving otherwise → 2-3 concrete examples → what you'd tell someone starting today" },
     { name: "The Deep Useful Breakdown", why: "Saves people time. Step-by-step actionable posts get saved and shared.", structure: "Title frames exact outcome → short context on who you are → numbered steps, each specific → what didn't work alongside what did → honest note on what you'd do differently today" },
     { name: "The Ask That Teaches", why: "Asking for help while giving value makes community want to engage.", structure: "Specific situation you're in right now → what you've already tried → one sharp specific question → what you think the answer might be → invite disagreement" }
@@ -495,6 +496,15 @@ Return ONLY a valid JSON object. No markdown. No backticks. No preamble. No expl
                   {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copyStatus}
                 </button>
+                <a 
+                  href="https://reddit.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-orange-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-orange-600 transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open Reddit
+                </a>
                 <button 
                   onClick={generatePost}
                   className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"

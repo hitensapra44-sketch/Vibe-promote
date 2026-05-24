@@ -2,15 +2,15 @@ import { useAuth } from './AuthContext';
 
 const PLAN_LIMITS = {
   free: {
-    postMaker: 15,
-    userFinder: 10,
+    postMaker: 8,
+    userFinder: 5,
     copilot: "locked",
     analytics: "locked"
   },
   starter: {
-    postMaker: 35,
+    postMaker: 60,
     userFinder: 50,
-    copilot: "unlimited",
+    copilot: 40,
     analytics: "preview"
   },
   pro: {
