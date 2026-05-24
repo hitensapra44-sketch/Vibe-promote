@@ -42,7 +42,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
       onClick={onClick}
       className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
         active 
-          ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
           : 'bg-white/5 border-white/10 text-white/60 hover:border-white/20'
       }`}
     >
@@ -51,7 +51,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
   );
 
   return (
-    <div className="relative min-h-screen bg-[#0d1117] text-white font-poppins overflow-hidden flex flex-col">
+    <div className="relative min-h-screen bg-bg-base text-white font-poppins overflow-hidden flex flex-col">
       <GridBackground />
       <ParticleBackground />
 
@@ -97,7 +97,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
           <div className="space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Brain className="w-4 h-4 text-indigo-400" />
+                <Brain className="w-4 h-4 text-primary" />
                 <label className="text-sm font-bold">Brand Tone</label>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <PenTool className="w-4 h-4 text-indigo-400" />
+                <PenTool className="w-4 h-4 text-primary" />
                 <label className="text-sm font-bold">Writing Style</label>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -117,7 +117,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-indigo-400" />
+                <Zap className="w-4 h-4 text-primary" />
                 <label className="text-sm font-bold">Platforms</label>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -127,7 +127,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-400" />
+                <Clock className="w-4 h-4 text-primary" />
                 <label className="text-sm font-bold">Posting Frequency</label>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -159,7 +159,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
 
             <button
               onClick={handleContinue}
-              className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all shadow-xl shadow-indigo-900/20 flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-2xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2"
             >
               Go to dashboard
               <ArrowRight className="w-4 h-4" />
@@ -175,7 +175,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
         >
           {/* Top Card */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
-            <Brain className="w-8 h-8 text-indigo-400" />
+            <Brain className="w-8 h-8 text-primary" />
             <div className="flex-1">
               <span className="text-[10px] tracking-widest text-white/30 uppercase font-bold block">YOUR APP BRAIN</span>
               <span className="text-white font-semibold text-sm">Building live</span>
@@ -205,15 +205,15 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
             <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/40">Tone</span>
-                <span className="text-indigo-400 font-semibold">{tone}</span>
+                <span className="text-primary font-semibold">{tone}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/40">Style</span>
-                <span className="text-indigo-400 font-semibold">{style}</span>
+                <span className="text-primary font-semibold">{style}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/40">Platforms</span>
-                <span className="text-indigo-400 font-semibold truncate max-w-[180px]">{selectedPlatforms.join(', ')}</span>
+                <span className="text-primary font-semibold truncate max-w-[180px]">{selectedPlatforms.join(', ')}</span>
               </div>
             </div>
           </div>
