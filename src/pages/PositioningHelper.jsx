@@ -41,7 +41,8 @@ Brand data: ${JSON.stringify(appData)}`;
 
     try {
       const result = await generateAICall(systemPrompt, "Generate the positioning now.", null, 'onboarding');
-      const parsed = JSON.parse(result);
+      const clean = result.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
       setAiPositioning(parsed);
     } catch (err) {
       console.error("Generation Error:", err);
