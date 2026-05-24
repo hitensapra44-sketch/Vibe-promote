@@ -4,43 +4,47 @@ const PLANS = [
   {
     id: 'free',
     name: 'Free',
-    tagline: 'Explore the core tools, free forever.',
+    tagline: 'Try the core tools. Upgrade when ready.',
     price: 0,
-    period: '/month',
+    period: '',
     cta: 'Get Started Free',
     ctaHref: '/auth',
     featured: false,
     features: [
-      { label: 'Positioning Helper', value: 'Unlimited' },
+      { label: 'Positioning Helper', value: '10/month' },
       { label: 'Post Preview', value: 'Unlimited' },
-      { label: 'User Finder', value: '10 searches/month' },
-      { label: 'Post Maker', value: '15 posts/month' },
+      { label: 'User Finder', value: '5 searches/month' },
+      { label: 'Post Maker', value: '10 posts/month' },
       { label: 'Co-Pilot', value: 'Locked', locked: true },
-      { label: 'Analytics', value: 'Locked', locked: true },
+      { label: 'Analytics', value: 'Preview only' },
       { label: 'Connected Accounts', value: '1' },
       { label: 'Brand Profiles', value: '1' },
-      { label: 'PDF Guide', value: 'Reddit and X guidebook' },
+      { label: 'PDF Guide', value: 'Reddit + X guidebook' },
       { label: 'Support', value: 'Email' },
     ],
   },
   {
     id: 'starter',
     name: 'Starter',
-    tagline: 'More power for growing founders.',
-    price: 9,
+    tagline: 'For founders getting first users.',
+    monthlyPrice: 15,
+    annualPrice: 12,
+    annualTotal: 144,
+    annualSavings: 36,
+    monthlyHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
+    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NfXVLJOSq7SibMDdSngh?quantity=1',
     period: '/month',
     cta: 'Start 3-day free trial',
-    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
     featured: false,
     features: [
       { label: 'Positioning Helper', value: 'Unlimited' },
       { label: 'Post Preview', value: 'Unlimited' },
       { label: 'User Finder', value: '50 searches/month' },
-      { label: 'Post Maker', value: '35 posts/month' },
-      { label: 'Co-Pilot', value: 'Unlimited' },
-      { label: 'Analytics', value: 'Preview only' },
+      { label: 'Post Maker', value: '60 posts/month' },
+      { label: 'Co-Pilot', value: '40 uses/month' },
+      { label: 'Analytics', value: 'Basic' },
       { label: 'Connected Accounts', value: '2' },
-      { label: 'Brand Profiles', value: '1' },
+      { label: 'Brand Profiles', value: '2' },
       { label: 'PDF Guide', value: 'Reddit, X, LinkedIn, IndieHackers' },
       { label: 'Support', value: 'Priority Email' },
     ],
@@ -48,46 +52,28 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    tagline: 'The full toolkit for serious founders.',
-    price: 49,
+    tagline: 'For founders serious about growth.',
+    monthlyPrice: 29,
+    annualPrice: 23,
+    annualTotal: 276,
+    annualSavings: 72,
+    monthlyHref: 'https://checkout.dodopayments.com/buy/pdt_0Ne1moGR0X9lBvhgme2rO?quantity=1',
+    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NfXVY72Xp7tzUaALkePS?quantity=1',
     period: '/month',
     cta: 'Start 3-day free trial',
-    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0Ne1moGR0X9lBvhgme2rO?quantity=1',
     featured: true,
     badge: 'Most Popular',
     features: [
       { label: 'Positioning Helper', value: 'Unlimited' },
       { label: 'Post Preview', value: 'Unlimited' },
-      { label: 'User Finder', value: 'Unlimited' },
-      { label: 'Post Maker', value: 'Unlimited' },
-      { label: 'Co-Pilot', value: 'Unlimited' },
-      { label: 'Analytics', value: 'Full access' },
-      { label: 'Connected Accounts', value: 'All platforms' },
-      { label: 'Brand Profiles', value: '1' },
-      { label: 'PDF Guide', value: 'Every platform' },
-      { label: 'Support', value: '24/7 Proper Support' },
-    ],
-  },
-  {
-    id: 'founder',
-    name: 'Founder',
-    tagline: 'For multi-product founders and consultants.',
-    price: 99,
-    period: '/month',
-    cta: 'Go Founder',
-    ctaHref: 'https://checkout.dodopayments.com/buy/pdt_0NeCAkzcVSNwW1PqKCAjA?quantity=1',
-    featured: false,
-    features: [
-      { label: 'Positioning Helper', value: 'Unlimited' },
-      { label: 'Post Preview', value: 'Unlimited' },
-      { label: 'User Finder', value: 'Unlimited' },
-      { label: 'Post Maker', value: 'Unlimited' },
-      { label: 'Co-Pilot', value: 'Unlimited' },
+      { label: 'User Finder', value: '200 searches/month' },
+      { label: 'Post Maker', value: '250 posts/month' },
+      { label: 'Co-Pilot', value: '200 uses/month' },
       { label: 'Analytics', value: 'Full access + AI insights' },
       { label: 'Connected Accounts', value: 'All platforms' },
-      { label: 'Brand Profiles', value: 'Unlimited' },
-      { label: 'PDF Guide', value: 'Every platform + exclusive Founder PDF' },
-      { label: 'Support', value: 'Direct Founder Support' },
+      { label: 'Brand Profiles', value: '5' },
+      { label: 'PDF Guide', value: 'Every platform' },
+      { label: 'Support', value: 'Priority Support' },
     ],
   },
 ];
@@ -116,6 +102,8 @@ function LockIcon() {
 }
 
 export default function Pricing() {
+  const [isAnnual, setIsAnnual] = useState(false);
+
   return (
     <div style={{ background: '#000', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
       <style>{`
@@ -313,13 +301,49 @@ export default function Pricing() {
         <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
           Refund anytime. No hidden fees. Cancel anytime..
         </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
+          <span style={{
+            fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
+            color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
+          }}>Monthly</span>
+
+          <button
+            onClick={() => setIsAnnual(!isAnnual)}
+            style={{
+              width: '48px', height: '26px', borderRadius: '100px', border: 'none', cursor: 'pointer',
+              background: isAnnual ? '#9C2000' : 'rgba(255,255,255,0.12)',
+              position: 'relative', transition: 'background 0.3s ease', flexShrink: 0
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: '3px',
+              left: isAnnual ? '25px' : '3px',
+              width: '20px', height: '20px', borderRadius: '50%',
+              background: '#fff', transition: 'left 0.3s ease',
+              display: 'block'
+            }} />
+          </button>
+
+          <span style={{
+            fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 600 : 400,
+            color: isAnnual ? '#F2EDE8' : '#44403C', transition: 'color 0.2s'
+          }}>
+            Yearly
+            <span style={{
+              marginLeft: '8px', fontFamily: 'Inter', fontSize: '11px', fontWeight: 700,
+              background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.4)',
+              borderRadius: '100px', padding: '2px 8px', color: '#E85D04'
+            }}>Save 20%</span>
+          </span>
+        </div>
       </div>
 
       {/* PLANS GRID */}
       <div style={{ padding: '0 40px 80px', maxWidth: '1200px', margin: '0 auto' }}>
         <div
           className="plans-grid"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px', alignItems: 'start' }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', alignItems: 'start' }}
           onMouseMove={e => {
             document.querySelectorAll('.pricing-card').forEach(card => {
               const rect = card.getBoundingClientRect();
@@ -378,23 +402,44 @@ export default function Pricing() {
                   </div>
 
                   {/* Price */}
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                    <span style={{
-                      fontFamily: 'Inter', fontWeight: 900,
-                      fontSize: plan.price === 0 ? '44px' : '48px',
-                      letterSpacing: '-0.04em', lineHeight: 1,
-                      color: isPro ? '#F2EDE8' : '#F2EDE8'
-                    }}>
-                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
-                    </span>
-                    {plan.price > 0 && (
-                      <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#44403C' }}>{plan.period}</span>
-                    )}
-                  </div>
+                  {plan.id === 'free' ? (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
+                      <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '44px', letterSpacing: '-0.04em', lineHeight: 1, color: '#F2EDE8' }}>Free</span>
+                    </div>
+                  ) : (
+                    <div style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                        <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '48px', letterSpacing: '-0.04em', lineHeight: 1, color: '#F2EDE8' }}>
+                          ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                        </span>
+                        <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#44403C' }}>/month</span>
+                      </div>
+
+                      {isAnnual ? (
+                        <div style={{ marginTop: '6px' }}>
+                          <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672' }}>
+                            Billed ${plan.annualTotal}/year
+                          </div>
+                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#E85D04', fontWeight: 600, marginTop: '2px' }}>
+                            2.5 months free — save ${plan.annualSavings}
+                          </div>
+                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C', marginTop: '2px' }}>
+                            {plan.id === 'starter' ? 'Less than 45¢ a day' : 'Less than 90¢ a day'}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: '6px' }}>
+                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }}>
+                            {plan.id === 'starter' ? 'Less than 50¢ a day' : 'Less than $1 a day'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* CTA */}
                   <a
-                    href={plan.ctaHref}
+                    href={plan.id === 'free' ? plan.ctaHref : (isAnnual ? plan.annualHref : plan.monthlyHref)}
                     className={`cta-btn ${isPro ? 'cta-btn-pro' : isFounder ? 'cta-btn-founder' : 'cta-btn-default'}`}
                     style={{ marginBottom: '24px' }}
                   >
@@ -485,7 +530,7 @@ export default function Pricing() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
             Vibe<span style={{ color: '#9C2000' }}>Promote</span>
           </div>
