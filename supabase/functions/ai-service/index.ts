@@ -6,15 +6,22 @@ const corsHeaders = {
 }
 
 const KEYS = {
-  MINIMAX: "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",
-  MISTRAL_1: "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",
-  MISTRAL_2: "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",
-  FALLBACK: "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"
+  MINIMAX: Deno.env.get('NVIDIA_KEY_MINIMAX') ?? '',
+  MISTRAL_1: Deno.env.get('NVIDIA_KEY_MISTRAL_1') ?? '',
+  MISTRAL_2: Deno.env.get('NVIDIA_KEY_MISTRAL_2') ?? '',
+  FALLBACK: Deno.env.get('NVIDIA_KEY_FALLBACK') ?? '',
 };
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
+  }
+
+  if (!KEYS.FALLBACK) {
+    return new Response(JSON.stringify({ error: 'API keys not configured' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
   }
 
   try {
