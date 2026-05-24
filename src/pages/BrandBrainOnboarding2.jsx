@@ -197,7 +197,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
               <p className="text-white/60 text-sm leading-relaxed mt-3 break-words">{app_description}</p>
             ) : (
               <p className="text-white/20 italic text-sm leading-relaxed mt-3">
-                Your one-sentence description will appear here as Vibe Hype builds your launch brain in real time.
+                Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.
               </p>
             )}
 
