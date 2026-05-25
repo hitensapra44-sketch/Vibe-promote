@@ -1,0 +1,1520 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+
+// ─── ORANGE PARTICLE BACKGROUND ──────────────────────────────────────────────
+function Starfield() {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let W = canvas.offsetWidth;
+    let H = canvas.offsetHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Particles
+    const COUNT = 80;
+    const particles = Array.from({ length: COUNT }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.6 + 0.4,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      alpha: Math.random() * 0.5 + 0.15
+    }));
+
+    const resize = () => {
+      W = canvas.offsetWidth;
+      H = canvas.offsetHeight;
+      canvas.width = W;
+      canvas.height = H;
+    };
+    window.addEventListener('resize', resize);
+
+    const CONNECT_DIST = 130;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+
+      // Move
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H;
+        if (p.y > H) p.y = 0;
+      });
+
+      // Draw connections
+      for (let i = 0; i < COUNT; i++) {
+        for (let j = i + 1; j < COUNT; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECT_DIST) {
+            const opacity = (1 - dist / CONNECT_DIST) * 0.18;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(156,32,0,${opacity})`;
+            ctx.lineWidth = 0.8;
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw dots
+      particles.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(232,93,4,${p.alpha})`;
+        ctx.fill();
+      });
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute', top: 0, left: 0,
+        width: '100%', height: '100%', zIndex: 0,
+        display: 'block'
+      }} />);
+
+
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function Nav() {
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      height: '60px', display: 'flex', alignItems: 'center',
+      padding: '0 40px',
+      background: 'rgba(6,6,10,0.88)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255,255,255,0.06)'
+    }} className="bg-[hsl(var(--background))]">
+      <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#F2EDE8', flex: '0 0 auto' }}>
+        Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+      </div>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: '36px' }} className="nav-links bg-[hsl(var(--background))]">
+        {['How it works', 'Features', 'Pricing', 'Why Us', 'Solution'].map((l) =>
+        <a key={l} href={l === 'Pricing' ? '/pricing' : `#${l.toLowerCase().replace(/ /g, '-')}`}
+        style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672', textDecoration: 'none', transition: 'color 0.2s' }}
+        onMouseEnter={(e) => e.target.style.color = '#F2EDE8'}
+        onMouseLeave={(e) => e.target.style.color = '#7A7672'}>{l}</a>
+        )}
+      </div>
+      <a href="#pricing"
+      style={{
+        fontFamily: 'Inter', fontWeight: 600, fontSize: '14px',
+        background: '#9C2000', color: '#fff', border: 'none',
+        padding: '9px 20px', borderRadius: '8px', cursor: 'pointer',
+        textDecoration: 'none', transition: 'all 0.25s ease', flex: '0 0 auto'
+      }}
+      onMouseEnter={(e) => {e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)';e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)';}}
+      onMouseLeave={(e) => {e.currentTarget.style.background = '#9C2000';e.currentTarget.style.boxShadow = 'none';}}>
+        Start for Free</a>
+    </nav>);
+
+}
+
+// ─── HERO ─────────────────────────────────────────────────────────────────────
+function Hero() {
+  return (
+    <section id="hero" style={{
+      position: 'relative', height: '100vh', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: '#000'
+    }}>
+      <Starfield />
+      <div style={{
+        position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', paddingTop: '100px', padding: '100px 24px 0'
+      }}>
+        {/* Badge */}
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '8px',
+          background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.3)',
+          borderRadius: '100px', padding: '6px 16px', marginBottom: '32px'
+        }}>
+          <span className="pulse-dot" style={{
+            width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
+            display: 'inline-block', flexShrink: 0
+          }} />
+          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
+            AI CO-PILOT FOR BOOTSTRAPPED FOUNDERS
+          </span>
+        </div>
+
+        {/* H1 */}
+        <h1 style={{
+          fontFamily: 'Inter', fontWeight: 900,
+          fontSize: 'clamp(44px, 7vw, 88px)',
+          letterSpacing: '-0.04em', lineHeight: 0.95,
+          color: '#F2EDE8', textAlign: 'center', maxWidth: '900px',
+          margin: '0 0 24px'
+        }}>
+          Marketing that actually<br />
+          <span style={{ color: '#9C2000' }}>sounds like you.</span>
+        </h1>
+
+        {/* Subtext */}
+        <p style={{
+          fontFamily: 'Inter', fontWeight: 400, fontSize: '18px',
+          color: '#7A7672', maxWidth: '500px', textAlign: 'center',
+          lineHeight: 1.7, margin: '0 0 40px'
+        }}>
+          Vibe Promote turns your product knowledge into sharp positioning, on-brand posts, and messaging that converts — without hiring a marketing team.
+        </p>
+
+        {/* CTAs */}
+        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <a href="#pricing" className="hero-glow-btn">
+            Start for Free
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </a>
+          <a href="#how"
+          style={{
+            fontFamily: 'Inter', fontWeight: 700, fontSize: '16px',
+            background: 'transparent', color: '#7A7672',
+            border: '1px solid rgba(255,255,255,0.12)',
+            padding: '14px 36px', borderRadius: '10px',
+            textDecoration: 'none', transition: 'all 0.25s ease'
+          }}
+          onMouseEnter={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';e.currentTarget.style.color = '#F2EDE8';}}
+          onMouseLeave={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';e.currentTarget.style.color = '#7A7672';}}>
+            
+            See how it works
+          </a>
+        </div>
+
+        {/* Stats */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '32px',
+          marginTop: '56px', flexWrap: 'wrap', justifyContent: 'center'
+        }}>
+          {[
+          { num: '2,400+', label: 'Indie founders' },
+          { num: '18k+', label: 'Posts generated' },
+          { num: 'One-time', label: 'No subscription' }].
+          map((s, i) =>
+          <React.Fragment key={s.num}>
+              {i > 0 && <div style={{ width: '1px', height: '36px', background: 'rgba(255,255,255,0.08)' }} />}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: '26px', color: '#F2EDE8' }}>{s.num}</div>
+                <div style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C' }}>{s.label}</div>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── VIDEO PLACEHOLDER ────────────────────────────────────────────────────────
+function VideoPlaceholder({ label }) {
+  return (
+    <div style={{
+      position: 'relative', aspectRatio: '16/9', width: '100%',
+      background: '#0F0F14', border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: '12px', overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '200px', height: '200px',
+        background: 'radial-gradient(circle at top left, rgba(156,32,0,0.1), transparent 70%)',
+        pointerEvents: 'none'
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'
+      }}>
+        <div style={{
+          width: '52px', height: '52px', borderRadius: '50%',
+          background: '#9C2000', display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="6 3 20 12 6 21 6 3" /></svg>
+        </div>
+      </div>
+      <div style={{
+        position: 'absolute', bottom: '12px', left: '14px',
+        fontFamily: 'Inter', fontSize: '12px', color: '#44403C',
+        background: 'rgba(0,0,0,0.5)', padding: '3px 8px', borderRadius: '6px'
+      }}>{label}</div>
+    </div>);
+
+}
+
+// ─── BRAND TRUST SCROLLER ─────────────────────────────────────────────────────
+const BRANDS = [
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/6d03765e2_image.png', name: 'Brand 1' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/7b3358767_image.png', name: 'Brand 2' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b8f98eabc_image.png', name: 'Brand 3' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/2b5282e8d_image.png', name: 'Brand 4' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cdb03dbfe_image.png', name: 'Brand 5' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/c8a266830_cgw.jpg', name: 'Brand 6' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b9973861f_image.png', name: 'LeadFilter' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b0ff8644d_BilingualBeginnings.png', name: 'Bilingual Beginnings' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/1f178777e_image.png', name: 'StatScribe' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/e8f28a0d7_image.png', name: '10KV Games' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cbda3dae0_image.png', name: 'Brand 11' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/891e22567_image.png', name: 'Brand 12' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/a6b408c95_image.png', name: 'Brand 13' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/ee94d4b1f_image.png', name: 'Brand 14' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/e73f910e4_image.png', name: 'Brand 15' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/90711122d_image.png', name: 'Brand 16' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/786cc4901_image.png', name: 'Brand 17' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cb2bed70c_image.png', name: 'Brand 18' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/072fb4b61_ChatGPTImageMay11202606_15_10PM.png', name: 'VP' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/10e167694_image.png', name: 'Brand 20' },
+];
+
+function BrandScroller() {
+  const [clicked, setClicked] = useState(null);
+  const doubled = [...BRANDS, ...BRANDS];
+
+  return (
+    <section style={{
+      borderTop: '1px solid rgba(255,255,255,0.06)',
+      padding: '56px 0',
+      background: '#000',
+      overflow: 'hidden',
+    }}>
+      {/* Label */}
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <p style={{
+          fontFamily: 'Inter', fontWeight: 500, fontSize: '13px',
+          color: '#44403C', letterSpacing: '0.1em', textTransform: 'uppercase',
+          margin: 0
+        }}>
+          Trusted by <span style={{ color: '#9C2000', fontWeight: 700 }}>1000+</span> brands
+        </p>
+      </div>
+
+      {/* Scroller */}
+      <div style={{ position: 'relative' }}>
+        {/* Fade edges */}
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to right, #000 0%, transparent 100%)',
+          pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to left, #000 0%, transparent 100%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          display: 'flex',
+          gap: '0',
+          animation: 'brandScroll 38s linear infinite',
+          width: 'max-content',
+        }}>
+          {doubled.map((brand, i) => (
+            <button
+              key={i}
+              onClick={() => setClicked(clicked === i ? null : i)}
+              title={brand.name}
+              style={{
+                flexShrink: 0,
+                width: '140px',
+                height: '90px',
+                margin: '0 22px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <img
+                src={brand.url}
+                alt={brand.name}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  filter: clicked === i
+                    ? 'grayscale(0%) brightness(1.1)'
+                    : 'grayscale(100%) brightness(0.55)',
+                  transition: 'filter 0.35s ease',
+                  borderRadius: '6px',
+                }}
+                onMouseEnter={e => {
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(30%) brightness(0.9)';
+                }}
+                onMouseLeave={e => {
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(100%) brightness(0.55)';
+                }}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── HOW IT WORKS ─────────────────────────────────────────────────────────────
+function HowItWorks() {
+  const steps = [
+  { num: '01', title: 'Tell us about your product', desc: 'Answer 8 quick questions or just drop your URL. Our AI extracts your positioning, target audience, and brand tone automatically.', label: 'Step 1 — Onboarding', reversed: false },
+  { num: '02', title: 'Get your positioning dialed in', desc: 'Our AI rewrites your messaging using proven positioning frameworks. You get a sharp before/after rewrite you can use immediately.', label: 'Step 2 — Positioning helper', reversed: true },
+  { num: '03', title: 'Generate and post your content', desc: 'One click generates X threads, LinkedIn posts, and Reddit hooks — all in your brand voice. Preview, copy, post.', label: 'Step 3 — Post generator', reversed: false }];
+
+  return (
+    <section id="how" className="section-wrap bg-[hsl(var(--background))]" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '72px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ width: '20px', height: '1px', background: '#9C2000' }} />
+            <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase' }}>How It Works</span>
+          </div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(30px,4vw,52px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 16px' }}>
+            Three steps to a marketing machine.
+          </h2>
+          <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '17px', color: '#7A7672', maxWidth: '480px', lineHeight: 1.6 }}>
+            From zero context to ready-to-post content in under 10 minutes.
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '64px' }}>
+          {steps.map((s, i) =>
+          <div key={i} className={`how-step ${s.reversed ? 'how-reversed' : ''}`}
+          style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px',
+            alignItems: 'center', direction: s.reversed ? 'rtl' : 'ltr'
+          }}>
+              <div style={{ direction: 'ltr' }}>
+                <div style={{
+                width: '72px', height: '72px', borderRadius: '10px',
+                background: 'rgba(156,32,0,0.1)', border: '1px solid rgba(156,32,0,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'Inter', fontWeight: 900, fontSize: '28px', color: '#9C2000',
+                marginBottom: '18px'
+              }}>{s.num}</div>
+                <h3 style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: '24px', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>{s.title}</h3>
+                <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: '#7A7672', lineHeight: 1.65, margin: 0 }}>{s.desc}</p>
+              </div>
+              <div style={{ direction: 'ltr' }}>
+                <VideoPlaceholder label={s.label} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── FEATURE SHOWCASE ─────────────────────────────────────────────────────────
+const TABS = ['Dashboard', 'User Finder', 'Post Maker', 'Analytics', 'Co-pilot'];
+const TAB_DOTS = { Dashboard: '#9C2000', 'User Finder': '#E85D04', 'Post Maker': '#00ba7c', Analytics: '#1D9BF0', 'Co-pilot': '#a855f7' };
+
+const TAB_CONTENT = {
+  Dashboard: {
+    tag: 'Dashboard', h3: 'Your marketing HQ at a glance.',
+    desc: 'Every metric, every tool, Brand Brain status — all visible the moment you open the app.',
+    bullets: ['Posts generated, audience found, channels connected shown live', 'Brand Brain status with quick update prompt', 'One-click access to every tool'],
+    mockup: 'dashboard'
+  },
+  'User Finder': {
+    tag: 'User Finder', h3: 'Find people already looking for your product.',
+    desc: 'Scans Reddit and communities for people actively asking for what you built — based on your Brand Brain keywords.',
+    bullets: ['AI keyword list from your Brand Brain', 'Scans Reddit for purchase intent signals', 'See posts, engagement, and subreddit context', 'Re-scan anytime'],
+    mockup: 'userfinder'
+  },
+  'Post Maker': {
+    tag: 'Post Maker', h3: 'From idea to published in 60 seconds.',
+    desc: 'Platform-specific posts scored 0-100 before you even publish. Reddit storytelling, X threads, LinkedIn thought pieces — all in your voice.',
+    bullets: ['Post scored before publishing', 'Platform-specific format', 'Copy, Regenerate, Try Different Template', 'CTA auto-embedded in your voice'],
+    mockup: 'postmaker'
+  },
+  Analytics: {
+    tag: 'Analytics', h3: 'Know what is actually working.',
+    desc: 'Track karma, upvotes, comments, and engagement across Reddit, X, and LinkedIn — all in one dashboard.',
+    bullets: ['Weekly, monthly, custom date views', 'Per-post breakdown', 'Live Reddit data via account connection', 'AI co-pilot can analyze and suggest next steps'],
+    mockup: 'analytics'
+  },
+  'Co-pilot': {
+    tag: 'Co-pilot', h3: 'Your 24/7 AI marketing strategist.',
+    desc: 'Ask anything. The Co-pilot has studied your Brand Brain and gives advice specific to your product — not generic marketing fluff.',
+    bullets: ['Pre-loaded with your Brand Brain', 'Product-specific Reddit pitching advice', 'Quick-start prompts', 'Tied to your analytics'],
+    mockup: 'copilot'
+  }
+};
+
+function BrowserChrome({ url, children }) {
+  return (
+    <div style={{ borderRadius: '10px', overflow: 'hidden', background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#111116' }}>
+        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f57' }} />
+        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#febc2e' }} />
+        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#28c840' }} />
+        <div style={{ marginLeft: '8px', flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }}>{url}</div>
+      </div>
+      <div style={{ padding: '16px' }}>{children}</div>
+    </div>);
+
+}
+
+function MockupDashboard() {
+  return (
+    <BrowserChrome url="localhost:32110/dashboard">
+      <div style={{ background: '#141419', borderRadius: '8px', padding: '14px', marginBottom: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '15px', color: '#F2EDE8', marginBottom: '12px' }}>Welcome, Founder</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
+          {[['25', 'Posts'], ['3', 'Audience'], ['1', 'Channels']].map(([n, l]) =>
+          <div key={l} style={{ background: '#1A1A22', borderRadius: '8px', padding: '10px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: '20px', color: '#9C2000' }}>{n}</div>
+              <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#7A7672', marginTop: '2px' }}>{l}</div>
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {['Post Maker', 'User Finder'].map((t) =>
+        <div key={t} style={{ background: '#141419', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '12px' }}>
+            <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8' }}>{t}</div>
+            <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C', marginTop: '4px' }}>Quick access</div>
+          </div>
+        )}
+      </div>
+    </BrowserChrome>);
+
+}
+
+function MockupUserFinder() {
+  return (
+    <BrowserChrome url="localhost:32110/audience-spotter">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: '16px' }}>
+        <div style={{ width: '52px', height: '52px', borderRadius: '50%', border: '3px solid rgba(156,32,0,0.2)', borderTopColor: '#9C2000', animation: 'spin 1.4s linear infinite' }} />
+        <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '15px', color: '#F2EDE8', textAlign: 'center' }}>Scanning for potential users...</div>
+        <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672' }}>Searching Reddit for intent signals</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+          {['#saas-tools', '#indiehackers', '#marketing-automation', '#growth'].map((t) =>
+          <span key={t} style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672', background: '#141419', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '100px', padding: '4px 12px' }}>{t}</span>
+          )}
+        </div>
+      </div>
+    </BrowserChrome>);
+
+}
+
+function MockupPostMaker() {
+  return (
+    <BrowserChrome url="localhost:32110/post-maker">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+        <span style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '12px', color: '#fff', background: '#00ba7c', padding: '3px 10px', borderRadius: '100px' }}>Great Post</span>
+        <span style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672' }}>Score: 82/100</span>
+      </div>
+      <div style={{ background: '#141419', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '14px', marginBottom: '12px' }}>
+        <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#9C2000', marginBottom: '6px' }}>Reddit</div>
+        <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '13px', color: '#F2EDE8', marginBottom: '8px' }}>When I spent 3 months searching for the perfect influencer...</div>
+        <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672', lineHeight: 1.5, marginBottom: '8px' }}>I was doing outreach for my SaaS and nothing was landing. The messaging was off...</div>
+        <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#9C2000' }}>Built VibePromote to fix this — curious? Ask me anything.</div>
+      </div>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        {['Copy Post', 'Regenerate', 'Try Different Template'].map((b) =>
+        <button key={b} style={{ fontFamily: 'Inter', fontSize: '11px', color: '#F2EDE8', background: 'transparent', border: '1px solid rgba(156,32,0,0.4)', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer' }}>{b}</button>
+        )}
+      </div>
+    </BrowserChrome>);
+
+}
+
+function MockupAnalytics() {
+  return (
+    <BrowserChrome url="/dashboard/analytics">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginBottom: '12px' }}>
+        {[['359', 'Karma', '#F2EDE8'], ['14', 'Upvotes', '#9C2000'], ['55', 'Comments', '#1D9BF0'], ['69', 'Engagement', '#00ba7c']].map(([n, l, c]) =>
+        <div key={l} style={{ background: '#141419', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: '18px', color: c }}>{n}</div>
+            <div style={{ fontFamily: 'Inter', fontSize: '10px', color: '#7A7672', marginTop: '2px' }}>{l}</div>
+          </div>
+        )}
+      </div>
+      <div style={{ background: '#141419', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }}>
+          <span>POST</span><span>UP</span><span>CMT</span><span>ENG</span>
+        </div>
+        {[['Reddit launch post', '12', '8', '47'], ['X product thread', '24', '15', '62']].map(([p, u, c, e]) =>
+        <div key={p} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)', fontFamily: 'Inter', fontSize: '11px' }}>
+            <span style={{ color: '#F2EDE8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p}</span>
+            <span style={{ color: '#7A7672' }}>{u}</span>
+            <span style={{ color: '#7A7672' }}>{c}</span>
+            <span style={{ color: '#9C2000' }}>{e}</span>
+          </div>
+        )}
+      </div>
+    </BrowserChrome>);
+
+}
+
+function MockupCopilot() {
+  return (
+    <BrowserChrome url="/marketing-buddy">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '12px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
+          <div style={{ background: '#141419', borderRadius: '8px', padding: '10px 12px', fontFamily: 'Inter', fontSize: '12px', color: '#F2EDE8', lineHeight: 1.5, maxWidth: '85%' }}>
+            Hey! I have studied your Brand Brain and I am ready to help you grow.
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ background: 'rgba(156,32,0,0.08)', border: '1px solid rgba(156,32,0,0.3)', borderRadius: '8px', padding: '10px 12px', fontFamily: 'Inter', fontSize: '12px', color: '#F2EDE8', maxWidth: '85%' }}>
+            improve my saas marketing strategy
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '12px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
+          <div style={{ background: '#141419', borderRadius: '8px', padding: '10px 12px', fontFamily: 'Inter', fontSize: '12px', color: '#F2EDE8', lineHeight: 1.5, maxWidth: '85%' }}>
+            Your core value: delivering faster, higher-ROI results by replacing guesswork with AI-powered positioning...
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+          {['Pitch my SaaS on Reddit?', 'Onboarding email ideas?', 'Differentiate from competitors?', 'Landing page headlines?'].map((p) =>
+          <span key={p} style={{ fontFamily: 'Inter', fontSize: '11px', color: '#7A7672', background: '#141419', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>{p}</span>
+          )}
+        </div>
+      </div>
+    </BrowserChrome>);
+
+}
+
+const MOCKUPS = { dashboard: MockupDashboard, userfinder: MockupUserFinder, postmaker: MockupPostMaker, analytics: MockupAnalytics, copilot: MockupCopilot };
+
+function Features() {
+  const [active, setActive] = useState('Dashboard');
+  const [animKey, setAnimKey] = useState(0);
+  const timerRef = useRef(null);
+  const inactiveRef = useRef(null);
+
+  const startCycle = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActive((prev) => {
+        const idx = TABS.indexOf(prev);
+        return TABS[(idx + 1) % TABS.length];
+      });
+      setAnimKey((k) => k + 1);
+    }, 5000);
+  }, []);
+
+  useEffect(() => {startCycle();return () => clearInterval(timerRef.current);}, [startCycle]);
+
+  const handleTab = (t) => {
+    setActive(t);setAnimKey((k) => k + 1);
+    clearInterval(timerRef.current);
+    clearTimeout(inactiveRef.current);
+    inactiveRef.current = setTimeout(startCycle, 8000);
+  };
+
+  const c = TAB_CONTENT[active];
+  const MockupComp = MOCKUPS[c.mockup];
+
+  return (
+    <section id="features" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>Features</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(30px,4vw,52px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>Everything in one marketing co-pilot.</h2>
+          <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672' }}>Built for solo founders who ship fast.</p>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '48px' }}>
+          {TABS.map((t) => {
+            const isActive = t === active;
+            return (
+              <button key={t} onClick={() => handleTab(t)}
+              style={{
+                fontFamily: 'Inter', fontWeight: 500, fontSize: '14px',
+                padding: '9px 20px', borderRadius: '100px', cursor: 'pointer',
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                transition: 'all 0.2s ease',
+                background: isActive ? '#9C2000' : '#0F0F14',
+                color: isActive ? '#fff' : '#7A7672',
+                border: isActive ? '1px solid transparent' : '1px solid rgba(255,255,255,0.07)',
+                boxShadow: isActive ? '0 4px 18px rgba(156,32,0,0.4)' : 'none'
+              }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: isActive ? '#fff' : TAB_DOTS[t], display: 'inline-block' }} />
+                {t}
+              </button>);
+
+          })}
+        </div>
+
+        {/* Panel */}
+        <div key={animKey} className="feat-panel" style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'center',
+          animation: 'fadeUp 0.35s ease forwards'
+        }}>
+          <div>
+            <span style={{ fontFamily: 'Inter', fontSize: '12px', fontWeight: 600, color: '#9C2000', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', borderRadius: '100px', padding: '4px 12px', letterSpacing: '0.05em' }}>{c.tag}</span>
+            <h3 style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: 'clamp(20px,2.5vw,28px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '16px 0 12px' }}>{c.h3}</h3>
+            <p style={{ fontFamily: 'Inter', fontSize: '15px', color: '#7A7672', lineHeight: 1.65, marginBottom: '20px' }}>{c.desc}</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {c.bullets.map((b, i) =>
+              <li key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontFamily: 'Inter', fontSize: '14px', color: '#7A7672' }}>
+                  <span style={{ color: '#9C2000', flexShrink: 0, marginTop: '1px' }}>→</span>{b}
+                </li>
+              )}
+            </ul>
+          </div>
+          <div><MockupComp /></div>
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── BEFORE / AFTER ───────────────────────────────────────────────────────────
+function BeforeAfter() {
+  const withoutItems = [
+  'Staring at a blank page every time you need to post',
+  'Positioning that is vague and forgettable',
+  'Generic AI output that sounds nothing like you',
+  'Hours wasted on marketing instead of building',
+  'Inconsistent brand voice across platforms',
+  'Paying for tools that still do not know your product'];
+
+  const withItems = [
+  'Ready-to-post content in under 60 seconds',
+  'Sharp positioning that actually converts',
+  'AI that sounds like you, not a corporate bot',
+  'More time building, less time agonizing over copy',
+  'Consistent voice everywhere you show up',
+  'One-time payment, yours forever'];
+
+
+  const XIcon = () =>
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <path d="M2 2l8 8M10 2l-8 8" stroke="#44403C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>;
+
+  const CheckIcon = () =>
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <path d="M2 6l3 3 5-5" stroke="#9C2000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>;
+
+
+  return (
+    <section id="compare" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>The Difference</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(30px,4vw,52px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>With or without Vibe Promote.</h2>
+        </div>
+
+        <div className="compare-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* WITHOUT */}
+          <div className="compare-card" style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ background: '#141419', padding: '18px 26px', fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#7A7672' }}>
+              You without Vibe Promote
+            </div>
+            <img src="iyOla19tjum.gif" alt="without vibe promote"
+            style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            loading="lazy"
+            onError={(e) => e.currentTarget.style.display = 'none'} />
+            
+            <div style={{ background: '#0F0F14', padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {withoutItems.map((item, i) =>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                    <XIcon />
+                  </span>
+                  <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#7A7672', lineHeight: 1.5 }}>{item}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* WITH */}
+          <div className="compare-card" style={{ border: '1px solid rgba(156,32,0,0.3)', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(156,32,0,0.1)', borderBottom: '1px solid rgba(156,32,0,0.25)', padding: '18px 26px', fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#E85D04' }}>
+              You with Vibe Promote
+            </div>
+            <img src="bD7Xh.gif" alt="with vibe promote"
+            style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block', borderBottom: '1px solid rgba(156,32,0,0.2)' }}
+            loading="lazy"
+            onError={(e) => e.currentTarget.style.display = 'none'} />
+            
+            <div style={{ background: '#0F0F14', padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {withItems.map((item, i) =>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(156,32,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                    <CheckIcon />
+                  </span>
+                  <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#F2EDE8', lineHeight: 1.5 }}>{item}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── X POST TOGGLE ────────────────────────────────────────────────────────────
+const STAT_OFF = { likes: 3, comments: 1, reposts: 0, views: 214 };
+const STAT_ON = { likes: 2847, comments: 143, reposts: 312, views: 94200 };
+const STAT_COLORS_ON = { likes: '#F91880', comments: '#1D9BF0', reposts: '#00BA7C', views: '#E7E9EA' };
+
+function useCountUp(target, duration, running) {
+  const [val, setVal] = useState(target);
+  const raf = useRef(null);
+  const from = useRef(target);
+  const startT = useRef(null);
+
+  useEffect(() => {
+    if (!running) {setVal(target);from.current = target;return;}
+    const f = from.current,t = target;
+    startT.current = null;
+    const tick = (ts) => {
+      if (!startT.current) startT.current = ts;
+      const p = Math.min((ts - startT.current) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(f + (t - f) * e));
+      if (p < 1) raf.current = requestAnimationFrame(tick);else
+      from.current = t;
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target, duration, running]);
+  return val;
+}
+
+function fmt(n) {return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);}
+
+function XPostToggle() {
+  const [on, setOn] = useState(false);
+  const likes = useCountUp(on ? STAT_ON.likes : STAT_OFF.likes, 1300, on);
+  const comments = useCountUp(on ? STAT_ON.comments : STAT_OFF.comments, 1200, on);
+  const reposts = useCountUp(on ? STAT_ON.reposts : STAT_OFF.reposts, 1400, on);
+  const views = useCountUp(on ? STAT_ON.views : STAT_OFF.views, 1300, on);
+
+  const statColor = (key) => on ? STAT_COLORS_ON[key] : '#536471';
+
+  return (
+    <section id="xpost" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>See The Impact</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(26px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>
+            Your SaaS post, with and without Vibe Promote.
+          </h2>
+          <p style={{ fontFamily: 'Inter', fontSize: '16px', color: '#7A7672' }}>Toggle Vibe Promote on and watch what happens.</p>
+        </div>
+
+        {/* Toggle row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '48px' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672' }}>Without</span>
+          <button onClick={() => setOn(!on)}
+          style={{
+            width: '50px', height: '26px', borderRadius: '100px', cursor: 'pointer', position: 'relative',
+            background: on ? '#9C2000' : '#1A1A22',
+            border: `1px solid ${on ? '#9C2000' : 'rgba(255,255,255,0.1)'}`,
+            boxShadow: on ? '0 0 14px rgba(156,32,0,0.5)' : 'none',
+            transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+          }}>
+            <span style={{
+              position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+              left: on ? '27px' : '3px',
+              transition: 'left 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+            }} />
+          </button>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#9C2000' }}>With Vibe Promote</span>
+        </div>
+
+        {/* X Card */}
+        <div className="xpost-card" style={{ maxWidth: '560px', margin: '0 auto', position: 'relative' }}>
+          {on &&
+          <div style={{
+            position: 'absolute', top: '-10px', right: '16px', zIndex: 2,
+            background: '#9C2000', color: '#fff', fontFamily: 'Inter', fontWeight: 700, fontSize: '11px',
+            letterSpacing: '0.06em', padding: '3px 12px', borderRadius: '100px',
+            animation: 'fadeInBadge 0.3s ease'
+          }}>
+              Vibe Promote Optimised
+            </div>
+          }
+          <div style={{
+            background: '#000', padding: '20px 24px', borderRadius: '16px',
+            border: on ? '1px solid rgba(156,32,0,0.45)' : '1px solid #2F3336',
+            boxShadow: on ? '0 0 36px rgba(156,32,0,0.18)' : 'none',
+            transition: 'border-color 0.3s, box-shadow 0.3s'
+          }}>
+            {/* Author */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg,#9C2000,#E85D04)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter', fontWeight: 800, fontSize: '14px', color: '#fff', flexShrink: 0 }}>VP</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '15px', color: '#E7E9EA' }}>VibeFounder</div>
+                <div style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '14px', color: '#71767B' }}>@vibefounderhq</div>
+              </div>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="white" style={{ opacity: 0.35 }}>
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </div>
+
+            {/* Body */}
+            <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '16px', color: '#E7E9EA', lineHeight: 1.65, margin: '0 0 14px' }}>
+              I spent 6 months building my SaaS and nobody was using it. Not because the product was bad — because nobody could understand what it actually did. Fixed my positioning last week using Vibe Promote. 3 days later: 47 signups from a single Reddit post. Stop building in silence. Your message matters.
+            </p>
+
+            {/* Stats */}
+            <div style={{ borderTop: '1px solid #1D1D1D', paddingTop: '14px', display: 'flex', gap: '28px' }}>
+              {[
+              { key: 'likes', val: likes, icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg> },
+              { key: 'comments', val: comments, icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" /></svg> },
+              { key: 'reposts', val: reposts, icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 16V8l-2 2H3L7 4l4 6H9v6l2-2h2l-4 6-4-6h2zm10 0l4-6h-2V4l-4 6h2v6l2 2h2l-4 6-4-6h2z" /></svg> },
+              { key: 'views', val: views, icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg> }].
+              map(({ key, val, icon }) =>
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: statColor(key), fontFamily: 'Inter', fontSize: '14px', transition: 'color 0.3s' }}>
+                  {icon}
+                  <span>{fmt(val)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <p style={{
+            fontFamily: 'Inter', fontSize: '13px', textAlign: 'center', marginTop: '16px',
+            color: on ? '#9C2000' : '#44403C', transition: 'color 0.3s'
+          }}>
+            {on ? 'Vibe Promote optimised — this post is performing 12x better than average.' : 'Toggle Vibe Promote on to see what optimised posts do to your reach.'}
+          </p>
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── WHY US ───────────────────────────────────────────────────────────────────
+function WhyUs() {
+  const cards = [
+  { num: '01 / FOUNDER-LED', title: 'You are the marketer, developer, and support team', desc: 'Vibe Promote is built for the solo founder. No marketing degree required. Blank page to published post in minutes.' },
+  { num: '02 / POSITIONING', title: 'Your product is good but nobody gets it', desc: 'If you explain your SaaS and eyes glaze over your positioning needs work. Our AI fixes that in minutes.' },
+  { num: '03 / CONSISTENCY', title: 'You post in bursts then go silent for weeks', desc: 'When posting takes 60 seconds you actually do it consistently. No more week-long content gaps.' },
+  { num: '04 / BUDGET', title: 'You are not spending 300 per month on marketing tools', desc: 'Pay once. No subscription. Full access forever. Built for bootstrapped founders watching every dollar.' }];
+
+  return (
+    <section id="why" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '56px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ width: '20px', height: '1px', background: '#9C2000' }} />
+            <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase' }}>Why Vibe Promote</span>
+          </div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>Your SaaS needs this if any of these are true.</h2>
+          <p style={{ fontFamily: 'Inter', fontSize: '16px', color: '#7A7672', maxWidth: '460px' }}>One hit means you belong here.</p>
+        </div>
+        <div className="why-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
+          {cards.map((c, i) =>
+          <div key={i} className="why-card spotlight-card"
+          style={{ padding: '30px', cursor: 'default' }}>
+            
+              <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '11px', letterSpacing: '0.08em', color: '#9C2000', marginBottom: '12px' }}>{c.num}</div>
+              <h4 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '19px', color: '#F2EDE8', letterSpacing: '-0.02em', margin: '0 0 10px' }}>{c.title}</h4>
+              <p style={{ fontFamily: 'Inter', fontSize: '14px', color: '#7A7672', lineHeight: 1.65, margin: 0 }}>{c.desc}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── TESTIMONIALS ─────────────────────────────────────────────────────────────
+function Testimonials() {
+  const list = [
+  { ini: 'MR', name: 'Marcus Reid', role: 'Founder, Logify.so', q: 'I used to dread writing Twitter threads. Now I generate 5 variations in 2 minutes and pick the best one. My engagement doubled in the first month.' },
+  { ini: 'SP', name: 'Sara Patel', role: 'Indie Hacker, FormPilot', q: 'The positioning helper alone was worth it. I finally stopped saying it is like Notion but for X and started using messaging that makes people want to try it.' },
+  { ini: 'JK', name: 'James Kim', role: 'Solo dev', q: 'I am a developer. Writing marketing copy feels like speaking a foreign language. Vibe Promote is the translator I did not know I needed.' },
+  { ini: 'AL', name: 'Aisha Lowe', role: 'Founder, Auditwise', q: 'Every other AI tool gave me the same generic output. Vibe Promote actually understood my niche. The Brand Brain feature is legitimately impressive.' },
+  { ini: 'TC', name: 'Tom Chen', role: 'Bootstrapper, RecapAI', q: 'I was paying 79 per month for a tool that did half of what Vibe Promote does. Switched, saved money, and my content got better.' },
+  { ini: 'NB', name: 'Nina Brooks', role: 'Founder, DeskRoutine', q: 'Launched 3 weeks ago. Day 1 I already had a content strategy, hooks, and post templates ready. No agency. Just Vibe Promote.' }];
+
+  const Star = () =>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="#9C2000"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+
+  return (
+    <section id="testimonials" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>Testimonials</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>Founders who made the switch.</h2>
+        </div>
+        <div className="testi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+          {list.map((t, i) =>
+          <div key={i} className="testi-card spotlight-card"
+          style={{ padding: '26px', display: 'flex', flexDirection: 'column' }}>
+            
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '14px' }}>
+                {[...Array(5)].map((_, j) => <Star key={j} />)}
+              </div>
+              <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '15px', color: '#F2EDE8', lineHeight: 1.7, flex: 1, margin: '0 0 18px' }}>"{t.q}"</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter', fontWeight: 800, fontSize: '13px', color: '#fff', flexShrink: 0 }}>{t.ini}</div>
+                <div>
+                  <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: '#F2EDE8' }}>{t.name}</div>
+                  <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672' }}>{t.role}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── SOLUTION ─────────────────────────────────────────────────────────────────
+function Solution() {
+  const cards = [
+  { title: 'Brand Brain', desc: 'Learns your product, audience, tone, and niche from your onboarding. Every output is contextual to you.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="9" strokeDasharray="2 2" /></svg> },
+  { title: 'Post Maker', desc: 'Platform-specific posts for Reddit, X, and LinkedIn. Scored 0-100 before you publish.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg> },
+  { title: 'User Finder', desc: 'Scans communities for people actively looking for your product right now.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /><circle cx="11" cy="11" r="3" /></svg> },
+  { title: 'Co-pilot', desc: '24/7 AI strategist that knows your Brand Brain. Ask anything about your marketing.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> },
+  { title: 'Analytics', desc: 'Track karma, engagement, and post performance across all channels in one view.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M18 20V10M12 20V4M6 20v-6" /></svg> },
+  { title: 'One-time Price', desc: 'Pay once. Use forever. No subscription eating your runway.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg> }];
+
+  return (
+    <section id="solution" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>The Solution</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>One tool. Every marketing problem solved.</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+          {cards.map((c, i) =>
+          <div key={i} className="spotlight-card"
+          style={{ padding: '28px' }}>
+            
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                {c.icon}
+              </div>
+              <h4 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#F2EDE8', margin: '0 0 8px', letterSpacing: '-0.02em' }}>{c.title}</h4>
+              <p style={{ fontFamily: 'Inter', fontSize: '14px', color: '#7A7672', lineHeight: 1.65, margin: 0 }}>{c.desc}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── PRICING ──────────────────────────────────────────────────────────────────
+function Pricing() {
+  const features = ['Full Brand Brain setup', 'Unlimited post generation', 'User Finder scans', 'Analytics dashboard', 'Co-pilot AI strategist', 'All future updates', '14-day money back guarantee'];
+  const Check = () =>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#9C2000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+
+  return (
+    <section id="pricing" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>Pricing</div>
+        <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>Simple, honest pricing.</h2>
+        <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', marginBottom: '48px' }}>No tiers. No monthly billing. Just full access.</p>
+        <div className="spotlight-card" style={{ maxWidth: '480px', margin: '0 auto', borderColor: 'rgba(156,32,0,0.35)', borderRadius: '16px', padding: '48px', textAlign: 'left' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E85D04', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.3)', borderRadius: '100px', padding: '4px 14px' }}>Lifetime Access</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', margin: '24px 0 28px' }}>
+            <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '64px', color: '#F2EDE8', lineHeight: 1 }}>$49</span>
+            <span style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '18px', color: '#7A7672' }}>one-time</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+            {features.map((f, i) =>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Check />
+                <span style={{ fontFamily: 'Inter', fontSize: '15px', color: '#F2EDE8' }}>{f}</span>
+              </div>
+            )}
+          </div>
+          <a href="#" style={{
+            display: 'block', width: '100%', textAlign: 'center', padding: '16px',
+            background: '#9C2000', color: '#fff', fontFamily: 'Inter', fontWeight: 700, fontSize: '16px',
+            borderRadius: '10px', textDecoration: 'none', transition: 'all 0.25s ease', boxSizing: 'border-box'
+          }}
+          onMouseEnter={(e) => {e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)';e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)';}}
+          onMouseLeave={(e) => {e.currentTarget.style.background = '#9C2000';e.currentTarget.style.boxShadow = 'none';}}>
+            Start for Free</a>
+          <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textAlign: 'center', marginTop: '16px' }}>14-day refund. No questions asked.</p>
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── SOCIAL TESTIMONIALS ──────────────────────────────────────────────────────
+const TESTIMONIALS = [
+  { name: 'Jake', location: 'US', platform: 'Reddit', text: 'bro this is actually useful as fuck. marketing always feels like a chore and this makes it way less painful.' },
+  { name: 'Aman', location: 'India', platform: 'X', text: 'lol finally a tool that gets the dev pain. building is easy, marketing is the shit part.' },
+  { name: 'Hassan', location: 'Pakistan', platform: 'Threads', text: 'this is kinda crazyyyyyy. finding people who actually care saves so much time.' },
+  { name: 'Noah', location: 'US', platform: 'Instagram', text: "not gonna lie, this feels like something i'd actually keep using. clean idea." },
+  { name: 'Rohan', location: 'India', platform: 'Reddit', text: 'shit bro, the "sounds human" part is the whole game. most tools fail right there.' },
+  { name: 'Bilal', location: 'Pakistan', platform: 'X', text: "pretty damn solid. if it helps me find the right convo instead of random noise, i'm in." },
+  { name: 'Ethan', location: 'US', platform: 'Threads', text: "lol this is the exact gap i've been annoyed by for months. builders need this more than 'another ai writer'." },
+  { name: 'Sufyan', location: 'Pakistan', platform: 'Reddit', text: 'this looks good fr. not overcomplicated, which is rare these days.' },
+  { name: 'Arjun', location: 'India', platform: 'Instagram', text: 'crazy how this turns marketing from "ugh" into something manageable. big W.' },
+  { name: 'Ryan', location: 'US', platform: 'X', text: 'the positioning angle is smart. most tools just spam content and call it a day.' },
+  { name: 'Imran', location: 'Pakistan', platform: 'Threads', text: 'bro this is the kind of stuff solo founders actually need. not fluff, just time saved.' },
+  { name: 'Karan', location: 'India', platform: 'Reddit', text: 'feels like it was built by someone who hates marketing too lol. that\'s why it works.' },
+  { name: 'Tyler', location: 'US', platform: 'Instagram', text: "ngl the idea is strong. especially if it helps with posts that don't sound robotic as hell." },
+  { name: 'Usman', location: 'Pakistan', platform: 'X', text: 'this is a good one. marketing tools usually feel fake, this one feels practical.' },
+  { name: 'Vivek', location: 'India', platform: 'Threads', text: 'fuck yes, this is the pain point. building the product is fun, shouting about it is not.' },
+  { name: 'Caleb', location: 'US', platform: 'Reddit', text: "wow, this is actually something i'd pay for if it keeps the voice natural." },
+  { name: 'Farhan', location: 'Pakistan', platform: 'Instagram', text: 'bro this is clean. feels made for founders who are tired of doing everything manually.' },
+  { name: 'Aditya', location: 'India', platform: 'X', text: 'honestly, super relatable. content + user finding in one place is a massive time saver.' },
+  { name: 'Chris', location: 'US', platform: 'Threads', text: 'lol finally someone made the marketing side less annoying. that alone is worth it.' },
+  { name: 'Saad', location: 'Pakistan', platform: 'Reddit', text: "the best part is it doesn't sound like generic ai sludge. huge difference." },
+  { name: 'Dev', location: 'India', platform: 'Instagram', text: 'this is actually a crazyyy good use case. exactly the kind of tool indie builders need.' },
+  { name: 'Mark', location: 'US', platform: 'X', text: 'pretty sure this would save me from wasting hours on random outreach.' },
+  { name: 'Haris', location: 'Pakistan', platform: 'Threads', text: "shit bro, if this finds real intent it's a game changer." },
+  { name: 'Siddharth', location: 'India', platform: 'Reddit', text: "feels sharp and specific, not bloated. that's rare and honestly refreshing." },
+  { name: 'Kevin', location: 'US', platform: 'Instagram', text: 'i like this way more than expected. simple idea, real problem.' },
+  { name: 'Ali', location: 'Pakistan', platform: 'X', text: "lol this is the first marketing tool that doesn't make me want to close the tab." },
+  { name: 'Ankit', location: 'India', platform: 'Threads', text: 'this is actually smart. less manual pain, more focus on building.' },
+  { name: 'Jason', location: 'US', platform: 'Reddit', text: "not bad at all. if the content keeps a human tone, that's the killer feature." },
+  { name: 'Zain', location: 'Pakistan', platform: 'Instagram', text: 'broooo this saves the annoying part of launching. huge.' },
+  { name: 'Nikhil', location: 'India', platform: 'X', text: 'feels very founder-first. like it was made by someone in the trenches.' },
+  { name: 'Brandon', location: 'US', platform: 'Threads', text: 'this is the kind of product that looks small but saves your whole week.' },
+  { name: 'Taha', location: 'Pakistan', platform: 'Reddit', text: 'fuck, this would\'ve saved me so many hours last month.' },
+  { name: 'Rahul', location: 'India', platform: 'Instagram', text: "clean concept. it's not trying to do too much, which makes it stronger." },
+  { name: 'Dylan', location: 'US', platform: 'X', text: 'lol the pain of marketing is so real. this makes it less soul-crushing.' },
+  { name: 'Hamza', location: 'Pakistan', platform: 'Threads', text: "honestly, this is one of the more useful founder tools i've seen." },
+  { name: 'Mohit', location: 'India', platform: 'Reddit', text: 'the vibe is right. practical, direct, and not full of fake hype.' },
+  { name: 'Alex', location: 'US', platform: 'Instagram', text: "crazyyyyyy useful if it actually helps with posts and replies that feel natural." },
+  { name: 'Faisal', location: 'Pakistan', platform: 'X', text: 'bro this is the good kind of automation. saves time without killing the human side.' },
+  { name: 'Piyush', location: 'India', platform: 'Threads', text: "feels like a strong shortcut for people who hate marketing but still need growth." },
+  { name: 'Luke', location: 'US', platform: 'Reddit', text: 'solid idea. the "find users + make content" combo makes a lot of sense.' },
+  { name: 'Omar', location: 'Pakistan', platform: 'Instagram', text: 'shit bro, this is exactly what solo founders need when they are drowning in tasks.' },
+  { name: 'Akhil', location: 'India', platform: 'X', text: "it's actually refreshing to see a tool focused on the real headache, not vanity metrics." },
+  { name: 'Ben', location: 'US', platform: 'Threads', text: 'lol this hits. coding feels productive, marketing feels like yelling into space.' },
+  { name: 'Saif', location: 'Pakistan', platform: 'Reddit', text: "pretty damn helpful if the output stays specific and doesn't get generic." },
+  { name: 'Manish', location: 'India', platform: 'Instagram', text: 'this is the kind of thing that makes launching feel less impossible.' },
+  { name: 'Greg', location: 'US', platform: 'X', text: 'i like this direction a lot more than "autopilot marketing" nonsense.' },
+  { name: 'Ritesh', location: 'India', platform: 'Reddit', text: "if it can help me talk to the right people faster, then that's already a win." },
+  { name: 'Sam', location: 'US', platform: 'Instagram', text: 'feels like a real builder tool, not a polished gimmick.' },
+  { name: 'Junaid', location: 'Pakistan', platform: 'X', text: 'lol this would have saved me from so much random posting.' },
+  { name: 'Varun', location: 'India', platform: 'Threads', text: 'the best tools feel invisible. this seems like one of those.' },
+  { name: 'Mike', location: 'US', platform: 'Reddit', text: 'not gonna lie, this is pretty fucking smart for indie hackers.' },
+  { name: 'Adeel', location: 'Pakistan', platform: 'Instagram', text: "crazyyyy useful if you're trying to grow without hiring a whole team." },
+  { name: 'Harsh', location: 'India', platform: 'X', text: 'this is exactly the kind of product that makes marketing feel less stupid.' },
+  { name: 'Evan', location: 'US', platform: 'Threads', text: 'bro i can see founders using this every day. not just for launch week.' },
+  { name: 'Shan', location: 'Pakistan', platform: 'Reddit', text: "it's a good sign when a tool solves the annoying part instead of pretending to replace everything." },
+  { name: 'Arnav', location: 'India', platform: 'Instagram', text: 'honestly this is a neat product. practical, fast, and made for builders.' },
+  { name: 'Cole', location: 'US', platform: 'X', text: 'lol the pain is real and this actually addresses it instead of adding more work.' },
+  { name: 'Pranav', location: 'India', platform: 'Reddit', text: 'very solid. this is the kind of thing that can quietly become essential.' },
+];
+
+const PLATFORM_COLORS = { Reddit: '#FF4500', X: '#E7E9EA', Threads: '#aaaaaa', Instagram: '#E1306C' };
+
+function SocialTestimonials() {
+  const doubled = [...TESTIMONIALS, ...TESTIMONIALS];
+  return (
+    <section style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '80px 0', background: '#000', overflow: 'hidden' }}>
+      <style>{`
+        @keyframes testiScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .testi-scroll-card {
+          position: relative;
+          background: #0A0A0F;
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 14px;
+          overflow: hidden;
+          transition: border-color 0.25s ease;
+          flex-shrink: 0;
+          width: 280px;
+          padding: 20px;
+        }
+        .testi-scroll-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(156,32,0,0.15) 0%, transparent 60%);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .testi-scroll-card:hover::before { opacity: 1; }
+        .testi-scroll-card:hover { border-color: rgba(156,32,0,0.45); }
+        .testi-scroll-card > * { position: relative; z-index: 1; }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '48px', padding: '0 40px' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>What founders are saying</div>
+        <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>Real feedback from real builders.</h2>
+        <p style={{ fontFamily: 'Inter', fontSize: '16px', color: '#7A7672', margin: 0 }}>Unfiltered. Straight from the communities we built this for.</p>
+      </div>
+
+      {/* Scroller */}
+      <div style={{ position: 'relative' }}
+        onMouseMove={e => {
+          document.querySelectorAll('.testi-scroll-card').forEach(card => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--mx', ((e.clientX - rect.left) / rect.width * 100) + '%');
+            card.style.setProperty('--my', ((e.clientY - rect.top) / rect.height * 100) + '%');
+          });
+        }}
+      >
+        {/* Fade edges */}
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '100px', zIndex: 2, background: 'linear-gradient(to right, #000, transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '100px', zIndex: 2, background: 'linear-gradient(to left, #000, transparent)', pointerEvents: 'none' }} />
+
+        <div style={{ display: 'flex', gap: '14px', animation: 'testiScroll 120s linear infinite', width: 'max-content', padding: '10px 0' }}>
+          {doubled.map((t, i) => (
+            <div key={i} className="testi-scroll-card">
+              {/* Platform badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <span style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '11px', letterSpacing: '0.06em', color: PLATFORM_COLORS[t.platform] || '#7A7672', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', padding: '3px 10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  {t.platform}
+                </span>
+              </div>
+              {/* Quote */}
+              <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#F2EDE8', lineHeight: 1.65, margin: '0 0 16px', fontStyle: 'italic' }}>
+                "{t.text}"
+              </p>
+              {/* Author */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#9C2000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter', fontWeight: 800, fontSize: '10px', color: '#fff', flexShrink: 0 }}>
+                  {t.name[0]}
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8' }}>{t.name}</div>
+                  <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }}>{t.location}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+const FAQ_ITEMS = [
+{ q: 'What exactly is Vibe Promote?', a: 'Vibe Promote is an AI marketing co-pilot for bootstrapped SaaS founders. It learns your product through a Brand Brain — your positioning, audience, tone, and goals — then generates ready-to-post content for Reddit, X, and LinkedIn. It also finds potential users in real conversations and gives you analytics to track what is working.' },
+{ q: 'Is this actually a one-time payment? No hidden subscriptions?', a: 'Yes. One payment, full access, forever. No monthly fees, no usage limits, no upsell tiers. We built this for founders who are tired of yet another $49/month tool eating into their runway.' },
+{ q: 'How is this different from just using ChatGPT?', a: 'ChatGPT does not know your product, your audience, or your positioning. Every prompt starts from zero. Vibe Promote has your Brand Brain loaded — it knows your niche, your voice, and your goals. The output is specific to your SaaS, not generic advice anyone could Google.' },
+{ q: 'What platforms does the content work for?', a: 'We generate content for Reddit, X (Twitter), and LinkedIn — the three platforms where SaaS founders see the most organic traction. Each gets its own format: storytelling for Reddit, threads for X, thought leadership for LinkedIn.' },
+{ q: 'Do I need to be a good writer to use this?', a: 'Not at all. That is the whole point. You answer questions about your product and the AI handles the writing. You can tweak the output if you want, but most founders copy and post directly. The content is scored before you publish so you know it is good.' },
+{ q: 'Will the AI content sound generic or robotic?', a: 'No. The Brand Brain captures your unique voice and positioning. The AI writes as if it were you — not a corporate blog. We specifically tuned the output to avoid that generic AI energy. It sounds human because it is modeled on how real founders actually talk.' },
+{ q: 'How long does onboarding take?', a: 'About 5 minutes. You answer 8 questions about your product — or just paste your URL and the AI extracts everything automatically. Your Brand Brain is built instantly and you can start generating content right away.' },
+{ q: 'I just launched my product. Is it too early to use this?', a: 'It is actually the perfect time. Most products fail because of marketing, not features. Getting your positioning right early means every post, every pitch, and every landing page works harder from day one.' },
+{ q: 'What if I am not happy with it?', a: 'We offer a no-questions-asked refund within 14 days. If Vibe Promote does not help you create better marketing content, you get your money back. Simple as that.' },
+{ q: 'Is my product data kept private?', a: 'Absolutely. Your Brand Brain data is encrypted and never shared with other users or used to train models. Your product information, positioning, and content are yours alone.' }];
+
+
+function FAQ() {
+  const [open, setOpen] = useState(-1);
+  return (
+    <section id="faq" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ width: '20px', height: '1px', background: '#9C2000' }} />
+            <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase' }}>FAQ</span>
+          </div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,44px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>Questions founders ask before buying.</h2>
+        </div>
+        <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
+          {FAQ_ITEMS.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={i} style={{ background: '#0F0F14', borderBottom: i < FAQ_ITEMS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <button onClick={() => setOpen(isOpen ? -1 : i)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '20px 26px', background: 'none', border: 'none', cursor: 'pointer', gap: '16px',
+                  fontFamily: 'Inter', fontWeight: 500, fontSize: '16px', color: '#F2EDE8', textAlign: 'left'
+                }}>
+                  <span>{item.q}</span>
+                  <span style={{
+                    width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0,
+                    border: `1px solid ${isOpen ? '#9C2000' : 'rgba(255,255,255,0.1)'}`,
+                    color: isOpen ? '#9C2000' : '#7A7672',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '16px', fontWeight: 300, lineHeight: 1,
+                    transform: isOpen ? 'rotate(45deg)' : 'none',
+                    transition: 'all 0.25s ease'
+                  }}>+</span>
+                </button>
+                <div style={{ maxHeight: isOpen ? '300px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease', opacity: isOpen ? 1 : 0 }}>
+                  <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '15px', color: '#7A7672', lineHeight: 1.65, padding: '0 26px 20px', margin: 0 }}>{item.a}</p>
+                </div>
+              </div>);
+
+          })}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── CTA ──────────────────────────────────────────────────────────────────────
+function CTA() {
+  return (
+    <section id="cta" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '120px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ position: 'relative', background: '#0F0F14', border: '1px solid rgba(156,32,0,0.35)', borderRadius: '20px', padding: '72px 48px', textAlign: 'center', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '180px', height: '2px', background: '#9C2000' }} />
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '16px' }}>Start Today</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(30px,4vw,52px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 16px' }}>
+            Stop overthinking your <span style={{ color: '#9C2000' }}>marketing.</span>
+          </h2>
+          <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '17px', color: '#7A7672', maxWidth: '480px', margin: '0 auto 36px', lineHeight: 1.6 }}>
+            Join 2,400+ indie founders who shipped their marketing in one afternoon.
+          </p>
+          <a href="#pricing"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            fontFamily: 'Inter', fontWeight: 700, fontSize: '16px',
+            background: '#9C2000', color: '#fff',
+            padding: '15px 40px', borderRadius: '10px', textDecoration: 'none',
+            transition: 'all 0.25s ease'
+          }}
+          onMouseEnter={(e) => {e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)';e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)';}}
+          onMouseLeave={(e) => {e.currentTarget.style.background = '#9C2000';e.currentTarget.style.boxShadow = 'none';}}>
+            
+            Start for Free
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </a>
+          <p style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C', marginTop: '16px' }}>No subscription. One payment. Full access forever.</p>
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── FOOTER ───────────────────────────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '36px 40px' }} className="bg-[hsl(var(--background))]">
+      <div className="footer-inner" style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#F2EDE8' }}>
+          Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+          <a href="/privacy" style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C', textDecoration: 'none', transition: 'color 0.2s' }}
+          onMouseEnter={(e) => e.target.style.color = '#7A7672'} onMouseLeave={(e) => e.target.style.color = '#44403C'}>Privacy Policy</a>
+          <a href="/terms" style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C', textDecoration: 'none', transition: 'color 0.2s' }}
+          onMouseEnter={(e) => e.target.style.color = '#7A7672'} onMouseLeave={(e) => e.target.style.color = '#44403C'}>Terms & Conditions</a>
+          <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C', textDecoration: 'none', transition: 'color 0.2s' }}
+          onMouseEnter={(e) => e.target.style.color = '#9C2000'} onMouseLeave={(e) => e.target.style.color = '#44403C'}>Support</a>
+          <span style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '13px', color: '#44403C' }}>
+            2025 Vibe Promote. Built by a founder, for founders.
+          </span>
+        </div>
+      </div>
+    </footer>);
+
+}
+
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
+export default function Home() {
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { overflow-x: hidden; background: #06060A; font-family: 'Inter', sans-serif; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInBadge {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes brandScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 18px rgba(156,32,0,0.5), 0 0 36px rgba(232,93,4,0.25); }
+          50% { box-shadow: 0 0 28px rgba(156,32,0,0.8), 0 0 56px rgba(232,93,4,0.4); }
+        }
+
+        @keyframes borderSpin {
+          to { --angle: 360deg; }
+        }
+
+        .pulse-dot { animation: pulse 2s infinite; }
+
+        /* Spotlight card effect */
+        .spotlight-card {
+          position: relative;
+          background: #0F0F14;
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 12px;
+          transition: border-color 0.25s ease;
+          overflow: hidden;
+        }
+        .spotlight-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(156,32,0,0.12) 0%, transparent 60%);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .spotlight-card:hover::before { opacity: 1; }
+        .spotlight-card:hover { border-color: rgba(156,32,0,0.45); }
+        .spotlight-card > * { position: relative; z-index: 1; }
+
+        /* Hero glow button */
+        .hero-glow-btn {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+          font-size: 16px;
+          background: #9C2000;
+          color: #fff;
+          padding: 14px 36px;
+          border-radius: 10px;
+          text-decoration: none;
+          border: none;
+          cursor: pointer;
+          transition: background 0.25s ease;
+          animation: glowPulse 2.5s ease-in-out infinite;
+          z-index: 0;
+          overflow: hidden;
+        }
+        .hero-glow-btn::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 12px;
+          background: conic-gradient(from var(--angle, 0deg), #9C2000, #E85D04, #FF6B1A, #E85D04, #9C2000);
+          animation: borderSpin 3s linear infinite;
+          z-index: -1;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .hero-glow-btn:hover::before { opacity: 1; }
+        .hero-glow-btn:hover {
+          background: linear-gradient(135deg, #9C2000, #E85D04);
+          box-shadow: 0 8px 40px rgba(156,32,0,0.6), 0 0 80px rgba(232,93,4,0.2);
+          animation: none;
+        }
+
+        .how-step, .compare-card, .why-card, .testi-card, .xpost-card, .feat-panel {
+          opacity: 0;
+          transform: translateY(16px);
+          transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .how-step.visible, .compare-card.visible, .why-card.visible,
+        .testi-card.visible, .xpost-card.visible, .feat-panel.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        @media (max-width: 860px) {
+          .nav-links { display: none !important; }
+          section, footer { padding-left: 20px !important; padding-right: 20px !important; padding-top: 64px !important; padding-bottom: 64px !important; }
+          #hero { padding-top: 120px !important; }
+          .how-step { grid-template-columns: 1fr !important; direction: ltr !important; }
+          .how-reversed { direction: ltr !important; }
+          .feat-panel { grid-template-columns: 1fr !important; }
+          .compare-grid { grid-template-columns: 1fr !important; }
+          .why-grid { grid-template-columns: 1fr !important; }
+          .testi-grid { grid-template-columns: 1fr !important; }
+          #cta > div > div { padding: 40px 24px !important; }
+          .footer-inner { flex-direction: column !important; gap: 12px !important; }
+        }
+      `}</style>
+
+      <ScrollFadeInit />
+      <div style={{ background: '#06060A', minHeight: '100vh' }} className="bg-[hsl(var(--background))]">
+        <Nav />
+        <Hero />
+        <BrandScroller />
+        <HowItWorks />
+        <Features />
+        <BeforeAfter />
+        <XPostToggle />
+        <WhyUs />
+        <Testimonials />
+        <Solution />
+        <Pricing />
+        <SocialTestimonials />
+        <FAQ />
+        <CTA />
+        <Footer />
+      </div>
+    </>);
+
+}
+
+// ─── SCROLL FADE INIT ─────────────────────────────────────────────────────────
+function ScrollFadeInit() {
+  useEffect(() => {
+    const targets = document.querySelectorAll('.how-step, .compare-card, .why-card, .testi-card, .xpost-card, .feat-panel');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {if (e.isIntersecting) {e.target.classList.add('visible');obs.unobserve(e.target);}});
+    }, { threshold: 0.08 });
+    targets.forEach((t) => obs.observe(t));
+
+    // Spotlight card mouse tracking
+    const onMouseMove = (e) => {
+      document.querySelectorAll('.spotlight-card').forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width * 100;
+        const y = (e.clientY - rect.top) / rect.height * 100;
+        card.style.setProperty('--mx', x + '%');
+        card.style.setProperty('--my', y + '%');
+      });
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    return () => {
+      obs.disconnect();
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, []);
+  return null;
+}
