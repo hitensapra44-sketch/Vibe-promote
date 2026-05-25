@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckSquare, X, Check } from 'lucide-react';
+import { CheckSquare, X, Check, ArrowRight, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
@@ -154,49 +154,68 @@ export default function TaskWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="w-80 bg-[#111111] border border-white/5 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden mb-4 flex flex-col"
+            className="w-[360px] bg-[#111111] border border-white/10 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden mb-4 flex flex-col"
           >
             {/* Header */}
-            <div className="p-4 pb-3 flex flex-col gap-2">
+            <div className="p-5 pb-4 flex flex-col gap-3 bg-[#161616]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white">Day {currentDay}</span>
+                <div className="flex items-center gap-2">
+                  <CheckSquare className="w-5 h-5 text-orange-500" />
+                  <span className="text-sm font-bold text-white">Day {currentDay} Marketing Plan</span>
+                </div>
                 <button 
                   onClick={toggleOpen}
-                  className="text-gray-500 hover:text-white bg-transparent border-none p-0 cursor-pointer"
+                  className="text-gray-500 hover:text-white bg-transparent border-none p-1 cursor-pointer transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="w-full bg-white/5 h-0.5 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-orange-500 transition-all duration-300" 
-                  style={{ width: `${progressPercent}%` }}
-                />
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-zinc-400">
+                  <span>Daily Progress</span>
+                  <span className="font-bold text-orange-500">{completedCount} of {totalCount} completed</span>
+                </div>
+                <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-orange-500 transition-all duration-300" 
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
               </div>
             </div>
 
             <div className="h-px bg-white/5" />
 
             {/* Task List */}
-            <div className="p-4 flex flex-col gap-3 max-h-64 overflow-y-auto scrollbar-hide">
+            <div className="p-5 flex flex-col gap-4 max-h-[320px] overflow-y-auto scrollbar-hide bg-[#111111]">
               {todaysTasks.map((task) => {
                 const isCompleted = task.status === 'completed';
                 return (
-                  <div key={task.id} className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5 min-w-0">
+                  <div key={task.id} className="flex items-start justify-between gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all">
+                    <div className="flex items-start gap-3 min-w-0">
                       <div className={cn(
-                        "w-4 h-4 rounded-sm flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
-                        isCompleted ? "bg-orange-500" : "border border-white/10 bg-transparent"
+                        "w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
+                        isCompleted ? "bg-orange-500" : "border-2 border-white/20 bg-transparent"
                       )}>
-                        {isCompleted && <Check className="w-3 h-3 text-white" />}
+                        {isCompleted && <Check className="w-3.5 h-3.5 text-white" />}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 space-y-1">
                         <p className={cn(
-                          "text-xs font-bold text-white truncate",
-                          isCompleted && "text-gray-600 line-through"
+                          "text-sm font-bold text-white leading-snug",
+                          isCompleted && "text-zinc-500 line-through"
                         )}>
                           {task.task_title}
                         </p>
+                        <p className={cn(
+                          "text-xs text-zinc-400 leading-relaxed",
+                          isCompleted && "text-zinc-600"
+                        )}>
+                          {task.task_description}
+                        </p>
+                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-medium pt-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{task.task_time}</span>
+                        </div>
                       </div>
                     </div>
                     {!isCompleted && (
@@ -205,7 +224,7 @@ export default function TaskWidget() {
                           navigate(task.route);
                           toggleOpen();
                         }}
-                        className="text-[10px] font-bold text-orange-500 bg-transparent border-none hover:text-orange-400 p-0 cursor-pointer flex-shrink-0"
+                        className="text-xs font-bold text-orange-500 bg-orange-500/10 hover:bg-orange-500/20 px-3 py-1.5 rounded-lg transition-all flex-shrink-0 self-center"
                       >
                         Start
                       </button>
@@ -218,12 +237,12 @@ export default function TaskWidget() {
             <div className="h-px bg-white/5" />
 
             {/* Footer */}
-            <div className="p-4 pt-3 pb-3 bg-[#161616] flex items-center justify-between">
+            <div className="p-5 bg-[#161616] flex items-center justify-between">
               {hasIncomplete ? (
-                <span className="text-[10px] text-gray-600">{completedCount} of {totalCount} done today</span>
+                <span className="text-xs text-zinc-400">Complete today's tasks to build your streak!</span>
               ) : (
-                <span className="text-[10px] text-orange-500 font-bold leading-relaxed">
-                  Now you can go and keep developing your app. Today's marketing is done!
+                <span className="text-xs text-orange-500 font-bold leading-relaxed flex items-center gap-1.5">
+                  ✨ Today's marketing is done! Go build your app.
                 </span>
               )}
             </div>
@@ -236,11 +255,11 @@ export default function TaskWidget() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           onClick={toggleOpen}
-          className="w-10 h-10 rounded-full bg-[#111111] border border-orange-500/40 flex items-center justify-center relative shadow-lg cursor-pointer"
+          className="w-14 h-14 rounded-full bg-[#111111] border-2 border-orange-500/50 flex items-center justify-center relative shadow-2xl cursor-pointer"
         >
-          <CheckSquare className="w-4 h-4 text-orange-500" />
+          <CheckSquare className="w-6 h-6 text-orange-500" />
           {hasIncomplete && (
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-[#111111]" />
+            <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-[#111111]" />
           )}
         </motion.button>
       )}

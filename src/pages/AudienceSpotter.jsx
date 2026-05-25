@@ -24,7 +24,10 @@ import {
   Brain,
   Bell,
   Volume2,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -37,6 +40,7 @@ import moment from 'moment';
 import { usePlan } from '../lib/usePlan';
 import { useUsage, incrementUsage } from '../lib/useUsage';
 import { markTaskComplete } from '../components/TaskWidget';
+import { Link, useNavigate } from 'react-router-dom';
 
 const STEPS = [
   { id: 1, name: 'Platforms' },
@@ -60,7 +64,7 @@ const DISMISS_REASONS = [
 ];
 
 export default function AudienceSpotter() {
-  const { user } = useAuth();
+  const { user, plan } = useAuth();
   const { limits } = usePlan();
   const { used: scansUsed } = useUsage('user_finder');
   const [step, setStep] = useState(1);
@@ -70,6 +74,7 @@ export default function AudienceSpotter() {
   const [brain, setBrain] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentDay, setCurrentDay] = useState(1);
+  const navigate = useNavigate();
   
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
   const [communities, setCommunities] = useState([]);
@@ -81,6 +86,8 @@ export default function AudienceSpotter() {
   const [dismissReason, setDismissReason] = useState(null);
 
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
+
+  const isLocked = limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder;
 
   // Filter out signals that are not 'new'
   const activeSignals = useMemo(() => signals.filter(s => s.status === 'new'), [signals]);
@@ -638,24 +645,126 @@ export default function AudienceSpotter() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-             <button 
-                onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white text-xs font-bold hover:bg-zinc-800 transition-all bg-transparent"
-              >
-                <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
-                Scan Now
-              </button>
-            <button 
-              onClick={() => setShowSettings(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all bg-transparent text-xs font-bold"
-            >
-              <Settings className="w-3.5 h-3.5" /> Re-Configure
-            </button>
+            {!isLocked && (
+              <>
+                <button 
+                  onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white text-xs font-bold hover:bg-zinc-800 transition-all bg-transparent"
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+                  Scan Now
+                </button>
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all bg-transparent text-xs font-bold"
+                >
+                  <Settings className="w-3.5 h-3.5" /> Re-Configure
+                </button>
+              </>
+            )}
           </div>
         </header>
 
         <div className="p-8 sm:p-12 max-w-6xl mx-auto w-full">
-          {activeSignals.length === 0 ? (
+          {/* Tier Usage Limits UI */}
+          <div className="mb-8 flex items-center justify-between bg-[#111111] border border-white/5 rounded-xl px-6 py-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                {plan === 'free' ? 'Free Tier' : plan === 'starter' ? 'Starter Tier' : 'Pro Tier'} Usage:
+              </span>
+              <span className="text-sm font-bold text-orange-500">
+                {limits.userFinder === 'unlimited' ? 'Unlimited' : `${scansUsed}/${limits.userFinder} searches`}
+              </span>
+            </div>
+            {limits.userFinder !== 'unlimited' && (
+              <div className="w-32 bg-white/5 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-orange-500 transition-all duration-300" 
+                  style={{ width: `${Math.min(100, (scansUsed / limits.userFinder) * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {isLocked ? (
+            /* TASK 3 — Audience Spotter Upgrade Section */
+            <div className="animate-in fade-in duration-500 max-w-3xl mx-auto text-center py-12 space-y-12">
+              <div className="space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
+                  <Lock className="w-8 h-8 text-orange-500" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">26+ potential user posts found — upgrade to access them</h2>
+                <p className="text-zinc-400 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited high-intent buyer leads.</p>
+                <div className="pt-4">
+                  <Link 
+                    to="/pricing" 
+                    className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-base transition-all shadow-lg shadow-orange-500/20"
+                  >
+                    Upgrade Now <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Comparison Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6">
+                {/* Box 1: Doing it manually */}
+                <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <XCircle className="w-5 h-5" />
+                    <h3 className="font-bold text-white text-base">Doing it manually</h3>
+                  </div>
+                  <ul className="space-y-3 text-sm text-zinc-400">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500/60 mt-0.5">•</span>
+                      <span>Takes forever</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500/60 mt-0.5">•</span>
+                      <span>Can get you banned if reply is bad</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500/60 mt-0.5">•</span>
+                      <span>More effort than results</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-500/60 mt-0.5">•</span>
+                      <span>Hard to consistently find users</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Box 2: Using Vibe Promote */}
+                <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <h3 className="font-bold text-white text-base">Using Vibe Promote</h3>
+                  </div>
+                  <ul className="space-y-3 text-sm text-zinc-300">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Find users on autopilot</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Takes less than 5 minutes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Ready-to-paste replies designed to get users and upvotes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Better quality replies (not “you are banned from this sub”)</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <p className="text-zinc-500 text-sm font-medium">
+                ⚡ 100+ builders are finding users on autopilot
+              </p>
+            </div>
+          ) : activeSignals.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
               <div className="relative w-24 h-24 mb-8">
                 <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />

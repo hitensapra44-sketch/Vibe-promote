@@ -4,7 +4,7 @@ const PLAN_LIMITS = {
   free: {
     postMaker: 8,
     userFinder: 5,
-    copilot: "locked",
+    copilot: 8,
     analytics: "locked"
   },
   starter: {

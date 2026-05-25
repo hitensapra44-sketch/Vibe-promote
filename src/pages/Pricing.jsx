@@ -14,7 +14,7 @@ const PLANS = [
       { label: 'Positioning Helper', value: '1 use' },
       { label: 'User Finder', value: '5 searches/month' },
       { label: 'Post Maker', value: '8 posts/month' },
-      { label: 'Co-Pilot', value: 'Locked', locked: true },
+      { label: 'Co-Pilot', value: '8 chats/month' },
       { label: 'Analytics', value: 'Locked', locked: true },
       { label: 'Connected Accounts', value: '1' },
       { label: 'Brand Profiles', value: '1' },
@@ -37,7 +37,6 @@ const PLANS = [
     featured: false,
     features: [
       { label: 'Positioning Helper', value: '10 uses' },
-      { label: 'Post Preview', value: 'Unlimited' },
       { label: 'User Finder', value: '50 searches/month' },
       { label: 'Post Maker', value: '60 posts/month' },
       { label: 'Co-Pilot', value: '40 uses/month' },
@@ -64,7 +63,6 @@ const PLANS = [
     badge: 'Most Popular',
     features: [
       { label: 'Positioning Helper', value: 'Unlimited' },
-      { label: 'Post Preview', value: 'Unlimited' },
       { label: 'User Finder', value: '200 searches/month' },
       { label: 'Post Maker', value: '250 posts/month' },
       { label: 'Co-Pilot', value: '200 uses/month' },

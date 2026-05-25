@@ -11,10 +11,11 @@ import AnalyticsBuddy from '../../components/results-tracker/AnalyticsBuddy';
 import { cn } from "@/lib/utils";
 import { supabase } from '../../supabaseClient';
 import { useAuth } from '../../lib/AuthContext';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Lock, ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
 import { usePlan } from '../../lib/usePlan';
 import PlanGate from '../../components/PlanGate';
 import { markTaskComplete } from '../../components/TaskWidget';
+import { Link } from 'react-router-dom';
 
 export default function ResultsTracker() {
   const { user, plan } = useAuth();
@@ -229,19 +230,72 @@ export default function ResultsTracker() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
         {plan === 'free' ? (
-          <div className="max-w-[560px] mx-auto py-20 w-full flex flex-col items-center justify-center text-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center">
-              <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-orange-500">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+          /* TASK 6 — Result Tracker Locked State */
+          <div className="max-w-3xl mx-auto py-12 w-full flex flex-col items-center justify-center text-center space-y-12 animate-in fade-in duration-500">
+            <div className="space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
+                <Lock className="w-8 h-8 text-orange-500" />
+              </div>
+              <h2 className="text-3xl font-bold text-white max-w-xl mx-auto leading-tight">
+                Access your social insights and marketing buddy now
+              </h2>
+              <p className="text-zinc-400 text-sm max-w-md mx-auto">Upgrade to Pro to connect your accounts and track your performance in real-time.</p>
+              <div className="pt-4">
+                <Link 
+                  to="/pricing" 
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-base transition-all shadow-lg shadow-orange-500/20"
+                >
+                  Upgrade Now <ArrowRight className="w-5 h-5" />
+                </Link>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-white text-xl font-bold">Analytics is a Pro Feature</h2>
-              <p className="text-zinc-400 text-sm max-w-sm">Upgrade to Pro to connect your Reddit account and track post performance, karma, and engagement.</p>
+
+            {/* Comparison Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6 w-full">
+              {/* Box 1: Manually checking analytics */}
+              <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2 text-red-400">
+                  <XCircle className="w-5 h-5" />
+                  <h3 className="font-bold text-white text-base">Manually checking analytics</h3>
+                </div>
+                <ul className="space-y-3 text-sm text-zinc-400">
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500/60 mt-0.5">•</span>
+                    <span>Hard to stay consistent</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500/60 mt-0.5">•</span>
+                    <span>Most users rarely check analytics</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500/60 mt-0.5">•</span>
+                    <span>Hard to know what strategy changes actually matter</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Box 2: With Vibe Promote */}
+              <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+                <div className="flex items-center gap-2 text-green-400">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <h3 className="font-bold text-white text-base">With Vibe Promote</h3>
+                </div>
+                <ul className="space-y-3 text-sm text-zinc-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">•</span>
+                    <span>Analytics in one place</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">•</span>
+                    <span>Marketing buddy explains what worked and what didn’t</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">•</span>
+                    <span>Strategy suggestions based on analytics</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <a href="/pricing" className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all text-sm">
-              Upgrade to Pro
-            </a>
           </div>
         ) : (!hasConnectedAccounts && posts.length === 0) || isConnecting ? (
           <div className="max-w-[680px] mx-auto py-10 w-full">
