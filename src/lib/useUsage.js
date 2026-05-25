@@ -35,6 +35,15 @@ export function useUsage(feature) {
     }
 
     fetchUsage();
+
+    const handleUpdate = () => {
+      fetchUsage();
+    };
+
+    window.addEventListener('vh_usage_incremented', handleUpdate);
+    return () => {
+      window.removeEventListener('vh_usage_incremented', handleUpdate);
+    };
   }, [user, feature]);
 
   return { used, isLoading };
@@ -51,15 +60,16 @@ export async function incrementUsage(supabaseClient, userId, feature) {
     .eq('month', currentMonth)
     .maybeSingle();
 
+  let res;
   if (existing) {
-    return await supabaseClient
+    res = await supabaseClient
       .from('user_usage')
       .update({ count: existing.count + 1 })
       .eq('user_id', userId)
       .eq('feature', feature)
       .eq('month', currentMonth);
   } else {
-    return await supabaseClient
+    res = await supabaseClient
       .from('user_usage')
       .insert({
         user_id: userId,
@@ -68,4 +78,7 @@ export async function incrementUsage(supabaseClient, userId, feature) {
         count: 1
       });
   }
+
+  window.dispatchEvent(new CustomEvent('vh_usage_incremented', { detail: { feature } }));
+  return res;
 }
