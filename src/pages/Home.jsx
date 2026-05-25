@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import NavBar from '../components/landing/navbar';
 import HeroSection from '../components/landing/HeroSection';
+import BrandScroller from '../components/landing/BrandScroller';
 import HowItWorks from '../components/landing/howitworks';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import BeforeAfter from '../components/landing/BeforeAfter';
 import XPostToggle from '../components/landing/XPostToggle';
 import WhySection from '../components/landing/WhySection';
+import SocialTestimonials from '../components/landing/SocialTestimonials';
 import FAQ from '../components/landing/faqs';
 import Footer from '../components/landing/fottersection';
 
@@ -56,15 +58,22 @@ export default function Home() {
         .spotlight-card:hover::before { opacity: 1; }
         .spotlight-card:hover { border-color: rgba(156,32,0,0.45); }
         .spotlight-card > * { position: relative; z-index: 1; }
+
+        @keyframes brandScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
       `}</style>
       
       <NavBar />
       <HeroSection />
+      <BrandScroller />
       <HowItWorks />
       <FeaturesSection />
       <BeforeAfter />
       <XPostToggle />
       <WhySection />
+      <SocialTestimonials />
       <FAQ />
       
       {/* CTA Section */}
