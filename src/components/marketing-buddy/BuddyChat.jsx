@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { generateAICall } from '../../lib/ai';
 import { useAuth } from '../../lib/AuthContext';
 import { toast } from 'sonner';
+import { incrementUsage } from '../../lib/useUsage';
+import { supabase } from '../../supabaseClient';
 
 export default function BuddyChat() {
   const { user } = useAuth();
@@ -56,6 +58,9 @@ export default function BuddyChat() {
         text: response 
       };
       setMessages(prev => [...prev, buddyMsg]);
+      
+      // Increment usage on successful message generation
+      await incrementUsage(supabase, user?.id, 'copilot');
     } catch (err) {
       console.error("Copilot Error:", err);
       toast.error("I hit a snag. Try again?");

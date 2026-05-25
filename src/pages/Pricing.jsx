@@ -31,7 +31,7 @@ const PLANS = [
     annualTotal: 144,
     annualSavings: 36,
     monthlyHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
-    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NfXVLJOSq7SibMDdSngh?quantity=1',
+    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
     period: '/month',
     cta: 'Start 3-day free trial',
     featured: false,
@@ -56,7 +56,7 @@ const PLANS = [
     annualTotal: 276,
     annualSavings: 72,
     monthlyHref: 'https://checkout.dodopayments.com/buy/pdt_0Ne1moGR0X9lBvhgme2rO?quantity=1',
-    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NfXVY72Xp7tzUaALkePS?quantity=1',
+    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0Ne1moGR0X9lBvhgme2rO?quantity=1',
     period: '/month',
     cta: 'Start 3-day free trial',
     featured: true,
@@ -299,7 +299,7 @@ export default function Pricing() {
           Refund anytime. No hidden fees. Cancel anytime..
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '14px', marginTop: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
             color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
@@ -526,7 +526,7 @@ export default function Pricing() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
             Vibe<span style={{ color: '#9C2000' }}>Promote</span>
           </div>

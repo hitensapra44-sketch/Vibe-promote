@@ -233,10 +233,10 @@ export default function Dashboard() {
               <p className="text-sm text-gray-500">Your marketing co-pilot is ready.</p>
             </div>
             <button 
-              onClick={() => navigate('/audience-spotter')}
+              onClick={() => navigate('/progress')}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
             >
-              Start User Finder
+              Track Your Progress
               <ArrowRight className="w-3 h-3" />
             </button>
           </section>

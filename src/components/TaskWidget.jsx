@@ -212,10 +212,6 @@ export default function TaskWidget() {
                         )}>
                           {task.task_description}
                         </p>
-                        <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-medium pt-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{task.task_time}</span>
-                        </div>
                       </div>
                     </div>
                     {!isCompleted && (
