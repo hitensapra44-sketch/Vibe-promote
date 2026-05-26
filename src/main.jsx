@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './index.css'
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './lib/AuthContext';
+import { ThemeProvider } from './lib/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Create a client
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>

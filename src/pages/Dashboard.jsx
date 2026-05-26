@@ -32,6 +32,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import Sidebar from '../components/Sidebar';
+import AppGuide from '../components/AppGuide';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -45,7 +46,17 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Show guide on first login
+    const hasSeenGuide = localStorage.getItem('vh_has_seen_guide');
+    if (!hasSeenGuide) {
+      setShowGuide(true);
+      localStorage.setItem('vh_has_seen_guide', 'true');
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -191,14 +202,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -206,7 +217,7 @@ export default function Dashboard() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/80 z-40 lg:hidden"
+            className="fixed inset-0 bg-background/80 z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -214,23 +225,29 @@ export default function Dashboard() {
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-14 border-b border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button className="lg:hidden p-2 -ml-2 bg-transparent" onClick={() => setMobileMenuOpen(true)}>
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-sm font-bold text-white">Dashboard</h1>
+            <h1 className="text-sm font-bold text-foreground">Dashboard</h1>
           </div>
+          <button 
+            onClick={() => setShowGuide(true)}
+            className="px-3 py-1.5 rounded-lg border border-foreground/10 text-foreground/70 text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+          >
+            Quick Tour
+          </button>
         </header>
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
 
-          <section className="rounded-2xl p-6 border border-orange-500/40 bg-[#111111] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <section className="rounded-2xl p-6 border border-orange-500/40 bg-foreground/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">
+              <h2 className="text-xl font-bold text-foreground mb-1">
                 Welcome, {user?.email?.split('@')[0]}
               </h2>
-              <p className="text-sm text-gray-500">Your marketing co-pilot is ready.</p>
+              <p className="text-sm text-foreground/70">Your marketing co-pilot is ready.</p>
             </div>
             <button 
               onClick={() => navigate('/progress')}
@@ -242,64 +259,64 @@ export default function Dashboard() {
           </section>
 
           {/* App Update Section */}
-          <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 className="text-sm font-bold text-white mb-1">
+              <h3 className="text-sm font-bold text-foreground mb-1">
                 Have an app update?
               </h3>
-              <p className="text-xs text-gray-500">Keep your brand brain up to date with the latest features.</p>
+              <p className="text-xs text-foreground/70">Keep your brand brain up to date with the latest features.</p>
             </div>
             <button 
               onClick={() => navigate('/brand-brain')}
-              className="px-4 py-2 rounded-lg border border-white/10 text-white text-xs font-bold hover:bg-white/5 transition-all flex items-center gap-2 bg-transparent"
+              className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all flex items-center gap-2 bg-transparent"
             >
               Update brand brain
               <ArrowRight className="w-3 h-3" />
             </button>
           </section>
 
-          <section className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-6">
+          <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <User className="w-4 h-4 text-gray-400" />
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <User className="w-4 h-4 text-foreground/70" />
                 Your Profile
               </h3>
-              <Link to="/onboarding" className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors">
+              <Link to="/onboarding" className="text-[10px] font-bold text-foreground/70 hover:text-foreground transition-colors">
                 Edit Brand Brain →
               </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">App Name</span>
-                <span className="text-base font-bold text-white truncate">{profileData?.appName}</span>
+              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
+                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">App Name</span>
+                <span className="text-base font-bold text-foreground truncate">{profileData?.appName}</span>
               </div>
-              <div className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Target Audience</span>
-                <span className="text-sm font-bold text-white truncate">{profileData?.targetAudience}</span>
+              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
+                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Target Audience</span>
+                <span className="text-sm font-bold text-foreground truncate">{profileData?.targetAudience}</span>
               </div>
-              <div className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Platforms</span>
-                <span className="text-sm font-bold text-white truncate">{profileData?.platforms}</span>
+              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
+                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Platforms</span>
+                <span className="text-sm font-bold text-foreground truncate">{profileData?.platforms}</span>
               </div>
-              <div className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Marketing Goal</span>
-                <span className="text-sm font-bold text-white truncate">{profileData?.marketingGoal}</span>
+              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
+                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Marketing Goal</span>
+                <span className="text-sm font-bold text-foreground truncate">{profileData?.marketingGoal}</span>
               </div>
             </div>
 
             <div>
-              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">Activity Status</p>
+              <p className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-3">Activity Status</p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {statCards.map((stat, i) => (
-                  <div key={i} className="flex flex-col p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                  <div key={i} className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
                     <div className="flex items-center gap-2 mb-2">
-                      <stat.icon className="w-3 h-3 text-gray-500" />
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">{stat.label}</span>
+                      <stat.icon className="w-3 h-3 text-foreground/70" />
+                      <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest">{stat.label}</span>
                     </div>
-                    <span className="text-xl font-bold text-white">
+                    <span className="text-xl font-bold text-foreground">
                       {stat.value}
-                      <span className="text-xs font-medium text-gray-500 ml-1">{stat.suffix}</span>
+                      <span className="text-xs font-medium text-foreground/70 ml-1">{stat.suffix}</span>
                     </span>
                   </div>
                 ))}
@@ -308,8 +325,8 @@ export default function Dashboard() {
           </section>
 
           <section className="space-y-6">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-gray-400" />
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Zap className="w-4 h-4 text-foreground/70" />
               Marketing Tools
             </h3>
 
@@ -317,15 +334,15 @@ export default function Dashboard() {
               {tools.map((tool) => (
                 <div 
                   key={tool.id} 
-                  className="group relative p-6 rounded-2xl border border-orange-500/40 bg-[#111111] transition-all duration-300"
+                  className="group relative p-6 rounded-2xl border border-orange-500/40 bg-foreground/5 transition-all duration-300"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-4 text-gray-400">
+                  <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center mb-4 text-foreground/70">
                     <tool.icon className="w-5 h-5" />
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-bold text-white">{tool.name}</h4>
+                    <h4 className="text-sm font-bold text-foreground">{tool.name}</h4>
                   </div>
-                  <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+                  <p className="text-xs text-foreground/70 mb-6 leading-relaxed">
                     {tool.desc}
                   </p>
                   <button
@@ -334,8 +351,8 @@ export default function Dashboard() {
                     className={cn(
                       "w-full py-2.5 rounded-lg text-xs font-medium transition-all border bg-transparent",
                       tool.available 
-                        ? "border-white/10 text-white hover:bg-white/5" 
-                        : "border-white/5 text-gray-700 cursor-not-allowed"
+                        ? "border-foreground/10 text-foreground hover:bg-foreground/5" 
+                        : "border-foreground/5 text-foreground/30 cursor-not-allowed"
                     )}
                   >
                     {!tool.available ? 'Coming Soon' : (isPaid ? 'Open Tool' : 'Unlock Access')}
@@ -345,13 +362,15 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <footer className="pt-8 pb-6 border-t border-white/5 flex items-center justify-between">
-            <p className="text-[10px] text-gray-700 font-medium">
+          <footer className="pt-8 pb-6 border-t border-foreground/5 flex items-center justify-between">
+            <p className="text-[10px] text-foreground/70 font-medium">
               Vibe Promote © 2026
             </p>
           </footer>
         </div>
       </main>
+
+      {showGuide && <AppGuide onClose={() => setShowGuide(false)} />}
     </div>
   );
 }

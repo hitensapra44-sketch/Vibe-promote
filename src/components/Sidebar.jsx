@@ -55,7 +55,7 @@ export default function Sidebar({ isPaid }) {
       {/* Mobile Toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-[60]">
         <button 
-          className="p-2 rounded-lg bg-[#111111] border border-white/10 text-white"
+          className="p-2 rounded-lg bg-background border border-foreground/10 text-foreground"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           <Menu className="w-5 h-5" />
@@ -70,14 +70,14 @@ export default function Sidebar({ isPaid }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/80 z-40 lg:hidden"
+            className="fixed inset-0 bg-background/80 z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 bg-[#111111] border-r border-white/5 z-50 transition-all duration-300 h-screen overflow-hidden",
+        "fixed lg:static inset-y-0 left-0 bg-background border-r border-foreground/5 z-50 transition-all duration-300 h-screen overflow-hidden",
         mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         sidebarCollapsed ? "lg:w-16" : "lg:w-56"
       )}>
@@ -85,12 +85,12 @@ export default function Sidebar({ isPaid }) {
           <div className="p-4 flex items-center justify-between">
             {!sidebarCollapsed && (
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-white" />
+                <Sparkles className="w-4 h-4 text-foreground" />
                 <span className="text-sm font-bold tracking-tight">Vibe Promote</span>
               </div>
             )}
             <button 
-              className="p-1.5 rounded-md hover:bg-white/5 text-gray-500 transition-all bg-transparent"
+              className="p-1.5 rounded-md hover:bg-foreground/5 text-foreground/70 transition-all bg-transparent border-none cursor-pointer"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             >
               {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
@@ -108,10 +108,10 @@ export default function Sidebar({ isPaid }) {
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent",
+                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent border-none cursor-pointer",
                   location.pathname === link.path 
-                    ? "bg-white/5 text-white" 
-                    : "text-gray-500 hover:text-white hover:bg-white/5",
+                    ? "bg-foreground/5 text-foreground" 
+                    : "text-foreground/70 hover:text-foreground hover:bg-foreground/5",
                   sidebarCollapsed ? "justify-center" : "justify-between"
                 )}
               >
@@ -130,11 +130,11 @@ export default function Sidebar({ isPaid }) {
             ))}
           </nav>
 
-          <div className="p-3 border-t border-white/5 space-y-3">
+          <div className="p-3 border-t border-foreground/5 space-y-3">
             {plan === 'free' && !sidebarCollapsed && (
               <button
                 onClick={() => navigate('/pricing')}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500/20 transition-all"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500/20 transition-all cursor-pointer"
               >
                 <Zap className="w-4 h-4 flex-shrink-0 fill-orange-500" />
                 Upgrade Now
@@ -147,7 +147,7 @@ export default function Sidebar({ isPaid }) {
                 setMobileMenuOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-white hover:bg-white/5 transition-all bg-transparent",
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all bg-transparent border-none cursor-pointer",
                 sidebarCollapsed ? "justify-center" : ""
               )}
             >
@@ -157,8 +157,8 @@ export default function Sidebar({ isPaid }) {
 
             {!sidebarCollapsed && (
               <div className="px-2">
-                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">Account</p>
-                <p className="text-[10px] text-gray-500 truncate mb-2">{user?.email}</p>
+                <p className="text-[9px] font-bold text-foreground/70 uppercase tracking-widest">Account</p>
+                <p className="text-[10px] text-foreground/70 truncate mb-2">{user?.email}</p>
                 <div className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border",
                   isPaid ? "border-green-500/30 text-green-500" : "border-orange-500/30 text-orange-500"
@@ -171,7 +171,7 @@ export default function Sidebar({ isPaid }) {
             {sidebarCollapsed && (
               <button 
                 onClick={() => navigate('/settings')}
-                className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-white hover:bg-white/5 transition-all bg-transparent"
+                className="w-full flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all bg-transparent border-none cursor-pointer"
               >
                 <Settings className="w-4 h-4" />
               </button>
@@ -180,7 +180,7 @@ export default function Sidebar({ isPaid }) {
             <button 
               onClick={handleLogout}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 hover:text-red-400 hover:bg-red-400/5 transition-all bg-transparent",
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-foreground/70 hover:text-red-400 hover:bg-red-400/5 transition-all bg-transparent border-none cursor-pointer",
                 sidebarCollapsed ? "justify-center" : ""
               )}
             >
@@ -193,3 +193,4 @@ export default function Sidebar({ isPaid }) {
     </>
   );
 }
+</dyad-sidebar>
