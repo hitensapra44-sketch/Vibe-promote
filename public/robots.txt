@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Sitemap: https://vibepromote.tech/sitemap.xml
+
+# Allow AI crawlers (GEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
