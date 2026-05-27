@@ -1,16 +1,13 @@
 User-agent: *
 Allow: /
+Allow: /ai-marketing-tool
+Allow: /saas-marketing-tool
+Allow: /indie-hacker-marketing
+Allow: /reddit-marketing-tool
+Allow: /marketing-copilot
+Allow: /startup-marketing-tool
+Allow: /bootstrapped-founder-marketing
+Allow: /how-to-market-your-saas
+Allow: /best-ai-marketing-tools-for-founders
+
 Sitemap: https://vibepromote.tech/sitemap.xml
-
-# Allow AI crawlers (GEO)
-User-agent: GPTBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /

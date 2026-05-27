@@ -28,6 +28,7 @@ import ConnectedAccounts from './pages/ConnectedAccounts';
 import FeedbackWidget from './components/FeedbackWidget';
 import TaskWidget from './components/TaskWidget';
 import ProgressPage from './pages/ProgressPage';
+import SeoLandingPage from './pages/SeoLandingPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated, user, authEvent } = useAuth();
@@ -90,6 +91,17 @@ const AuthenticatedApp = () => {
         <Route path="/survey" element={<Survey />} />
         <Route path="/pre-purchase" element={<PrePurchase />} />
         <Route path="/pricing" element={<Pricing />} />
+        
+        {/* SEO Landing Pages */}
+        <Route path="/ai-marketing-tool" element={<SeoLandingPage />} />
+        <Route path="/saas-marketing-tool" element={<SeoLandingPage />} />
+        <Route path="/indie-hacker-marketing" element={<SeoLandingPage />} />
+        <Route path="/reddit-marketing-tool" element={<SeoLandingPage />} />
+        <Route path="/marketing-copilot" element={<SeoLandingPage />} />
+        <Route path="/startup-marketing-tool" element={<SeoLandingPage />} />
+        <Route path="/bootstrapped-founder-marketing" element={<SeoLandingPage />} />
+        <Route path="/how-to-market-your-saas" element={<SeoLandingPage />} />
+        <Route path="/best-ai-marketing-tools-for-founders" element={<SeoLandingPage />} />
         
         {/* Protected Routes */}
         <Route path="/onboarding" element={isAuthenticated ? <Onboarding /> : (isLoadingAuth ? null : <Home />)} />
