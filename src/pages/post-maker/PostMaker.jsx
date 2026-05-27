@@ -61,23 +61,23 @@ export default function PostMaker() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
         <div className="max-w-[720px] mx-auto w-full">
           
           {/* Tier Usage Limits UI */}
-          <div className="mb-8 flex items-center justify-between bg-[#111111] border border-white/5 rounded-xl px-6 py-4">
+          <div className="mb-8 flex items-center justify-between bg-foreground/5 border border-foreground/5 rounded-xl px-6 py-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">
                 {plan === 'free' ? 'Free Tier' : plan === 'starter' ? 'Starter Tier' : 'Pro Tier'} Usage:
               </span>
               <span className="text-sm font-bold text-orange-500">
@@ -85,7 +85,7 @@ export default function PostMaker() {
               </span>
             </div>
             {limits.postMaker !== 'unlimited' && (
-              <div className="w-32 bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div className="w-32 bg-foreground/5 h-1.5 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-orange-500 transition-all duration-300" 
                   style={{ width: `${Math.min(100, (postsUsed / limits.postMaker) * 100)}%` }}
@@ -101,10 +101,10 @@ export default function PostMaker() {
                 <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
                   <Lock className="w-8 h-8 text-orange-500" />
                 </div>
-                <h2 className="text-3xl font-bold text-white max-w-xl mx-auto leading-tight">
+                <h2 className="text-3xl font-bold text-foreground max-w-xl mx-auto leading-tight">
                   Vibe Promote makes posts using viral formats and your brand voice to help you get results, not bans.
                 </h2>
-                <p className="text-zinc-400 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited high-converting posts.</p>
+                <p className="text-foreground/60 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited high-converting posts.</p>
                 <div className="pt-4">
                   <Link 
                     to="/pricing" 
@@ -118,12 +118,12 @@ export default function PostMaker() {
               {/* Comparison Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6">
                 {/* Box 1: Making posts manually */}
-                <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-4">
+                <div className="bg-foreground/5 border border-foreground/5 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center gap-2 text-red-400">
                     <XCircle className="w-5 h-5" />
-                    <h3 className="font-bold text-white text-base">Making posts manually</h3>
+                    <h3 className="font-bold text-foreground text-base">Making posts manually</h3>
                   </div>
-                  <ul className="space-y-3 text-sm text-zinc-400">
+                  <ul className="space-y-3 text-sm text-foreground/60">
                     <li className="flex items-start gap-2">
                       <span className="text-red-500/60 mt-0.5">•</span>
                       <span>Don’t know where to start</span>
@@ -152,12 +152,12 @@ export default function PostMaker() {
                 </div>
 
                 {/* Box 2: Making posts with Vibe Promote */}
-                <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+                <div className="bg-foreground/5 border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
                   <div className="flex items-center gap-2 text-green-400">
                     <CheckCircle2 className="w-5 h-5" />
-                    <h3 className="font-bold text-white text-base">Making posts with Vibe Promote</h3>
+                    <h3 className="font-bold text-foreground text-base">Making posts with Vibe Promote</h3>
                   </div>
-                  <ul className="space-y-3 text-sm text-zinc-300">
+                  <ul className="space-y-3 text-sm text-foreground/80">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
                       <span>4 clicks away from a strong post</span>
@@ -182,15 +182,15 @@ export default function PostMaker() {
                 </div>
               </div>
 
-              <p className="text-zinc-500 text-sm font-medium">
+              <p className="text-foreground/60 text-sm font-medium">
                 ⚡ 100+ app founders made posts today in seconds, not hours
               </p>
             </div>
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="mb-12">
-                <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
-                <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
+                <h1 className="text-2xl font-semibold text-foreground">Post Maker</h1>
+                <p className="text-foreground/60 text-sm">Where are you posting today?</p>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
@@ -201,17 +201,17 @@ export default function PostMaker() {
                     onClick={() => setSelectedPlatform(p)}
                     className={cn(
                       "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
-                      !p.available ? "opacity-40 cursor-not-allowed bg-[#111111] border-[#1F1F1F]" : 
-                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                      !p.available ? "opacity-40 cursor-not-allowed bg-foreground/5 border-foreground/10" : 
+                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
                     )}
                   >
                     {p.comingSoon && (
-                      <span className="absolute top-2 right-2 bg-[#1F1F1F] text-[#52525B] text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
+                      <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/60 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
                     )}
-                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
+                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")} />
                     <div>
-                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
-                      <p className="text-[#A1A1AA] text-[10px] mt-1">{p.desc}</p>
+                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
+                      <p className="text-foreground/60 text-[10px] mt-1">{p.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -227,6 +227,198 @@ export default function PostMaker() {
               )}
             </div>
           )}
+        </div>
+      </main>
+    </div>
+  );
+}
+</dyad-file>
+
+<dyad-write path="src/pages/marketing-buddy/MarketingBuddy.jsx" description="Updating MarketingBuddy.jsx to use theme-aware background, text, and border classes.">
+"use client";
+
+import React, { useState } from 'react';
+import Sidebar from '../../components/Sidebar';
+import BuddyChat from '../../components/marketing-buddy/BuddyChat';
+import { Sparkles, MessageSquare, Brain, Lock, ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { cn } from "@/lib/utils";
+import { useAuth } from '../../lib/AuthContext';
+import { usePlan } from '../../lib/usePlan';
+import { useUsage } from '../../lib/useUsage';
+import PlanGate from '../../components/PlanGate';
+
+export default function MarketingBuddy() {
+  const [activeTab, setActiveTab] = useState('chat');
+  const navigate = useNavigate();
+  const { user, plan } = useAuth();
+  const { limits } = usePlan();
+  const { used: chatsUsed } = useUsage('copilot');
+
+  const isLocked = limits.copilot !== "unlimited" && chatsUsed >= limits.copilot;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
+      <Sidebar isPaid={true} />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto w-full h-[calc(100vh-100px)] flex flex-col gap-6 animate-in fade-in duration-500">
+          
+          {/* Header with Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-foreground">Co-pilot</h1>
+              <p className="text-foreground/60 text-sm">Your 24/7 AI strategist.</p>
+            </div>
+
+            <div className="flex bg-foreground/5 border border-foreground/10 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={cn(
+                  "flex items-center gap-2 text-sm font-medium px-6 py-2 transition-all duration-200",
+                  activeTab === 'chat' 
+                    ? "bg-orange-500 text-white rounded-md shadow-lg shadow-orange-500/20" 
+                    : "bg-transparent text-foreground/60 hover:text-foreground/80"
+                )}
+              >
+                <MessageSquare size={16} />
+                Chat
+              </button>
+              <button
+                onClick={() => navigate('/brand-brain')}
+                className={cn(
+                  "flex items-center gap-2 text-sm font-medium px-6 py-2 transition-all duration-200 bg-transparent text-foreground/60 hover:text-foreground/80"
+                )}
+              >
+                <Brain size={16} />
+                Brand Brain
+              </button>
+            </div>
+          </div>
+
+          {/* Tier Usage Limits UI */}
+          <div className="flex items-center justify-between bg-foreground/5 border border-foreground/5 rounded-xl px-6 py-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">
+                {plan === 'free' ? 'Free Tier' : plan === 'starter' ? 'Starter Tier' : 'Pro Tier'} Usage:
+              </span>
+              <span className="text-sm font-bold text-orange-500">
+                {limits.copilot === 'unlimited' ? 'Unlimited' : `${chatsUsed}/${limits.copilot} chats`}
+              </span>
+            </div>
+            {limits.copilot !== 'unlimited' && (
+              <div className="w-32 bg-foreground/5 h-1.5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-orange-500 transition-all duration-300" 
+                  style={{ width: `${Math.min(100, (chatsUsed / limits.copilot) * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col gap-6 min-h-0">
+            {isLocked ? (
+              /* TASK 5 — Co-Pilot Locked State */
+              <div className="flex-1 bg-foreground/5 border border-foreground/10 rounded-2xl p-8 overflow-y-auto flex flex-col items-center justify-center text-center space-y-12">
+                <div className="space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
+                    <Lock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground max-w-xl mx-auto leading-tight">
+                    Talk to your app CMO daily — upgrade now.
+                  </h2>
+                  <p className="text-foreground/60 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited strategic marketing guidance.</p>
+                  <div className="pt-4">
+                    <Link 
+                      to="/pricing" 
+                      className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-base transition-all shadow-lg shadow-orange-500/20"
+                    >
+                      Upgrade Now <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Comparison Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6 w-full max-w-3xl">
+                  {/* Box 1: Asking GPT manually */}
+                  <div className="bg-foreground/5 border border-foreground/5 rounded-2xl p-6 space-y-4">
+                    <div className="flex items-center gap-2 text-red-400">
+                      <XCircle className="w-5 h-5" />
+                      <h3 className="font-bold text-foreground text-base">Asking GPT manually</h3>
+                    </div>
+                    <ul className="space-y-3 text-sm text-foreground/60">
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500/60 mt-0.5">•</span>
+                        <span>Repeating app context again and again</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500/60 mt-0.5">•</span>
+                        <span>Doesn’t remember previous context</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500/60 mt-0.5">•</span>
+                        <span>Doesn’t know analytics, growth, streaks, or brand brain</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500/60 mt-0.5">•</span>
+                        <span>New chat = repeated explanations</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Box 2: Co-Pilot with Vibe Promote */}
+                  <div className="bg-foreground/5 border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+                    <div className="flex items-center gap-2 text-green-400">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <h3 className="font-bold text-foreground text-base">Co-Pilot with Vibe Promote</h3>
+                    </div>
+                    <ul className="space-y-3 text-sm text-foreground/80">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5">•</span>
+                        <span>No need to explain brand brain repeatedly</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5">•</span>
+                        <span>Better responses because it knows marketing context</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5">•</span>
+                        <span>Understands analytics and growth progress</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5">•</span>
+                        <span>Personalized marketing guidance</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <p className="text-foreground/60 text-sm font-medium">
+                  ⚡ 100+ builders are building better marketing strategies with Co-Pilot
+                </p>
+              </div>
+            ) : (
+              /* Full Width Chat Panel */
+              <div className="flex-1 bg-foreground/5 border border-foreground/10 rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+                <header className="px-6 py-4 border-b border-foreground/10 flex items-center justify-between bg-foreground/5">
+                  <div className="flex items-center gap-3">
+                    <Sparkles size={16} className="text-orange-500" />
+                    <span className="text-foreground text-sm font-semibold">AI Strategist</span>
+                  </div>
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="text-foreground/60 text-[10px] font-bold uppercase tracking-widest hover:text-foreground bg-transparent"
+                  >
+                    Reset Session
+                  </button>
+                </header>
+                
+                <div className="flex-1 overflow-hidden p-4 sm:p-6">
+                  <BuddyChat />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

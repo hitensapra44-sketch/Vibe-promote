@@ -233,37 +233,37 @@ export default function AudienceSpotter() {
     toast.success("Post removed. We'll use this feedback to improve.");
   };
 
-  if (isInitialLoading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
+  if (isInitialLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
   if (showSettings) {
     const tabs = ['Platforms', 'Monitoring', 'Reply Voice', 'Product', 'Notifications'];
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+      <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
         <Sidebar isPaid={true} />
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8 sm:p-12">
           <div className="max-w-5xl mx-auto w-full">
-            <button onClick={() => setShowSettings(false)} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-8 bg-transparent">
+            <button onClick={() => setShowSettings(false)} className="flex items-center gap-2 text-foreground/60 hover:text-foreground mb-8 bg-transparent">
               <ArrowLeft className="w-4 h-4" /> Back to User Finder
             </button>
 
             <div className="flex items-center gap-4 mb-10">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center">
-                <Settings className="w-6 h-6 text-zinc-400" />
+              <div className="w-12 h-12 rounded-2xl bg-foreground/5 border border-foreground/10 flex items-center justify-center">
+                <Settings className="w-6 h-6 text-foreground/60" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold">Signal Settings</h1>
-                <p className="text-zinc-500 text-sm">Configure how we monitor the internet for buying signals.</p>
+                <p className="text-foreground/60 text-sm">Configure how we monitor the internet for buying signals.</p>
               </div>
             </div>
 
-            <div className="flex gap-8 border-b border-white/5 mb-10">
+            <div className="flex gap-8 border-b border-foreground/5 mb-10">
               {tabs.map(t => (
                 <button
                   key={t}
                   onClick={() => setSettingsTab(t)}
                   className={cn(
                     "pb-4 text-sm font-bold transition-all bg-transparent relative",
-                    settingsTab === t ? "text-primary" : "text-zinc-500 hover:text-zinc-300"
+                    settingsTab === t ? "text-primary" : "text-foreground/60 hover:text-foreground/80"
                   )}
                 >
                   {t}
@@ -278,9 +278,9 @@ export default function AudienceSpotter() {
                   <h2 className="text-xl font-bold">Where should we listen?</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {PLATFORMS.map(p => (
-                      <div key={p.id} className={cn("p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center", p.available ? "border-zinc-800 bg-zinc-900/40" : "opacity-40 border-zinc-900 bg-zinc-900/20")}>
-                        <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center">
-                          <p.icon className="w-6 h-6 text-white" />
+                      <div key={p.id} className={cn("p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center", p.available ? "border-foreground/10 bg-foreground/5" : "opacity-40 border-foreground/10 bg-foreground/5")}>
+                        <div className="w-12 h-12 rounded-xl bg-foreground/5 flex items-center justify-center">
+                          <p.icon className="w-6 h-6 text-foreground" />
                         </div>
                         <span className="font-bold text-sm">{p.name}</span>
                         {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Pro</span>}
@@ -301,17 +301,17 @@ export default function AudienceSpotter() {
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
+                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all"
                       />
-                      <button onClick={addKeyword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
-                        <Plus className="w-5 h-5 text-white" />
+                      <button onClick={addKeyword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent">
+                        <Plus className="w-5 h-5 text-foreground" />
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {keywords.map((k, i) => (
                         <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
                           {k}
-                          <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
+                          <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-foreground transition-colors bg-transparent p-0.5">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
@@ -328,17 +328,17 @@ export default function AudienceSpotter() {
                         value={newCommunity}
                         onChange={(e) => setNewCommunity(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addCommunity()}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
+                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all"
                       />
-                      <button onClick={addCommunity} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
-                        <Plus className="w-5 h-5 text-white" />
+                      <button onClick={addCommunity} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent">
+                        <Plus className="w-5 h-5 text-foreground" />
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {communities.map((c, i) => (
-                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-800 border border-white/5 text-zinc-300 text-xs font-bold">
+                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground/5 border border-foreground/10 text-foreground/80 text-xs font-bold">
                           r/{c}
-                          <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
+                          <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="hover:text-foreground transition-colors bg-transparent p-0.5">
                             <X className="w-3 h-3" />
                           </button>
                         </div>
@@ -350,24 +350,24 @@ export default function AudienceSpotter() {
 
               {settingsTab === 'Product' && (
                 <div className="space-y-8">
-                  <div className="p-8 rounded-2xl bg-zinc-900/40 border border-white/5 space-y-6">
+                  <div className="p-8 rounded-2xl bg-foreground/5 border border-foreground/10 space-y-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                         <Brain className="w-6 h-6 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold">{brain?.app_name}</h3>
-                        <p className="text-zinc-500 text-sm">Using your Brand Brain for filtering.</p>
+                        <p className="text-foreground/60 text-sm">Using your Brand Brain for filtering.</p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Description</p>
-                        <p className="text-sm text-zinc-300">{brain?.app_description}</p>
+                        <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-1">Description</p>
+                        <p className="text-sm text-foreground/80">{brain?.app_description}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Target Audience</p>
-                        <p className="text-sm text-zinc-300">{brain?.target_customer}</p>
+                        <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-1">Target Audience</p>
+                        <p className="text-sm text-foreground/80">{brain?.target_customer}</p>
                       </div>
                     </div>
                   </div>
@@ -376,12 +376,12 @@ export default function AudienceSpotter() {
 
               {(settingsTab === 'Reply Voice' || settingsTab === 'Notifications') && (
                 <div className="py-20 text-center">
-                  <p className="text-zinc-500">Coming soon in the next update.</p>
+                  <p className="text-foreground/60">Coming soon in the next update.</p>
                 </div>
               )}
             </div>
 
-            <div className="mt-12 pt-8 border-t border-white/5 flex justify-end">
+            <div className="mt-12 pt-8 border-t border-foreground/5 flex justify-end">
               <button 
                 onClick={() => {
                   handleCreateSignal();
@@ -398,250 +398,20 @@ export default function AudienceSpotter() {
     );
   }
 
-  if (!isConfigured) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
-        <Sidebar isPaid={true} />
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8 sm:p-12">
-          <div className="max-w-5xl mx-auto w-full flex flex-col lg:flex-row gap-16">
-            <div className="lg:w-48 flex flex-col gap-8 pt-8">
-              <div className="relative flex flex-col gap-10">
-                <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-zinc-800" />
-                {filteredSteps.map((s, idx) => (
-                  <div key={s.id} className="relative flex items-center gap-4">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-all border-2",
-                      step === s.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : 
-                      step > s.id ? "bg-primary border-primary text-white" : "bg-[#0A0A0A] border-zinc-800 text-zinc-500"
-                    )}>
-                      {step > s.id ? <Check className="w-4 h-4" /> : idx + 1}
-                    </div>
-                    <span className={cn(
-                      "text-sm font-medium transition-colors",
-                      step === s.id ? "text-white" : "text-zinc-500"
-                    )}>{s.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex-1">
-              <AnimatePresence mode="wait">
-                {step === 1 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Where should we listen?</h1>
-                      <p className="text-zinc-500">Select the platforms to monitor for buying signals.</p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {PLATFORMS.map((p) => (
-                        <div 
-                          key={p.id}
-                          onClick={() => p.available && setSelectedPlatforms(prev => prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id])}
-                          className={cn(
-                            "relative p-8 rounded-2xl border transition-all flex flex-col items-center justify-center gap-4 text-center group cursor-pointer",
-                            !p.available ? "opacity-40 cursor-not-allowed border-zinc-900 bg-zinc-900/20" : 
-                            selectedPlatforms.includes(p.id) ? "border-primary bg-primary/5" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700"
-                          )}
-                        >
-                          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-colors", selectedPlatforms.includes(p.id) ? "bg-primary" : "bg-zinc-800")}>
-                            <p.icon className="w-6 h-6 text-white" />
-                          </div>
-                          <span className="font-bold text-sm">{p.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {step === 2 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Communities</h1>
-                      <p className="text-zinc-500">Subreddits where we'll scan for high-intent conversations.</p>
-                    </div>
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="e.g. SaaS or r/startups"
-                        value={newCommunity}
-                        onChange={(e) => setNewCommunity(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addCommunity()}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
-                      />
-                      <button onClick={addCommunity} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
-                        <Plus className="w-5 h-5 text-white" />
-                      </button>
-                    </div>
-                    <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden min-h-[100px]">
-                      {communities.map((c, i) => (
-                        <div key={i} className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 last:border-0 group hover:bg-white/[0.02]">
-                          <div className="flex items-center gap-3">
-                            <span className="text-primary text-xs font-bold">r/</span>
-                            <span className="text-sm font-medium">{c}</span>
-                          </div>
-                          <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-500 transition-all bg-transparent">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {step === 3 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Keywords</h1>
-                      <p className="text-zinc-500">High-intent search phrases that trigger buyer discovery.</p>
-                    </div>
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="e.g. AI copywriting tool for SaaS"
-                        value={newKeyword}
-                        onChange={(e) => setNewKeyword(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
-                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-6 py-4 text-white focus:outline-none focus:border-primary transition-all"
-                      />
-                      <button onClick={addKeyword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-all bg-transparent">
-                        <Plus className="w-5 h-5 text-white" />
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {keywords.map((k, i) => (
-                        <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold group">
-                          {k}
-                          <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-white transition-colors bg-transparent p-0.5">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {step === 4 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                    <div>
-                      <h1 className="text-4xl font-bold mb-4">Review your signal</h1>
-                      <p className="text-zinc-500">Everything looks good? Hit create and we'll start monitoring.</p>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {/* Product Section */}
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <Brain className="w-5 h-5 text-zinc-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Product</p>
-                          <h3 className="text-lg font-bold text-white mb-1">{brain?.app_name}</h3>
-                          <p className="text-xs text-zinc-400 leading-relaxed">{brain?.app_description}</p>
-                        </div>
-                      </div>
-
-                      {/* Platforms Section */}
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <Globe className="w-5 h-5 text-zinc-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Platforms</p>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedPlatforms.map(p => (
-                              <span key={p} className="px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase">
-                                {p}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Communities Section */}
-                      {!skipSubreddits && (
-                        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                            <MessageSquare className="w-5 h-5 text-zinc-400" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Communities</p>
-                            <div className="flex flex-wrap gap-2">
-                              {communities.map(c => (
-                                <span key={c} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
-                                  r/{c}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Keywords Section */}
-                      <div className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 flex gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <Target className="w-5 h-5 text-zinc-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Keywords</p>
-                          <div className="flex flex-wrap gap-2">
-                            {keywords.map(k => (
-                              <span key={k} className="px-3 py-1 rounded-lg bg-zinc-800 border border-white/5 text-zinc-400 text-[10px] font-bold">
-                                #{k}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="mt-12 flex items-center justify-between">
-                <button 
-                  onClick={handleBack}
-                  className={cn("flex items-center gap-2 text-zinc-500 hover:text-white transition-all bg-transparent", step === 1 && "invisible")}
-                >
-                  <ArrowLeft className="w-4 h-4" /> Back
-                </button>
-                {step < 4 ? (
-                  <button 
-                    onClick={handleNext}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all"
-                  >
-                    Continue <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleCreateSignal}
-                    className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20"
-                  >
-                    <Zap className="w-4 h-4" /> Create Signal
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   const config = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="p-8 sm:p-12 flex items-center justify-between border-b border-white/5 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-30">
+        <header className="p-8 sm:p-12 flex items-center justify-between border-b border-foreground/5 bg-background sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Target className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold">User Finder</h1>
-              <p className="text-zinc-500 text-sm">Find real people actively looking for what you built.</p>
+              <p className="text-foreground/60 text-sm">Find real people actively looking for what you built.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -649,14 +419,14 @@ export default function AudienceSpotter() {
               <>
                 <button 
                   onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white text-xs font-bold hover:bg-zinc-800 transition-all bg-transparent"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all bg-transparent"
                 >
                   <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
                   Scan Now
                 </button>
                 <button 
                   onClick={() => setShowSettings(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all bg-transparent text-xs font-bold"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/20 transition-all bg-transparent text-xs font-bold"
                 >
                   <Settings className="w-3.5 h-3.5" /> Re-Configure
                 </button>
@@ -667,9 +437,9 @@ export default function AudienceSpotter() {
 
         <div className="p-8 sm:p-12 max-w-6xl mx-auto w-full">
           {/* Tier Usage Limits UI */}
-          <div className="mb-8 flex items-center justify-between bg-[#111111] border border-white/5 rounded-xl px-6 py-4">
+          <div className="mb-8 flex items-center justify-between bg-foreground/5 border border-foreground/5 rounded-xl px-6 py-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">
                 {plan === 'free' ? 'Free Tier' : plan === 'starter' ? 'Starter Tier' : 'Pro Tier'} Usage:
               </span>
               <span className="text-sm font-bold text-orange-500">
@@ -677,7 +447,7 @@ export default function AudienceSpotter() {
               </span>
             </div>
             {limits.userFinder !== 'unlimited' && (
-              <div className="w-32 bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div className="w-32 bg-foreground/5 h-1.5 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-orange-500 transition-all duration-300" 
                   style={{ width: `${Math.min(100, (scansUsed / limits.userFinder) * 100)}%` }}
@@ -693,8 +463,8 @@ export default function AudienceSpotter() {
                 <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
                   <Lock className="w-8 h-8 text-orange-500" />
                 </div>
-                <h2 className="text-3xl font-bold text-white">26+ potential user posts found — upgrade to access them</h2>
-                <p className="text-zinc-400 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited high-intent buyer leads.</p>
+                <h2 className="text-3xl font-bold text-foreground">26+ potential user posts found — upgrade to access them</h2>
+                <p className="text-foreground/60 text-sm max-w-md mx-auto">Upgrade to access this feature again and unlock unlimited high-intent buyer leads.</p>
                 <div className="pt-4">
                   <Link 
                     to="/pricing" 
@@ -708,12 +478,12 @@ export default function AudienceSpotter() {
               {/* Comparison Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6">
                 {/* Box 1: Doing it manually */}
-                <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-4">
+                <div className="bg-foreground/5 border border-foreground/5 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center gap-2 text-red-400">
                     <XCircle className="w-5 h-5" />
-                    <h3 className="font-bold text-white text-base">Doing it manually</h3>
+                    <h3 className="font-bold text-foreground text-base">Doing it manually</h3>
                   </div>
-                  <ul className="space-y-3 text-sm text-zinc-400">
+                  <ul className="space-y-3 text-sm text-foreground/60">
                     <li className="flex items-start gap-2">
                       <span className="text-red-500/60 mt-0.5">•</span>
                       <span>Takes forever</span>
@@ -734,12 +504,12 @@ export default function AudienceSpotter() {
                 </div>
 
                 {/* Box 2: Using Vibe Promote */}
-                <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+                <div className="bg-foreground/5 border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
                   <div className="flex items-center gap-2 text-green-400">
                     <CheckCircle2 className="w-5 h-5" />
-                    <h3 className="font-bold text-white text-base">Using Vibe Promote</h3>
+                    <h3 className="font-bold text-foreground text-base">Using Vibe Promote</h3>
                   </div>
-                  <ul className="space-y-3 text-sm text-zinc-300">
+                  <ul className="space-y-3 text-sm text-foreground/80">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
                       <span>Find users on autopilot</span>
@@ -760,7 +530,7 @@ export default function AudienceSpotter() {
                 </div>
               </div>
 
-              <p className="text-zinc-500 text-sm font-medium">
+              <p className="text-foreground/60 text-sm font-medium">
                 ⚡ 100+ builders are finding users on autopilot
               </p>
             </div>
@@ -775,16 +545,16 @@ export default function AudienceSpotter() {
               <h2 className="text-xl font-bold mb-2">
                 {isLoading ? "Scanning for potential users..." : "Monitoring for new signals..."}
               </h2>
-              <p className="text-zinc-500 max-w-md mx-auto text-sm leading-relaxed mb-8">
+              <p className="text-foreground/60 max-w-md mx-auto text-sm leading-relaxed mb-8">
                 you will see all the potential users post here when its found
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {keywords.map(k => (
-                  <span key={k} className="px-3 py-1 rounded-full bg-zinc-900 border border-white/5 text-zinc-500 text-[10px] font-bold uppercase">#{k}</span>
+                  <span key={k} className="px-3 py-1 rounded-full bg-foreground/5 border border-foreground/5 text-foreground/60 text-[10px] font-bold uppercase">#{k}</span>
                 ))}
               </div>
               {config.scanStartedAt && (
-                <p className="text-zinc-600 text-xs">
+                <p className="text-foreground/60 text-xs">
                   Last scan started {moment(config.scanStartedAt).fromNow()}
                 </p>
               )}
@@ -798,7 +568,7 @@ export default function AudienceSpotter() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-700 transition-all group"
+                  className="bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all group"
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-6">
@@ -811,39 +581,39 @@ export default function AudienceSpotter() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-white font-bold text-sm">{signal.subreddit}</span>
-                            <span className="text-zinc-700 text-xs">•</span>
-                            <span className="text-zinc-500 text-xs font-medium">by u/{signal.author}</span>
+                            <span className="text-foreground font-bold text-sm">{signal.subreddit}</span>
+                            <span className="text-foreground/40 text-xs">•</span>
+                            <span className="text-foreground/60 text-xs font-medium">by u/{signal.author}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
-                               <Target className="w-3 h-3 text-white" />
-                               <span className="text-white text-[10px] font-bold uppercase tracking-wider">Potential User Score: {signal.intent_score}%</span>
+                            <div className="flex items-center gap-1.5 bg-foreground/5 border border-foreground/10 px-2.5 py-1 rounded-lg">
+                               <Target className="w-3 h-3 text-foreground" />
+                               <span className="text-foreground text-[10px] font-bold uppercase tracking-wider">Potential User Score: {signal.intent_score}%</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-bold text-white mb-3 leading-tight">{signal.post_title}</h2>
-                    <p className="text-zinc-400 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
+                    <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">{signal.post_title}</h2>
+                    <p className="text-foreground/60 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
 
-                    <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-5 mb-8">
-                      <p className="text-[10px] text-zinc-500 italic mb-2">⚠ AI-generated — review and edit before sending</p>
+                    <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8">
+                      <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
                       <div className="flex items-center gap-2 mb-3">
                         <MessageSquare className="w-3.5 h-3.5 text-primary" />
                         <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
                       </div>
-                      <p className="text-white text-sm italic leading-relaxed font-medium">"{signal.suggested_reply}"</p>
+                      <p className="text-foreground text-sm italic leading-relaxed font-medium">"{signal.suggested_reply}"</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                    <div className="flex items-center justify-between pt-6 border-t border-foreground/5">
                       <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-zinc-600">
+                        <div className="flex items-center gap-2 text-foreground/60">
                           <Zap className="w-4 h-4" />
                           <span className="text-xs font-bold">{signal.upvotes} Upvotes</span>
                         </div>
-                        <div className="flex items-center gap-3 border-l border-zinc-800 pl-6">
+                        <div className="flex items-center gap-3 border-l border-foreground/10 pl-6">
                           <button 
                             onClick={() => {
                               updateSignalStatus({ id: signal.id, status: 'replied' });
@@ -851,13 +621,13 @@ export default function AudienceSpotter() {
                               const replyTaskKey = `reply_posts_d${currentDay}`;
                               markTaskComplete(user.id, replyTaskKey, supabase);
                             }}
-                            className="p-2 rounded-lg border border-zinc-800 text-zinc-500 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
+                            className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                           <button 
                             onClick={() => handleDismiss(signal.id)}
-                            className="p-2 rounded-lg border border-zinc-800 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-all bg-transparent"
+                            className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-red-400 hover:bg-red-400/10 transition-all bg-transparent"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -869,14 +639,14 @@ export default function AudienceSpotter() {
                             navigator.clipboard.writeText(signal.suggested_reply);
                             toast.success("Reply copied!");
                           }}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 text-white font-bold text-xs hover:bg-zinc-700 transition-all bg-transparent border border-zinc-700"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10"
                         >
                           <Copy className="w-3.5 h-3.5" />
                           Copy Reply
                         </button>
                         <button 
                           onClick={() => window.open(signal.post_url, '_blank')}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:scale-105 transition-all shadow-xl"
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background font-bold text-xs hover:scale-105 transition-all shadow-xl"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                           Open Post
@@ -891,9 +661,9 @@ export default function AudienceSpotter() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="mt-6 pt-6 border-t border-white/5 overflow-hidden"
+                          className="mt-6 pt-6 border-t border-foreground/5 overflow-hidden"
                         >
-                          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6">
+                          <div className="bg-background border border-foreground/10 rounded-xl p-6">
                             <div className="flex items-center gap-2 mb-4">
                               <AlertCircle className="w-4 h-4 text-primary" />
                               <h3 className="text-sm font-bold">Why didn't you like this post?</h3>
@@ -907,7 +677,7 @@ export default function AudienceSpotter() {
                                     "px-4 py-2.5 rounded-lg border text-xs font-medium text-left transition-all",
                                     dismissReason === reason.id 
                                       ? "bg-primary/10 border-primary text-primary" 
-                                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                                      : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
                                   )}
                                 >
                                   {reason.label}
@@ -917,14 +687,14 @@ export default function AudienceSpotter() {
                             <div className="flex items-center justify-between">
                               <button 
                                 onClick={() => setShowSettings(true)}
-                                className="text-[10px] font-bold text-zinc-500 hover:text-white uppercase tracking-widest bg-transparent"
+                                className="text-[10px] font-bold text-foreground/60 hover:text-foreground uppercase tracking-widest bg-transparent"
                               >
                                 Change Configuration →
                               </button>
                               <div className="flex gap-2">
                                 <button 
                                   onClick={() => setDismissingId(null)}
-                                  className="px-4 py-2 rounded-lg text-xs font-bold text-zinc-500 hover:text-white bg-transparent"
+                                  className="px-4 py-2 rounded-lg text-xs font-bold text-foreground/60 hover:text-foreground bg-transparent"
                                 >
                                   Cancel
                                 </button>

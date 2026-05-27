@@ -90,65 +90,65 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
       
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-14 border-b border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
-            <h1 className="text-sm font-bold text-white">Settings</h1>
+            <h1 className="text-sm font-bold text-foreground">Settings</h1>
           </div>
         </header>
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
           {/* PROFILE SECTION */}
-          <div className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-6">
+          <div className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-6">
             <div className="flex items-center gap-3">
-              <User className="w-4 h-4 text-gray-400" />
-              <h2 className="text-sm font-bold text-white">Profile</h2>
+              <User className="w-4 h-4 text-foreground/60" />
+              <h2 className="text-sm font-bold text-foreground">Profile</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-2 block">
                   Name
                 </label>
                 <input
                   readOnly
                   value={displayProfileName()}
-                  className="w-full rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-sm text-white"
+                  className="w-full rounded-xl border border-foreground/5 bg-foreground/5 px-4 py-2.5 text-sm text-foreground"
                 />
               </div>
               
               <div>
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 block">
+                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-2 block">
                   Email
                 </label>
                 <input
                   readOnly
                   value={user?.email || ''}
-                  className="w-full rounded-xl border border-white/5 bg-white/[0.02] px-4 py-2.5 text-sm text-white"
+                  className="w-full rounded-xl border border-foreground/5 bg-foreground/5 px-4 py-2.5 text-sm text-foreground"
                 />
               </div>
             </div>
           </div>
 
           {/* ACCOUNT STATUS SECTION */}
-          <div className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-6">
+          <div className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-6">
             <div className="flex items-center gap-3">
-              <Shield className="w-4 h-4 text-gray-400" />
-              <h2 className="text-sm font-bold text-white">Account Status</h2>
+              <Shield className="w-4 h-4 text-foreground/60" />
+              <h2 className="text-sm font-bold text-foreground">Account Status</h2>
             </div>
             
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border border-white/15 bg-white/5 text-zinc-200">
+              <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border border-foreground/10 bg-foreground/5 text-foreground/80">
                 {isPaid ? "Lifetime Access" : "Free Tier"}
               </div>
               
@@ -156,7 +156,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => navigate('/pricing')}
-                  className="w-full border border-white/10 bg-transparent hover:bg-white/5 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full border border-foreground/10 bg-transparent hover:bg-foreground/5 text-foreground font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   Upgrade
                   <ArrowRight className="w-4 h-4" />
@@ -166,16 +166,16 @@ export default function Settings() {
           </div>
 
           {/* CONNECTED CHANNELS SECTION */}
-          <div className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-6">
+          <div className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Link2 className="w-4 h-4 text-gray-400" />
-                <h2 className="text-sm font-bold text-white">Connected Channels</h2>
+                <Link2 className="w-4 h-4 text-foreground/60" />
+                <h2 className="text-sm font-bold text-foreground">Connected Channels</h2>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/connected-accounts')}
-                className="text-[10px] font-bold text-zinc-400 hover:text-white flex items-center gap-1.5 transition-colors sm:self-auto self-start bg-transparent"
+                className="text-[10px] font-bold text-foreground/60 hover:text-foreground flex items-center gap-1.5 transition-colors sm:self-auto self-start bg-transparent"
               >
                 Manage connections
                 <ExternalLink className="w-3 h-3" />
@@ -192,14 +192,14 @@ export default function Settings() {
                 return (
                   <div
                     key={row.label}
-                    className="flex items-center justify-between gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02]"
+                    className="flex items-center justify-between gap-3 p-4 rounded-xl border border-foreground/5 bg-foreground/5"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <Icon className="w-4 h-4 text-foreground/60 flex-shrink-0" />
                       <div className="min-w-0">
-                        <span className="text-sm text-zinc-300 block">{row.label}</span>
+                        <span className="text-sm text-foreground/80 block">{row.label}</span>
                         {linked?.username ? (
-                          <span className="text-xs text-gray-500 truncate block">
+                          <span className="text-xs text-foreground/60 truncate block">
                             @{linked.username.replace(/^@/, '')}
                           </span>
                         ) : null}
@@ -207,15 +207,15 @@ export default function Settings() {
                     </div>
 
                     {row.comingSoon ? (
-                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-zinc-500 border border-white/10 rounded px-1.5 py-0.5 bg-white/5">
+                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-foreground/60 border border-foreground/10 rounded px-1.5 py-0.5 bg-foreground/5">
                         Coming Soon
                       </span>
                     ) : linked ? (
-                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-zinc-400 border border-white/10 rounded px-1.5 py-0.5 bg-white/5">
+                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-foreground/60 border border-foreground/10 rounded px-1.5 py-0.5 bg-foreground/5">
                         Connected
                       </span>
                     ) : (
-                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-zinc-500 border border-white/10 rounded px-1.5 py-0.5 bg-white/5">
+                      <span className="flex-shrink-0 text-[9px] uppercase font-bold text-foreground/60 border border-foreground/10 rounded px-1.5 py-0.5 bg-foreground/5">
                         Not connected
                       </span>
                     )}
@@ -226,10 +226,10 @@ export default function Settings() {
           </div>
 
           {/* DANGER ZONE SECTION */}
-          <div className="bg-[#111111] border border-red-500/40 rounded-2xl p-6 space-y-6">
+          <div className="bg-foreground/5 border border-red-500/40 rounded-2xl p-6 space-y-6">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-4 h-4 text-red-400" />
-              <h2 className="text-sm font-bold text-white">Danger Zone</h2>
+              <h2 className="text-sm font-bold text-foreground">Danger Zone</h2>
             </div>
             
             <button
@@ -241,8 +241,8 @@ export default function Settings() {
             </button>
           </div>
 
-          <footer className="pt-8 pb-6 border-t border-white/5 flex items-center justify-between">
-            <p className="text-[10px] text-gray-700 font-medium">
+          <footer className="pt-8 pb-6 border-t border-foreground/5 flex items-center justify-between">
+            <p className="text-[10px] text-foreground/60 font-medium">
               Vibe Promote © 2026
             </p>
           </footer>
@@ -257,21 +257,21 @@ export default function Settings() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowDeleteModal(false)}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-background/80 z-50 flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#111111] border border-red-500/20 rounded-2xl p-6 max-w-sm mx-auto w-full"
+              className="bg-foreground/5 border border-red-500/20 rounded-2xl p-6 max-w-sm mx-auto w-full"
             >
               <div className="text-center space-y-4">
                 <AlertTriangle className="w-12 h-12 text-red-400 mx-auto" />
                 
                 <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-white">Delete Account?</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="text-lg font-bold text-foreground">Delete Account?</h3>
+                  <p className="text-sm text-foreground/60">
                     This action cannot be undone. All your data will be permanently deleted.
                   </p>
                 </div>
@@ -280,7 +280,7 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 border border-white/10 bg-transparent text-gray-300 hover:bg-white/5 rounded-lg py-2.5 text-xs font-bold transition-colors"
+                    className="flex-1 border border-foreground/10 bg-transparent text-foreground/80 hover:bg-foreground/5 rounded-lg py-2.5 text-xs font-bold transition-colors"
                   >
                     Cancel
                   </button>
@@ -294,7 +294,7 @@ export default function Settings() {
                   </button>
                 </div>
                 
-                <p className="text-[10px] text-gray-600 pt-2">
+                <p className="text-[10px] text-foreground/60 pt-2">
                   Note: Account deletion requires support confirmation
                 </p>
               </div>
@@ -302,6 +302,82 @@ export default function Settings() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+</dyad-file>
+
+<dyad-write path="src/pages/ConnectedAccounts.jsx" description="Updating ConnectedAccounts.jsx to use theme-aware background, text, and border classes.">
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import ConnectAccounts from '../components/results-tracker/ConnectAccounts';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../supabaseClient';
+import { markTaskComplete } from '../components/TaskWidget';
+
+export default function ConnectedAccounts() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isPaid, setIsPaid] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!user) return;
+      try {
+        const { data: paymentData } = await supabase
+          .from('user_payments')
+          .select('payment_status')
+          .eq('email', user.email)
+          .maybeSingle();
+        if (paymentData?.payment_status) setIsPaid(true);
+      } catch (err) {
+        console.error('Error fetching payment data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
+      <Sidebar isPaid={isPaid} />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <h1 className="text-sm font-bold text-foreground">Connected Accounts</h1>
+          </div>
+        </header>
+
+        <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full pb-24">
+          <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-2">
+            <h2 className="text-xl font-bold text-foreground">Connect Accounts</h2>
+            <p className="text-sm text-foreground/60">
+              Link your platforms to pull in posts and track performance.
+            </p>
+          </section>
+
+          <ConnectAccounts
+            onConnect={() => {
+              markTaskComplete(user.id, 'connect_reddit', supabase);
+              navigate('/dashboard/results-tracker');
+            }}
+          />
+        </div>
+      </main>
     </div>
   );
 }

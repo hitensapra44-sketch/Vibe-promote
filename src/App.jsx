@@ -74,7 +74,7 @@ const AuthenticatedApp = () => {
 
   if (isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black">
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
       </div>
     );
@@ -115,7 +115,7 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <div className="min-h-screen bg-black text-white font-geist">
+    <div className="min-h-screen bg-background text-foreground font-geist">
       <AuthenticatedApp />
       <FeedbackWidget />
       <Toaster />

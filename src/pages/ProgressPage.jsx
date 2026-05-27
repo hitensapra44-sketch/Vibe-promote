@@ -209,7 +209,7 @@ export default function ProgressPage() {
 
   if (loading && !progress) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     );
@@ -218,20 +218,20 @@ export default function ProgressPage() {
   const isGoalCompleted = progress?.goal_type && progress?.goal_type !== 'consistency' && (progress?.current_value || 0) >= (progress?.goal_target || 1);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-14 border-b border-white/5 bg-[#0a0a0a] flex items-center px-6 sticky top-0 z-30">
-          <h1 className="text-sm font-bold text-white">My Progress</h1>
+        <header className="h-14 border-b border-foreground/5 bg-background flex items-center px-6 sticky top-0 z-30">
+          <h1 className="text-sm font-bold text-foreground">My Progress</h1>
         </header>
 
         <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full space-y-8 pb-24">
           {!progress || !progress.goal_type ? (
             /* Goal Selection Screen */
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-xl font-bold text-white mb-2">What are you working toward?</h2>
-              <p className="text-sm text-gray-500 mb-8">Pick one. Your daily tasks are built around it.</p>
+              <h2 className="text-xl font-bold text-foreground mb-2">What are you working toward?</h2>
+              <p className="text-sm text-foreground/60 mb-8">Pick one. Your daily tasks are built around it.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 {GOAL_OPTIONS.map((opt) => {
@@ -241,13 +241,13 @@ export default function ProgressPage() {
                       key={opt.goal_type}
                       onClick={() => setSelectedGoal(opt)}
                       className={cn(
-                        "bg-[#111111] border rounded-2xl p-6 cursor-pointer transition-all flex flex-col justify-between min-h-[120px]",
-                        isSelected ? "border-orange-500 bg-orange-500/5" : "border-white/5 hover:border-orange-500/40"
+                        "bg-foreground/5 border rounded-2xl p-6 cursor-pointer transition-all flex flex-col justify-between min-h-[120px]",
+                        isSelected ? "border-orange-500 bg-orange-500/5" : "border-foreground/5 hover:border-orange-500/40"
                       )}
                     >
-                      <span className="text-sm font-bold text-white">{opt.goal_label}</span>
+                      <span className="text-sm font-bold text-foreground">{opt.goal_label}</span>
                       {opt.sublabel && (
-                        <span className="text-[10px] text-gray-600 mt-2">{opt.sublabel}</span>
+                        <span className="text-[10px] text-foreground/60 mt-2">{opt.sublabel}</span>
                       )}
                     </div>
                   );
@@ -266,17 +266,17 @@ export default function ProgressPage() {
             /* Main Progress Page */
             <div className="space-y-8 animate-in fade-in duration-500">
               {/* Section 1: Goal Card */}
-              <div className="bg-[#111111] border border-orange-500/40 rounded-2xl p-6 space-y-4">
+              <div className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block mb-1">Current Goal</span>
-                    <h2 className="text-xl font-bold text-white">
+                    <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block mb-1">Current Goal</span>
+                    <h2 className="text-xl font-bold text-foreground">
                       {isGoalCompleted ? "Congratulations, you did it! 🎉" : progress?.goal_label}
                     </h2>
                   </div>
                   <button
                     onClick={handleChangeGoal}
-                    className="text-xs text-zinc-400 hover:text-white bg-transparent border border-white/10 rounded-lg px-3 py-1.5 transition-all"
+                    className="text-xs text-foreground/60 hover:text-foreground bg-transparent border border-foreground/10 rounded-lg px-3 py-1.5 transition-all"
                   >
                     Change Goal
                   </button>
@@ -284,20 +284,20 @@ export default function ProgressPage() {
 
                 {progress?.goal_type !== 'consistency' ? (
                   <div className="space-y-3">
-                    <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-foreground/5 h-1.5 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-orange-500 transition-all duration-300"
                         style={{ width: `${Math.min(100, ((progress?.current_value || 0) / (progress?.goal_target || 1)) * 100)}%` }}
                       />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-gray-500">{progress?.current_value} / {progress?.goal_target}</span>
+                      <span className="text-[10px] text-foreground/60">{progress?.current_value} / {progress?.goal_target}</span>
                       <button
                         onClick={() => {
                           setShowUpdateInput(!showUpdateInput);
                           setTimeout(() => updateInputRef.current?.focus(), 100);
                         }}
-                        className="border border-white/10 text-xs text-white bg-transparent hover:bg-white/5 rounded-lg px-3 py-1.5 transition-all"
+                        className="border border-foreground/10 text-xs text-foreground bg-transparent hover:bg-foreground/5 rounded-lg px-3 py-1.5 transition-all"
                       >
                         Update Progress
                       </button>
@@ -318,7 +318,7 @@ export default function ProgressPage() {
                               placeholder="How many today?"
                               value={updateValue}
                               onChange={(e) => setUpdateValue(e.target.value)}
-                              className="bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-sm text-white w-40 focus:outline-none focus:border-orange-500"
+                              className="bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground w-40 focus:outline-none focus:border-orange-500"
                             />
                             <button
                               onClick={handleUpdateProgress}
@@ -333,8 +333,8 @@ export default function ProgressPage() {
                   </div>
                 ) : (
                   <div>
-                    <span className="text-3xl font-bold text-white">{progress?.streak || 0}</span>
-                    <span className="text-xs text-gray-500 ml-2">day streak</span>
+                    <span className="text-3xl font-bold text-foreground">{progress?.streak || 0}</span>
+                    <span className="text-xs text-foreground/60 ml-2">day streak</span>
                   </div>
                 )}
               </div>
@@ -342,34 +342,34 @@ export default function ProgressPage() {
               {/* Section 2: Streak (only for non-consistency goals) */}
               {progress?.goal_type !== 'consistency' && (
                 <div>
-                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block mb-1">Streak</span>
-                  <span className="text-2xl font-bold text-white">{progress?.streak || 0} days</span>
+                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block mb-1">Streak</span>
+                  <span className="text-2xl font-bold text-foreground">{progress?.streak || 0} days</span>
                 </div>
               )}
 
               {/* Section 3: Today's Tasks */}
               <div className="space-y-4">
-                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block">Today's Tasks</span>
+                <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block">Today's Tasks</span>
                 <div className="space-y-3">
                   {todaysTasks.map((task) => {
                     const isCompleted = task.status === 'completed';
                     return (
-                      <div key={task.id} className="bg-[#111111] border border-white/5 rounded-xl p-5 flex items-center justify-between gap-4">
+                      <div key={task.id} className="bg-foreground/5 border border-foreground/5 rounded-xl p-5 flex items-center justify-between gap-4">
                         <div className="flex items-start gap-4 min-w-0">
                           <div className={cn(
                             "w-5 h-5 rounded-sm flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
-                            isCompleted ? "bg-orange-500" : "border border-white/10 bg-transparent"
+                            isCompleted ? "bg-orange-500" : "border border-foreground/10 bg-transparent"
                           )}>
                             {isCompleted && <Check className="w-3.5 h-3.5 text-white" />}
                           </div>
                           <div className="min-w-0">
                             <h4 className={cn(
-                              "text-sm font-bold text-white",
-                              isCompleted && "text-gray-600 line-through"
+                              "text-sm font-bold text-foreground",
+                              isCompleted && "text-foreground/60 line-through"
                             )}>
                               {task.task_title}
                             </h4>
-                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{task.task_description}</p>
+                            <p className="text-xs text-foreground/60 mt-1 leading-relaxed">{task.task_description}</p>
                           </div>
                         </div>
                         <div>
@@ -381,7 +381,7 @@ export default function ProgressPage() {
                               Start Now
                             </button>
                           ) : (
-                            <span className="text-xs text-gray-600 font-medium">Done</span>
+                            <span className="text-xs text-foreground/60 font-medium">Done</span>
                           )}
                         </div>
                       </div>
@@ -393,18 +393,18 @@ export default function ProgressPage() {
               {/* Section 4: Tomorrow's Tasks (locked) */}
               {currentDay < 4 && tomorrowsTasks.length > 0 && (
                 <div className="space-y-4">
-                  <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest block">Tomorrow</span>
+                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block">Tomorrow</span>
                   <div className="space-y-3 opacity-40">
                     {tomorrowsTasks.map((task) => (
-                      <div key={task.id} className="bg-[#111111] border border-white/5 rounded-xl p-5 flex items-center justify-between gap-4">
+                      <div key={task.id} className="bg-foreground/5 border border-foreground/5 rounded-xl p-5 flex items-center justify-between gap-4">
                         <div className="flex items-start gap-4 min-w-0">
-                          <div className="w-5 h-5 rounded-sm border border-white/10 bg-transparent flex-shrink-0 mt-0.5" />
+                          <div className="w-5 h-5 rounded-sm border border-foreground/10 bg-transparent flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <h4 className="text-sm font-bold text-white">{task.task_title}</h4>
-                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">{task.task_description}</p>
+                            <h4 className="text-sm font-bold text-foreground">{task.task_title}</h4>
+                            <p className="text-xs text-foreground/60 mt-1 leading-relaxed">{task.task_description}</p>
                           </div>
                         </div>
-                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest whitespace-nowrap">Available tomorrow</span>
+                        <span className="text-[10px] text-foreground/60 font-bold uppercase tracking-widest whitespace-nowrap">Available tomorrow</span>
                       </div>
                     ))}
                   </div>
@@ -418,20 +418,20 @@ export default function ProgressPage() {
       {/* Day Complete Modal */}
       <AnimatePresence>
         {showCompleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-4 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111111] border border-white/5 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl"
+              className="bg-foreground/5 border border-foreground/5 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl"
             >
               <div className="flex flex-col items-center text-center">
                 <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
                   <CheckSquare className="w-5 h-5 text-orange-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white mt-4">Day {currentDay} complete</h3>
-                <span className="text-sm text-gray-500 mt-1">{progress?.streak || 0} day streak</span>
-                <p className="text-sm text-gray-400 italic mt-6 leading-relaxed">
+                <h3 className="text-xl font-bold text-foreground mt-4">Day {currentDay} complete</h3>
+                <span className="text-sm text-foreground/60 mt-1">{progress?.streak || 0} day streak</span>
+                <p className="text-sm text-foreground/60 italic mt-6 leading-relaxed">
                   "{QUOTES[currentDay] || "Consistency is the key to growth."}"
                 </p>
 
@@ -457,7 +457,7 @@ export default function ProgressPage() {
 
                 <button
                   onClick={() => setShowCompleteModal(false)}
-                  className="text-xs text-gray-600 text-center mt-4 cursor-pointer hover:text-gray-400 bg-transparent border-none"
+                  className="text-xs text-foreground/60 text-center mt-4 cursor-pointer hover:text-foreground/80 bg-transparent border-none"
                 >
                   Come back tomorrow
                 </button>

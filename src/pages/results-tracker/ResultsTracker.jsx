@@ -218,14 +218,14 @@ export default function ResultsTracker() {
 
   if (isLoading && !posts.length) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 relative">
@@ -236,10 +236,10 @@ export default function ResultsTracker() {
               <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
                 <Lock className="w-8 h-8 text-orange-500" />
               </div>
-              <h2 className="text-3xl font-bold text-white max-w-xl mx-auto leading-tight">
+              <h2 className="text-3xl font-bold text-foreground max-w-xl mx-auto leading-tight">
                 Access your social insights and marketing buddy now
               </h2>
-              <p className="text-zinc-400 text-sm max-w-md mx-auto">Upgrade to Pro to connect your accounts and track your performance in real-time.</p>
+              <p className="text-foreground/60 text-sm max-w-md mx-auto">Upgrade to Pro to connect your accounts and track your performance in real-time.</p>
               <div className="pt-4">
                 <Link 
                   to="/pricing" 
@@ -253,12 +253,12 @@ export default function ResultsTracker() {
             {/* Comparison Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left pt-6 w-full">
               {/* Box 1: Manually checking analytics */}
-              <div className="bg-[#111111] border border-white/5 rounded-2xl p-6 space-y-4">
+              <div className="bg-foreground/5 border border-foreground/5 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center gap-2 text-red-400">
                   <XCircle className="w-5 h-5" />
-                  <h3 className="font-bold text-white text-base">Manually checking analytics</h3>
+                  <h3 className="font-bold text-foreground text-base">Manually checking analytics</h3>
                 </div>
-                <ul className="space-y-3 text-sm text-zinc-400">
+                <ul className="space-y-3 text-sm text-foreground/60">
                   <li className="flex items-start gap-2">
                     <span className="text-red-500/60 mt-0.5">•</span>
                     <span>Hard to stay consistent</span>
@@ -275,12 +275,12 @@ export default function ResultsTracker() {
               </div>
 
               {/* Box 2: With Vibe Promote */}
-              <div className="bg-[#111111] border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
+              <div className="bg-foreground/5 border border-orange-500/30 rounded-2xl p-6 space-y-4 bg-orange-500/[0.02]">
                 <div className="flex items-center gap-2 text-green-400">
                   <CheckCircle2 className="w-5 h-5" />
-                  <h3 className="font-bold text-white text-base">With Vibe Promote</h3>
+                  <h3 className="font-bold text-foreground text-base">With Vibe Promote</h3>
                 </div>
-                <ul className="space-y-3 text-sm text-zinc-300">
+                <ul className="space-y-3 text-sm text-foreground/80">
                   <li className="flex items-start gap-2">
                     <span className="text-green-500 mt-0.5">•</span>
                     <span>Analytics in one place</span>
@@ -301,13 +301,13 @@ export default function ResultsTracker() {
           <div className="max-w-[680px] mx-auto py-10 w-full">
             <div className="flex items-center justify-between mb-8">
               <div className="space-y-1">
-                <h1 className="text-white text-2xl font-semibold mt-4">Connect Accounts</h1>
-                <p className="text-zinc-400 text-sm mt-1">Link your platforms to track performance.</p>
+                <h1 className="text-foreground text-2xl font-semibold mt-4">Connect Accounts</h1>
+                <p className="text-foreground/60 text-sm mt-1">Link your platforms to track performance.</p>
               </div>
               {isConnecting && (
                 <button 
                   onClick={() => setIsConnecting(false)}
-                  className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all bg-transparent"
+                  className="p-2 rounded-lg hover:bg-foreground/5 text-foreground/60 hover:text-foreground transition-all bg-transparent"
                 >
                   <X size={20} />
                 </button>
@@ -324,14 +324,14 @@ export default function ResultsTracker() {
           >
             <div className="max-w-6xl mx-auto w-full space-y-8 animate-in fade-in duration-500 pb-24">
               <div className="space-y-1">
-                <h1 className="text-2xl font-semibold text-white">Analytics</h1>
-                <p className="text-zinc-400 text-sm">Real-time performance across all your channels.</p>
+                <h1 className="text-2xl font-semibold text-foreground">Analytics</h1>
+                <p className="text-foreground/60 text-sm">Real-time performance across all your channels.</p>
               </div>
 
               <div className="flex items-center">
                 <button 
                   onClick={() => setIsConnecting(true)}
-                  className="px-4 py-2.5 rounded-xl bg-[#111111] border border-white/5 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-foreground/5 border border-foreground/5 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all flex items-center gap-2"
                 >
                   <Plus size={14} className="text-orange-500" />
                   Connect Account
@@ -344,7 +344,7 @@ export default function ResultsTracker() {
                   onChange={setSelectedPeriod}
                 />
                 
-                <div className="flex gap-6 border-b border-[#1F1F1F]">
+                <div className="flex gap-6 border-b border-foreground/10">
                   {["Reddit"].map(tab => (
                     <button
                       key={tab}
@@ -352,8 +352,8 @@ export default function ResultsTracker() {
                       className={cn(
                         "text-sm font-medium pb-2 transition-all bg-transparent",
                         activePlatform === tab 
-                          ? "text-white border-b-2 border-orange-500" 
-                          : "text-zinc-400 border-b-2 border-transparent hover:text-zinc-200"
+                          ? "text-foreground border-b-2 border-orange-500" 
+                          : "text-foreground/60 border-b-2 border-transparent hover:text-foreground/80"
                       )}
                     >
                       {tab}
