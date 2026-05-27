@@ -108,7 +108,7 @@ const AuthenticatedApp = () => {
         
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-      {isAuthenticated && <TaskWidget />}
+      {isAuthenticated && location.pathname !== '/onboarding' && <TaskWidget />}
     </>
   );
 };
