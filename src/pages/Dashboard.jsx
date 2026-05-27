@@ -25,9 +25,12 @@ import {
   Linkedin,
   Hash,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import { useTheme } from '../lib/ThemeContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -36,6 +39,7 @@ import AppGuide from '../components/AppGuide';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isPaid, setIsPaid] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [stats, setStats] = useState({
@@ -232,12 +236,21 @@ export default function Dashboard() {
             </button>
             <h1 className="text-sm font-bold text-foreground">Dashboard</h1>
           </div>
-          <button 
-            onClick={() => setShowGuide(true)}
-            className="px-3 py-1.5 rounded-lg border border-foreground/10 text-foreground/70 text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
-          >
-            Quick Tour
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-foreground/5 transition-colors text-foreground bg-transparent border-none cursor-pointer flex items-center justify-center"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-zinc-700" />}
+            </button>
+            <button 
+              onClick={() => setShowGuide(true)}
+              className="px-3 py-1.5 rounded-lg border border-foreground/10 text-foreground/70 text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+            >
+              Quick Tour
+            </button>
+          </div>
         </header>
 
         <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">

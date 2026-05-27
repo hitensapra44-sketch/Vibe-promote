@@ -10,6 +10,19 @@ import { supabase } from '../supabaseClient';
 
 async function fetchAndCleanPage(url) {
   try {
+    const { data, error }<dyad-write path="src/pages/BrandBrainOnboarding.jsx" description="Updating BrandBrainOnboarding card and box backgrounds to bg-zinc-900 and text to text-white.">
+"use client";
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon } from 'lucide-react';
+import ParticleBackground from '../components/landing/particlebackground';
+import GridBackground from '../components/ui/grid-background';
+import { generateAICall } from '../lib/ai';
+import { supabase } from '../supabaseClient';
+
+async function fetchAndCleanPage(url) {
+  try {
     const { data, error } = await supabase.functions.invoke('ai-service', {
       body: { feature: 'scrape', url }
     });
@@ -151,7 +164,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                       placeholder="https://your-awesome-saas.com"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-bg-surface/80 backdrop-blur-xl border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-all"
+                      className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-zinc-900 backdrop-blur-xl border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-all"
                       required
                     />
                   </div>
@@ -190,7 +203,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   type="text"
                   value={appName}
                   onChange={(e) => setAppName(e.target.value)}
-                  className={`w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border ${errors.app_name ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
+                  className={`w-full px-5 py-3.5 rounded-xl bg-zinc-900 border ${errors.app_name ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
               <div className="space-y-2">
@@ -199,7 +212,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   rows={3}
                   value={appDescription}
                   onChange={(e) => setAppDescription(e.target.value)}
-                  className={`w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border ${errors.app_description ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all resize-none`}
+                  className={`w-full px-5 py-3.5 rounded-xl bg-zinc-900 border ${errors.app_description ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all resize-none`}
                 />
               </div>
               <div className="space-y-2">
@@ -208,7 +221,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   type="text"
                   value={targetCustomer}
                   onChange={(e) => setTargetCustomer(e.target.value)}
-                  className={`w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border ${errors.target_customer ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
+                  className={`w-full px-5 py-3.5 rounded-xl bg-zinc-900 border ${errors.target_customer ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
               <div className="space-y-2">
@@ -217,7 +230,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   type="text"
                   value={coreProblem}
                   onChange={(e) => setCoreProblem(e.target.value)}
-                  className={`w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border ${errors.core_problem ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
+                  className={`w-full px-5 py-3.5 rounded-xl bg-zinc-900 border ${errors.core_problem ? 'border-red-500' : 'border-white/5'} text-sm text-white focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
               <div className="space-y-2">
@@ -226,7 +239,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-5 py-3.5 rounded-xl bg-bg-surface/50 border border-white/5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+                  className="w-full px-5 py-3.5 rounded-xl bg-zinc-900 border border-white/5 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
                 />
               </div>
               <div className="pt-6 flex justify-start">
@@ -241,7 +254,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
             </div>
 
             {/* Right Column — live preview card */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm p-6 sticky top-8">
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl backdrop-blur-sm p-6 sticky top-8">
               {/* Top section inside card */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

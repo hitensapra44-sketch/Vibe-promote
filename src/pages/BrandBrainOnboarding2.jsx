@@ -43,7 +43,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
       className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
         active 
           ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
-          : 'bg-white/5 border-white/10 text-white/60 hover:border-white/20'
+          : 'bg-zinc-900 border-white/10 text-white/60 hover:border-white/20'
       }`}
     >
       {label}
@@ -142,7 +142,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
                 placeholder="e.g. Faster setup, cleaner UI, or cheaper pricing..."
                 value={differentiator}
                 onChange={(e) => setDifferentiator(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
+                className="w-full px-5 py-4 rounded-2xl bg-zinc-900 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
               />
             </div>
 
@@ -153,7 +153,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
                 placeholder="e.g. 'spent too much on ads', 'no time to post'..."
                 value={painPoints}
                 onChange={(e) => setPainPoints(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
+                className="w-full px-5 py-4 rounded-2xl bg-zinc-900 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
               />
             </div>
 
@@ -174,7 +174,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
           className="hidden lg:flex flex-col gap-4 relative w-full"
         >
           {/* Top Card */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
             <Brain className="w-8 h-8 text-primary" />
             <div className="flex-1">
               <span className="text-[10px] tracking-widest text-white/30 uppercase font-bold block">YOUR APP BRAIN</span>
@@ -184,7 +184,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
           </div>
 
           {/* Bottom Card */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
             <span className="text-[10px] tracking-widest text-white/30 uppercase font-bold mb-3 block">APP</span>
             
             {app_name ? (
