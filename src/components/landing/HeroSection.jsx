@@ -1,13 +1,15 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import Starfield from './Starfield';
+import { useTheme } from '../../lib/ThemeContext';
 
 export default function HeroSection() {
+  const { theme } = useTheme();
+
   return (
-    <section id="hero" style={{
+    <section id="hero" className="bg-background" style={{
       position: 'relative', height: '100vh', overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#000'
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <Starfield />
       <div style={{
