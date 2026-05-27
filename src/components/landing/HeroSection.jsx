@@ -27,7 +27,7 @@ export default function HeroSection() {
             display: 'inline-block', flexShrink: 0
           }} />
           <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
-            Built for founders who love building but hate marketing</span>
+            Built for founders who love building not marketing</span>
         </div>
 
         {/* H1 */}
