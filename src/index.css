@@ -5,25 +5,25 @@
 @layer base {
   :root {
     --font-geist: 'Geist', 'Inter', system-ui, sans-serif;
-    --background: #ffffff;
-    --foreground: #000000;
-    --foreground-rgb: 0, 0, 0;
+    --background: #f4f6f9;
+    --foreground: #111827;
+    --foreground-rgb: 17, 24, 39;
     --card: #ffffff;
-    --card-foreground: #000000;
+    --card-foreground: #111827;
     --popover: #ffffff;
-    --popover-foreground: #000000;
+    --popover-foreground: #111827;
     --primary: 263 70% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: #f4f4f5;
-    --secondary-foreground: #000000;
+    --secondary-foreground: #111827;
     --muted: #f4f4f5;
     --muted-foreground: #71717a;
     --accent: 330 81% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: rgba(0, 0, 0, 0.2);
-    --input: rgba(0, 0, 0, 0.2);
+    --border: rgba(0, 0, 0, 0.1);
+    --input: rgba(0, 0, 0, 0.1);
     --ring: 263 70% 58%;
     --radius: 0.5rem;
   }
