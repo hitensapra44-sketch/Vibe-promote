@@ -23,7 +23,13 @@ const PLATFORM_COLORS = {
 };
 
 export default function SocialTestimonials() {
-  const doubled = [...TESTIMONIALS, ...TESTIMONIALS];
+  // Split testimonials into two rows
+  const half = Math.ceil(TESTIMONIALS.length / 2);
+  const row1 = TESTIMONIALS.slice(0, half);
+  const row2 = TESTIMONIALS.slice(half);
+
+  const doubledRow1 = [...row1, ...row1];
+  const doubledRow2 = [...row2, ...row2];
 
   return (
     <section
@@ -38,6 +44,11 @@ export default function SocialTestimonials() {
         @keyframes testiScroll {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
+        }
+
+        @keyframes testiScrollReverse {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
         }
 
         .testi-scroll-card {
@@ -129,9 +140,9 @@ export default function SocialTestimonials() {
         </p>
       </div>
 
-      {/* Scroller */}
+      {/* Scroller Container */}
       <div
-        style={{ position: 'relative' }}
+        style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '20px' }}
         onMouseMove={(e) => {
           document
             .querySelectorAll('.testi-scroll-card')
@@ -177,17 +188,126 @@ export default function SocialTestimonials() {
           }}
         />
 
+        {/* Row 1: Scrolling Left */}
         <div
           style={{
             display: 'flex',
             gap: '14px',
-            animation: 'testiScroll 120s linear infinite',
+            animation: 'testiScroll 80s linear infinite',
             width: 'max-content',
-            padding: '10px 0'
+            padding: '5px 0'
           }}
         >
-          {doubled.map((t, i) => (
-            <div key={i} className="testi-scroll-card">
+          {doubledRow1.map((t, i) => (
+            <div key={`row1-${i}`} className="testi-scroll-card">
+              {/* Platform badge */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '14px'
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'Inter',
+                    fontWeight: 700,
+                    fontSize: '11px',
+                    letterSpacing: '0.06em',
+                    color: PLATFORM_COLORS[t.platform] || '#7A7672',
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '100px',
+                    padding: '3px 10px',
+                    border: '1px solid rgba(255,255,255,0.06)'
+                  }}
+                >
+                  {t.platform}
+                </span>
+              </div>
+
+              {/* Quote */}
+              <p
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: '13px',
+                  color: '#F2EDE8',
+                  lineHeight: 1.65,
+                  margin: '0 0 16px',
+                  fontStyle: 'italic'
+                }}
+              >
+                "{t.text}"
+              </p>
+
+              {/* Author */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderTop: '1px solid rgba(255,255,255,0.05)',
+                  paddingTop: '12px'
+                }}
+              >
+                <div
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: '#9C2000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'Inter',
+                    fontWeight: 800,
+                    fontSize: '10px',
+                    color: '#fff',
+                    flexShrink: 0
+                  }}
+                >
+                  {t.name[0]}
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'Inter',
+                      fontWeight: 600,
+                      fontSize: '13px',
+                      color: '#F2EDE8'
+                    }}
+                  >
+                    {t.name}
+                  </div>
+
+                  <div
+                    style={{
+                      fontFamily: 'Inter',
+                      fontSize: '11px',
+                      color: '#44403C'
+                    }}
+                  >
+                    {t.location}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Row 2: Scrolling Right */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '14px',
+            animation: 'testiScrollReverse 80s linear infinite',
+            width: 'max-content',
+            padding: '5px 0'
+          }}
+        >
+          {doubledRow2.map((t, i) => (
+            <div key={`row2-${i}`} className="testi-scroll-card">
               {/* Platform badge */}
               <div
                 style={{
