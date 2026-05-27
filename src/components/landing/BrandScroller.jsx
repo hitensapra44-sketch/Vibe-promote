@@ -47,7 +47,11 @@ export default function BrandScroller() {
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           margin: 0
-        }}><p style={{ color: '#9C2000', fontWeight: 700 }}>1000+ SaaS <span>Automated</span> Their Marketing</p></div>
+        }}>
+          <span style={{ color: '#9C2000', fontWeight: 700 }}>1000+ SaaS </span>
+          <span>Automated</span> Their Marketing
+        </p>
+      </div>
 
       <div style={{ position: 'relative' }}>
         <div style={{
