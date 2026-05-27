@@ -48,7 +48,7 @@ export default function HeroSection() {
           color: '#FFFFFF', maxWidth: '800px', textAlign: 'center',
           lineHeight: 1.7, margin: '0 0 40px'
         }}>
-          Stop wasting hours figuring out what to post, where your users hang out, and why growth feels so hard. Vibe Promote helps you find buyers, sharpen positioning, create content that sounds human, and grow your SaaS. without have to marketing taking your whole time 
+          Stop wasting hours figuring out what to post, where your users hang out, and why growth feels so hard. Vibe Promote helps you find buyers, sharpen positioning, create content that sounds human, and grow your SaaS. without marketing becoming another full-time job.
         </p>
 
         {/* CTAs */}
