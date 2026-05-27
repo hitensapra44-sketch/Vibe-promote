@@ -48,7 +48,7 @@ export default function BrandScroller() {
           textTransform: 'uppercase',
           margin: 0
         }}>
-          Trusted by <span style={{ color: '#9C2000', fontWeight: 700 }}>1000+</span> brands
+          Trusted by <span style={{ color: '#9C2000', fontWeight: 700 }}>1000+</span> SaaS
         </p>
       </div>
 
