@@ -20,12 +20,12 @@ export default function StartScreen({ onStart }) {
         transition={{ duration: 0.6 }}
         className="relative z-10 max-w-2xl text-center px-6"
       >
-        <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4 leading-tight">
+        <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-4 leading-tight">
           Welcome to the era of <br />
           <span className="text-primary">vibe marketing.</span>
         </h1>
         
-        <h2 className="text-xl sm:text-2xl font-semibold text-white/90 mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground/90 mb-6">
           You build it. We grow it.
         </h2>
         
