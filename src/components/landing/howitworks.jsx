@@ -67,7 +67,7 @@ export default function HowItWorks() {
         <div className="text-center mb-16">
           <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">How It Works</span>
           <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Three steps to a marketing machine.
+            Go from building in silence to getting users in 3 steps
           </h2>
         </div>
 
