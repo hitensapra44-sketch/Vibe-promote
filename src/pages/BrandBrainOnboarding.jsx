@@ -10,19 +10,6 @@ import { supabase } from '../supabaseClient';
 
 async function fetchAndCleanPage(url) {
   try {
-    const { data, error }<dyad-write path="src/pages/BrandBrainOnboarding.jsx" description="Updating BrandBrainOnboarding card and box backgrounds to bg-zinc-900 and text to text-white.">
-"use client";
-
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon } from 'lucide-react';
-import ParticleBackground from '../components/landing/particlebackground';
-import GridBackground from '../components/ui/grid-background';
-import { generateAICall } from '../lib/ai';
-import { supabase } from '../supabaseClient';
-
-async function fetchAndCleanPage(url) {
-  try {
     const { data, error } = await supabase.functions.invoke('ai-service', {
       body: { feature: 'scrape', url }
     });
