@@ -2,14 +2,14 @@ import React from 'react';
 
 export default function PrivacyPolicy() {
   return (
-    <div style={{ background: '#000', minHeight: '100vh', padding: '80px 40px' }}>
+    <div style={{ background: 'var(--background)', minHeight: '100vh', padding: '80px 40px' }}>
       <div style={{ maxWidth: '760px', margin: '0 auto' }}>
         <a href="/" style={{ fontFamily: 'Inter', fontSize: '14px', color: '#9C2000', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '40px' }}>
           ← Back to home
         </a>
-        <h1 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '40px', color: '#F2EDE8', letterSpacing: '-0.03em', marginBottom: '8px' }}>Privacy Policy</h1>
+        <h1 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '40px', color: 'var(--foreground)', letterSpacing: '-0.03em', marginBottom: '8px' }}>Privacy Policy</h1>
         <p style={{ fontFamily: 'Inter', fontSize: '14px', color: '#44403C', marginBottom: '48px' }}>Last updated: May 8, 2026</p>
-        <div style={{ fontFamily: 'Inter', fontSize: '15px', color: '#7A7672', lineHeight: 1.8 }}>
+        <div style={{ fontFamily: 'Inter', fontSize: '15px', color: 'var(--foreground)', opacity: 0.6, lineHeight: 1.8 }}>
           <p style={{ marginBottom: '20px' }}>Welcome to Vibe Promote ("Vibe Promote", "we", "our", or "us"). This Privacy Policy explains how we collect, use, and protect your information when you use our website, products, and services.</p>
           <p style={{ marginBottom: '32px' }}>By using Vibe Promote, you agree to the collection and use of information in accordance with this Privacy Policy.</p>
 
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
             { title: '11. Contact', content: `If you have questions about this Privacy Policy, contact:\nvibepromote@gmail.com` },
           ].map((s, i) => (
             <div key={i} style={{ marginBottom: '36px' }}>
-              <h2 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '19px', color: '#F2EDE8', marginBottom: '12px' }}>{s.title}</h2>
+              <h2 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '19px', color: 'var(--foreground)', marginBottom: '12px' }}>{s.title}</h2>
               <p style={{ whiteSpace: 'pre-line' }}>{s.content}</p>
             </div>
           ))}

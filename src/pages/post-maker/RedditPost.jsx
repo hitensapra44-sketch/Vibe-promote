@@ -213,7 +213,7 @@ Return ONLY valid JSON, no markdown, no backticks:
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
@@ -226,15 +226,15 @@ Return ONLY valid JSON, no markdown, no backticks:
                 <div className="w-8 h-8">
                   <button 
                     onClick={handleBack}
-                    className="p-2 -ml-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-all bg-transparent"
+                    className="p-2 -ml-2 rounded-lg hover:bg-white/5 text-foreground/60 hover:text-foreground transition-all bg-transparent"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                 </div>
-                <span className="text-zinc-500 text-xs font-medium">Step {step} of 4</span>
+                <span className="text-foreground/50 text-xs font-medium">Step {step} of 4</span>
                 <div className="w-8 h-8" />
               </div>
-              <div className="w-full bg-[#1F1F1F] h-1 rounded-full overflow-hidden">
+              <div className="w-full bg-foreground/10 h-1 rounded-full overflow-hidden">
                 <motion.div 
                   className="h-full bg-orange-500 rounded-full"
                   initial={{ width: 0 }}
@@ -248,24 +248,24 @@ Return ONLY valid JSON, no markdown, no backticks:
           {/* STEP 2: Mode Selection */}
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <h1 className="text-2xl font-semibold text-white mb-8">How do you want to create your Reddit post?</h1>
+              <h1 className="text-2xl font-semibold text-foreground mb-8">How do you want to create your Reddit post?</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div
                   onClick={() => { setSelectedMode("template"); setStep(3); }}
-                  className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 relative group"
+                  className="bg-foreground/5 border border-foreground/10 rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 relative group"
                 >
                   <div className="absolute top-4 right-4 text-orange-500 text-[10px] font-bold uppercase tracking-widest">Recommended</div>
                   <LayoutTemplate className="w-8 h-8 text-orange-500 mb-4" />
-                  <h3 className="text-white text-lg font-bold">Use a Proven Template</h3>
-                  <p className="text-zinc-400 text-sm mt-2">Pick from 5 templates that are working right now on Reddit</p>
+                  <h3 className="text-foreground text-lg font-bold">Use a Proven Template</h3>
+                  <p className="text-foreground/60 text-sm mt-2">Pick from 5 templates that are working right now on Reddit</p>
                 </div>
                 <div
                   onClick={() => { setSelectedMode("write"); setStep(3); }}
-                  className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 group"
+                  className="bg-foreground/5 border border-foreground/10 rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 group"
                 >
-                  <PenLine className="w-8 h-8 text-zinc-500 group-hover:text-orange-500 mb-4 transition-colors" />
-                  <h3 className="text-white text-lg font-bold">Write It Yourself + AI Enhance</h3>
-                  <p className="text-zinc-400 text-sm mt-2">Write your own draft and let AI improve it for Reddit</p>
+                  <PenLine className="w-8 h-8 text-foreground/50 group-hover:text-orange-500 mb-4 transition-colors" />
+                  <h3 className="text-foreground text-lg font-bold">Write It Yourself + AI Enhance</h3>
+                  <p className="text-foreground/60 text-sm mt-2">Write your own draft and let AI improve it for Reddit</p>
                 </div>
               </div>
             </div>
@@ -277,14 +277,14 @@ Return ONLY valid JSON, no markdown, no backticks:
               {selectedMode === "template" ? (
                 <>
                   <div className="mb-8">
-                    <h1 className="text-2xl font-semibold text-white">Pick a template that's working right now</h1>
-                    <p className="text-zinc-400 text-sm">These formats are getting real traction on Reddit</p>
+                    <h1 className="text-2xl font-semibold text-foreground">Pick a template that's working right now</h1>
+                    <p className="text-foreground/60 text-sm">These formats are getting real traction on Reddit</p>
                   </div>
                   <div className="space-y-4">
                     {platformTemplates.Reddit.map((t, i) => (
-                      <div key={i} className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 flex flex-col gap-3">
+                      <div key={i} className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-white text-sm font-semibold">{t.name}</h3>
+                          <h3 className="text-foreground text-sm font-semibold">{t.name}</h3>
                           <button
                             onClick={() => { setSelectedTemplate(t); setStep(4); }}
                             className="bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 hover:bg-orange-600 transition-all"
@@ -292,11 +292,11 @@ Return ONLY valid JSON, no markdown, no backticks:
                             Use This Template
                           </button>
                         </div>
-                        <p className="text-zinc-400 text-sm">{t.why}</p>
-                        <div className="border-t border-[#1F1F1F] pt-3">
+                        <p className="text-foreground/60 text-sm">{t.why}</p>
+                        <div className="border-t border-foreground/10 pt-3">
                           <button 
                             onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
-                            className="flex items-center gap-2 text-zinc-500 text-[10px] font-bold uppercase tracking-widest hover:text-zinc-300 transition-colors"
+                            className="flex items-center gap-2 text-foreground/50 text-[10px] font-bold uppercase tracking-widest hover:text-foreground/80 transition-colors"
                           >
                             {expandedTemplate === i ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             Structure Preview
@@ -304,7 +304,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                           {expandedTemplate === i && (
                             <div className="mt-3 space-y-1">
                               {t.structure.split(' → ').map((step, idx) => (
-                                <div key={idx} className="flex gap-2 text-zinc-500 text-xs">
+                                <div key={idx} className="flex gap-2 text-foreground/50 text-xs">
                                   <span className="text-orange-500/50">•</span>
                                   <span>{step}</span>
                                 </div>
@@ -318,12 +318,12 @@ Return ONLY valid JSON, no markdown, no backticks:
                 </>
               ) : (
                 <div className="space-y-6">
-                  <h1 className="text-2xl font-semibold text-white">Write your draft</h1>
+                  <h1 className="text-2xl font-semibold text-foreground">Write your draft</h1>
                   <textarea
                     value={customContext}
                     onChange={(e) => setCustomContext(e.target.value)}
                     placeholder="Write your rough draft here — AI will improve it for Reddit"
-                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl p-6 text-sm text-white min-h-[250px] focus:outline-none focus:border-orange-500 transition-all placeholder-zinc-600"
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-6 text-sm text-foreground min-h-[250px] focus:outline-none focus:border-orange-500 transition-all placeholder-zinc-600"
                   />
                   <button
                     onClick={() => setStep(4)}
@@ -340,24 +340,24 @@ Return ONLY valid JSON, no markdown, no backticks:
           {step === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-2xl">
               <div className="mb-10">
-                <h1 className="text-2xl font-semibold text-white">Make it yours</h1>
-                <p className="text-zinc-400 text-sm">Both fields are optional — skip if you're happy</p>
+                <h1 className="text-2xl font-semibold text-foreground">Make it yours</h1>
+                <p className="text-foreground/60 text-sm">Both fields are optional — skip if you're happy</p>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-white text-sm font-medium block">Anything specific to add?</label>
-                  <p className="text-zinc-500 text-xs">e.g. just hit 100 users, launching next week, got featured somewhere</p>
+                  <label className="text-foreground text-sm font-medium block">Anything specific to add?</label>
+                  <p className="text-foreground/50 text-xs">e.g. just hit 100 users, launching next week, got featured somewhere</p>
                   <textarea
                     value={customContext}
                     onChange={(e) => setCustomContext(e.target.value)}
-                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 text-sm text-white min-h-[100px] focus:outline-none focus:border-orange-500 transition-all"
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-4 text-sm text-foreground min-h-[100px] focus:outline-none focus:border-orange-500 transition-all"
                     placeholder="Add extra context here..."
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-white text-sm font-medium block">Writing tone</label>
+                  <label className="text-foreground text-sm font-medium block">Writing tone</label>
                   <div className="flex flex-wrap gap-3">
                     {["Authentic Founder", "Bold & Punchy", "Educational", "Conversational"].map((t) => (
                       <button
@@ -367,7 +367,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                           "px-5 py-2.5 rounded-full text-xs font-bold border transition-all",
                           selectedTone === t 
                             ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
-                            : "bg-[#111111] border-[#1F1F1F] text-zinc-400 hover:border-zinc-600"
+                            : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
                         )}
                       >
                         {t}
@@ -379,7 +379,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                 <div className="pt-6 flex gap-4">
                   <button
                     onClick={generatePost}
-                    className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
+                    className="flex-1 py-4 border border-foreground/10 text-foreground/60 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
                   >
                     Skip, just generate
                   </button>
@@ -399,10 +399,10 @@ Return ONLY valid JSON, no markdown, no backticks:
             <div className="min-h-[400px] flex flex-col items-center justify-center gap-6 animate-in fade-in duration-700">
               <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-white">Crafting your post...</h2>
-                <p className="text-zinc-400 text-sm">Using your brand info and the {selectedTemplate?.name || 'custom'} template</p>
+                <h2 className="text-xl font-bold text-foreground">Crafting your post...</h2>
+                <p className="text-foreground/60 text-sm">Using your brand info and the {selectedTemplate?.name || 'custom'} template</p>
               </div>
-              <div className="w-64 bg-[#1F1F1F] h-1 rounded-full overflow-hidden">
+              <div className="w-64 bg-foreground/10 h-1 rounded-full overflow-hidden">
                 <motion.div 
                   className="h-full bg-orange-500 rounded-full"
                   animate={{ width: ["20%", "80%", "20%"] }}
@@ -424,19 +424,19 @@ Return ONLY valid JSON, no markdown, no backticks:
                 )}>
                   {generatedPost.scoreLabel}
                 </div>
-                <span className="text-zinc-400 text-sm">Score: <span className="text-white">{generatedPost.score}/100</span></span>
+                <span className="text-foreground/60 text-sm">Score: <span className="text-foreground">{generatedPost.score}/100</span></span>
               </div>
 
-              <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6">
+              <div className="bg-foreground/5 border border-foreground/10 rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6">
                 <div className="flex">
-                  <span className="bg-[#111111] text-zinc-400 text-xs font-medium rounded-full px-3 py-1">
+                  <span className="bg-foreground/5 text-foreground/60 text-xs font-medium rounded-full px-3 py-1">
                     Reddit
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-white">{generatedPost.title}</h2>
-                <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
-                <div className="pt-4 border-t border-[#1F1F1F]">
-                  <span className="text-zinc-500 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
+                <h2 className="text-lg font-semibold text-foreground">{generatedPost.title}</h2>
+                <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                <div className="pt-4 border-t border-foreground/10">
+                  <span className="text-foreground/50 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
                   <p className="text-orange-400 text-sm font-medium">{generatedPost.cta}</p>
                 </div>
               </div>
@@ -444,7 +444,7 @@ Return ONLY valid JSON, no markdown, no backticks:
               <div className="flex flex-wrap gap-3 mt-8">
                 <button 
                   onClick={handleCopy}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copyStatus}
@@ -460,31 +460,31 @@ Return ONLY valid JSON, no markdown, no backticks:
                 </a>
                 <button 
                   onClick={generatePost}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Regenerate
                 </button>
                 <button 
                   onClick={() => { setSelectedTemplate(null); setStep(3); }}
-                  className="flex items-center justify-center gap-2 bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
+                  className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
                 >
                   <LayoutTemplate className="w-4 h-4" />
                   Try Different Template
                 </button>
                 <button 
                   onClick={resetAll}
-                  className="text-zinc-500 text-xs font-medium hover:text-zinc-300 transition-colors bg-transparent"
+                  className="text-foreground/50 text-xs font-medium hover:text-foreground/80 transition-colors bg-transparent"
                 >
                   Start Over
                 </button>
               </div>
 
-              <div className="mt-10 bg-[#111111] border-l-4 border-orange-500 border border-[#1F1F1F] rounded-xl p-4">
+              <div className="mt-10 bg-foreground/5 border-l-4 border-orange-500 border border-foreground/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-orange-500 text-xs font-medium">💡 Posting tip</span>
                 </div>
-                <p className="text-zinc-400 text-sm leading-relaxed">
+                <p className="text-foreground/60 text-sm leading-relaxed">
                   {postingTips.Reddit}
                 </p>
               </div>

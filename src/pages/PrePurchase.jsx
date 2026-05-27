@@ -29,9 +29,9 @@ export default function PrePurchase() {
       <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border-muted">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md flex items-center justify-center bg-primary">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <Sparkles className="w-3.5 h-3.5 text-foreground" />
           </div>
-          <span className="text-white font-bold">Vibe Hype</span>
+          <span className="text-foreground font-bold">Vibe Hype</span>
         </Link>
         <Link
           to="/"
@@ -54,11 +54,11 @@ export default function PrePurchase() {
           <div className="relative mx-auto w-20 h-20 mb-8">
             <div className="absolute inset-0 rounded-full opacity-10 blur-xl bg-primary" />
             <div className="relative w-20 h-20 rounded-full flex items-center justify-center bg-primary shadow-lg shadow-primary/25">
-              <Rocket className="w-9 h-9 text-white" />
+              <Rocket className="w-9 h-9 text-foreground" />
             </div>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
+          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-3" style={{ letterSpacing: '-1px' }}>
             Pre-Purchase for Only{' '}
             <span className="text-primary">
               $1.99
@@ -92,7 +92,7 @@ export default function PrePurchase() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="w-full py-4 text-lg font-bold text-white rounded-lg bg-primary hover:bg-primary-hover transition-all duration-200 hover:-translate-y-1 shadow-lg shadow-primary/20"
+            className="w-full py-4 text-lg font-bold text-foreground rounded-lg bg-primary hover:bg-primary-hover transition-all duration-200 hover:-translate-y-1 shadow-lg shadow-primary/20"
             onClick={() => {
               logEvent("payment", "clicked", "pre-purchase button clicked");
               window.open('https://payments.cashfree.com/forms/VibePromote', '_blank');

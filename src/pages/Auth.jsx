@@ -78,7 +78,7 @@ export default function Auth() {
       >
         <div className="bg-bg-surface/80 backdrop-blur-xl border border-border-muted rounded-3xl p-8 sm:p-12 shadow-2xl">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold text-white">
+            <h1 className="text-3xl font-bold text-foreground">
               {isSignIn ? 'Welcome Back' : 'Signup for free'}
             </h1>
             <p className="text-text-secondary mt-3 text-base">
@@ -88,7 +88,7 @@ export default function Auth() {
 
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl bg-white text-black font-semibold hover:bg-gray-100 transition-all duration-200 mb-8"
+            className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl bg-background text-foreground font-semibold hover:bg-foreground/5 transition-all duration-200 mb-8"
           >
             <Chrome className="w-5 h-5" />
             Continue with Google
@@ -151,7 +151,7 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/50 hover:text-white transition-colors bg-transparent"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/50 hover:text-foreground transition-colors bg-transparent"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -164,7 +164,7 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xl flex items-center justify-center gap-2 transition-colors mt-4 disabled:opacity-50"
+              className="w-full py-5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-foreground font-bold text-xl flex items-center justify-center gap-2 transition-colors mt-4 disabled:opacity-50"
             >
               {loading ? 'Processing...' : "Let's go"}
               <ArrowRight className="w-6 h-6" />

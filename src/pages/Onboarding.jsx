@@ -81,7 +81,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {step === 1 && (
         <BrandBrainOnboarding onComplete={handleStep1Complete} />
       )}

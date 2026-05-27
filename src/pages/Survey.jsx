@@ -163,7 +163,7 @@ export default function Survey() {
             placeholder="What's it called?"
             value={answers.app_name}
             onChange={(e) => setAnswers({ ...answers, app_name: e.target.value })}
-            className="w-full bg-[#111827] border border-gray-700 rounded-2xl px-6 py-5 text-white text-xl placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-all"
+            className="w-full bg-[#111827] border border-foreground/15 rounded-2xl px-6 py-5 text-foreground text-xl placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-all"
           />
           <div className="relative">
             <textarea
@@ -171,9 +171,9 @@ export default function Survey() {
               placeholder="Describe it in one sentence..."
               value={answers.app_description}
               onChange={(e) => setAnswers({ ...answers, app_description: e.target.value.slice(0, 200) })}
-              className="w-full bg-[#111827] border border-gray-700 rounded-2xl px-6 py-5 text-white text-lg placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-all resize-none"
+              className="w-full bg-[#111827] border border-foreground/15 rounded-2xl px-6 py-5 text-foreground text-lg placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-all resize-none"
             />
-            <div className="absolute bottom-4 right-6 text-gray-600 text-xs font-medium">
+            <div className="absolute bottom-4 right-6 text-foreground/50 text-xs font-medium">
               {answers.app_description.length}/200
             </div>
           </div>
@@ -205,13 +205,13 @@ export default function Survey() {
                 }}
                 className={`relative p-5 rounded-xl border text-left text-base font-medium transition-all duration-200 ${
                   selected
-                    ? 'border-indigo-500 bg-indigo-500/10 text-white'
-                    : 'border-gray-700 bg-[#111827] text-gray-400 hover:border-indigo-500/50 hover:bg-gray-800 hover:text-white'
+                    ? 'border-indigo-500 bg-indigo-500/10 text-foreground'
+                    : 'border-foreground/15 bg-[#111827] text-foreground/60 hover:border-indigo-500/50 hover:bg-foreground/10 hover:text-foreground'
                 }`}
               >
                 {selected && (
                   <div className="absolute top-4 right-4 w-5 h-5 rounded-full flex items-center justify-center bg-indigo-600">
-                    <Check className="w-3 h-3 text-white" />
+                    <Check className="w-3 h-3 text-foreground" />
                   </div>
                 )}
                 {opt}
@@ -230,7 +230,7 @@ export default function Survey() {
                 placeholder="Please specify..."
                 value={answers[current.otherField]}
                 onChange={(e) => setAnswers({ ...answers, [current.otherField]: e.target.value })}
-                className="w-full bg-[#111827] border border-gray-700 rounded-xl px-5 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[#111827] border border-foreground/15 rounded-xl px-5 py-3 text-foreground placeholder-gray-600 focus:outline-none focus:border-indigo-500"
               />
             </motion.div>
           )}
@@ -240,12 +240,12 @@ export default function Survey() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0e1a] text-white font-poppins relative overflow-hidden flex flex-col">
+    <div className="min-h-screen w-full bg-background text-foreground font-poppins relative overflow-hidden flex flex-col">
       {/* Background Particles */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-white/30 rounded-full blur-[1px]" />
+        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-foreground/30 rounded-full blur-[1px]" />
         <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-indigo-500/20 rounded-full blur-[2px]" />
-        <div className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-white/20 rounded-full" />
+        <div className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-foreground/20 rounded-full" />
         <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-indigo-400/10 rounded-full blur-[4px]" />
       </div>
 
@@ -256,12 +256,12 @@ export default function Survey() {
             <div 
               key={s.id} 
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                s.id === step ? 'w-8 bg-white' : s.id < step ? 'w-4 bg-indigo-500' : 'w-4 bg-gray-700'
+                s.id === step ? 'w-8 bg-foreground' : s.id < step ? 'w-4 bg-indigo-500' : 'w-4 bg-foreground/10'
               }`} 
             />
           ))}
         </div>
-        <Link to="/" className="text-sm font-medium text-gray-500 hover:text-white transition-colors">
+        <Link to="/" className="text-sm font-medium text-foreground/50 hover:text-foreground transition-colors">
           Skip
         </Link>
       </div>
@@ -277,13 +277,13 @@ export default function Survey() {
           className="w-full md:w-[60%] space-y-8"
         >
           <div>
-            <span className="text-gray-500 tracking-[0.3em] text-sm font-bold uppercase block mb-4">{current.headline}</span>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight">
+            <span className="text-foreground/50 tracking-[0.3em] text-sm font-bold uppercase block mb-4">{current.headline}</span>
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground leading-tight">
               {current.question.split(' ').map((word, i) => (
-                <span key={i} className={word.toLowerCase() === 'app.' ? 'text-white' : ''}>{word} </span>
+                <span key={i} className={word.toLowerCase() === 'app.' ? 'text-foreground' : ''}>{word} </span>
               ))}
             </h1>
-            <p className="text-gray-400 text-lg mt-4">{current.subtext}</p>
+            <p className="text-foreground/60 text-lg mt-4">{current.subtext}</p>
           </div>
 
           <div className="space-y-8">
@@ -293,7 +293,7 @@ export default function Survey() {
               {step > 1 && (
                 <button
                   onClick={handleBack}
-                  className="flex-1 py-5 rounded-2xl font-bold text-lg border border-gray-700 text-gray-400 hover:bg-gray-800 transition-all"
+                  className="flex-1 py-5 rounded-2xl font-bold text-lg border border-foreground/15 text-foreground/60 hover:bg-foreground/10 transition-all"
                 >
                   Back
                 </button>
@@ -303,8 +303,8 @@ export default function Survey() {
                 disabled={!canNext || submitting}
                 className={`group flex items-center justify-center gap-2 ${step > 1 ? 'flex-[2]' : 'w-full'} py-5 rounded-2xl font-bold text-lg transition-all duration-300 ${
                   canNext 
-                  ? 'bg-indigo-700 hover:bg-indigo-600 text-white shadow-xl shadow-indigo-900/20' 
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                  ? 'bg-indigo-700 hover:bg-indigo-600 text-foreground shadow-xl shadow-indigo-900/20' 
+                  : 'bg-foreground/10 text-foreground/50 cursor-not-allowed'
                 }`}
               >
                 {submitting ? 'Saving...' : step === surveyConfig.length ? 'Finish' : 'Next Step'}
@@ -320,31 +320,31 @@ export default function Survey() {
           animate={{ opacity: 1, scale: 1 }}
           className="hidden md:block w-full md:w-[40%] relative"
         >
-          <div className="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-[#111827] border border-gray-700/50 flex items-center justify-center shadow-2xl z-10">
+          <div className="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-[#111827] border border-foreground/10 flex items-center justify-center shadow-2xl z-10">
             <Rocket className="w-8 h-8 text-indigo-500/40" />
           </div>
 
-          <div className="bg-[#111827] border border-gray-700/50 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+          <div className="bg-[#111827] border border-foreground/10 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
             <div className="flex items-center gap-4 mb-12">
-              <div className="w-12 h-12 rounded-2xl bg-gray-800/50 flex items-center justify-center border border-gray-700/30">
+              <div className="w-12 h-12 rounded-2xl bg-foreground/10 flex items-center justify-center border border-foreground/10">
                 <Brain className="w-6 h-6 text-indigo-400" />
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">YOUR APP BRAIN</span>
-                <h3 className="text-lg font-bold text-white">Building live</h3>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/50">YOUR APP BRAIN</span>
+                <h3 className="text-lg font-bold text-foreground">Building live</h3>
               </div>
             </div>
 
             <div className="space-y-8">
               <div className="space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500">APP</span>
-                <h2 className={`text-4xl font-bold transition-all duration-300 break-words ${answers.app_name ? 'text-white' : 'text-white/10'}`}>
+                <h2 className={`text-4xl font-bold transition-all duration-300 break-words ${answers.app_name ? 'text-foreground' : 'text-foreground/10'}`}>
                   {answers.app_name || 'Your app name'}
                 </h2>
               </div>
 
               <div className="space-y-2">
-                <p className={`text-lg leading-relaxed transition-all duration-300 ${answers.app_description ? 'text-gray-400' : 'text-white/5'}`}>
+                <p className={`text-lg leading-relaxed transition-all duration-300 ${answers.app_description ? 'text-foreground/60' : 'text-foreground/5'}`}>
                   {answers.app_description || 'Your one-sentence description will appear here as Vibe Hype builds your marketing brain in real time.'}
                 </p>
               </div>
@@ -354,29 +354,29 @@ export default function Survey() {
                 {answers.role && (
                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Profile: {answers.role}</span>
+                    <span className="text-xs font-medium text-foreground/50 uppercase tracking-wider">Profile: {answers.role}</span>
                   </motion.div>
                 )}
                 {answers.marketing_channels.length > 0 && (
                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Channels: {answers.marketing_channels.length} Active</span>
+                    <span className="text-xs font-medium text-foreground/50 uppercase tracking-wider">Channels: {answers.marketing_channels.length} Active</span>
                   </motion.div>
                 )}
               </div>
             </div>
 
-            <div className="mt-16 pt-8 border-t border-gray-800/50 flex items-center gap-2">
+            <div className="mt-16 pt-8 border-t border-foreground/10 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Syncing with AI</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Syncing with AI</span>
             </div>
           </div>
 
-          <div className="mt-6 p-4 rounded-2xl bg-[#111827]/50 border border-gray-700/30 backdrop-blur-sm flex items-center justify-between">
-            <p className="text-[11px] text-gray-500 leading-relaxed">
+          <div className="mt-6 p-4 rounded-2xl bg-[#111827]/50 border border-foreground/10 backdrop-blur-sm flex items-center justify-between">
+            <p className="text-[11px] text-foreground/50 leading-relaxed">
               <span className="text-indigo-500 font-bold">Early Access</span> — some features may not work as expected. We appreciate your patience.
             </p>
-            <X className="w-4 h-4 text-gray-700 cursor-pointer hover:text-white transition-colors" />
+            <X className="w-4 h-4 text-foreground/50 cursor-pointer hover:text-foreground transition-colors" />
           </div>
         </motion.div>
 

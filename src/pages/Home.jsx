@@ -31,7 +31,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-black min-h-screen font-geist">
+    <div className="bg-background min-h-screen font-geist">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
