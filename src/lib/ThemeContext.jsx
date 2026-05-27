@@ -4,19 +4,20 @@ const ThemeContext = createContext(undefined);
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved || 'dark';
+    return localStorage.getItem('theme') || 'dark';
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('dark', 'light');
-    root.classList.add(theme);
+    root.classList.remove('light', 'dark');
+    if (theme === 'light') {
+      root.classList.add('light');
+    }
     localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
   return (
@@ -28,8 +29,6 @@ export const ThemeProvider = ({ children }) => {
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
+  if (!context) throw new Error('useTheme must be used within ThemeProvider');
   return context;
 };
