@@ -38,8 +38,8 @@ export default function HeroSection() {
           color: '#F2EDE8', textAlign: 'center', maxWidth: '1000px',
           margin: '0 0 24px'
         }}>
-          You Didn’t Build Your App/SaaS <br />
-          <span style={{ color: '#9C2000' }}>To Become a Full-Time Marketer.</span>
+          Get Users Without Becoming <br />
+          <span style={{ color: '#9C2000' }}>Full-Time Marketer.</span>
         </h1>
 
         {/* Subtext */}
