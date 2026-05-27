@@ -48,7 +48,7 @@ export default function BrandScroller() {
           textTransform: 'uppercase',
           margin: 0
         }}>
-          1000+ SaaS<span style={{ color: '#9C2000', fontWeight: 700 }}> Automated</span> Their Marketing
+          style={{ color: '#9C2000', fontWeight: 700 }}1000+ SaaS <span> Automated</span> Their Marketing
         </p>
       </div>
 
