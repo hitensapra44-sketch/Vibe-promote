@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useTheme } from '../../lib/ThemeContext';
 
 const BRANDS = [
   { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/6d03765e2_image.png', name: 'Brand 1' },
@@ -27,13 +28,14 @@ const BRANDS = [
 
 export default function BrandScroller() {
   const [clicked, setClicked] = useState(null);
+  const { theme } = useTheme();
   const doubled = [...BRANDS, ...BRANDS];
 
   return (
     <section style={{
-      borderTop: '1px solid rgba(255,255,255,0.06)',
+      borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
       padding: '56px 0',
-      background: '#000',
+      background: theme === 'dark' ? '#000' : '#12141C',
       overflow: 'hidden',
     }}>
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -41,7 +43,7 @@ export default function BrandScroller() {
           fontFamily: 'Inter',
           fontWeight: 500,
           fontSize: '13px',
-          color: '#44403C',
+          color: theme === 'dark' ? '#44403C' : '#a1a1aa',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           margin: 0
@@ -58,7 +60,7 @@ export default function BrandScroller() {
           bottom: 0,
           width: '120px',
           zIndex: 2,
-          background: 'linear-gradient(to right, #000 0%, transparent 100%)',
+          background: theme === 'dark' ? 'linear-gradient(to right, #000 0%, transparent 100%)' : 'linear-gradient(to right, #12141C 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
         <div style={{
@@ -68,7 +70,7 @@ export default function BrandScroller() {
           bottom: 0,
           width: '120px',
           zIndex: 2,
-          background: 'linear-gradient(to left, #000 0%, transparent 100%)',
+          background: theme === 'dark' ? 'linear-gradient(to left, #000 0%, transparent 100%)' : 'linear-gradient(to left, #12141C 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
 

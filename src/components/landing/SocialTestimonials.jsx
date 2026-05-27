@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import { useTheme } from '../../lib/ThemeContext';
 
 const TESTIMONIALS = [
   { name: 'Jake', location: 'US', platform: 'Reddit', text: 'bro this is actually useful as fuck. marketing always feels like a chore and this makes it way less painful.' },
@@ -23,6 +24,7 @@ const PLATFORM_COLORS = {
 };
 
 export default function SocialTestimonials() {
+  const { theme } = useTheme();
   // Split testimonials into two rows
   const half = Math.ceil(TESTIMONIALS.length / 2);
   const row1 = TESTIMONIALS.slice(0, half);
@@ -34,9 +36,9 @@ export default function SocialTestimonials() {
   return (
     <section
       style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
         padding: '80px 0',
-        background: '#000',
+        background: theme === 'dark' ? '#000' : '#12141C',
         overflow: 'hidden'
       }}
     >
@@ -53,8 +55,8 @@ export default function SocialTestimonials() {
 
         .testi-scroll-card {
           position: relative;
-          background: #0A0A0F;
-          border: 1px solid rgba(255,255,255,0.07);
+          background: ${theme === 'dark' ? '#0A0A0F' : '#1E2130'};
+          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'};
           border-radius: 14px;
           overflow: hidden;
           transition: border-color 0.25s ease;
@@ -120,7 +122,7 @@ export default function SocialTestimonials() {
             fontFamily: 'Inter',
             fontWeight: 900,
             fontSize: 'clamp(28px,4vw,48px)',
-            color: '#F2EDE8',
+            color: theme === 'dark' ? '#F2EDE8' : '#ffffff',
             letterSpacing: '-0.03em',
             margin: '0 0 12px'
           }}
@@ -132,7 +134,7 @@ export default function SocialTestimonials() {
           style={{
             fontFamily: 'Inter',
             fontSize: '16px',
-            color: '#7A7672',
+            color: theme === 'dark' ? '#7A7672' : '#a1a1aa',
             margin: 0
           }}
         >
@@ -170,7 +172,7 @@ export default function SocialTestimonials() {
             bottom: 0,
             width: '100px',
             zIndex: 2,
-            background: 'linear-gradient(to right, #000, transparent)',
+            background: theme === 'dark' ? 'linear-gradient(to right, #000, transparent)' : 'linear-gradient(to right, #12141C, transparent)',
             pointerEvents: 'none'
           }}
         />
@@ -183,7 +185,7 @@ export default function SocialTestimonials() {
             bottom: 0,
             width: '100px',
             zIndex: 2,
-            background: 'linear-gradient(to left, #000, transparent)',
+            background: theme === 'dark' ? 'linear-gradient(to left, #000, transparent)' : 'linear-gradient(to left, #12141C, transparent)',
             pointerEvents: 'none'
           }}
         />
@@ -231,7 +233,7 @@ export default function SocialTestimonials() {
                 style={{
                   fontFamily: 'Inter',
                   fontSize: '13px',
-                  color: '#F2EDE8',
+                  color: theme === 'dark' ? '#F2EDE8' : '#ffffff',
                   lineHeight: 1.65,
                   margin: '0 0 16px',
                   fontStyle: 'italic'
@@ -246,7 +248,7 @@ export default function SocialTestimonials() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  borderTop: '1px solid rgba(255,255,255,0.05)',
+                  borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
                   paddingTop: '12px'
                 }}
               >
@@ -275,7 +277,7 @@ export default function SocialTestimonials() {
                       fontFamily: 'Inter',
                       fontWeight: 600,
                       fontSize: '13px',
-                      color: '#F2EDE8'
+                      color: theme === 'dark' ? '#F2EDE8' : '#ffffff'
                     }}
                   >
                     {t.name}
@@ -285,7 +287,7 @@ export default function SocialTestimonials() {
                     style={{
                       fontFamily: 'Inter',
                       fontSize: '11px',
-                      color: '#44403C'
+                      color: theme === 'dark' ? '#44403C' : '#a1a1aa'
                     }}
                   >
                     {t.location}
@@ -339,7 +341,7 @@ export default function SocialTestimonials() {
                 style={{
                   fontFamily: 'Inter',
                   fontSize: '13px',
-                  color: '#F2EDE8',
+                  color: theme === 'dark' ? '#F2EDE8' : '#ffffff',
                   lineHeight: 1.65,
                   margin: '0 0 16px',
                   fontStyle: 'italic'
@@ -354,7 +356,7 @@ export default function SocialTestimonials() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  borderTop: '1px solid rgba(255,255,255,0.05)',
+                  borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
                   paddingTop: '12px'
                 }}
               >
@@ -383,7 +385,7 @@ export default function SocialTestimonials() {
                       fontFamily: 'Inter',
                       fontWeight: 600,
                       fontSize: '13px',
-                      color: '#F2EDE8'
+                      color: theme === 'dark' ? '#F2EDE8' : '#ffffff'
                     }}
                   >
                     {t.name}
@@ -393,7 +395,7 @@ export default function SocialTestimonials() {
                     style={{
                       fontFamily: 'Inter',
                       fontSize: '11px',
-                      color: '#44403C'
+                      color: theme === 'dark' ? '#44403C' : '#a1a1aa'
                     }}
                   >
                     {t.location}
