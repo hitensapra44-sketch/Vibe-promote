@@ -80,8 +80,10 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
       const pageContent = await fetchAndCleanPage(url);
       const result = await generateAICall(systemPrompt, `Here is the extracted landing page content. Analyze it and return the JSON:\n\n${pageContent}`, null, 'onboarding');
 
-      const clean = result.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
+      // Extract JSON from anywhere in the response
+      const jsonMatch = result.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Could not parse AI response. Try again.');
+      const parsed = JSON.parse(jsonMatch[0]);
 
       setAppName(parsed.app_name || '');
       setAppDescription(parsed.app_description || '');
