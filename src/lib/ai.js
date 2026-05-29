@@ -37,7 +37,13 @@ export async function generateAICall(systemPrompt, userMessage, userId = null, f
     throw new Error(`AI service error: ${error.message}`);
   }
 
+  // Surface NVIDIA-level errors that come back as 200 but with error field
+  if (data?.error) {
+    throw new Error(`AI model error: ${data.error}`);
+  }
+
   if (!data?.choices?.[0]?.message?.content) {
+    console.error('[generateAICall] Unexpected response shape:', JSON.stringify(data));
     throw new Error("Invalid response from AI service");
   }
 
