@@ -38,9 +38,11 @@ export async function generateAICall(systemPrompt, userMessage, userId = null, f
   }
 
   // Surface NVIDIA-level errors that come back as 200 but with error field
-  if (data?.error) {
-    throw new Error(`AI model error: ${data.error}`);
-  }
+  if (!data?.choices?.[0]?.message?.content) {
+   console.error('[generateAICall] data:', JSON.stringify(data));
+   console.error('[generateAICall] error:', JSON.stringify(error));
+   throw new Error(`AI debug — data: ${JSON.stringify(data)} | error: ${JSON.stringify(error)}`);
+}
 
   if (!data?.choices?.[0]?.message?.content) {
     console.error('[generateAICall] Unexpected response shape:', JSON.stringify(data));
