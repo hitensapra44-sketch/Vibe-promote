@@ -1,0 +1,421 @@
+/ ─── BRAND TRUST SCROLLER ─────────────────────────────────────────────────────
+const BRANDS = [
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/6d03765e2_image.png', name: 'Brand 1' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/7b3358767_image.png', name: 'Brand 2' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b8f98eabc_image.png', name: 'Brand 3' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/2b5282e8d_image.png', name: 'Brand 4' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cdb03dbfe_image.png', name: 'Brand 5' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/c8a266830_cgw.jpg', name: 'Brand 6' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b9973861f_image.png', name: 'LeadFilter' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/b0ff8644d_BilingualBeginnings.png', name: 'Bilingual Beginnings' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/1f178777e_image.png', name: 'StatScribe' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/e8f28a0d7_image.png', name: '10KV Games' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cbda3dae0_image.png', name: 'Brand 11' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/891e22567_image.png', name: 'Brand 12' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/a6b408c95_image.png', name: 'Brand 13' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/ee94d4b1f_image.png', name: 'Brand 14' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/e73f910e4_image.png', name: 'Brand 15' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/90711122d_image.png', name: 'Brand 16' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/786cc4901_image.png', name: 'Brand 17' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/cb2bed70c_image.png', name: 'Brand 18' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/072fb4b61_ChatGPTImageMay11202606_15_10PM.png', name: 'VP' },
+  { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/10e167694_image.png', name: 'Brand 20' },
+];
+
+function BrandScroller() {
+  const [clicked, setClicked] = useState(null);
+  const doubled = [...BRANDS, ...BRANDS];
+
+  return (
+    <section style={{
+      borderTop: '1px solid rgba(255,255,255,0.06)',
+      padding: '56px 0',
+      background: '#000',
+      overflow: 'hidden',
+    }}>
+      {/* Label */}
+      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <p style={{
+          fontFamily: 'Inter', fontWeight: 500, fontSize: '13px',
+          color: '#44403C', letterSpacing: '0.1em', textTransform: 'uppercase',
+          margin: 0
+        }}>
+          Used by <span style={{ color: '#9C2000', fontWeight: 700 }}>1,100+</span> indie founders
+        </p>
+      </div>
+
+      {/* Scroller */}
+      <div style={{ position: 'relative' }}>
+        {/* Fade edges */}
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to right, #000 0%, transparent 100%)',
+          pointerEvents: 'none'
+        }} />
+        <div style={{
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to left, #000 0%, transparent 100%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          display: 'flex',
+          gap: '0',
+          animation: 'brandScroll 38s linear infinite',
+          width: 'max-content',
+        }}>
+          {doubled.map((brand, i) => (
+            <button
+              key={i}
+              onClick={() => setClicked(clicked === i ? null : i)}
+              title={brand.name}
+              style={{
+                flexShrink: 0,
+                width: '140px',
+                height: '90px',
+                margin: '0 22px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <img
+                src={brand.url}
+                alt={brand.name}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  filter: clicked === i
+                    ? 'grayscale(0%) brightness(1.1)'
+                    : 'grayscale(100%) brightness(0.55)',
+                  transition: 'filter 0.35s ease',
+                  borderRadius: '6px',
+                }}
+                onMouseEnter={e => {
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(30%) brightness(0.9)';
+                }}
+                onMouseLeave={e => {
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(100%) brightness(0.55)';
+                }}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+
+
+features
+<div
+  style={{
+    marginLeft: '8px',
+    flex: 1,
+    background: 'rgba(255,255,255,0.04)',
+    borderRadius: '5px',
+    padding: '3px 10px',
+    fontFamily: 'Inter',
+    fontSize: '11px',
+    color: '#44403C'
+  }}
+>
+  <span style={{ color: '#333', marginRight: '4px' }}>
+    🔒
+  </span>
+  vibepromote.tech
+</div>
+
+
+
+
+remove gif from the with and without vibe promote section
+
+toogle section 
+// ─── CONTENT COMPARISON ──────────────────────────────────────────────────────
+function XPostToggle() {
+  const [on, setOn] = useState(false);
+
+  const postOff = {
+    title: 'Just launched my SaaS, check it out',
+    body: 'Hey everyone, I just launched a new tool for marketing. It uses AI to help you write content. Let me know what you think!',
+    note: 'Vague headline. No hook. No context. Easy to ignore.',
+  };
+
+  const postOn = {
+    title: 'Spent 5 months building a SaaS. Nobody came. Here\'s what I changed.',
+    body: 'I had a solid product but my messaging was off. Nobody understood what it did or why they should care. Once I rewrote my positioning, the next Reddit post drove 40+ signups in 3 days. Happy to share what changed.',
+    note: 'Clear hook. Specific pain. Story-driven. Platform-native format.',
+  };
+
+  const post = on ? postOn : postOff;
+
+  return (
+    <section id="xpost" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>See The Difference</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(26px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>
+            The same idea. Two very different posts.
+          </h2>
+          <p style={{ fontFamily: 'Inter', fontSize: '16px', color: '#7A7672', maxWidth: '480px', margin: '0 auto' }}>Toggle to see how Brand Brain context changes the output.</p>
+        </div>
+
+        {/* Toggle row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '40px' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672' }}>Without context</span>
+          <button onClick={() => setOn(!on)}
+          style={{
+            width: '50px', height: '26px', borderRadius: '100px', cursor: 'pointer', position: 'relative',
+            background: on ? '#9C2000' : '#1A1A22',
+            border: `1px solid ${on ? '#9C2000' : 'rgba(255,255,255,0.1)'}`,
+            boxShadow: on ? '0 0 14px rgba(156,32,0,0.5)' : 'none',
+            transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+          }}>
+            <span style={{
+              position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+              left: on ? '27px' : '3px',
+              transition: 'left 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+            }} />
+          </button>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#9C2000' }}>With Brand Brain</span>
+        </div>
+
+        {/* Post Card */}
+        <div className="xpost-card" style={{ maxWidth: '560px', margin: '0 auto' }}>
+          <div style={{
+            background: '#0A0A0F', padding: '24px 28px', borderRadius: '14px',
+            border: on ? '1px solid rgba(156,32,0,0.45)' : '1px solid rgba(255,255,255,0.08)',
+            boxShadow: on ? '0 0 36px rgba(156,32,0,0.12)' : 'none',
+            transition: 'border-color 0.35s, box-shadow 0.35s'
+          }}>
+            {/* Platform label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: '11px', fontWeight: 600, color: '#FF4500', background: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.2)', borderRadius: '100px', padding: '3px 10px' }}>Reddit</span>
+              <span style={{ fontFamily: 'Inter', fontSize: '11px', color: '#333' }}>r/SaaS</span>
+            </div>
+
+            {/* Title */}
+            <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '15px', color: '#F2EDE8', lineHeight: 1.4, marginBottom: '12px', transition: 'color 0.3s' }}>
+              {post.title}
+            </div>
+
+            {/* Body */}
+            <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.65, margin: '0 0 16px' }}>
+              {post.body}
+            </p>
+
+            {/* Note */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '8px',
+              background: on ? 'rgba(156,32,0,0.08)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${on ? 'rgba(156,32,0,0.2)' : 'rgba(255,255,255,0.06)'}`,
+              borderRadius: '8px', padding: '10px 14px',
+              transition: 'all 0.3s ease'
+            }}>
+              <span style={{ fontFamily: 'Inter', fontSize: '12px', color: on ? '#E85D04' : '#44403C', lineHeight: 1.5 }}>
+                {on ? '✓' : '✗'} {post.note}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <p style={{ fontFamily: 'Inter', fontSize: '13px', textAlign: 'center', marginTop: '20px', color: '#333' }}>
+          You review and post manually — no auto-publishing.
+        </p>
+      </div>
+    </section>);
+}
+
+
+add this solution section
+// ─── SOLUTION ─────────────────────────────────────────────────────────────────
+function Solution() {
+  const cards = [
+  { title: 'Brand Brain', desc: 'You fill out an 8-question setup about your product, audience, and tone. That context is stored and used in every post, search, and co-pilot response — so nothing starts from scratch.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /><circle cx="12" cy="12" r="9" strokeDasharray="2 2" /></svg> },
+  { title: 'Post Maker', desc: 'Generates Reddit posts, X threads, and LinkedIn content in your voice. Each post is scored before you review it. You copy and post manually — no auto-publishing.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg> },
+  { title: 'User Finder', desc: 'Scans communities for people actively looking for your product right now.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /><circle cx="11" cy="11" r="3" /></svg> },
+  { title: 'Co-pilot', desc: '24/7 AI strategist that knows your Brand Brain. Ask anything about your marketing.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg> },
+  { title: 'Analytics', desc: 'Track karma, engagement, and post performance across all channels in one view.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M18 20V10M12 20V4M6 20v-6" /></svg> },
+  { title: 'One-time Price', desc: 'Pay once. Use forever. No subscription eating your runway.', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg> }];
+
+  return (
+    <section id="solution" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>The Solution</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>One tool. Every marketing problem solved.</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+          {cards.map((c, i) =>
+          <div key={i} className="spotlight-card"
+          style={{ padding: '28px' }}>
+            
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                {c.icon}
+              </div>
+              <h4 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#F2EDE8', margin: '0 0 8px', letterSpacing: '-0.02em' }}>{c.title}</h4>
+              <p style={{ fontFamily: 'Inter', fontSize: '14px', color: '#7A7672', lineHeight: 1.65, margin: 0 }}>{c.desc}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>);
+
+}
+
+// ─── PRICING ──────────────────────────────────────────────────────────────────
+function Pricing() {
+  const features = ['Full Brand Brain setup', 'Unlimited post generation', 'User Finder scans', 'Analytics dashboard', 'Co-pilot AI strategist', 'All future updates', '14-day money back guarantee'];
+  const Check = () =>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#9C2000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+
+  return (
+    <section id="pricing" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>Pricing</div>
+        <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>Simple, honest pricing.</h2>
+        <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', marginBottom: '48px' }}>No tiers. No monthly billing. Just full access.</p>
+        <div className="spotlight-card" style={{ maxWidth: '480px', margin: '0 auto', borderColor: 'rgba(156,32,0,0.35)', borderRadius: '16px', padding: '48px', textAlign: 'left' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E85D04', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.3)', borderRadius: '100px', padding: '4px 14px' }}>Lifetime Access</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', margin: '24px 0 28px' }}>
+            <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '64px', color: '#F2EDE8', lineHeight: 1 }}>$49</span>
+            <span style={{ fontFamily: 'Inter', fontWeight: 400, fontSize: '18px', color: '#7A7672' }}>one-time</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+            {features.map((f, i) =>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Check />
+                <span style={{ fontFamily: 'Inter', fontSize: '15px', color: '#F2EDE8' }}>{f}</span>
+              </div>
+            )}
+          </div>
+          <a href="#" style={{
+            display: 'block', width: '100%', textAlign: 'center', padding: '16px',
+            background: '#9C2000', color: '#fff', fontFamily: 'Inter', fontWeight: 700, fontSize: '16px',
+            borderRadius: '10px', textDecoration: 'none', transition: 'all 0.25s ease', boxSizing: 'border-box'
+          }}
+          onMouseEnter={(e) => {e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)';e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)';}}
+          onMouseLeave={(e) => {e.currentTarget.style.background = '#9C2000';e.currentTarget.style.boxShadow = 'none';}}>
+            Start for Free</a>
+          <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textAlign: 'center', marginTop: '16px' }}>14-day refund. No questions asked.</p>
+        </div>
+      </div>
+    </section>);
+
+}
+
+
+use these testimoials in the testimonials
+```js
+const TESTIMONIALS = [
+  { name: 'Jake', role: 'Founder', company: 'SpendKeep', location: 'US', platform: 'Reddit', text: 'ngl this made marketing feel way less annoying. stopped overthinking every post.' },
+  { name: 'Aman', role: 'Founder', company: 'Heliora AI', location: 'India', platform: 'X', text: 'lowkey helped me explain my product way better. positioning was solid.' },
+  { name: 'Hassan', role: 'Founder', company: 'ScoutJob.me', location: 'Pakistan', platform: 'Threads', text: 'finding real convos instead of random noise is actually useful fr.' },
+  { name: 'Noah', role: 'Founder', company: 'LaunchVideo', location: 'US', platform: 'Instagram', text: 'feels built for devs tbh. i just wanna ship, not think about content all day.' },
+  { name: 'Rohan', role: 'Founder', company: 'LateranAI', location: 'India', platform: 'Reddit', text: 'the content feels human lol. way less robotic than other ai tools ive tried.' },
+  { name: 'Bilal', role: 'Founder', company: 'Slotably', location: 'Pakistan', platform: 'X', text: 'saved me from staring at a blank page every time i wanted to post.' },
+  { name: 'Ethan', role: 'Founder & CEO', company: 'RiskQuilt', location: 'US', platform: 'Threads', text: 'finally something that helps with marketing without making it feel like homework.' },
+  { name: 'Sufyan', role: 'Founder', company: 'ScrapScout', location: 'Pakistan', platform: 'Reddit', text: 'user finder is lowkey the best part. found ppl already talking about my problem.' },
+  { name: 'Arjun', role: 'Founder', company: 'RankQuest', location: 'India', platform: 'Instagram', text: 'marketing still sucks lol but this makes it way more manageable.' },
+  { name: 'Ryan', role: 'Founder', company: 'Dashbee', location: 'US', platform: 'X', text: 'the positioning suggestions were surprisingly good ngl.' },
+  { name: 'Daniel', role: 'Founder', company: 'Giftime', location: 'US', platform: 'Reddit', text: 'used to spend hours thinking what to post. now i tweak and ship it.' },
+  { name: 'Hamza', role: 'Founder', company: 'Navi', location: 'Pakistan', platform: 'Threads', text: 'lowkey helped me stop sounding robotic online lol.' },
+  { name: 'Kabir', role: 'Founder', company: 'Jotley', location: 'India', platform: 'X', text: 'felt less lost with marketing after using this. simple but useful.' },
+  { name: 'Mason', role: 'Founder', company: 'NutriBalance', location: 'US', platform: 'Reddit', text: 'honestly just nice not having to think so hard before posting.' },
+  { name: 'Zayan', role: 'Founder', company: 'StockArithm', location: 'Pakistan', platform: 'Instagram', text: 'the reddit angle is smart fr. saves a ton of digging.' },
+  { name: 'Aryan', role: 'Founder', company: 'CookSlate', location: 'India', platform: 'Threads', text: 'finally posting consistently because it takes less mental energy.' },
+  { name: 'Chris', role: 'Founder', company: 'RoleSense', location: 'US', platform: 'X', text: 'feels practical. not just another ai writer throwing random content.' },
+  { name: 'Ahmed', role: 'Founder', company: 'Principal Task', location: 'Pakistan', platform: 'Reddit', text: 'fr the user finder part alone saved me hours every week.' },
+  { name: 'Dev', role: 'Founder', company: 'QueryDeck', location: 'India', platform: 'X', text: 'the hook suggestions are solid. posts feel more clear now.' },
+  { name: 'Logan', role: 'Founder', company: 'LifeOrder', location: 'US', platform: 'Threads', text: 'more like a growth helper than another generic ai thing tbh.' },
+  { name: 'Taha', role: 'Founder', company: 'StorageZen', location: 'Pakistan', platform: 'Instagram', text: 'found actual ppl talking about my niche. thats kinda huge ngl.' },
+  { name: 'Yash', role: 'Founder', company: 'Taskomon', location: 'India', platform: 'Reddit', text: 'finally something that gets builder problems and keeps things simple.' },
+  { name: 'Eli', role: 'Founder', company: 'HumanFound', location: 'US', platform: 'X', text: 'positioning part was lowkey the biggest win for me.' },
+  { name: 'Ayaan', role: 'Founder', company: 'MemberPass', location: 'India', platform: 'Threads', text: 'marketing still isnt fun lol but now it feels doable.' },
+  { name: 'Usman', role: 'Founder', company: 'IntentiQS', location: 'Pakistan', platform: 'Reddit', text: 'fr this removed a lot of the mental friction around marketing.' },
+  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain what my app actually does way better.' },
+  { name: 'Faizan', role: 'Founder', company: 'WebUtilBox', location: 'Pakistan', platform: 'X', text: 'not magic lol but makes marketing feel less messy tbh.' },
+  { name: 'Karan', role: 'Founder', company: 'Onpilot', location: 'India', platform: 'Threads', text: 'content feels less robotic than most ai tools ive tried.' },
+  { name: 'Owen', role: 'Founder', company: 'UptimeGuard', location: 'US', platform: 'Reddit', text: 'honestly just nice having less mental load around content.' },
+  { name: 'Saad', role: 'Founder', company: 'RenderPix', location: 'Pakistan', platform: 'X', text: 'lowkey made me post more because i stopped overthinking everything.' }
+];
+
+
+
+add these testimonials on pricing page
+```js
+const TESTIMONIALS = [
+  { name: 'Jake', role: 'Founder', company: 'SpendKeep', location: 'US', platform: 'Reddit', text: 'ngl this made marketing feel way less annoying. stopped overthinking every post.' },
+  { name: 'Aman', role: 'Founder', company: 'Heliora AI', location: 'India', platform: 'X', text: 'lowkey helped me explain my product way better. positioning was solid.' },
+  { name: 'Hassan', role: 'Founder', company: 'ScoutJob.me', location: 'Pakistan', platform: 'Threads', text: 'finding real convos instead of random noise is actually useful fr.' },
+  { name: 'Noah', role: 'Founder', company: 'LaunchVideo', location: 'US', platform: 'Instagram', text: 'feels built for devs tbh. i just wanna ship, not think about content all day.' },
+  { name: 'Rohan', role: 'Founder', company: 'LateranAI', location: 'India', platform: 'Reddit', text: 'the content feels human lol. way less robotic than other ai tools ive tried.' },
+  { name: 'Bilal', role: 'Founder', company: 'Slotably', location: 'Pakistan', platform: 'X', text: 'saved me from staring at a blank page every time i wanted to post.' },
+  { name: 'Ethan', role: 'Founder & CEO', company: 'RiskQuilt', location: 'US', platform: 'Threads', text: 'finally something that helps with marketing without making it feel like homework.' },
+  { name: 'Sufyan', role: 'Founder', company: 'ScrapScout', location: 'Pakistan', platform: 'Reddit', text: 'user finder is lowkey the best part. found ppl already talking about my problem.' },
+  { name: 'Arjun', role: 'Founder', company: 'RankQuest', location: 'India', platform: 'Instagram', text: 'marketing still sucks lol but this makes it way more manageable.' },
+  { name: 'Ryan', role: 'Founder', company: 'Dashbee', location: 'US', platform: 'X', text: 'the positioning suggestions were surprisingly good ngl.' },
+  { name: 'Daniel', role: 'Founder', company: 'Giftime', location: 'US', platform: 'Reddit', text: 'used to spend hours thinking what to post. now i tweak and ship it.' },
+  { name: 'Hamza', role: 'Founder', company: 'Navi', location: 'Pakistan', platform: 'Threads', text: 'lowkey helped me stop sounding robotic online lol.' },
+  { name: 'Kabir', role: 'Founder', company: 'Jotley', location: 'India', platform: 'X', text: 'felt less lost with marketing after using this. simple but useful.' },
+  { name: 'Mason', role: 'Founder', company: 'NutriBalance', location: 'US', platform: 'Reddit', text: 'honestly just nice not having to think so hard before posting.' },
+  { name: 'Zayan', role: 'Founder', company: 'StockArithm', location: 'Pakistan', platform: 'Instagram', text: 'the reddit angle is smart fr. saves a ton of digging.' },
+  { name: 'Aryan', role: 'Founder', company: 'CookSlate', location: 'India', platform: 'Threads', text: 'finally posting consistently because it takes less mental energy.' },
+  { name: 'Chris', role: 'Founder', company: 'RoleSense', location: 'US', platform: 'X', text: 'feels practical. not just another ai writer throwing random content.' },
+  { name: 'Ahmed', role: 'Founder', company: 'Principal Task', location: 'Pakistan', platform: 'Reddit', text: 'fr the user finder part alone saved me hours every week.' },
+  { name: 'Dev', role: 'Founder', company: 'QueryDeck', location: 'India', platform: 'X', text: 'the hook suggestions are solid. posts feel more clear now.' },
+  { name: 'Logan', role: 'Founder', company: 'LifeOrder', location: 'US', platform: 'Threads', text: 'more like a growth helper than another generic ai thing tbh.' },
+  { name: 'Taha', role: 'Founder', company: 'StorageZen', location: 'Pakistan', platform: 'Instagram', text: 'found actual ppl talking about my niche. thats kinda huge ngl.' },
+  { name: 'Yash', role: 'Founder', company: 'Taskomon', location: 'India', platform: 'Reddit', text: 'finally something that gets builder problems and keeps things simple.' },
+  { name: 'Eli', role: 'Founder', company: 'HumanFound', location: 'US', platform: 'X', text: 'positioning part was lowkey the biggest win for me.' },
+  { name: 'Ayaan', role: 'Founder', company: 'MemberPass', location: 'India', platform: 'Threads', text: 'marketing still isnt fun lol but now it feels doable.' },
+  { name: 'Usman', role: 'Founder', company: 'IntentiQS', location: 'Pakistan', platform: 'Reddit', text: 'fr this removed a lot of the mental friction around marketing.' },
+  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain what my app actually does way better.' },
+  { name: 'Faizan', role: 'Founder', company: 'WebUtilBox', location: 'Pakistan', platform: 'X', text: 'not magic lol but makes marketing feel less messy tbh.' },
+  { name: 'Karan', role: 'Founder', company: 'Onpilot', location: 'India', platform: 'Threads', text: 'content feels less robotic than most ai tools ive tried.' },
+  { name: 'Owen', role: 'Founder', company: 'UptimeGuard', location: 'US', platform: 'Reddit', text: 'honestly just nice having less mental load around content.' },
+  { name: 'Saad', role: 'Founder', company: 'RenderPix', location: 'Pakistan', platform: 'X', text: 'lowkey made me post more because i stopped overthinking everything.' }
+];
+
+const PRICING_TESTIMONIALS = [
+  { name: 'Ethan', role: 'Founder & CEO', company: 'Heliora AI', location: 'US', platform: 'Reddit', text: 'ngl almost skipped paying for it, but saving hours every week made it worth it fast.' },
+  { name: 'Rohit', role: 'Founder', company: 'RiskQuilt', location: 'India', platform: 'X', text: 'felt expensive at first tbh, then realized i wasted more time overthinking marketing.' },
+  { name: 'Ahmed', role: 'Founder', company: 'LaunchSaaS', location: 'Pakistan', platform: 'Threads', text: 'the user finder + positioning combo alone made me keep the subscription fr.' },
+  { name: 'Mason', role: 'Founder', company: 'LateranAI', location: 'US', platform: 'Reddit', text: 'one of the few tools i kept paying for because it actually removed friction.' }
+];
+```
+
+
+
+add faq in pricing page
+Is Vibe Promote worth it for an early-stage founder?
+If marketing is taking hours every week or stopping you from shipping, Vibe Promote is built to help you create content faster without starting from scratch every time. The goal is to save time and make consistent marketing easier.
+
+Can I try before paying?
+Yes. You can start free and try the workflow before committing. Paid plans also include a 3-day Pro trial so you can see if it fits your process.
+
+Can I cancel anytime?
+Yes. You can cancel your subscription anytime from your account settings. Your plan stays active until the end of the billing period.
+
+What happens after the free trial ends?
+After your trial ends, your subscription continues on the selected plan unless canceled before renewal.
+
+Can I switch plans later?
+Yes. You can upgrade or downgrade your plan anytime based on your needs.
+
+What if Vibe Promote isn’t for me?
+Try the free plan or trial first to see if it fits your workflow. If you run into issues, support is available to help you get set up and make the most of the product.
+
+
