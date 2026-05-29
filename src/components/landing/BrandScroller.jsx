@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useTheme } from '../../lib/ThemeContext';
 
 const BRANDS = [
   { url: 'https://media.base44.com/images/public/69fdbbdfa45edc6cb1b91c40/6d03765e2_image.png', name: 'Brand 1' },
@@ -28,50 +27,41 @@ const BRANDS = [
 
 export default function BrandScroller() {
   const [clicked, setClicked] = useState(null);
-  const { theme } = useTheme();
   const doubled = [...BRANDS, ...BRANDS];
 
   return (
     <section style={{
-      borderTop: theme === 'dark' ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+      borderTop: '1px solid rgba(255,255,255,0.06)',
       padding: '56px 0',
-      background: theme === 'dark' ? '#000' : '#12141C',
+      background: '#000',
       overflow: 'hidden',
     }}>
+      {/* Label */}
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
         <p style={{
           fontFamily: 'Inter',
           fontWeight: 500,
           fontSize: '13px',
-          color: theme === 'dark' ? '#44403C' : '#a1a1aa',
+          color: '#44403C',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           margin: 0
         }}>
-          <span style={{ color: '#9C2000', fontWeight: 700 }}>1000+ SaaS </span>
-          <span>Automated</span> Their Marketing
+          Used by <span style={{ color: '#9C2000', fontWeight: 700 }}>1,100+</span> indie founders
         </p>
       </div>
 
+      {/* Scroller */}
       <div style={{ position: 'relative' }}>
+        {/* Fade edges */}
         <div style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: '120px',
-          zIndex: 2,
-          background: theme === 'dark' ? 'linear-gradient(to right, #000 0%, transparent 100%)' : 'linear-gradient(to right, #12141C 0%, transparent 100%)',
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to right, #000 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
         <div style={{
-          position: 'absolute',
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: '120px',
-          zIndex: 2,
-          background: theme === 'dark' ? 'linear-gradient(to left, #000 0%, transparent 100%)' : 'linear-gradient(to left, #12141C 0%, transparent 100%)',
+          position: 'absolute', right: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
+          background: 'linear-gradient(to left, #000 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
 
@@ -118,16 +108,10 @@ export default function BrandScroller() {
                   borderRadius: '6px',
                 }}
                 onMouseEnter={e => {
-                  if (clicked !== i) {
-                    e.currentTarget.style.filter =
-                      'grayscale(30%) brightness(0.9)';
-                  }
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(30%) brightness(0.9)';
                 }}
                 onMouseLeave={e => {
-                  if (clicked !== i) {
-                    e.currentTarget.style.filter =
-                      'grayscale(100%) brightness(0.55)';
-                  }
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(100%) brightness(0.55)';
                 }}
               />
             </button>

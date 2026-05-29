@@ -1,184 +1,98 @@
-import React, { useState, useRef, useEffect } from 'react';
-import ScrollReveal from './ScrollReveal';
+"use client";
 
-const offStats = { likes: 3, comments: 1, reposts: 0, views: 214 };
-const onStats = { likes: 2847, comments: 143, reposts: 312, views: 94200 };
-
-function formatNum(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-  return n.toLocaleString();
-}
-
-function useAnimatedCount(target, duration, enabled) {
-  const [value, setValue] = useState(target);
-  const frameRef = useRef(null);
-  const startRef = useRef(null);
-  const fromRef = useRef(target);
-
-  useEffect(() => {
-    if (!enabled) {
-      setValue(target);
-      fromRef.current = target;
-      return;
-    }
-    const from = fromRef.current;
-    const to = target;
-    startRef.current = null;
-    
-    const animate = (ts) => {
-      if (!startRef.current) startRef.current = ts;
-      const progress = Math.min((ts - startRef.current) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(from + (to - from) * eased);
-      setValue(current);
-      if (progress < 1) frameRef.current = requestAnimationFrame(animate);
-      else fromRef.current = to;
-    };
-    frameRef.current = requestAnimationFrame(animate);
-    return () => { if (frameRef.current) cancelAnimationFrame(frameRef.current); };
-  }, [target, duration, enabled]);
-
-  return value;
-}
-
-function StatItem({ icon, value, duration, enabled, colorOn }) {
-  const animated = useAnimatedCount(value, duration, enabled);
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-sm">{icon}</span>
-      <span className="font-geist text-sm transition-colors duration-300" style={{ color: enabled ? colorOn : '#666' }}>
-        {formatNum(animated)}
-      </span>
-    </div>
-  );
-}
+import React, { useState } from 'react';
 
 export default function XPostToggle() {
-  const [enabled, setEnabled] = useState(false);
+  const [on, setOn] = useState(false);
+
+  const postOff = {
+    title: 'Just launched my SaaS, check it out',
+    body: 'Hey everyone, I just launched a new tool for marketing. It uses AI to help you write content. Let me know what you think!',
+    note: 'Vague headline. No hook. No context. Easy to ignore.',
+  };
+
+  const postOn = {
+    title: "Spent 5 months building a SaaS. Nobody came. Here's what I changed.",
+    body: 'I had a solid product but my messaging was off. Nobody understood what it did or why they should care. Once I rewrote my positioning, the next Reddit post drove 40+ signups in 3 days. Happy to share what changed.',
+    note: 'Clear hook. Specific pain. Story-driven. Platform-native format.',
+  };
+
+  const post = on ? postOn : postOff;
 
   return (
-    <section className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-      <div className="max-w-[1100px] mx-auto">
-        <div className="text-center mb-12">
-          <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">See The Impact</span>
-          <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-            Your SaaS post, with and without Vibe Promote.
+    <section id="xpost" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '100px 40px' }} className="bg-[hsl(var(--background))]">
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>See The Difference</div>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(26px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: '0 0 12px' }}>
+            The same idea. Two very different posts.
           </h2>
-          <p className="font-geist text-muted-foreground mt-3">Toggle Vibe Promote on and watch what happens to your reach.</p>
+          <p style={{ fontFamily: 'Inter', fontSize: '16px', color: '#7A7672', maxWidth: '480px', margin: '0 auto' }}>Toggle to see how Brand Brain context changes the output.</p>
         </div>
 
-        {/* Toggle */}
-        <div className="flex items-center justify-center gap-4 mb-10">
-          <span className="font-geist text-sm text-muted-foreground">Without</span>
-          <button
-            onClick={() => setEnabled(!enabled)}
-            className="relative w-[52px] h-7 rounded-full transition-all duration-300 cursor-pointer"
-            style={{
-              background: enabled ? '#E85D04' : '#1c1c1c',
-              boxShadow: enabled ? '0 0 16px rgba(232,93,4,0.4)' : 'none',
-            }}
-          >
-            <div
-              className="absolute top-1 w-5 h-5 rounded-full bg-white transition-all duration-300"
-              style={{
-                left: enabled ? '27px' : '4px',
-                transitionTimingFunction: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-              }}
-            />
+        {/* Toggle row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '40px' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672' }}>Without context</span>
+          <button onClick={() => setOn(!on)}
+          style={{
+            width: '50px', height: '26px', borderRadius: '100px', cursor: 'pointer', position: 'relative',
+            background: on ? '#9C2000' : '#1A1A22',
+            border: `1px solid ${on ? '#9C2000' : 'rgba(255,255,255,0.1)'}`,
+            boxShadow: on ? '0 0 14px rgba(156,32,0,0.5)' : 'none',
+            transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+          }}>
+            <span style={{
+              position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+              left: on ? '27px' : '3px',
+              transition: 'left 0.3s cubic-bezier(0.34,1.56,0.64,1)'
+            }} />
           </button>
-          <span className="font-geist text-sm" style={{ color: enabled ? '#E85D04' : '#888' }}>With Vibe Promote</span>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#9C2000' }}>With Brand Brain</span>
         </div>
 
-        {/* X Post Card */}
-        <ScrollReveal>
-          <div className="max-w-[600px] mx-auto relative">
-            {/* Badge */}
-            {enabled && (
-              <div
-                className="absolute -top-3 right-5 z-10 font-geist text-xs font-medium px-3 py-1 rounded-full text-white"
-                style={{
-                  background: '#E85D04',
-                  animation: 'fadeInBadge 0.3s ease',
-                }}
-              >
-                ✦ Vibe Promote Optimised
-              </div>
-            )}
-
-            <div
-              className="rounded-2xl p-5 transition-all duration-500"
-              style={{
-                background: '#000',
-                border: `1px solid ${enabled ? 'rgba(232,93,4,0.4)' : '#2f3336'}`,
-                boxShadow: enabled ? '0 0 40px rgba(232,93,4,0.15)' : 'none',
-              }}
-            >
-              {/* Author */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-geist text-sm text-white"
-                  style={{ fontWeight: 700, background: 'linear-gradient(135deg, #E85D04, #F97316)' }}>
-                  VP
-                </div>
-                <div className="flex-1">
-                  <span className="font-geist text-sm text-foreground font-medium">VibeFounder</span>
-                  <span className="font-geist text-sm text-muted-foreground ml-2">@vibefounderhq</span>
-                </div>
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="#f0ede8">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </div>
-
-              {/* Post content */}
-              <div className="font-geist text-sm text-foreground leading-relaxed mb-4 whitespace-pre-line">
-                {enabled ? (
-                  <>
-                    Started using @VibePromote last week and marketing finally feels manageable.
-                    {"\n\n"}
-                    It helped me:
-                    {"\n"}• fix my positioning
-                    {"\n"}• find people already talking about my niche
-                    {"\n"}• create posts that actually sound like me
-                    {"\n"}• understand what content is working
-                    {"\n\n"}
-                    First time it feels like I have a real marketing system instead of guessing every day.
-                  </>
-                ) : (
-                  <>
-                    I have no idea where to find users.
-                    {"\n"}No idea what to post.
-                    {"\n"}And every time I try writing content it either sounds cringe or gets zero engagement.
-                    {"\n\n"}
-                    Feels like I'm just building in silence.
-                  </>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center gap-6 pt-4" style={{ borderTop: '1px solid #2f3336' }}>
-                <StatItem icon="❤️" value={enabled ? onStats.likes : offStats.likes} duration={1300} enabled={enabled} colorOn="#E85D04" />
-                <StatItem icon="💬" value={enabled ? onStats.comments : offStats.comments} duration={1200} enabled={enabled} colorOn="#1d9bf0" />
-                <StatItem icon="🔁" value={enabled ? onStats.reposts : offStats.reposts} duration={1400} enabled={enabled} colorOn="#00ba7c" />
-                <StatItem icon="👁️" value={enabled ? onStats.views : offStats.views} duration={1300} enabled={enabled} colorOn="#f0ede8" />
-              </div>
+        {/* Post Card */}
+        <div className="xpost-card" style={{ maxWidth: '560px', margin: '0 auto' }}>
+          <div style={{
+            background: '#0A0A0F', padding: '24px 28px', borderRadius: '14px',
+            border: on ? '1px solid rgba(156,32,0,0.45)' : '1px solid rgba(255,255,255,0.08)',
+            boxShadow: on ? '0 0 36px rgba(156,32,0,0.12)' : 'none',
+            transition: 'border-color 0.35s, box-shadow 0.35s'
+          }}>
+            {/* Platform label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: '11px', fontWeight: 600, color: '#FF4500', background: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.2)', borderRadius: '100px', padding: '3px 10px' }}>Reddit</span>
+              <span style={{ fontFamily: 'Inter', fontSize: '11px', color: '#333' }}>r/SaaS</span>
             </div>
 
-            {/* Note */}
-            <p className="font-geist text-sm text-center mt-4 transition-colors duration-300"
-              style={{ color: enabled ? '#E85D04' : '#888' }}>
-              {enabled
-                ? '✦ Vibe Promote optimised — this post is performing 12x better than average.'
-                : 'Toggle Vibe Promote on to see what AI-optimised posts do to your reach.'}
-            </p>
-          </div>
-        </ScrollReveal>
-      </div>
+            {/* Title */}
+            <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '15px', color: '#F2EDE8', lineHeight: 1.4, marginBottom: '12px', transition: 'color 0.3s' }}>
+              {post.title}
+            </div>
 
-      <style>{`
-        @keyframes fadeInBadge {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+            {/* Body */}
+            <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.65, margin: '0 0 16px' }}>
+              {post.body}
+            </p>
+
+            {/* Note */}
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: '8px',
+              background: on ? 'rgba(156,32,0,0.08)' : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${on ? 'rgba(156,32,0,0.2)' : 'rgba(255,255,255,0.06)'}`,
+              borderRadius: '8px', padding: '10px 14px',
+              transition: 'all 0.3s ease'
+            }}>
+              <span style={{ fontFamily: 'Inter', fontSize: '12px', color: on ? '#E85D04' : '#44403C', lineHeight: 1.5 }}>
+                {on ? '✓' : '✗'} {post.note}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <p style={{ fontFamily: 'Inter', fontSize: '13px', textAlign: 'center', marginTop: '20px', color: '#333' }}>
+          You review and post manually — no auto-publishing.
+        </p>
+      </div>
     </section>
   );
 }

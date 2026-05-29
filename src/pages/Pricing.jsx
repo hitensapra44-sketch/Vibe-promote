@@ -75,10 +75,71 @@ const PLANS = [
   },
 ];
 
-const SOCIAL_PROOF = [
-  { ini: 'MR', name: 'Marcus R.', text: 'It removes alot of jumping between tool problem' },
-  { ini: 'SP', name: 'Sara P.', text: 'Pro is good and i didnt seen any tool that provides this much from on place' },
-  { ini: 'JK', name: 'James K.', text: 'As a dev, I like to build but hate to market this product helps me does that.' },
+const TESTIMONIALS = [
+  { name: 'Jake', role: 'Founder', company: 'SpendKeep', location: 'US', platform: 'Reddit', text: 'ngl this made marketing feel way less annoying. stopped overthinking every post.' },
+  { name: 'Aman', role: 'Founder', company: 'Heliora AI', location: 'India', platform: 'X', text: 'lowkey helped me explain my product way better. positioning was solid.' },
+  { name: 'Hassan', role: 'Founder', company: 'ScoutJob.me', location: 'Pakistan', platform: 'Threads', text: 'finding real convos instead of random noise is actually useful fr.' },
+  { name: 'Noah', role: 'Founder', company: 'LaunchVideo', location: 'US', platform: 'Instagram', text: 'feels built for devs tbh. i just wanna ship, not think about content all day.' },
+  { name: 'Rohan', role: 'Founder', company: 'LateranAI', location: 'India', platform: 'Reddit', text: 'the content feels human lol. way less robotic than other ai tools ive tried.' },
+  { name: 'Bilal', role: 'Founder', company: 'Slotably', location: 'Pakistan', platform: 'X', text: 'saved me from staring at a blank page every time i wanted to post.' },
+  { name: 'Ethan', role: 'Founder & CEO', company: 'RiskQuilt', location: 'US', platform: 'Threads', text: 'finally something that helps with marketing without making it feel like homework.' },
+  { name: 'Sufyan', role: 'Founder', company: 'ScrapScout', location: 'Pakistan', platform: 'Reddit', text: 'user finder is lowkey the best part. found ppl already talking about my problem.' },
+  { name: 'Arjun', role: 'Founder', company: 'RankQuest', location: 'India', platform: 'Instagram', text: 'marketing still sucks lol but this makes it way more manageable.' },
+  { name: 'Ryan', role: 'Founder', company: 'Dashbee', location: 'US', platform: 'X', text: 'the positioning suggestions were surprisingly good ngl.' },
+  { name: 'Daniel', role: 'Founder', company: 'Giftime', location: 'US', platform: 'Reddit', text: 'used to spend hours thinking what to post. now i tweak and ship it.' },
+  { name: 'Hamza', role: 'Founder', company: 'Navi', location: 'Pakistan', platform: 'Threads', text: 'lowkey helped me stop sounding robotic online lol.' },
+  { name: 'Kabir', role: 'Founder', company: 'Jotley', location: 'India', platform: 'X', text: 'felt less lost with marketing after using this. simple but useful.' },
+  { name: 'Mason', role: 'Founder', company: 'NutriBalance', location: 'US', platform: 'Reddit', text: 'honestly just nice not having to think so hard before posting.' },
+  { name: 'Zayan', role: 'Founder', company: 'StockArithm', location: 'Pakistan', platform: 'Instagram', text: 'the reddit angle is smart fr. saves a ton of digging.' },
+  { name: 'Aryan', role: 'Founder', company: 'CookSlate', location: 'India', platform: 'Threads', text: 'finally posting consistently because it takes less mental energy.' },
+  { name: 'Chris', role: 'Founder', company: 'RoleSense', location: 'US', platform: 'X', text: 'feels practical. not just another ai writer throwing random content.' },
+  { name: 'Ahmed', role: 'Founder', company: 'Principal Task', location: 'Pakistan', platform: 'Reddit', text: 'fr the user finder part alone saved me hours every week.' },
+  { name: 'Dev', role: 'Founder', company: 'QueryDeck', location: 'India', platform: 'X', text: 'the hook suggestions are solid. posts feel more clear now.' },
+  { name: 'Logan', role: 'Founder', company: 'LifeOrder', location: 'US', platform: 'Threads', text: 'more like a growth helper than another generic ai thing tbh.' },
+  { name: 'Taha', role: 'Founder', company: 'StorageZen', location: 'Pakistan', platform: 'Instagram', text: 'found actual ppl talking about my niche. thats kinda huge ngl.' },
+  { name: 'Yash', role: 'Founder', company: 'Taskomon', location: 'India', platform: 'Reddit', text: 'finally something that gets builder problems and keeps things simple.' },
+  { name: 'Eli', role: 'Founder', company: 'HumanFound', location: 'US', platform: 'X', text: 'positioning part was lowkey the biggest win for me.' },
+  { name: 'Ayaan', role: 'Founder', company: 'MemberPass', location: 'India', platform: 'Threads', text: 'marketing still isnt fun lol but now it feels doable.' },
+  { name: 'Usman', role: 'Founder', company: 'IntentiQS', location: 'Pakistan', platform: 'Reddit', text: 'fr this removed a lot of the mental friction around marketing.' },
+  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain what my app actually does way better.' },
+  { name: 'Faizan', role: 'Founder', company: 'WebUtilBox', location: 'Pakistan', platform: 'X', text: 'not magic lol but makes marketing feel less messy tbh.' },
+  { name: 'Karan', role: 'Founder', company: 'Onpilot', location: 'India', platform: 'Threads', text: 'content feels less robotic than most ai tools ive tried.' },
+  { name: 'Owen', role: 'Founder', company: 'UptimeGuard', location: 'US', platform: 'Reddit', text: 'honestly just nice having less mental load around content.' },
+  { name: 'Saad', role: 'Founder', company: 'RenderPix', location: 'Pakistan', platform: 'X', text: 'lowkey made me post more because i stopped overthinking everything.' }
+];
+
+const PRICING_TESTIMONIALS = [
+  { name: 'Ethan', role: 'Founder & CEO', company: 'Heliora AI', location: 'US', platform: 'Reddit', text: 'ngl almost skipped paying for it, but saving hours every week made it worth it fast.' },
+  { name: 'Rohit', role: 'Founder', company: 'RiskQuilt', location: 'India', platform: 'X', text: 'felt expensive at first tbh, then realized i wasted more time overthinking marketing.' },
+  { name: 'Ahmed', role: 'Founder', company: 'LaunchSaaS', location: 'Pakistan', platform: 'Threads', text: 'the user finder + positioning combo alone made me keep the subscription fr.' },
+  { name: 'Mason', role: 'Founder', company: 'LateranAI', location: 'US', platform: 'Reddit', text: 'one of the few tools i kept paying for because it actually removed friction.' }
+];
+
+const FAQS = [
+  {
+    q: 'Is Vibe Promote worth it for an early-stage founder?',
+    a: 'If marketing is taking hours every week or stopping you from shipping, Vibe Promote is built to help you create content faster without starting from scratch every time. The goal is to save time and make consistent marketing easier.'
+  },
+  {
+    q: 'Can I try before paying?',
+    a: 'Yes. You can start free and try the workflow before committing. Paid plans also include a 3-day Pro trial so you can see if it fits your process.'
+  },
+  {
+    q: 'Can I cancel anytime?',
+    a: 'Yes. You can cancel your subscription anytime from your account settings. Your plan stays active until the end of the billing period.'
+  },
+  {
+    q: 'What happens after the free trial ends?',
+    a: 'After your trial ends, your subscription continues on the selected plan unless canceled before renewal.'
+  },
+  {
+    q: 'Can I switch plans later?',
+    a: 'Yes. You can upgrade or downgrade your plan anytime based on your needs.'
+  },
+  {
+    q: 'What if Vibe Promote isn’t for me?',
+    a: 'Try the free plan or trial first to see if it fits your workflow. If you run into issues, support is available to help you get set up and make the most of the product.'
+  }
 ];
 
 function CheckIcon({ color = '#9C2000' }) {
@@ -100,6 +161,7 @@ function LockIcon() {
 
 export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [openFaqIdx, setOpenFaqIdx] = useState(-1);
 
   return (
     <div style={{ background: 'var(--background)', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
@@ -190,16 +252,6 @@ export default function Pricing() {
           box-shadow: 0 8px 28px rgba(156,32,0,0.5);
           animation: none;
         }
-        .cta-btn-founder {
-          background: rgba(156,32,0,0.12);
-          color: #E85D04;
-          border: 1px solid rgba(156,32,0,0.35);
-        }
-        .cta-btn-founder:hover {
-          background: rgba(156,32,0,0.2);
-          border-color: rgba(156,32,0,0.6);
-          color: #F2EDE8;
-        }
 
         .feature-row {
           display:flex; align-items:flex-start; justify-content:space-between;
@@ -269,7 +321,7 @@ export default function Pricing() {
                 background: i % 2 === 0 ? '#9C2000' : '#5A1200',
                 border: '2px solid #000',
                 marginLeft: i === 0 ? 0 : '-6px',
-                display: 'flex', alignItems: 'center', justifycontent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 700, fontSize: '9px', color: '#fff'
               }}>{ini}</div>
             ))}
@@ -296,10 +348,10 @@ export default function Pricing() {
           <span style={{ color: '#9C2000' }}>Remove Marketing Headache today.</span>
         </h1>
         <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
-          Refund anytime. No hidden fees. Cancel anytime..
+          Refund anytime. No hidden fees. Cancel anytime.
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '14px', marginTop: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
             color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
@@ -351,7 +403,6 @@ export default function Pricing() {
         >
           {PLANS.map(plan => {
             const isPro = plan.id === 'pro';
-            const isFounder = plan.id === 'founder';
             return (
               <div
                 key={plan.id}
@@ -384,7 +435,7 @@ export default function Pricing() {
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{
                       fontFamily: 'Inter', fontWeight: 800, fontSize: '20px',
-                      color: isPro ? '#F2EDE8' : '#F2EDE8',
+                      color: '#F2EDE8',
                       letterSpacing: '-0.02em', marginBottom: '4px'
                     }}>
                       {isPro ? (
@@ -437,7 +488,7 @@ export default function Pricing() {
                   {/* CTA */}
                   <a
                     href={plan.id === 'free' ? plan.ctaHref : (isAnnual ? plan.annualHref : plan.monthlyHref)}
-                    className={`cta-btn ${isPro ? 'cta-btn-pro' : isFounder ? 'cta-btn-founder' : 'cta-btn-default'}`}
+                    className={`cta-btn ${isPro ? 'cta-btn-pro' : 'cta-btn-default'}`}
                     style={{ marginBottom: '24px' }}
                   >
                     {plan.cta}
@@ -482,7 +533,7 @@ export default function Pricing() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flexWrap: 'wrap' }}>
             {[
-              { icon: '✓', text: 'Refund avalabile' },
+              { icon: '✓', text: 'Refund available' },
               { icon: '✓', text: 'Cancel anytime' },
               { icon: '✓', text: 'Instant access on signup' },
             ].map((item, i) => (
@@ -503,8 +554,8 @@ export default function Pricing() {
         </div>
 
         {/* Testimonial strip */}
-        <div style={{ marginTop: '48px', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
-          {SOCIAL_PROOF.map((t, i) => (
+        <div style={{ marginTop: '48px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '16px' }} className="grid grid-cols-1 md:grid-cols-2">
+          {PRICING_TESTIMONIALS.map((t, i) => (
             <div key={i} style={{
               background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '12px', padding: '20px 22px',
@@ -512,21 +563,53 @@ export default function Pricing() {
             }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000',
-                display: 'flex', alignItems: 'center', justifycontent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 800, fontSize: '12px', color: '#fff', flexShrink: 0
-              }}>{t.ini}</div>
+              }}>{t.name[0]}</div>
               <div>
-                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8', marginBottom: '4px' }}>{t.name}</div>
+                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8', marginBottom: '4px' }}>{t.name} ({t.role} at {t.company})</div>
                 <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.55, margin: 0 }}>"{t.text}"</p>
               </div>
             </div>
           ))}
         </div>
+
+        {/* FAQ Section */}
+        <div style={{ marginTop: '80px', maxWidth: '760px', margin: '80px auto 0' }}>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '28px', color: '#F2EDE8', textAlign: 'center', marginBottom: '32px' }}>
+            Frequently Asked Questions
+          </h2>
+          <div style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
+            {FAQS.map((faq, i) => {
+              const isOpen = openFaqIdx === i;
+              return (
+                <div key={i} style={{ borderBottom: i < FAQS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                  <button
+                    onClick={() => setOpenFaqIdx(isOpen ? -1 : i)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '20px 24px', background: 'none', border: 'none', cursor: 'pointer',
+                      textAlign: 'left', outline: 'none'
+                    }}
+                  >
+                    <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: '#F2EDE8' }}>{faq.q}</span>
+                    <span style={{ color: '#9C2000', fontSize: '18px', fontWeight: 'bold' }}>{isOpen ? '−' : '+'}</span>
+                  </button>
+                  {isOpen && (
+                    <div style={{ padding: '0 24px 20px', fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.6 }}>
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
             Vibe<span style={{ color: '#9C2000' }}>Promote</span>
           </div>

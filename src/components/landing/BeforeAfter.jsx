@@ -38,14 +38,6 @@ export default function BeforeAfter() {
               <div className="px-6 py-4" style={{ background: '#161616' }}>
                 <span className="font-geist text-sm text-muted-foreground">You without Vibe Promote</span>
               </div>
-              <div className="w-full overflow-hidden" style={{ height: '320px' }}>
-                <img
-                  src="/without-vibe.gif"
-                  alt="Stressed founder"
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
-              </div>
               <div className="p-6 space-y-3 flex-1">
                 {withoutItems.map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -63,14 +55,6 @@ export default function BeforeAfter() {
             <div className="rounded-xl overflow-hidden h-full flex flex-col" style={{ background: '#111111', border: '1px solid rgba(232,93,4,0.3)' }}>
               <div className="px-6 py-4" style={{ background: 'rgba(232,93,4,0.12)', borderBottom: '1px solid rgba(232,93,4,0.3)' }}>
                 <span className="font-geist text-sm text-primary">You with Vibe Promote</span>
-              </div>
-              <div className="w-full overflow-hidden" style={{ height: '320px' }}>
-                <img
-                  src="/with-vibe.gif"
-                  alt="Success celebrating"
-                  loading="lazy"
-                  className="w-full h-full object-cover"
-                />
               </div>
               <div className="p-6 space-y-3 flex-1">
                 {withItems.map((item, i) => (

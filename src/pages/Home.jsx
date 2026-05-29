@@ -6,6 +6,8 @@ import HowItWorks from '../components/landing/howitworks';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import BeforeAfter from '../components/landing/BeforeAfter';
 import XPostToggle from '../components/landing/XPostToggle';
+import Solution from '../components/landing/Solution';
+import PricingSection from '../components/landing/PricingSection';
 import WhySection from '../components/landing/WhySection';
 import SocialTestimonials from '../components/landing/SocialTestimonials';
 import FAQ from '../components/landing/faqs';
@@ -72,6 +74,8 @@ export default function Home() {
       <FeaturesSection />
       <BeforeAfter />
       <XPostToggle />
+      <Solution />
+      <PricingSection />
       <WhySection />
       <SocialTestimonials />
       <FAQ />

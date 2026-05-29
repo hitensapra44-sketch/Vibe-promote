@@ -76,10 +76,8 @@ function BrowserChrome({ url, children }) {
           <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
           <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
         </div>
-        <div className="flex-1 ml-3">
-          <div className="font-geist text-xs text-muted-foreground px-3 py-1 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            {url}
-          </div>
+        <div style={{ marginLeft: '8px', flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }} >
+          <span style={{ color: '#333', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
         </div>
       </div>
       <div className="p-4">{children}</div>
@@ -169,7 +167,7 @@ function AnalyticsMockup() {
         {[
           ['359', 'Total Karma', '#f0ede8'],
           ['14', 'Upvotes', '#E85D04'],
-          ['55', 'Comments', '#1d9bf0'],
+          ['55', 'Comments', '#1D9BF0'],
           ['69', 'Engagement', '#00ba7c'],
         ].map(([n, l, c]) => (
           <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
