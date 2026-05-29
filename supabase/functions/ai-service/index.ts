@@ -85,8 +85,8 @@ serve(async (req) => {
     let model = 'nvidia/nemotron-mini-4b-instruct';
 
     if (feature === 'onboarding') {
-      apiKey = KEYS.MINIMAX || KEYS.MISTRAL_1;
-      model = 'mistralai/mistral-small-4-119b-2603';
+      apiKey = KEYS.MISTRAL_1;
+      model = 'meta/llama-3.1-8b-instruct';
     } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
       model = 'meta/llama-3.1-8b-instruct';
