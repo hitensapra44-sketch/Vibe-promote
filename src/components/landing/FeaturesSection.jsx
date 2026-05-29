@@ -304,7 +304,7 @@ export default function FeaturesSection() {
         </div>
 
         {/* Panel */}
-        <ScrollReveal key={animKey}>
+        <ScrollReveal>
           <div className="flex flex-col md:flex-row gap-10 items-start">
             {/* Left text */}
             <div className="flex-1 space-y-4">

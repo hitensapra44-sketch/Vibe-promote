@@ -53,12 +53,12 @@ export default function Solution() {
       )
     },
     {
-      title: 'One-time Price',
-      desc: 'Pay once. Use forever. No subscription eating your runway.',
+      title: 'Track Progress',
+      desc: 'Add your marketing goal and it will give you daily tasks that you can just click on start and it will run automatically for you.',
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9C2000" strokeWidth="1.5">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-          <line x1="7" y1="7" x2="7.01" y2="7" />
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
       )
     }
@@ -74,7 +74,7 @@ export default function Solution() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }} className="grid grid-cols-1 md:grid-cols-3">
           {cards.map((c, i) => (
             <div key={i} className="spotlight-card" style={{ padding: '28px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifycontent: 'center', marginBottom: '16px' }}>
                 {c.icon}
               </div>
               <h4 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#F2EDE8', margin: '0 0 8px', letterSpacing: '-0.02em' }}>{c.title}</h4>
