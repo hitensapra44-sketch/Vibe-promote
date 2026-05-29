@@ -76,8 +76,8 @@ function BrowserChrome({ url, children }) {
           <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
           <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
         </div>
-        <div style={{ marginLeft: '8px', flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }} >
-          <span style={{ color: '#333', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
+        <div style={{ marginLeft: '8px', flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#FFFFFF' }} >
+          <span style={{ color: '#FFFFFF', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
         </div>
       </div>
       <div className="p-4">{children}</div>

@@ -17,7 +17,7 @@ const withItems = [
   'Clear positioning that makes your app easy to understand with Detailed ICP',
   'Know what content and platforms drive real growth',
   'More time building, less time stressing about marketing',
-  'Everything — audience discovery, content, and analytics from one place',
+  'Tracking tasks: daily marketing tasks that you can just click start and it will run in the app according to your goal and track the progress for your marketing goal',
 ];
 
 export default function BeforeAfter() {
@@ -36,7 +36,7 @@ export default function BeforeAfter() {
           <ScrollReveal>
             <div className="rounded-xl overflow-hidden h-full flex flex-col" style={{ background: '#111111', border: '1px solid rgba(255,255,255,0.07)' }}>
               <div className="px-6 py-4" style={{ background: '#161616' }}>
-                <span className="font-geist text-sm text-muted-foreground">You without Vibe Promote</span>
+                <span className="font-geist text-sm text-white">You without Vibe Promote</span>
               </div>
               <div className="p-6 space-y-3 flex-1">
                 {withoutItems.map((item, i) => (
@@ -54,7 +54,7 @@ export default function BeforeAfter() {
           <ScrollReveal delay={100}>
             <div className="rounded-xl overflow-hidden h-full flex flex-col" style={{ background: '#111111', border: '1px solid rgba(232,93,4,0.3)' }}>
               <div className="px-6 py-4" style={{ background: 'rgba(232,93,4,0.12)', borderBottom: '1px solid rgba(232,93,4,0.3)' }}>
-                <span className="font-geist text-sm text-primary">You with Vibe Promote</span>
+                <span className="font-geist text-sm text-white">You with Vibe Promote</span>
               </div>
               <div className="p-6 space-y-3 flex-1">
                 {withItems.map((item, i) => (

@@ -321,13 +321,13 @@ export default function Pricing() {
                 background: i % 2 === 0 ? '#9C2000' : '#5A1200',
                 border: '2px solid #000',
                 marginLeft: i === 0 ? 0 : '-6px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifycontent: 'center',
                 fontFamily: 'Inter', fontWeight: 700, fontSize: '9px', color: '#fff'
               }}>{ini}</div>
             ))}
           </div>
-          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#E85D04' }}>
-            100+ builders went Pro and automated their marketing
+          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
+            1100 + builders went Pro and automated their marketing
           </span>
           <span className="pulse-dot" style={{
             width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',

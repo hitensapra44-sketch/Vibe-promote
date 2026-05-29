@@ -26,7 +26,7 @@ export default function HeroSection() {
             width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
             display: 'inline-block', flexShrink: 0
           }} />
-          <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#E85D04', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#FFFFFF', textTransform: 'uppercase' }}>
             Built for founders who love building not marketing</span>
         </div>
 
@@ -74,10 +74,10 @@ export default function HeroSection() {
           
           {/* Trust points under the button */}
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#7A7672' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#FFFFFF' }}>
               <span style={{ color: '#9C2000' }}>✓</span> no credit card required
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#7A7672' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#FFFFFF' }}>
               <span style={{ color: '#9C2000' }}>✓</span> 100% private no data to train models
             </div>
           </div>
