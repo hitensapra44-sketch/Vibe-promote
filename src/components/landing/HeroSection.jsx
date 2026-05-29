@@ -52,23 +52,35 @@ export default function HeroSection() {
         </p>
 
         {/* CTAs */}
-        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <a href="/auth" className="hero-simple-btn">
-            Start Free Now
-            <ArrowRight className="w-4 h-4" />
-          </a>
-          <a href="#how-it-works"
-          style={{
-            fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '16px',
-            background: 'transparent', color: '#7A7672',
-            border: '1px solid rgba(255,255,255,0.12)',
-            padding: '14px 36px', borderRadius: '10px',
-            textDecoration: 'none', transition: 'all 0.25s ease'
-          }}
-          onMouseEnter={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';e.currentTarget.style.color = '#F2EDE8';}}
-          onMouseLeave={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';e.currentTarget.style.color = '#7A7672';}}>
-            See how it works
-          </a>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <a href="/auth" className="hero-simple-btn">
+              Start Free Now
+              <ArrowRight className="w-4 h-4" />
+            </a>
+            <a href="#how-it-works"
+            style={{
+              fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '16px',
+              background: 'transparent', color: '#7A7672',
+              border: '1px solid rgba(255,255,255,0.12)',
+              padding: '14px 36px', borderRadius: '10px',
+              textDecoration: 'none', transition: 'all 0.25s ease'
+            }}
+            onMouseEnter={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';e.currentTarget.style.color = '#F2EDE8';}}
+            onMouseLeave={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';e.currentTarget.style.color = '#7A7672';}}>
+              See how it works
+            </a>
+          </div>
+          
+          {/* Trust points under the button */}
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#7A7672' }}>
+              <span style={{ color: '#9C2000' }}>✓</span> no credit card required
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#7A7672' }}>
+              <span style={{ color: '#9C2000' }}>✓</span> 100% private no data to train models
+            </div>
+          </div>
         </div>
       </div>
       <style>{`
