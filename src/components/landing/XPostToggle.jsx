@@ -13,7 +13,7 @@ export default function XPostToggle() {
 
   const postOn = {
     title: "i'm a dev who hates manual marketing. so i built a thing that automate it",
-    body: 'I had a solid product but my messaging was off. Nobody understood what it did or why they should care. Once I rewrote my positioning, the next Reddit post drove 40+ signups in 3 days. Happy to share what changed.',
+    body: 'I did not hate marketing because it was hard. I hated it because it was alot time consuming, took a lot of effort, and didnt give enough back. 10 hours building a product is different from 10 hours marketing it. In 10 hours, I can ship new features. In 10 hours of marketing, I cannot get even 3 users. And I didnt build my app to become a full time marketer.What I always wanted was something that could take my product, understand the brand, and do the marketing for me like find users on Reddit and Hacker News, write replies, generate posts that sound like me, and show analytics so I know what is actually working.So I built it.Vibe Promote it automates SaaS marketing so you can keep building without worrying about promotion. It finds relevant users, helps create posts that sound like you and your brand not gpt and give replies, gives you proven viral post templates that already went viral so you can just click on button and make it for your brand, and have analytics where you track everything. And making a buddy which improves or changes your marketing strategy based on your growthVibe Promote goal is simple make marketing as easy as vibe coding. So you can keep building great things without ever worrying about how you will market it.Its free to try. lmk your feedback guys',
     note: 'Clear hook. Specific pain. Story-driven. Platform-native format.',
   };
 
