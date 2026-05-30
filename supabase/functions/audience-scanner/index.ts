@@ -111,43 +111,6 @@ serve(async (req) => {
             if (!REDDIT_WORKER_URL) {
               console.error('[audience-scanner] REDDIT_WORKER_URL not set in secrets. Skipping Reddit.');
             } else {
-              // Global search
-              try {
-                const workerUrl = `${REDDIT_WORKER_URL}?q=${encodeURIComponent(shortKeyword)}&sort=new&t=week`;
-                console.log(`[audience-scanner] Calling Cloudflare Worker: ${workerUrl}`);
-                const workerRes = await fetch(workerUrl);
-                console.log(`[audience-scanner] Worker global status: ${workerRes.status}`);
-
-                if (workerRes.ok) {
-                  const data = await workerRes.json();
-                  const children = data.data?.children || [];
-                  console.log(`[audience-scanner] Worker global returned ${children.length} posts for "${shortKeyword}"`);
-
-                  const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
-                  children.forEach((child: any) => {
-                    const p = child.data;
-                    if (p && p.created_utc > sevenDaysAgo) {
-                      rawPosts.push({
-                        title: p.title || '',
-                        body: p.selftext || '',
-                        url: `https://reddit.com${p.permalink}`,
-                        author: p.author || 'unknown',
-                        subreddit: p.subreddit || 'reddit',
-                        upvotes: p.score || 0,
-                        comments: p.num_comments || 0,
-                        created_at: p.created_utc * 1000,
-                        platform: 'reddit'
-                      });
-                    }
-                  });
-                } else {
-                  const errText = await workerRes.text();
-                  console.error(`[audience-scanner] Worker error: ${workerRes.status} — ${errText.substring(0, 200)}`);
-                }
-              } catch (e) {
-                console.error(`[audience-scanner] Worker global fetch failed:`, e);
-              }
-
               // Subreddit-specific search
               for (const community of communities.slice(0, 5)) {
                 try {
@@ -244,7 +207,7 @@ serve(async (req) => {
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
-                model: "meta/llama-3.1-8b-instruct",
+                model: "mistralai/mistral-small-4-119b-2603",
                 messages: [
                   {
                     role: "system",
@@ -282,7 +245,7 @@ OUTPUT FORMAT:
 Respond ONLY with valid JSON, no markdown, no backticks, no explanation outside the JSON.
 {"score": 1-100, "intent_type": "Seeking Solution" | "Frustrated User" | "Comparison Shopping" | "Pain Point", "suggested_reply": "your reply here", "isRelevant": true or false}
 
-isRelevant should be true only if score is 65 or above AND the post is genuinely about a problem the product solves.`
+isRelevant should be true only if score is 70 or above AND the post is genuinely about a problem the product solves.`
                   },
                   {
                     role: "user",
@@ -292,9 +255,10 @@ Who it is for: ${brain.target_customer}
 What makes it different: ${brain.unique_differentiator}
 Founder tone: casual, builder, been through the same problems
 
+Monitored communities: ${communities.join(', ')}
 Post subreddit: r/${post.subreddit}
 Post title: ${post.title}
-Post body: ${post.body.substring(0, 500)}
+Post body: ${post.body.substring(0, 800)}
 
 Write a reply following all the rules above. Pick the style that fits this specific post naturally.`
                   }
@@ -323,7 +287,7 @@ Write a reply following all the rules above. Pick the style that fits this speci
             const aiResult = JSON.parse(match[0]);
             console.log(`[audience-scanner] Score: ${aiResult.score}, Relevant: ${aiResult.isRelevant}`);
 
-            if (aiResult.isRelevant === true && aiResult.score >= 65) {
+            if (aiResult.isRelevant === true && aiResult.score >= 70) {
               const { error: insertError } = await supabase
                 .from('audience_signals')
                 .upsert({

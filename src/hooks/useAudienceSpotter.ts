@@ -4,8 +4,7 @@ import { supabase } from '../supabaseClient';
 export function useAudienceSpotter(userId: string) {
   const [signals, setSignals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const pollRef = useRef<any>(null);
-  const pollCountRef = useRef(0);
+  const loadingTimerRef = useRef<any>(null);
 
   const loadSignals = async () => {
     if (!userId) return;
@@ -25,6 +24,32 @@ export function useAudienceSpotter(userId: string) {
   useEffect(() => {
     if (userId) {
       loadSignals();
+
+      const channel = supabase
+        .channel(`audience_signals_${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'audience_signals',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            setSignals(prev => {
+              const exists = prev.find(s => s.id === payload.new.id);
+              if (exists) return prev;
+              return [payload.new, ...prev];
+            });
+            setIsLoading(false);
+            if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userId]);
 
@@ -42,6 +67,14 @@ export function useAudienceSpotter(userId: string) {
       scanStartedAt,
       isScanning: true
     }));
+
+    // Safety timeout
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => {
+      setIsLoading(false);
+      const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
+      localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
+    }, 360000);
 
     // Save config to brand_brains
     await supabase
@@ -61,42 +94,6 @@ export function useAudienceSpotter(userId: string) {
     } catch (e) {
       console.error('Edge function invoke error:', e);
     }
-
-    // Start polling for results
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollCountRef.current = 0;
-
-    pollRef.current = setInterval(async () => {
-      pollCountRef.current += 1;
-
-      // Stop polling after 6 minutes max (24 polls of 15s)
-      if (pollCountRef.current > 24) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-        setIsLoading(false);
-
-        const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
-        localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
-        return;
-      }
-
-      const currentSignals = await loadSignals();
-      
-      // Check if any new signals appeared since scanStartedAt
-      const newSignals = currentSignals.filter(s => {
-        const createdTime = new Date(s.created_at).getTime();
-        return s.status === 'new' && createdTime > scanStartedAt;
-      });
-
-      if (newSignals.length > 0) {
-        setIsLoading(false);
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-
-        const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
-        localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
-      }
-    }, 15000); // every 15 seconds
   };
 
   const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
@@ -112,7 +109,7 @@ export function useAudienceSpotter(userId: string) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
     };
   }, []);
 
