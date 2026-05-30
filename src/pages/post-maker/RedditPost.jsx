@@ -450,7 +450,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                   {copyStatus}
                 </button>
                 <a 
-                  href="https://reddit.com"
+                  href="https://www.reddit.com/submit/?type=TEXT"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-orange-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-orange-600 transition-all"
