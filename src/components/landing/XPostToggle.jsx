@@ -90,7 +90,6 @@ export default function XPostToggle() {
         </div>
 
         <p style={{ fontFamily: 'Inter', fontSize: '13px', textAlign: 'center', marginTop: '20px', color: '#333' }}>
-          You review and post manually — no auto-publishing.
         </p>
       </div>
     </section>
