@@ -82,7 +82,7 @@ export default function HeroSection() {
                 disabled={!url || url === 'https://'}
                 className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20 border-none cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" /> Analyze & Start
+                <Sparkles className="w-4 h-4" /> Start for free
               </button>
             </div>
           </form>
