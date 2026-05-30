@@ -6,8 +6,8 @@ export default function XPostToggle() {
   const [on, setOn] = useState(false);
 
   const postOff = {
-    title: 'Just launched my SaaS, check it out',
-    body: 'Hey everyone, I just launched a new tool for marketing. It uses AI to help you write content. Let me know what you think!',
+    title: 'I launched my SaaS, check it out',
+    body: 'Hey everyone, I just launched a new tool for marketing. It Automate your saas marekting. Let me know what you think!',
     note: 'Vague headline. No hook. No context. Easy to ignore.',
   };
 
