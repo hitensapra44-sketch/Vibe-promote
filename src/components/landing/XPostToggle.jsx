@@ -32,7 +32,7 @@ export default function XPostToggle() {
 
         {/* Toggle row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '40px' }}>
-          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672' }}>Without context</span>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672' }}>Without Vibe Promote</span>
           <button onClick={() => setOn(!on)}
           style={{
             width: '50px', height: '26px', borderRadius: '100px', cursor: 'pointer', position: 'relative',
@@ -47,7 +47,7 @@ export default function XPostToggle() {
               transition: 'left 0.3s cubic-bezier(0.34,1.56,0.64,1)'
             }} />
           </button>
-          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#9C2000' }}>With Brand Brain</span>
+          <span style={{ fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#9C2000' }}>With Vibe Promote</span>
         </div>
 
         {/* Post Card */}
