@@ -1,15 +1,25 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Link as LinkIcon, Sparkles } from 'lucide-react';
 import Starfield from './Starfield';
 import { useTheme } from '../../lib/ThemeContext';
 
 export default function HeroSection() {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+  const [url, setUrl] = useState('https://');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!url || url === 'https://') return;
+    localStorage.setItem('onboarding_url', url);
+    navigate('/auth');
+  };
 
   return (
     <section id="hero" className="bg-background" style={{
       position: 'relative', height: '100vh', overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
+      display: 'flex', alignItems: 'center', justifycontent: 'center'
     }}>
       <Starfield />
       <div style={{
@@ -52,12 +62,32 @@ export default function HeroSection() {
         </p>
 
         {/* CTAs */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '500px' }}>
+          <form onSubmit={handleSubmit} className="relative group w-full mb-4" style={{ zIndex: 10 }}>
+            <div className="absolute inset-0 bg-primary/10 blur-xl group-hover:bg-primary/20 transition-all opacity-50" />
+            <div className="relative flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <input
+                  type="url"
+                  placeholder="https://your-awesome-saas.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-zinc-900 backdrop-blur-xl border border-white/10 text-white text-sm focus:outline-none focus:border-primary/50 transition-all"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!url || url === 'https://'}
+                className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20 border-none cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" /> Analyze & Start
+              </button>
+            </div>
+          </form>
+
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <a href="/auth" className="hero-simple-btn">
-              Start Free Now
-              <ArrowRight className="w-4 h-4" />
-            </a>
             <a href="#how-it-works"
             style={{
               fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '16px',
@@ -88,29 +118,6 @@ export default function HeroSection() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
-        }
-        .hero-simple-btn {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          font-family: 'Geist', sans-serif;
-          font-weight: 700;
-          font-size: 16px;
-          background: #9C2000;
-          color: #fff;
-          padding: 14px 36px;
-          border-radius: 10px;
-          text-decoration: none;
-          border: none;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          z-index: 0;
-          overflow: hidden;
-        }
-        .hero-simple-btn:hover {
-          background: #E85D04;
-          transform: translateY(-2px);
         }
       `}</style>
     </section>

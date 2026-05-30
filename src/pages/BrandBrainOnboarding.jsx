@@ -23,7 +23,9 @@ async function fetchAndCleanPage(url) {
 }
 
 export default function BrandBrainOnboarding({ onComplete }) {
-  const [url, setUrl] = useState('https://');
+  const [url, setUrl] = useState(() => {
+    return localStorage.getItem('onboarding_url') || 'https://';
+  });
   const [appName, setAppName] = useState('');
   const [appDescription, setAppDescription] = useState('');
   const [targetCustomer, setTargetCustomer] = useState('');
@@ -91,6 +93,8 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
       setCoreProblem(parsed.core_problem || '');
       setCategory(parsed.category || '');
       setHasExtracted(true);
+      // Clear the stored URL so it doesn't persist forever
+      localStorage.removeItem('onboarding_url');
     } catch (err) {
       console.error("Extraction failed:", err);
       alert(err.message || 'Extraction failed. Try filling details manually.');

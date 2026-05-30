@@ -71,10 +71,10 @@ export default function Solution() {
           <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '12px' }}>The Solution</div>
           <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: 'clamp(28px,4vw,48px)', color: '#F2EDE8', letterSpacing: '-0.03em', margin: 0 }}>One tool. Every marketing problem solved.</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }} className="grid grid-cols-1 md:grid-cols-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {cards.map((c, i) => (
             <div key={i} className="spotlight-card" style={{ padding: '28px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifycontent: 'center', marginBottom: '16px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(156,32,0,0.12)', border: '1px solid rgba(156,32,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
                 {c.icon}
               </div>
               <h4 style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '17px', color: '#F2EDE8', margin: '0 0 8px', letterSpacing: '-0.02em' }}>{c.title}</h4>

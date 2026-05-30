@@ -80,14 +80,14 @@ function BrowserChrome({ url, children }) {
           <span style={{ color: '#FFFFFF', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
         </div>
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-4 min-h-[320px] flex flex-col justify-center">{children}</div>
     </div>
   );
 }
 
 function DashboardMockup() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <div className="p-4 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
         <p className="font-geist text-lg text-foreground" style={{ fontWeight: 700 }}>Welcome, Founder</p>
         <div className="grid grid-cols-3 gap-2 mt-3">
@@ -113,7 +113,7 @@ function DashboardMockup() {
 
 function UserFinderMockup() {
   return (
-    <div className="flex flex-col items-center py-6 space-y-4">
+    <div className="flex flex-col items-center py-6 space-y-4 w-full">
       <div className="w-16 h-16 rounded-full flex items-center justify-center animate-spin" style={{ border: '3px solid rgba(232,93,4,0.2)', borderTopColor: '#E85D04', animationDuration: '1.5s' }} />
       <p className="font-geist text-lg text-foreground" style={{ fontWeight: 700 }}>Scanning for potential users...</p>
       <p className="font-geist text-xs text-muted-foreground">Searching Reddit communities for intent signals</p>
@@ -131,7 +131,7 @@ function UserFinderMockup() {
 
 function PostMakerMockup() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <div className="flex items-center gap-2">
         <span className="font-geist text-xs px-2.5 py-1 rounded-full text-white" style={{ background: '#00ba7c' }}>Great Post</span>
         <span className="font-geist text-xs text-muted-foreground">Score: 82/100</span>
@@ -162,7 +162,7 @@ function PostMakerMockup() {
 
 function AnalyticsMockup() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <div className="grid grid-cols-4 gap-2">
         {[
           ['359', 'Total Karma', '#f0ede8'],
@@ -195,7 +195,7 @@ function AnalyticsMockup() {
 
 function CopilotMockup() {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <div className="flex gap-3">
         <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)' }}>AI</div>
         <div className="p-3 rounded-lg font-geist text-xs text-foreground leading-relaxed" style={{ background: '#161616' }}>
@@ -305,7 +305,7 @@ export default function FeaturesSection() {
 
         {/* Panel */}
         <ScrollReveal>
-          <div className="flex flex-col md:flex-row gap-10 items-start">
+          <div className="flex flex-col md:flex-row gap-10 items-start min-h-[450px]">
             {/* Left text */}
             <div className="flex-1 space-y-4">
               <span className="font-geist text-xs px-3 py-1 rounded-full text-primary" style={{ background: 'rgba(232,93,4,0.12)', border: '1px solid rgba(232,93,4,0.3)' }}>

@@ -101,7 +101,7 @@ const TESTIMONIALS = [
   { name: 'Eli', role: 'Founder', company: 'HumanFound', location: 'US', platform: 'X', text: 'positioning part was lowkey the biggest win for me.' },
   { name: 'Ayaan', role: 'Founder', company: 'MemberPass', location: 'India', platform: 'Threads', text: 'marketing still isnt fun lol but now it feels doable.' },
   { name: 'Usman', role: 'Founder', company: 'IntentiQS', location: 'Pakistan', platform: 'Reddit', text: 'fr this removed a lot of the mental friction around marketing.' },
-  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain what my app actually does way better.' },
+  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain my app actually does way better.' },
   { name: 'Faizan', role: 'Founder', company: 'WebUtilBox', location: 'Pakistan', platform: 'X', text: 'not magic lol but makes marketing feel less messy tbh.' },
   { name: 'Karan', role: 'Founder', company: 'Onpilot', location: 'India', platform: 'Threads', text: 'content feels less robotic than most ai tools ive tried.' },
   { name: 'Owen', role: 'Founder', company: 'UptimeGuard', location: 'US', platform: 'Reddit', text: 'honestly just nice having less mental load around content.' },
@@ -321,7 +321,7 @@ export default function Pricing() {
                 background: i % 2 === 0 ? '#9C2000' : '#5A1200',
                 border: '2px solid #000',
                 marginLeft: i === 0 ? 0 : '-6px',
-                display: 'flex', alignItems: 'center', justifycontent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 700, fontSize: '9px', color: '#fff'
               }}>{ini}</div>
             ))}
@@ -351,7 +351,7 @@ export default function Pricing() {
           Refund anytime. No hidden fees. Cancel anytime.
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '14px', marginTop: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
             color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
@@ -563,7 +563,7 @@ export default function Pricing() {
             }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000',
-                display: 'flex', alignItems: 'center', justifycontent: 'center',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 800, fontSize: '12px', color: '#fff', flexShrink: 0
               }}>{t.name[0]}</div>
               <div>
@@ -587,7 +587,7 @@ export default function Pricing() {
                   <button
                     onClick={() => setOpenFaqIdx(isOpen ? -1 : i)}
                     style={{
-                      width: '100%', display: 'flex', alignItems: 'center', justifycontent: 'space-between',
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '20px 24px', background: 'none', border: 'none', cursor: 'pointer',
                       textAlign: 'left', outline: 'none'
                     }}
@@ -609,7 +609,7 @@ export default function Pricing() {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
             Vibe<span style={{ color: '#9C2000' }}>Promote</span>
           </div>
