@@ -17,53 +17,33 @@ export default function HeroSection() {
   };
 
   return (
-    <section id="hero" className="bg-background" style={{
-      position: 'relative', height: '100vh', overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
+    <section id="hero" className="bg-background min-h-screen flex items-center justify-center py-20 md:py-28" style={{
+      position: 'relative', overflow: 'hidden'
     }}>
       <Starfield />
-      <div style={{
-        position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', paddingTop: '100px', padding: '100px 24px 0'
-      }}>
+      <div className="relative z-10 flex flex-col items-center w-full max-w-5xl px-6 text-center">
         {/* Badge */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.3)',
-          borderRadius: '100px', padding: '6px 16px', marginBottom: '32px'
-        }}>
-          <span className="pulse-dot" style={{
-            width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
-            display: 'inline-block', flexShrink: 0
-          }} />
-          <span style={{ fontFamily: 'Geist, sans-serif', fontWeight: 600, fontSize: '12px', letterSpacing: '0.1em', color: '#FFFFFF', textTransform: 'uppercase' }}>
-            Built for founders who love building not marketing</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/15 border border-primary/30 mb-8 max-w-full">
+          <span className="pulse-dot w-1.5 h-1.5 rounded-full bg-[#9C2000] flex-shrink-0" />
+          <span className="font-geist text-[10px] sm:text-xs font-semibold tracking-wider text-white uppercase text-center">
+            Built for founders who love building not marketing
+          </span>
         </div>
 
         {/* H1 */}
-        <h1 style={{
-          fontFamily: 'Geist, sans-serif', fontWeight: 900,
-          fontSize: 'clamp(40px, 6vw, 72px)',
-          letterSpacing: '-0.04em', lineHeight: 1.1,
-          color: '#F2EDE8', textAlign: 'center', maxWidth: '1000px',
-          margin: '0 0 24px'
-        }}>
+        <h1 className="font-geist font-extrabold text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-[#F2EDE8] leading-tight tracking-tight max-w-4xl mb-6">
           Get Users Without Becoming <br />
-          <span style={{ color: '#9C2000' }}>Full-Time Marketer.</span>
+          <span className="text-primary">Full-Time Marketer.</span>
         </h1>
 
         {/* Subtext */}
-        <p style={{
-          fontFamily: 'Geist, sans-serif', fontWeight: 400, fontSize: '18px',
-          color: '#FFFFFF', maxWidth: '800px', textAlign: 'center',
-          lineHeight: 1.7, margin: '0 0 40px'
-        }}>
-          Stop wasting hours figuring out what to post, where your users hang out, and why growth feels so hard. Vibe Promote helps you find buyers, sharpen positioning, create content that sounds human, and grow your SaaS. without marketing becoming another full-time job.
+        <p className="font-geist font-normal text-sm sm:text-base md:text-lg text-white/80 max-w-3xl leading-relaxed mb-10">
+          Stop wasting hours figuring out what to post, where your users hang out, and why growth feels so hard. Vibe Promote helps you find buyers, sharpen positioning, create content that sounds human, and grow your SaaS without marketing becoming another full-time job.
         </p>
 
         {/* CTAs */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '500px' }}>
-          <form onSubmit={handleSubmit} className="relative group w-full mb-4" style={{ zIndex: 10 }}>
+        <div className="flex flex-col items-center gap-4 w-full max-w-lg">
+          <form onSubmit={handleSubmit} className="relative group w-full mb-2" style={{ zIndex: 10 }}>
             <div className="absolute inset-0 bg-primary/10 blur-xl group-hover:bg-primary/20 transition-all opacity-50" />
             <div className="relative flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
@@ -87,28 +67,21 @@ export default function HeroSection() {
             </div>
           </form>
 
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="flex gap-4 flex-wrap justify-center">
             <a href="#how-it-works"
-            style={{
-              fontFamily: 'Geist, sans-serif', fontWeight: 700, fontSize: '16px',
-              background: 'transparent', color: '#7A7672',
-              border: '1px solid rgba(255,255,255,0.12)',
-              padding: '14px 36px', borderRadius: '10px',
-              textDecoration: 'none', transition: 'all 0.25s ease'
-            }}
-            onMouseEnter={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';e.currentTarget.style.color = '#F2EDE8';}}
-            onMouseLeave={(e) => {e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';e.currentTarget.style.color = '#7A7672';}}>
+              className="font-geist font-bold text-sm sm:text-base text-zinc-400 hover:text-white border border-white/10 hover:border-white/25 px-8 py-3 rounded-xl transition-all duration-250"
+            >
               See how it works
             </a>
           </div>
           
           {/* Trust points under the button */}
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#FFFFFF' }}>
-              <span style={{ color: '#9C2000' }}>✓</span> no credit card required
+          <div className="flex gap-6 flex-wrap justify-center mt-4 text-xs sm:text-sm text-white/70">
+            <div className="flex items-center gap-2">
+              <span className="text-primary font-bold">✓</span> no credit card required
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'Geist, sans-serif', fontSize: '13px', color: '#FFFFFF' }}>
-              <span style={{ color: '#9C2000' }}>✓</span> 100% private no data to train models
+            <div className="flex items-center gap-2">
+              <span className="text-primary font-bold">✓</span> 100% private no data to train models
             </div>
           </div>
         </div>
