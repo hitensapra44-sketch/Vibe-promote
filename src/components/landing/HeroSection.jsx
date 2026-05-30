@@ -19,7 +19,7 @@ export default function HeroSection() {
   return (
     <section id="hero" className="bg-background" style={{
       position: 'relative', height: '100vh', overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifycontent: 'center'
+      display: 'flex', alignItems: 'center', justifyContent: 'center'
     }}>
       <Starfield />
       <div style={{
