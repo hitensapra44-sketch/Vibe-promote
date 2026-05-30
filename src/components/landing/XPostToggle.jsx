@@ -12,7 +12,7 @@ export default function XPostToggle() {
   };
 
   const postOn = {
-    title: "Spent 5 months building a SaaS. Nobody came. Here's what I changed.",
+    title: "i'm a dev who hates manual marketing. so i built a thing that automate it",
     body: 'I had a solid product but my messaging was off. Nobody understood what it did or why they should care. Once I rewrote my positioning, the next Reddit post drove 40+ signups in 3 days. Happy to share what changed.',
     note: 'Clear hook. Specific pain. Story-driven. Platform-native format.',
   };
