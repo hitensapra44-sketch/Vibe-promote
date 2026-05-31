@@ -87,16 +87,19 @@ export function useAudienceSpotter(userId: string) {
       .eq('user_id', userId);
 
     // Invoke Edge Function
-    try {
-      await supabase.functions.invoke('audience-scanner', {
-        body: { user_id: userId }
-      });
-    } catch (e) {
-      console.error('Edge function invoke error:', e);
-    }
-  };
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
+    fetch(`${SUPABASE_URL}/functions/v1/audience-scanner`, {
+      method: 'POST',
+     headers: {
+       'Content-Type': 'application/json',
+       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+   },
+  body: JSON.stringify({ user_id: userId }),
+}).catch(e => console.error('Scanner fire failed:', e));
+
+    const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
     // Optimistic update
     setSignals(prev => prev.map(s => s.id === id ? { ...s, status } : s));
 
