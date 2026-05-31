@@ -89,7 +89,7 @@ export function useAudienceSpotter(userId: string) {
     // Invoke Edge Function
     supabase.functions.invoke('audience-scanner', {  
       body: { user_id: userId },
-    }).catch(e => console.error('Scanner fire failed:', e));
+ }).catch(e => console.error('Scanner fire failed:', e));
 
   const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
     // Optimistic update
