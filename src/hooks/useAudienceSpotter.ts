@@ -92,11 +92,11 @@ export function useAudienceSpotter(userId: string) {
 
     fetch(`${SUPABASE_URL}/functions/v1/audience-scanner`, {
       method: 'POST',
-     headers: {
+      headers: {
        'Content-Type': 'application/json',
        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-   },
-  body: JSON.stringify({ user_id: userId }),
+     },
+    body: JSON.stringify({ user_id: userId }),
 }).catch(e => console.error('Scanner fire failed:', e));
 
     const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
