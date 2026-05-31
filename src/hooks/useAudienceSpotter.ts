@@ -93,13 +93,14 @@ export function useAudienceSpotter(userId: string) {
     fetch(`${SUPABASE_URL}/functions/v1/audience-scanner`, {
       method: 'POST',
       headers: {
-       'Content-Type': 'application/json',
-       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-     },
-    body: JSON.stringify({ user_id: userId }),
-}).catch(e => console.error('Scanner fire failed:', e));
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ user_id: userId }),
+    }).catch(e => console.error('Scanner fire failed:', e));
+  };
 
-    const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
+  const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
     // Optimistic update
     setSignals(prev => prev.map(s => s.id === id ? { ...s, status } : s));
 
