@@ -31,9 +31,9 @@ export default function BrandScroller() {
 
   return (
     <section style={{
-      borderTop: '1px solid rgba(255,255,255,0.06)',
+      borderTop: '1px solid #f4f4f5',
       padding: '56px 0',
-      background: '#000',
+      background: '#ffffff',
       overflow: 'hidden',
     }}>
       {/* Label */}
@@ -42,12 +42,12 @@ export default function BrandScroller() {
           fontFamily: 'Inter',
           fontWeight: 500,
           fontSize: '13px',
-          color: '#44403C',
+          color: '#71717a',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
           margin: 0
         }}>
-          Used by <span style={{ color: '#9C2000', fontWeight: 700 }}>1,100+</span> indie founders
+          Used by <span style={{ color: '#F97316', fontWeight: 700 }}>1,100+</span> indie founders
         </p>
       </div>
 
@@ -56,12 +56,12 @@ export default function BrandScroller() {
         {/* Fade edges */}
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
-          background: 'linear-gradient(to right, #000 0%, transparent 100%)',
+          background: 'linear-gradient(to right, #ffffff 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
         <div style={{
           position: 'absolute', right: 0, top: 0, bottom: 0, width: '120px', zIndex: 2,
-          background: 'linear-gradient(to left, #000 0%, transparent 100%)',
+          background: 'linear-gradient(to left, #ffffff 0%, transparent 100%)',
           pointerEvents: 'none'
         }} />
 
@@ -102,16 +102,16 @@ export default function BrandScroller() {
                   maxHeight: '100%',
                   objectFit: 'contain',
                   filter: clicked === i
-                    ? 'grayscale(0%) brightness(1.1)'
-                    : 'grayscale(100%) brightness(0.55)',
+                    ? 'grayscale(0%) brightness(1)'
+                    : 'grayscale(100%) brightness(0.85)',
                   transition: 'filter 0.35s ease',
                   borderRadius: '6px',
                 }}
                 onMouseEnter={e => {
-                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(30%) brightness(0.9)';
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(30%) brightness(0.95)';
                 }}
                 onMouseLeave={e => {
-                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(100%) brightness(0.55)';
+                  if (clicked !== i) e.currentTarget.style.filter = 'grayscale(100%) brightness(0.85)';
                 }}
               />
             </button>

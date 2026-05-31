@@ -37,7 +37,7 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 px-4 sm:px-6 font-poppins bg-transparent">
+    <section className="py-24 px-4 sm:px-6 font-poppins bg-white">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -46,9 +46,9 @@ export default function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl font-bold text-white" style={{ letterSpacing: '-1px', lineHeight: 1.1 }}>
+          <h2 className="text-4xl sm:text-5xl font-bold text-zinc-900" style={{ letterSpacing: '-1px', lineHeight: 1.1 }}>
             Founders Who Love{' '}
-            <span className="text-primary">
+            <span className="text-orange-500">
               Vibe Promote
             </span>
           </h2>
@@ -62,25 +62,25 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="p-6 rounded-2xl border border-border-muted bg-bg-surface hover:bg-bg-elevated transition-all duration-300 hover:border-primary/20"
+              className="p-6 rounded-2xl border border-zinc-200 bg-zinc-50 hover:bg-white transition-all duration-300 hover:border-orange-500/20"
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-primary">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white bg-orange-500">
                   {t.avatar}
                 </div>
                 <div>
-                  <p className="text-text-primary font-semibold text-sm">{t.handle}</p>
+                  <p className="text-zinc-800 font-semibold text-sm">{t.handle}</p>
                   <div className="flex gap-1 mt-0.5">
                     {[...Array(5)].map((_, j) => (
                       <Star key={j} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
                 </div>
-                 <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                 <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600">
                   {t.badge}
                 </span>
               </div>
-              <p className="text-sm leading-relaxed text-text-secondary">
+              <p className="text-sm leading-relaxed text-zinc-600">
                 "{t.text}"
               </p>
             </motion.div>

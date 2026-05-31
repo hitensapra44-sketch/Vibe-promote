@@ -57,7 +57,7 @@ export default function Starfield() {
           if (dist < CONNECT_DIST) {
             const opacity = (1 - dist / CONNECT_DIST) * 0.18;
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(156,32,0,${opacity})`;
+            ctx.strokeStyle = `rgba(249,115,22,${opacity})`;
             ctx.lineWidth = 0.8;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -70,7 +70,7 @@ export default function Starfield() {
       particles.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(232,93,4,${p.alpha})`;
+        ctx.fillStyle = `rgba(249,115,22,${p.alpha})`;
         ctx.fill();
       });
 

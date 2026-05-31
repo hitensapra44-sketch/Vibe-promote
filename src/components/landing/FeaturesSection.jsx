@@ -69,18 +69,18 @@ const tabContent = {
 
 function BrowserChrome({ url, children }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)' }}>
-      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e4e4e7' }}>
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid #e4e4e7', background: '#f4f4f5' }}>
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
           <div className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
           <div className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
         </div>
-        <div style={{ marginLeft: '8px', flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#FFFFFF' }} >
-          <span style={{ color: '#FFFFFF', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
+        <div style={{ marginLeft: '8px', flex: 1, background: '#ffffff', borderRadius: '5px', padding: '3px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#71717a', border: '1px solid #e4e4e7' }} >
+          <span style={{ color: '#71717a', marginRight: '4px' }}> 🔒 </span> vibepromote.tech
         </div>
       </div>
-      <div className="p-4 min-h-[320px] flex flex-col justify-center">{children}</div>
+      <div className="p-4 min-h-[320px] flex flex-col justify-center bg-white">{children}</div>
     </div>
   );
 }
@@ -88,22 +88,22 @@ function BrowserChrome({ url, children }) {
 function DashboardMockup() {
   return (
     <div className="space-y-3 w-full">
-      <div className="p-4 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <p className="font-geist text-lg text-foreground" style={{ fontWeight: 700 }}>Welcome, Founder</p>
+      <div className="p-4 rounded-lg" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
+        <p className="font-geist text-lg text-zinc-900" style={{ fontWeight: 700 }}>Welcome, Founder</p>
         <div className="grid grid-cols-3 gap-2 mt-3">
           {[['25', 'Posts Generated'], ['3', 'Audience Found'], ['1', 'Channels']].map(([n, l]) => (
-            <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="font-geist text-xl text-primary" style={{ fontWeight: 800 }}>{n}</p>
-              <p className="font-geist text-xs text-muted-foreground mt-1">{l}</p>
+            <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#ffffff', border: '1px solid #e4e4e7' }}>
+              <p className="font-geist text-xl text-orange-500" style={{ fontWeight: 800 }}>{n}</p>
+              <p className="font-geist text-xs text-zinc-500 mt-1">{l}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {['Post Maker', 'User Finder'].map(t => (
-          <div key={t} className="p-3 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <p className="font-geist text-sm text-foreground font-medium">{t}</p>
-            <p className="font-geist text-xs text-muted-foreground mt-1">Quick access →</p>
+          <div key={t} className="p-3 rounded-lg" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
+            <p className="font-geist text-sm text-zinc-800 font-medium">{t}</p>
+            <p className="font-geist text-xs text-zinc-500 mt-1">Quick access →</p>
           </div>
         ))}
       </div>
@@ -114,13 +114,13 @@ function DashboardMockup() {
 function UserFinderMockup() {
   return (
     <div className="flex flex-col items-center py-6 space-y-4 w-full">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center animate-spin" style={{ border: '3px solid rgba(232,93,4,0.2)', borderTopColor: '#E85D04', animationDuration: '1.5s' }} />
-      <p className="font-geist text-lg text-foreground" style={{ fontWeight: 700 }}>Scanning for potential users...</p>
-      <p className="font-geist text-xs text-muted-foreground">Searching Reddit communities for intent signals</p>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center animate-spin" style={{ border: '3px solid rgba(249,115,22,0.2)', borderTopColor: '#F97316', animationDuration: '1.5s' }} />
+      <p className="font-geist text-lg text-zinc-900" style={{ fontWeight: 700 }}>Scanning for potential users...</p>
+      <p className="font-geist text-xs text-zinc-500">Searching Reddit communities for intent signals</p>
       <div className="flex flex-wrap gap-2 mt-4 justify-center">
         {['#marketing-automation', '#saas-tools', '#growth-hacking', '#indiehackers'].map(tag => (
-          <span key={tag} className="font-geist text-xs px-3 py-1.5 rounded-full text-muted-foreground"
-            style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <span key={tag} className="font-geist text-xs px-3 py-1.5 rounded-full text-zinc-600"
+            style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
             {tag}
           </span>
         ))}
@@ -134,24 +134,24 @@ function PostMakerMockup() {
     <div className="space-y-3 w-full">
       <div className="flex items-center gap-2">
         <span className="font-geist text-xs px-2.5 py-1 rounded-full text-white" style={{ background: '#00ba7c' }}>Great Post</span>
-        <span className="font-geist text-xs text-muted-foreground">Score: 82/100</span>
+        <span className="font-geist text-xs text-zinc-500">Score: 82/100</span>
       </div>
-      <div className="p-4 rounded-lg" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <span className="font-geist text-xs text-primary">Reddit</span>
-        <p className="font-geist text-sm text-foreground mt-2" style={{ fontWeight: 700 }}>
+      <div className="p-4 rounded-lg" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
+        <span className="font-geist text-xs text-orange-500 font-semibold">Reddit</span>
+        <p className="font-geist text-sm text-zinc-900 mt-2" style={{ fontWeight: 700 }}>
           When I spent 3 months searching for the perfect influencer...
         </p>
-        <p className="font-geist text-xs text-muted-foreground mt-2 leading-relaxed">
+        <p className="font-geist text-xs text-zinc-600 mt-2 leading-relaxed">
           I was doing outreach for my SaaS and nothing was landing. The messaging was generic, the targeting was off, and I was burning hours every week...
         </p>
-        <p className="font-geist text-xs text-primary mt-2">
+        <p className="font-geist text-xs text-orange-600 mt-2 font-medium">
           Built VibePromote to fix this – if anyone's curious
         </p>
       </div>
       <div className="flex gap-2">
         {['Copy Post', 'Regenerate', 'Try Different Template'].map(btn => (
-          <button key={btn} className="font-geist text-xs px-3 py-2 rounded-lg text-foreground transition-colors"
-            style={{ background: 'transparent', border: '1px solid rgba(232,93,4,0.3)' }}>
+          <button key={btn} className="font-geist text-xs px-3 py-2 rounded-lg text-zinc-700 transition-colors"
+            style={{ background: 'transparent', border: '1px solid rgba(249,115,22,0.3)' }}>
             {btn}
           </button>
         ))}
@@ -165,27 +165,27 @@ function AnalyticsMockup() {
     <div className="space-y-3 w-full">
       <div className="grid grid-cols-4 gap-2">
         {[
-          ['359', 'Total Karma', '#f0ede8'],
-          ['14', 'Upvotes', '#E85D04'],
+          ['359', 'Total Karma', '#18181b'],
+          ['14', 'Upvotes', '#F97316'],
           ['55', 'Comments', '#1D9BF0'],
           ['69', 'Engagement', '#00ba7c'],
         ].map(([n, l, c]) => (
-          <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <div key={l} className="p-3 rounded-lg text-center" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
             <p className="font-geist text-lg" style={{ fontWeight: 800, color: c }}>{n}</p>
-            <p className="font-geist text-xs text-muted-foreground mt-1">{l}</p>
+            <p className="font-geist text-xs text-zinc-500 mt-1">{l}</p>
           </div>
         ))}
       </div>
-      <div className="rounded-lg overflow-hidden" style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="grid grid-cols-4 px-3 py-2 text-xs font-geist text-muted-foreground" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="rounded-lg overflow-hidden" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
+        <div className="grid grid-cols-4 px-3 py-2 text-xs font-geist text-zinc-500" style={{ borderBottom: '1px solid #e4e4e7', background: '#f4f4f5' }}>
           <span>POST</span><span>↑</span><span>💬</span><span>ENG</span>
         </div>
         {[['Reddit launch post', '12', '8', '47'], ['X product thread', '24', '15', '62']].map(([p, u, c, e]) => (
-          <div key={p} className="grid grid-cols-4 px-3 py-2.5 text-xs font-geist" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-            <span className="text-foreground truncate">{p}</span>
-            <span className="text-muted-foreground">{u}</span>
-            <span className="text-muted-foreground">{c}</span>
-            <span className="text-primary">{e}</span>
+          <div key={p} className="grid grid-cols-4 px-3 py-2.5 text-xs font-geist" style={{ borderBottom: '1px solid #e4e4e7' }}>
+            <span className="text-zinc-800 truncate">{p}</span>
+            <span className="text-zinc-500">{u}</span>
+            <span className="text-zinc-500">{c}</span>
+            <span className="text-orange-500 font-semibold">{e}</span>
           </div>
         ))}
       </div>
@@ -197,27 +197,27 @@ function CopilotMockup() {
   return (
     <div className="space-y-3 w-full">
       <div className="flex gap-3">
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)' }}>AI</div>
-        <div className="p-3 rounded-lg font-geist text-xs text-foreground leading-relaxed" style={{ background: '#161616' }}>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 text-orange-600 font-bold" style={{ background: 'rgba(249,115,22,0.1)' }}>AI</div>
+        <div className="p-3 rounded-lg font-geist text-xs text-zinc-700 leading-relaxed" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
           Hey! I've studied your Brand Brain and I'm ready to help you grow.
         </div>
       </div>
       <div className="flex justify-end">
-        <div className="p-3 rounded-lg font-geist text-xs text-foreground max-w-[80%]"
-          style={{ background: 'rgba(232,93,4,0.08)', border: '1px solid rgba(232,93,4,0.3)' }}>
+        <div className="p-3 rounded-lg font-geist text-xs text-zinc-800 max-w-[80%]"
+          style={{ background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.3)' }}>
           improve my saas marketing strategy
         </div>
       </div>
       <div className="flex gap-3">
-        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: 'rgba(232,93,4,0.2)' }}>AI</div>
-        <div className="p-3 rounded-lg font-geist text-xs text-foreground leading-relaxed" style={{ background: '#161616' }}>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0 text-orange-600 font-bold" style={{ background: 'rgba(249,115,22,0.1)' }}>AI</div>
+        <div className="p-3 rounded-lg font-geist text-xs text-zinc-700 leading-relaxed" style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
           Your core value: delivering faster, higher-ROI results by replacing guesswork with AI-powered positioning...
         </div>
       </div>
       <div className="flex flex-wrap gap-1.5 mt-2">
         {['How should I pitch my SaaS on Reddit?', 'What onboarding emails fit my product?', 'Ideas to differentiate from competitors?', 'Landing page headlines for my app'].map(p => (
-          <span key={p} className="font-geist text-xs px-2.5 py-1.5 rounded-lg text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-            style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <span key={p} className="font-geist text-xs px-2.5 py-1.5 rounded-lg text-zinc-600 cursor-pointer hover:text-zinc-900 transition-colors"
+            style={{ background: '#fbfbfb', border: '1px solid #e4e4e7' }}>
             {p}
           </span>
         ))}
@@ -271,11 +271,11 @@ export default function FeaturesSection() {
   const Mockup = mockups[active];
 
   return (
-    <section id="features" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+    <section id="features" className="py-24 px-6 bg-white" style={{ borderTop: '1px solid #f4f4f5' }}>
       <div className="max-w-[1100px] mx-auto">
         <div className="text-center mb-12">
-          <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">Features</span>
-          <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+          <span className="font-geist text-xs tracking-[0.2em] uppercase text-orange-500 font-semibold">Features</span>
+          <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-zinc-900 mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
             Everything you need to automate marketing.
           </h2>
         </div>
@@ -288,13 +288,13 @@ export default function FeaturesSection() {
               onClick={() => handleTabClick(tab.id)}
               className="font-geist text-sm px-5 py-2.5 rounded-full flex items-center gap-2 transition-all duration-300"
               style={active === tab.id ? {
-                background: 'linear-gradient(135deg, #E85D04, #F97316)',
+                background: 'linear-gradient(135deg, #F97316, #EA580C)',
                 color: '#fff',
-                boxShadow: '0 0 20px rgba(232,93,4,0.3)',
+                boxShadow: '0 0 20px rgba(249,115,22,0.3)',
               } : {
-                background: '#161616',
-                color: '#888888',
-                border: '1px solid rgba(255,255,255,0.07)',
+                background: '#f4f4f5',
+                color: '#71717a',
+                border: '1px solid #e4e4e7',
               }}
             >
               <span className="w-2 h-2 rounded-full" style={{ background: active === tab.id ? '#fff' : tab.color }} />
@@ -308,17 +308,17 @@ export default function FeaturesSection() {
           <div className="flex flex-col md:flex-row gap-10 items-start min-h-[450px]">
             {/* Left text */}
             <div className="flex-1 space-y-4">
-              <span className="font-geist text-xs px-3 py-1 rounded-full text-primary" style={{ background: 'rgba(232,93,4,0.12)', border: '1px solid rgba(232,93,4,0.3)' }}>
+              <span className="font-geist text-xs px-3 py-1 rounded-full text-orange-600 font-semibold" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)' }}>
                 {content.tag}
               </span>
-              <h3 className="font-geist text-2xl sm:text-3xl text-foreground" style={{ fontWeight: 700 }}>
+              <h3 className="font-geist text-2xl sm:text-3xl text-zinc-900" style={{ fontWeight: 700 }}>
                 {content.title}
               </h3>
-              <p className="font-geist text-muted-foreground leading-relaxed">{content.desc}</p>
+              <p className="font-geist text-zinc-500 leading-relaxed">{content.desc}</p>
               <ul className="space-y-2.5 mt-4">
                 {content.bullets.map((b, i) => (
-                  <li key={i} className="font-geist text-sm text-muted-foreground flex items-start gap-2">
-                    <span className="text-primary mt-0.5 flex-shrink-0">→</span>
+                  <li key={i} className="font-geist text-sm text-zinc-600 flex items-start gap-2">
+                    <span className="text-orange-500 mt-0.5 flex-shrink-0">→</span>
                     {b}
                   </li>
                 ))}

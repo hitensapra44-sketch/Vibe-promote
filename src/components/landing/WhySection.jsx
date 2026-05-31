@@ -26,13 +26,13 @@ const cards = [
 
 export default function WhySection() {
   return (
-    <section id="why-us" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+    <section id="why-us" className="py-24 px-6 bg-white" style={{ borderTop: '1px solid #f4f4f5' }}>
       <div className="max-w-[1100px] mx-auto">
         <div className="text-center mb-16">
-          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">Why Vibe Promote</span>
-          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+          <span className="font-dm text-xs tracking-[0.2em] uppercase text-orange-500 font-semibold">Why Vibe Promote</span>
+          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-zinc-900 mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
              Built for founders trying to grow their app/saas without becoming marketers.          </h2>
-          <p className="font-dm text-muted-foreground mt-3 max-w-lg mx-auto">
+          <p className="font-dm text-zinc-500 mt-3 max-w-lg mx-auto">
             If any of these sound familiar, Vibe Promote was made for you..
           </p>
         </div>
@@ -43,19 +43,19 @@ export default function WhySection() {
               <div
                 className="p-8 rounded-xl h-full transition-all duration-300 group cursor-default"
                 style={{
-                  background: '#111111',
-                  border: '1px solid rgba(255,255,255,0.07)',
+                  background: '#fbfbfb',
+                  border: '1px solid #e4e4e7',
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(232,93,4,0.3)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(249,115,22,0.3)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#e4e4e7'}
               >
-                <span className="font-dm text-xs tracking-[0.15em] text-primary" style={{ fontFamily: 'monospace' }}>
+                <span className="font-dm text-xs tracking-[0.15em] text-orange-500" style={{ fontFamily: 'monospace' }}>
                   {card.num}
                 </span>
-                <h4 className="font-syne text-xl text-foreground mt-3 mb-3" style={{ fontWeight: 700 }}>
+                <h4 className="font-syne text-xl text-zinc-900 mt-3 mb-3" style={{ fontWeight: 700 }}>
                   {card.title}
                 </h4>
-                <p className="font-dm text-sm text-muted-foreground leading-relaxed">
+                <p className="font-dm text-sm text-zinc-500 leading-relaxed">
                   {card.desc}
                 </p>
               </div>

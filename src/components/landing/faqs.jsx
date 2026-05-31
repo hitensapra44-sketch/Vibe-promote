@@ -71,30 +71,30 @@ export default function FAQ() {
   };
 
   return (
-    <section id="faq" className="py-24 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+    <section id="faq" className="py-24 px-6 bg-white" style={{ borderTop: '1px solid #f4f4f5' }}>
       <div className="max-w-[760px] mx-auto">
         <div className="mb-12">
-          <span className="font-dm text-xs tracking-[0.2em] uppercase text-primary font-medium">FAQ</span>
-          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-foreground mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+          <span className="font-dm text-xs tracking-[0.2em] uppercase text-orange-500 font-semibold">FAQ</span>
+          <h2 className="font-syne text-3xl sm:text-4xl md:text-5xl text-zinc-900 mt-3" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
             Questions you might be asking.
           </h2>
         </div>
 
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #e4e4e7' }}>
           {faqs.map((faq, i) => {
             const isOpen = openIdx === i;
             return (
-              <div key={i} style={{ borderBottom: i < faqs.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none', background: '#111111' }}>
+              <div key={i} style={{ borderBottom: i < faqs.length - 1 ? '1px solid #e4e4e7' : 'none', background: '#fbfbfb' }}>
                 <button
                   className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors"
                   onClick={() => toggle(i)}
                 >
-                  <span className="font-dm text-sm text-foreground font-medium pr-4">{faq.q}</span>
+                  <span className="font-dm text-sm text-zinc-800 font-medium pr-4">{faq.q}</span>
                   <span
                     className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-xs transition-all duration-300"
                     style={{
-                      border: `1px solid ${isOpen ? 'rgba(232,93,4,0.5)' : 'rgba(255,255,255,0.15)'}`,
-                      color: isOpen ? '#E85D04' : '#888',
+                      border: `1px solid ${isOpen ? 'rgba(249,115,22,0.5)' : 'rgba(0,0,0,0.15)'}`,
+                      color: isOpen ? '#F97316' : '#888',
                       transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
                     }}
                   >
@@ -105,7 +105,7 @@ export default function FAQ() {
                   className="overflow-hidden transition-all duration-300"
                   style={{ maxHeight: isOpen ? '300px' : '0', opacity: isOpen ? 1 : 0 }}
                 >
-                  <p className="font-dm text-sm text-muted-foreground leading-relaxed px-6 pb-5">
+                  <p className="font-dm text-sm text-zinc-500 leading-relaxed px-6 pb-5">
                     {faq.a}
                   </p>
                 </div>
