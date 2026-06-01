@@ -20,6 +20,112 @@ const GOAL_OPTIONS = [
   { goal_type: 'consistency', goal_label: 'Consistency in marketing', goal_target: 0, sublabel: 'Auto-fills as you complete daily tasks' }
 ];
 
+const SEED_TASKS = [
+  // ── DAY 1 ──────────────────────────────────────────────────────
+  {
+    day: 1, task_key: 'goal_set_d1',
+    task_title: 'Set One Growth Goal',
+    task_description: 'Set one clear 15-day outcome for this sprint: more active users, more signups, or more conversions. Keep the goal specific so every task has a purpose.',
+    route: '/progress'
+  },
+  {
+    day: 1, task_key: 'finder_baseline_d1',
+    task_title: 'Find 10 High-Intent Leads',
+    task_description: 'Run User Finder and save 10 posts from people describing the exact pain your app solves. Prioritize recent posts, strong frustration, tool requests, and clear workflow problems.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 1, task_key: 'reply_baseline_d1',
+    task_title: 'Reply to 5 Saved Leads',
+    task_description: 'Reply to 5 saved posts inside User Finder. Be genuinely helpful, solve the problem first, and mention your product only if it fits naturally.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 1, task_key: 'copilot_positioning_d1',
+    task_title: 'Ask Co-Pilot What You Really Sell',
+    task_description: 'Share your app, your current users, and the problem they have in common. Ask Co-Pilot for the clearest one-line positioning and the strongest pain language to use.',
+    route: '/marketing-buddy'
+  },
+
+  // ── DAY 2 ──────────────────────────────────────────────────────
+  {
+    day: 2, task_key: 'finder_competitor_d2',
+    task_title: 'Find Competitor Complaint Posts',
+    task_description: 'Use User Finder to look for complaints about tools or workflows your users already use today. Save 10 posts from people who are clearly frustrated with current solutions.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 2, task_key: 'reply_competitor_d2',
+    task_title: 'Reply to 5 Competitor Complaint Posts',
+    task_description: 'Reply inside User Finder with practical help, not a pitch. Solve the immediate issue, add context, and keep your product mention soft or absent.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 2, task_key: 'post_problem_d2',
+    task_title: 'Post the Problem, Not the Product',
+    task_description: 'Create one short post that talks only about the pain, friction, or wasted time your users deal with. Keep it focused on the problem and avoid describing the tool itself.',
+    route: '/post-maker'
+  },
+  {
+    day: 2, task_key: 'analytics_baseline_d2',
+    task_title: 'Check Your Starting Metrics',
+    task_description: 'Open Analytics and note your current baseline: replies, clicks, signups, and where users seem to drop off. Write down one metric to improve first.',
+    route: '/dashboard/results-tracker'
+  },
+
+  // ── DAY 3 ──────────────────────────────────────────────────────
+  {
+    day: 3, task_key: 'finder_icp_d3',
+    task_title: 'Find Posts from Your Exact ICP',
+    task_description: 'Run User Finder for your ideal customer profile, not just the problem. Save 10 posts from people who match the type of user you want most.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 3, task_key: 'reply_icp_d3',
+    task_title: 'Reply to 5 ICP Posts',
+    task_description: 'Reply to 5 posts from your exact ICP. Focus on their workflow, tools, and pain points so your replies feel deeply relevant.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 3, task_key: 'reddit_value_d3',
+    task_title: 'Give Value on Reddit Without Pitching',
+    task_description: 'Spend a short session leaving helpful comments on 3 relevant Reddit threads. Add useful context, answer questions, and do not mention your product unless asked.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 3, task_key: 'copilot_message_d3',
+    task_title: 'Refine Your Messaging with Co-Pilot',
+    task_description: 'Share the language you saw in lead posts and ask Co-Pilot to tighten your message. Focus on the exact words users use to describe the problem.',
+    route: '/marketing-buddy'
+  },
+
+  // ── DAY 4 ──────────────────────────────────────────────────────
+  {
+    day: 4, task_key: 'finder_recommendation_d4',
+    task_title: 'Find Tool Recommendation Posts',
+    task_description: 'Use User Finder to search for posts asking for a tool, alternative, recommendation, or solution. Save 10 posts where buying intent is obvious.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 4, task_key: 'reply_recommendation_d4',
+    task_title: 'Reply to 5 Recommendation Posts',
+    task_description: 'Reply to 5 recommendation or alternative requests inside User Finder. Help first, compare options honestly, and only mention your app if it clearly fits.',
+    route: '/audience-spotter'
+  },
+  {
+    day: 4, task_key: 'post_user_voice_d4',
+    task_title: 'Create a Post Using User Language',
+    task_description: 'Write one post that uses the exact phrases users used to describe their problem. This should sound like the market, not like a founder pitch.',
+    route: '/post-maker'
+  },
+  {
+    day: 4, task_key: 'progress_check_d4',
+    task_title: 'Check Goal Progress',
+    task_description: 'Open Progress and compare what happened so far against your sprint goal. Note what is moving, what is flat, and what deserves more focus.',
+    route: '/progress'
+  }
+];
+
 const QUOTES = {
   1: "The first step is always the hardest. You took it.",
   2: "Two days in. Most people quit before they start.",
@@ -69,21 +175,47 @@ export default function ProgressPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
-      if (tasksError) throw tasksError;
-      
-      // Deduplicate tasks by task_key to prevent duplicates
-      const uniqueTasks = Array.from(new Map((tasksData || []).map(t => [t.task_key, t])).values());
-      setTasks(uniqueTasks);
+      let finalTasks = [];
+      let completedLocalKeys = [];
+      try {
+        completedLocalKeys = JSON.parse(localStorage.getItem(`vh_completed_tasks_${user.id}`) || '[]');
+      } catch (e) {}
 
-      if (uniqueTasks.length > 0) {
-        const firstTask = uniqueTasks[0];
-        const firstDate = new Date(firstTask.created_at);
-        firstDate.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffTime = Math.abs(today.getTime() - firstDate.getTime());
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        setCurrentDay(Math.min(4, diffDays + 1));
+      if (!tasksError && tasksData && tasksData.length > 0) {
+        finalTasks = Array.from(new Map(tasksData.map(t => [t.task_key, t])).values());
+      } else {
+        // Fallback to local seed tasks
+        finalTasks = SEED_TASKS.map(t => ({
+          ...t,
+          id: t.task_key,
+          user_id: user.id,
+          status: completedLocalKeys.includes(t.task_key) ? 'completed' : 'pending'
+        }));
+      }
+
+      // Sync with local storage completed tasks
+      finalTasks = finalTasks.map(t => {
+        if (completedLocalKeys.includes(t.task_key)) {
+          return { ...t, status: 'completed' };
+        }
+        return t;
+      });
+
+      setTasks(finalTasks);
+
+      if (finalTasks.length > 0) {
+        const firstTask = finalTasks[0];
+        if (firstTask && firstTask.created_at) {
+          const firstDate = new Date(firstTask.created_at);
+          firstDate.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diffTime = Math.abs(today.getTime() - firstDate.getTime());
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          setCurrentDay(Math.min(4, diffDays + 1));
+        } else {
+          setCurrentDay(1);
+        }
       }
     } catch (err) {
       console.error('Error fetching progress/tasks:', err);

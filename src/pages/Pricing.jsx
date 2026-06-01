@@ -75,39 +75,6 @@ const PLANS = [
   },
 ];
 
-const TESTIMONIALS = [
-  { name: 'Jake', role: 'Founder', company: 'SpendKeep', location: 'US', platform: 'Reddit', text: 'ngl this made marketing feel way less annoying. stopped overthinking every post.' },
-  { name: 'Aman', role: 'Founder', company: 'Heliora AI', location: 'India', platform: 'X', text: 'lowkey helped me explain my product way better. positioning was solid.' },
-  { name: 'Hassan', role: 'Founder', company: 'ScoutJob.me', location: 'Pakistan', platform: 'Threads', text: 'finding real convos instead of random noise is actually useful fr.' },
-  { name: 'Noah', role: 'Founder', company: 'LaunchVideo', location: 'US', platform: 'Instagram', text: 'feels built for devs tbh. i just wanna ship, not think about content all day.' },
-  { name: 'Rohan', role: 'Founder', company: 'LateranAI', location: 'India', platform: 'Reddit', text: 'the content feels human lol. way less robotic than other ai tools ive tried.' },
-  { name: 'Bilal', role: 'Founder', company: 'Slotably', location: 'Pakistan', platform: 'X', text: 'saved me from staring at a blank page every time i wanted to post.' },
-  { name: 'Ethan', role: 'Founder & CEO', company: 'RiskQuilt', location: 'US', platform: 'Threads', text: 'finally something that helps with marketing without making it feel like homework.' },
-  { name: 'Sufyan', role: 'Founder', company: 'ScrapScout', location: 'Pakistan', platform: 'Reddit', text: 'user finder is lowkey the best part. found ppl already talking about my problem.' },
-  { name: 'Arjun', role: 'Founder', company: 'RankQuest', location: 'India', platform: 'Instagram', text: 'marketing still sucks lol but this makes it way more manageable.' },
-  { name: 'Ryan', role: 'Founder', company: 'Dashbee', location: 'US', platform: 'X', text: 'the positioning suggestions were surprisingly good ngl.' },
-  { name: 'Daniel', role: 'Founder', company: 'Giftime', location: 'US', platform: 'Reddit', text: 'used to spend hours thinking what to post. now i tweak and ship it.' },
-  { name: 'Hamza', role: 'Founder', company: 'Navi', location: 'Pakistan', platform: 'Threads', text: 'lowkey helped me stop sounding robotic online lol.' },
-  { name: 'Kabir', role: 'Founder', company: 'Jotley', location: 'India', platform: 'X', text: 'felt less lost with marketing after using this. simple but useful.' },
-  { name: 'Mason', role: 'Founder', company: 'NutriBalance', location: 'US', platform: 'Reddit', text: 'honestly just nice not having to think so hard before posting.' },
-  { name: 'Zayan', role: 'Founder', company: 'StockArithm', location: 'Pakistan', platform: 'Instagram', text: 'the reddit angle is smart fr. saves a ton of digging.' },
-  { name: 'Aryan', role: 'Founder', company: 'CookSlate', location: 'India', platform: 'Threads', text: 'finally posting consistently because it takes less mental energy.' },
-  { name: 'Chris', role: 'Founder', company: 'RoleSense', location: 'US', platform: 'X', text: 'feels practical. not just another ai writer throwing random content.' },
-  { name: 'Ahmed', role: 'Founder', company: 'Principal Task', location: 'Pakistan', platform: 'Reddit', text: 'fr the user finder part alone saved me hours every week.' },
-  { name: 'Dev', role: 'Founder', company: 'QueryDeck', location: 'India', platform: 'X', text: 'the hook suggestions are solid. posts feel more clear now.' },
-  { name: 'Logan', role: 'Founder', company: 'LifeOrder', location: 'US', platform: 'Threads', text: 'more like a growth helper than another generic ai thing tbh.' },
-  { name: 'Taha', role: 'Founder', company: 'StorageZen', location: 'Pakistan', platform: 'Instagram', text: 'found actual ppl talking about my niche. thats kinda huge ngl.' },
-  { name: 'Yash', role: 'Founder', company: 'Taskomon', location: 'India', platform: 'Reddit', text: 'finally something that gets builder problems and keeps things simple.' },
-  { name: 'Eli', role: 'Founder', company: 'HumanFound', location: 'US', platform: 'X', text: 'positioning part was lowkey the biggest win for me.' },
-  { name: 'Ayaan', role: 'Founder', company: 'MemberPass', location: 'India', platform: 'Threads', text: 'marketing still isnt fun lol but now it feels doable.' },
-  { name: 'Usman', role: 'Founder', company: 'IntentiQS', location: 'Pakistan', platform: 'Reddit', text: 'fr this removed a lot of the mental friction around marketing.' },
-  { name: 'Liam', role: 'Founder', company: 'Voicepad', location: 'US', platform: 'Instagram', text: 'helped me explain my app actually does way better.' },
-  { name: 'Faizan', role: 'Founder', company: 'WebUtilBox', location: 'Pakistan', platform: 'X', text: 'not magic lol but makes marketing feel less messy tbh.' },
-  { name: 'Karan', role: 'Founder', company: 'Onpilot', location: 'India', platform: 'Threads', text: 'content feels less robotic than most ai tools ive tried.' },
-  { name: 'Owen', role: 'Founder', company: 'UptimeGuard', location: 'US', platform: 'Reddit', text: 'honestly just nice having less mental load around content.' },
-  { name: 'Saad', role: 'Founder', company: 'RenderPix', location: 'Pakistan', platform: 'X', text: 'lowkey made me post more because i stopped overthinking everything.' }
-];
-
 const PRICING_TESTIMONIALS = [
   { name: 'Ethan', role: 'Founder & CEO', company: 'Heliora AI', location: 'US', platform: 'Reddit', text: 'ngl almost skipped paying for it, but saving hours every week made it worth it fast.' },
   { name: 'Rohit', role: 'Founder', company: 'RiskQuilt', location: 'India', platform: 'X', text: 'felt expensive at first tbh, then realized i wasted more time overthinking marketing.' },
@@ -142,7 +109,7 @@ const FAQS = [
   }
 ];
 
-function CheckIcon({ color = '#9C2000' }) {
+function CheckIcon({ color = '#F97316' }) {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
       <path d="M20 6L9 17l-5-5" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -179,8 +146,8 @@ export default function Pricing() {
           to { opacity:1; transform:translateY(0); }
         }
         @keyframes glowPulse {
-          0%,100% { box-shadow: 0 0 18px rgba(156,32,0,0.1), 0 0 36px rgba(232,93,4,0.05); }
-          50% { box-shadow: 0 0 28px rgba(156,32,0,0.2), 0 0 56px rgba(232,93,4,0.1); }
+          0%,100% { box-shadow: 0 0 18px rgba(249,115,22,0.1), 0 0 36px rgba(249,115,22,0.05); }
+          50% { box-shadow: 0 0 28px rgba(249,115,22,0.2), 0 0 56px rgba(249,115,22,0.1); }
         }
 
         .pricing-card {
@@ -198,7 +165,7 @@ export default function Pricing() {
           border-radius:inherit;
           opacity:0;
           transition:opacity 0.4s ease;
-          background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(156,32,0,0.05) 0%, transparent 60%);
+          background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(249,115,22,0.05) 0%, transparent 60%);
           pointer-events:none;
           z-index:0;
         }
@@ -208,16 +175,16 @@ export default function Pricing() {
 
         .pro-card {
           background: linear-gradient(160deg, #FFF7ED 0%, #ffffff 40%);
-          border: 1px solid rgba(156,32,0,0.3) !important;
-          box-shadow: 0 0 60px rgba(156,32,0,0.05), 0 0 120px rgba(156,32,0,0.02);
+          border: 1px solid rgba(249,115,22,0.3) !important;
+          box-shadow: 0 0 60px rgba(249,115,22,0.05), 0 0 120px rgba(249,115,22,0.02);
         }
         .pro-card:hover {
-          border-color: rgba(156,32,0,0.5) !important;
-          box-shadow: 0 0 80px rgba(156,32,0,0.1), 0 20px 60px rgba(0,0,0,0.1) !important;
+          border-color: rgba(249,115,22,0.5) !important;
+          box-shadow: 0 0 80px rgba(249,115,22,0.1), 0 20px 60px rgba(0,0,0,0.1) !important;
         }
 
         .pro-badge {
-          background: linear-gradient(90deg, #9C2000, #E85D04, #9C2000);
+          background: linear-gradient(90deg, #F97316, #E85D04, #F97316);
           background-size: 200% auto;
           animation: shimmer 3s linear infinite;
           -webkit-background-clip: text;
@@ -243,13 +210,13 @@ export default function Pricing() {
           color: #111111;
         }
         .cta-btn-pro {
-          background: #9C2000;
+          background: #F97316;
           color: #fff;
           animation: glowPulse 2.5s ease-in-out infinite;
         }
         .cta-btn-pro:hover {
-          background: linear-gradient(135deg, #9C2000, #E85D04);
-          box-shadow: 0 8px 28px rgba(156,32,0,0.3);
+          background: linear-gradient(135deg, #F97316, #E85D04);
+          box-shadow: 0 8px 28px rgba(249,115,22,0.3);
           animation: none;
         }
 
@@ -282,7 +249,7 @@ export default function Pricing() {
         borderBottom: '1px solid rgba(0,0,0,0.08)'
       }}>
         <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#111111', textDecoration: 'none', flex: '0 0 auto' }}>
-          Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+          Vibe<span style={{ color: '#F97316' }}>Promote</span>
         </a>
         <div style={{ flex: 1 }} />
         <a href="/" style={{
@@ -295,11 +262,11 @@ export default function Pricing() {
         </a>
         <a href="/auth" style={{
           fontFamily: 'Inter', fontWeight: 600, fontSize: '14px',
-          background: '#9C2000', color: '#fff', padding: '9px 20px', borderRadius: '8px',
+          background: '#F97316', color: '#fff', padding: '9px 20px', borderRadius: '8px',
           textDecoration: 'none', transition: 'all 0.25s ease'
         }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#9C2000,#E85D04)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(156,32,0,0.45)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = '#9C2000'; e.currentTarget.style.boxShadow = 'none'; }}>
+          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg,#F97316,#E85D04)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(249,115,22,0.45)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#F97316'; e.currentTarget.style.boxShadow = 'none'; }}>
           Get Started
         </a>
       </nav>
@@ -310,15 +277,15 @@ export default function Pricing() {
         {/* Social proof bar */}
         <div className="social-proof-bar" style={{
           display: 'inline-flex', alignItems: 'center', gap: '10px',
-          background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.15)',
-          borderRadius: '100px', padding: '8px 18px', marginBottom: '32px'
+          background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.15)',
+          borderRadius: '100px', padding: '8px 18px', mb: '32px', marginBottom: '32px'
         }}>
           {/* Avatars */}
           <div style={{ display: 'flex', marginRight: '4px' }}>
             {['MR', 'SP', 'JK', 'AL'].map((ini, i) => (
               <div key={ini} style={{
                 width: '24px', height: '24px', borderRadius: '50%',
-                background: i % 2 === 0 ? '#9C2000' : '#5A1200',
+                background: i % 2 === 0 ? '#F97316' : '#E85D04',
                 border: '2px solid #fff',
                 marginLeft: i === 0 ? 0 : '-6px',
                 display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center',
@@ -330,12 +297,12 @@ export default function Pricing() {
             1100 + builders went Pro and automated their marketing
           </span>
           <span className="pulse-dot" style={{
-            width: '6px', height: '6px', borderRadius: '50%', background: '#9C2000',
+            width: '6px', height: '6px', borderRadius: '50%', background: '#F97316',
             display: 'inline-block', animation: 'pulse 2s infinite'
           }} />
         </div>
 
-        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#9C2000', textTransform: 'uppercase', marginBottom: '14px' }}>
+        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '11px', letterSpacing: '0.12em', color: '#F97316', textTransform: 'uppercase', marginBottom: '14px' }}>
           Pricing
         </div>
         <h1 style={{
@@ -345,7 +312,7 @@ export default function Pricing() {
           color: '#111111', marginBottom: '16px'
         }}>
           Pick your plan.<br />
-          <span style={{ color: '#9C2000' }}>Remove Marketing Headache today.</span>
+          <span style={{ color: '#F97316' }}>Remove Marketing Headache today.</span>
         </h1>
         <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#6B7280', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
           Refund anytime. No hidden fees. Cancel anytime.
@@ -361,7 +328,7 @@ export default function Pricing() {
             onClick={() => setIsAnnual(!isAnnual)}
             style={{
               width: '48px', height: '26px', borderRadius: '100px', border: 'none', cursor: 'pointer',
-              background: isAnnual ? '#9C2000' : 'rgba(0,0,0,0.08)',
+              background: isAnnual ? '#F97316' : 'rgba(0,0,0,0.08)',
               position: 'relative', transition: 'background 0.3s ease', flexShrink: 0
             }}
           >
@@ -381,7 +348,7 @@ export default function Pricing() {
             Yearly
             <span style={{
               marginLeft: '8px', fontFamily: 'Inter', fontSize: '11px', fontWeight: 700,
-              background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.2)',
+              background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.2)',
               borderRadius: '100px', padding: '2px 8px', color: '#E85D04'
             }}>Save 20%</span>
           </span>
@@ -413,7 +380,7 @@ export default function Pricing() {
                   <div style={{
                     position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
                     width: '60%', height: '2px',
-                    background: 'linear-gradient(90deg, transparent, #9C2000, #E85D04, #9C2000, transparent)'
+                    background: 'linear-gradient(90deg, transparent, #F97316, #E85D04, #F97316, transparent)'
                   }} />
                 )}
 
@@ -424,7 +391,7 @@ export default function Pricing() {
                       <span style={{
                         fontFamily: 'Inter', fontWeight: 700, fontSize: '11px',
                         letterSpacing: '0.08em', textTransform: 'uppercase',
-                        background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.2)',
+                        background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.2)',
                         borderRadius: '100px', padding: '4px 12px',
                         color: '#E85D04'
                       }}>{plan.badge}</span>
@@ -495,7 +462,7 @@ export default function Pricing() {
                   </a>
 
                   {/* Divider */}
-                  <div style={{ height: '1px', background: isPro ? 'rgba(156,32,0,0.1)' : 'rgba(0,0,0,0.04)', marginBottom: '20px' }} />
+                  <div style={{ height: '1px', background: isPro ? 'rgba(249,115,22,0.1)' : 'rgba(0,0,0,0.04)', marginBottom: '20px' }} />
 
                   {/* Features */}
                   <div>
@@ -503,7 +470,7 @@ export default function Pricing() {
                       <div key={i} className="feature-row">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                           <span style={{ flexShrink: 0 }}>
-                            {f.locked ? <LockIcon /> : <CheckIcon color={isPro ? '#E85D04' : '#9C2000'} />}
+                            {f.locked ? <LockIcon /> : <CheckIcon color={isPro ? '#E85D04' : '#F97316'} />}
                           </span>
                           <span style={{
                             fontFamily: 'Inter', fontSize: '13px',
@@ -538,7 +505,7 @@ export default function Pricing() {
               { icon: '✓', text: 'Instant access on signup' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: '#9C2000', fontWeight: 700, fontSize: '14px' }}>{item.icon}</span>
+                <span style={{ color: '#F97316', fontWeight: 700, fontSize: '14px' }}>{item.icon}</span>
                 <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#111111' }}>{item.text}</span>
               </div>
             ))}
@@ -547,7 +514,7 @@ export default function Pricing() {
             fontFamily: 'Inter', fontSize: '13px', color: '#111111',
             textDecoration: 'none', transition: 'color 0.2s'
           }}
-            onMouseEnter={e => e.target.style.color = '#9C2000'}
+            onMouseEnter={e => e.target.style.color = '#F97316'}
             onMouseLeave={e => e.target.style.color = '#ffffff'}>
             Questions? Contact us
           </a>
@@ -562,7 +529,7 @@ export default function Pricing() {
               display: 'flex', gap: '12px', alignItems: 'flex-start'
             }}>
               <div style={{
-                width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000',
+                width: '36px', height: '36px', borderRadius: '50%', background: '#F97316',
                 display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 800, fontSize: '12px', color: '#fff', flexShrink: 0
               }}>{t.name[0]}</div>
@@ -593,7 +560,7 @@ export default function Pricing() {
                     }}
                   >
                     <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: '#111111' }}>{faq.q}</span>
-                    <span style={{ color: '#9C2000', fontSize: '18px', fontWeight: 'bold' }}>{isOpen ? '−' : '+'}</span>
+                    <span style={{ color: '#F97316', fontSize: '18px', fontWeight: 'bold' }}>{isOpen ? '−' : '+'}</span>
                   </button>
                   {isOpen && (
                     <div style={{ padding: '0 24px 20px', fontFamily: 'Inter', fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>
@@ -611,7 +578,7 @@ export default function Pricing() {
       <footer style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '28px 40px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#111111' }}>
-            Vibe<span style={{ color: '#9C2000' }}>Promote</span>
+            Vibe<span style={{ color: '#F97316' }}>Promote</span>
           </div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <a href="/privacy" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
@@ -619,7 +586,7 @@ export default function Pricing() {
             <a href="/terms" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
               onMouseEnter={e => e.target.style.color = '#6B7280'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Terms</a>
             <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
-              onMouseEnter={e => e.target.style.color = '#9C2000'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Support</a>
+              onMouseEnter={e => e.target.style.color = '#F97316'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Support</a>
             <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF' }}>2026 Vibe Promote</span>
           </div>
         </div>

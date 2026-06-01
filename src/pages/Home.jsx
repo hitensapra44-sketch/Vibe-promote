@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link as LinkIcon, Sparkles } from 'lucide-react';
@@ -64,12 +66,12 @@ export default function Home() {
           border-radius: inherit;
           opacity: 0;
           transition: opacity 0.4s ease;
-          background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(156,32,0,0.05) 0%, transparent 60%);
+          background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(249,115,22,0.05) 0%, transparent 60%);
           pointer-events: none;
           z-index: 0;
         }
         .spotlight-card:hover::before { opacity: 1; }
-        .spotlight-card:hover { border-color: rgba(156,32,0,0.45); }
+        .spotlight-card:hover { border-color: rgba(249,115,22,0.45); }
         .spotlight-card > * { position: relative; z-index: 1; }
 
         @keyframes brandScroll {
@@ -94,10 +96,10 @@ export default function Home() {
       <section id="cta" className="py-24 px-6" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
         <div className="max-w-[1100px] mx-auto">
           <div className="relative border border-orange-500/20 rounded-2xl p-12 sm:p-20 text-center overflow-hidden" style={{ background: '#ffffff' }}>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-0.5 bg-[#9C2000]" />
-            <span className="font-geist text-xs tracking-[0.2em] uppercase text-primary font-medium">Start Today</span>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-0.5 bg-[#F97316]" />
+            <span className="font-geist text-xs tracking-[0.2em] uppercase text-orange-500 font-medium">Start Today</span>
             <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-4 mb-10" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
-              Stop overthinking your <span className="text-primary">marketing.</span>
+              Stop overthinking your <span className="text-orange-500">marketing.</span>
             </h2>
             
             <form onSubmit={handleCtaSubmit} className="relative group w-full max-w-lg mx-auto mb-6" style={{ zIndex: 10 }}>
