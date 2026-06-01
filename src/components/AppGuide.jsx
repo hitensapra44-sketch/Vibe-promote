@@ -199,7 +199,7 @@ function MockCopilot() {
   return (
     <div style={{ padding: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '9px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
+        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '9px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
         <div style={{ background: '#141419', borderRadius: '8px', padding: '8px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#F2EDE8', lineHeight: 1.5 }}>
           Hey! I've studied your Brand Brain and I'm ready to help you grow.
         </div>
@@ -210,7 +210,7 @@ function MockCopilot() {
         </div>
       </div>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '9px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
+        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(156,32,0,0.2)', display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '9px', color: '#9C2000', fontWeight: 700, fontFamily: 'Inter' }}>AI</div>
         <div style={{ background: '#141419', borderRadius: '8px', padding: '8px 10px', fontFamily: 'Inter', fontSize: '11px', color: '#F2EDE8', lineHeight: 1.5 }}>
           For your SaaS, lead with a story about the pain. Don't pitch — share what happened to you first...
         </div>
@@ -271,9 +271,39 @@ export default function AppGuide({ onClose }) {
         @keyframes guideIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes guideSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+        @media (max-width: 640px) {
+          .guide-container {
+            max-height: 92vh !important;
+            overflow-y: auto !important;
+            margin: 10px !important;
+            border-radius: 16px !important;
+          }
+          .guide-body {
+            grid-template-columns: 1fr !important;
+            min-height: auto !important;
+          }
+          .guide-mockup-col {
+            display: none !important; /* Hide mockup on mobile to fit screen perfectly */
+          }
+          .guide-text-col {
+            padding: 24px 20px !important;
+            border-right: none !important;
+          }
+          .guide-tabs {
+            padding: 12px 16px !important;
+            gap: 4px !important;
+          }
+          .guide-header {
+            padding: 14px 16px !important;
+          }
+          .guide-footer {
+            padding: 14px 16px !important;
+          }
+        }
       `}</style>
 
-      <div style={{
+      <div className="guide-container" style={{
         background: '#0A0A0F',
         border: '1px solid rgba(156,32,0,0.3)',
         borderRadius: '20px',
@@ -287,7 +317,7 @@ export default function AppGuide({ onClose }) {
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '200px', height: '2px', background: 'linear-gradient(90deg, transparent, #9C2000, #E85D04, #9C2000, transparent)' }} />
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifySpaceBetween: 'space-between', justifyContent: 'space-between', padding: '20px 28px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="guide-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 28px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
               Vibe<span style={{ color: '#9C2000' }}>Promote</span>
@@ -303,7 +333,7 @@ export default function AppGuide({ onClose }) {
         </div>
 
         {/* Step tabs */}
-        <div style={{ display: 'flex', gap: '6px', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.04)', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div className="guide-tabs" style={{ display: 'flex', gap: '6px', padding: '16px 28px', borderBottom: '1px solid rgba(255,255,255,0.04)', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {GUIDE_STEPS.map((s, i) => (
             <button key={s.id} onClick={() => setStep(i)} style={{
               flexShrink: 0,
@@ -320,9 +350,9 @@ export default function AppGuide({ onClose }) {
         </div>
 
         {/* Body */}
-        <div key={step} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '360px', animation: 'guideSlide 0.3s ease' }}>
+        <div key={step} className="guide-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '360px', animation: 'guideSlide 0.3s ease' }}>
           {/* Left — text */}
-          <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="guide-text-col" style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
             <span style={{
               display: 'inline-block',
               fontFamily: 'Inter', fontWeight: 700, fontSize: '11px',
@@ -348,7 +378,7 @@ export default function AppGuide({ onClose }) {
           </div>
 
           {/* Right — mockup */}
-          <div style={{ padding: '28px', background: '#06060A', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div className="guide-mockup-col" style={{ padding: '28px', background: '#06060A', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ background: '#0F0F14', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '16px', flex: 1 }}>
               <MockupComp />
             </div>
@@ -356,7 +386,7 @@ export default function AppGuide({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', justifySpaceBetween: 'space-between', justifyContent: 'space-between', padding: '18px 28px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="guide-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 28px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <button onClick={() => step > 0 && setStep(s => s - 1)} style={{
             fontFamily: 'Inter', fontWeight: 500, fontSize: '14px',
             background: 'none', border: '1px solid rgba(255,255,255,0.1)',

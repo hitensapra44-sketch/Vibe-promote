@@ -35,8 +35,8 @@ export default function HeroSection() {
           <motion.path
             d="M 150 200 Q 350 250 720 350"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -44,8 +44,8 @@ export default function HeroSection() {
           <motion.path
             d="M 100 450 Q 300 450 720 380"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -53,8 +53,8 @@ export default function HeroSection() {
           <motion.path
             d="M 180 700 Q 380 650 720 410"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -64,8 +64,8 @@ export default function HeroSection() {
           <motion.path
             d="M 1290 200 Q 1090 250 720 350"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -73,8 +73,8 @@ export default function HeroSection() {
           <motion.path
             d="M 1340 450 Q 1140 450 720 380"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -82,8 +82,8 @@ export default function HeroSection() {
           <motion.path
             d="M 1260 700 Q 1060 650 720 410"
             stroke="#F97316"
-            strokeWidth="1.5"
-            strokeOpacity="0.15"
+            strokeWidth="2.5"
+            strokeOpacity="0.75"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
