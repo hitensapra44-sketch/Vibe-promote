@@ -30,9 +30,11 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let user_id: string | null = null;
+    let incomingPosts: any[] = [];
     try {
       const body = await req.json();
       user_id = body?.user_id || null;
+      incomingPosts = body?.raw_posts || [];
     } catch (_) {}
 
     console.log(`[audience-scanner] user_id from request: ${user_id}`);
@@ -102,52 +104,18 @@ serve(async (req) => {
 
         const rawPosts: any[] = [];
 
+        // Reddit posts come pre-fetched from browser — add them to rawPosts
+        if (platforms.includes('reddit') && incomingPosts.length > 0) {
+          const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+          incomingPosts.forEach((p: any) => {
+            if (p.created_at > sevenDaysAgo * 1000) {
+              rawPosts.push(p);
+            }
+          });
+        }
+
         for (const keyword of keywords.slice(0, 4)) {
           console.log(`[audience-scanner] Searching keyword: "${keyword}"`);
-
-          if (platforms.includes('reddit')) {
-            const shortKeyword = keyword.split(' ').slice(0, 5).join(' ');
-
-            if (!REDDIT_WORKER_URL) {
-              console.error('[audience-scanner] REDDIT_WORKER_URL not set in secrets. Skipping Reddit.');
-            } else {
-              // Subreddit-specific search
-              for (const community of communities.slice(0, 5)) {
-                try {
-                  const subWorkerUrl = `${REDDIT_WORKER_URL}?q=${encodeURIComponent(shortKeyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week`;
-                  console.log(`[audience-scanner] Worker subreddit fetch: r/${community}`);
-                  const subRes = await fetch(subWorkerUrl);
-                  console.log(`[audience-scanner] Worker r/${community} status: ${subRes.status}`);
-
-                  if (subRes.ok) {
-                    const data = await subRes.json();
-                    const children = data.data?.children || [];
-                    console.log(`[audience-scanner] Worker r/${community} returned ${children.length} posts`);
-
-                    const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
-                    children.forEach((child: any) => {
-                      const p = child.data;
-                      if (p && p.created_utc > sevenDaysAgo) {
-                        rawPosts.push({
-                          title: p.title || '',
-                          body: p.selftext || '',
-                          url: `https://reddit.com${p.permalink}`,
-                          author: p.author || 'unknown',
-                          subreddit: p.subreddit || community,
-                          upvotes: p.score || 0,
-                          comments: p.num_comments || 0,
-                          created_at: p.created_utc * 1000,
-                          platform: 'reddit'
-                        });
-                      }
-                    });
-                  }
-                } catch (e) {
-                  console.error(`[audience-scanner] Worker r/${community} failed:`, e);
-                }
-              }
-            }
-          }
 
           // HACKER NEWS
           if (platforms.includes('hn')) {

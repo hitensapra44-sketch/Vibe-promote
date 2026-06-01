@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Link as LinkIcon, Sparkles } from 'lucide-react';
 import NavBar from '../components/landing/navbar';
 import HeroSection from '../components/landing/HeroSection';
 import BrandScroller from '../components/landing/BrandScroller';
@@ -13,6 +15,16 @@ import FAQ from '../components/landing/faqs';
 import Footer from '../components/landing/fottersection';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [ctaUrl, setCtaUrl] = useState('https://');
+
+  const handleCtaSubmit = (e) => {
+    e.preventDefault();
+    if (!ctaUrl || ctaUrl === 'https://') return;
+    localStorage.setItem('onboarding_url', ctaUrl);
+    navigate('/auth');
+  };
+
   useEffect(() => {
     // Spotlight card mouse tracking
     const onMouseMove = (e) => {
@@ -87,13 +99,39 @@ export default function Home() {
             <h2 className="font-geist text-3xl sm:text-4xl md:text-5xl text-foreground mt-4 mb-10" style={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
               Stop overthinking your <span className="text-primary">marketing.</span>
             </h2>
-            <a
-              href="/auth"
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-[#9C2000] text-white font-bold text-lg transition-all hover:bg-[#E85D04] hover:shadow-[0_8px_28px_rgba(156,32,0,0.45)]"
-            >
-              Start for Free
-              <ArrowRight className="w-5 h-5" />
-            </a>
+            
+            <form onSubmit={handleCtaSubmit} className="relative group w-full max-w-lg mx-auto mb-6" style={{ zIndex: 10 }}>
+              <div className="absolute inset-0 bg-orange-500/5 blur-xl group-hover:bg-orange-500/10 transition-all opacity-50" />
+              <div className="relative flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <LinkIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <input
+                    type="url"
+                    placeholder="https://your-awesome-saas.com"
+                    value={ctaUrl}
+                    onChange={(e) => setCtaUrl(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white border border-zinc-200 text-zinc-900 text-sm focus:outline-none focus:border-orange-500 transition-all"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!ctaUrl || ctaUrl === 'https://'}
+                  className="px-6 py-3.5 rounded-xl bg-white text-zinc-900 border-2 border-orange-500 hover:bg-orange-50 hover:shadow-[0_4px_12px_rgba(249,115,22,0.15)] font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-orange-500" /> Start for free
+                </button>
+              </div>
+            </form>
+
+            <div className="flex gap-6 flex-wrap justify-center mt-4 text-xs sm:text-sm text-zinc-400">
+              <div className="flex items-center gap-2">
+                <span className="text-orange-500 font-bold">✓</span> no credit card required
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-orange-500 font-bold">✓</span> 100% private, no data to train models
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -102,10 +140,3 @@ export default function Home() {
     </div>
   );
 }
-
-const ArrowRight = ({ className }) => (
-  <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-    <polyline points="12 5 19 12 12 19"></polyline>
-  </svg>
-);

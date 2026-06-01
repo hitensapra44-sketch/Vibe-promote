@@ -59,7 +59,6 @@ export function useAudienceSpotter(userId: string) {
 
     const scanStartedAt = Date.now();
 
-    // Save config to localStorage
     localStorage.setItem('vh_audience_config', JSON.stringify({
       keywords,
       platforms,
@@ -68,7 +67,6 @@ export function useAudienceSpotter(userId: string) {
       isScanning: true
     }));
 
-    // Safety timeout
     if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
     loadingTimerRef.current = setTimeout(() => {
       setIsLoading(false);
@@ -76,7 +74,6 @@ export function useAudienceSpotter(userId: string) {
       localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
     }, 360000);
 
-    // Save config to brand_brains
     await supabase
       .from('brand_brains')
       .update({
@@ -86,9 +83,52 @@ export function useAudienceSpotter(userId: string) {
       })
       .eq('user_id', userId);
 
-    // Invoke Edge Function
-    supabase.functions.invoke('audience-scanner', {  
-      body: { user_id: userId },
+    // Browser-side Reddit fetch — no server IP blocks
+    const rawPosts: any[] = [];
+    const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+
+    if (platforms.includes('reddit')) {
+      for (const keyword of keywords.slice(0, 4)) {
+        for (const community of communities.slice(0, 5)) {
+          try {
+            const redditUrl = `https://www.reddit.com/r/${community}/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=25&restrict_sr=true`;
+            const res = await fetch(redditUrl, {
+              headers: { 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              const children = data.data?.children || [];
+              children.forEach((child: any) => {
+                const p = child.data;
+                if (p && p.created_utc > sevenDaysAgo) {
+                  rawPosts.push({
+                    title: p.title || '',
+                    body: p.selftext || '',
+                    url: `https://reddit.com${p.permalink}`,
+                    author: p.author || 'unknown',
+                    subreddit: p.subreddit || community,
+                    upvotes: p.score || 0,
+                    comments: p.num_comments || 0,
+                    created_at: p.created_utc * 1000,
+                    platform: 'reddit'
+                  });
+                }
+              });
+            }
+          } catch (e) {
+            console.error(`Reddit fetch failed for r/${community}:`, e);
+          }
+        }
+      }
+    }
+
+    // Fire Edge Function with raw posts for AI scoring
+    // HN fetching stays in the Edge Function since Algolia has no blocks
+    supabase.functions.invoke('audience-scanner', {
+      body: { 
+        user_id: userId,
+        raw_posts: rawPosts  // send browser-fetched Reddit posts
+      },
     }).catch(e => console.error('Scanner fire failed:', e));
   };
 
