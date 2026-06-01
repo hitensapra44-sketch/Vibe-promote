@@ -164,7 +164,7 @@ export default function Pricing() {
   const [openFaqIdx, setOpenFaqIdx] = useState(-1);
 
   return (
-    <div style={{ background: 'var(--background)', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ background: '#ffffff', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -179,14 +179,14 @@ export default function Pricing() {
           to { opacity:1; transform:translateY(0); }
         }
         @keyframes glowPulse {
-          0%,100% { box-shadow: 0 0 18px rgba(156,32,0,0.5), 0 0 36px rgba(232,93,4,0.25); }
-          50% { box-shadow: 0 0 28px rgba(156,32,0,0.8), 0 0 56px rgba(232,93,4,0.4); }
+          0%,100% { box-shadow: 0 0 18px rgba(156,32,0,0.1), 0 0 36px rgba(232,93,4,0.05); }
+          50% { box-shadow: 0 0 28px rgba(156,32,0,0.2), 0 0 56px rgba(232,93,4,0.1); }
         }
 
         .pricing-card {
           position: relative;
-          background: #0A0A0F;
-          border: 1px solid rgba(255,255,255,0.07);
+          background: #ffffff;
+          border: 1px solid rgba(0,0,0,0.08);
           border-radius: 16px;
           transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
           overflow: hidden;
@@ -198,7 +198,7 @@ export default function Pricing() {
           border-radius:inherit;
           opacity:0;
           transition:opacity 0.4s ease;
-          background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(156,32,0,0.1) 0%, transparent 60%);
+          background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(156,32,0,0.05) 0%, transparent 60%);
           pointer-events:none;
           z-index:0;
         }
@@ -207,13 +207,13 @@ export default function Pricing() {
         .pricing-card:hover { transform: translateY(-4px); }
 
         .pro-card {
-          background: linear-gradient(160deg, #0F0800 0%, #0A0A0F 40%);
-          border: 1px solid rgba(156,32,0,0.5) !important;
-          box-shadow: 0 0 60px rgba(156,32,0,0.12), 0 0 120px rgba(156,32,0,0.05);
+          background: linear-gradient(160deg, #FFF7ED 0%, #ffffff 40%);
+          border: 1px solid rgba(156,32,0,0.3) !important;
+          box-shadow: 0 0 60px rgba(156,32,0,0.05), 0 0 120px rgba(156,32,0,0.02);
         }
         .pro-card:hover {
-          border-color: rgba(156,32,0,0.8) !important;
-          box-shadow: 0 0 80px rgba(156,32,0,0.2), 0 20px 60px rgba(0,0,0,0.5) !important;
+          border-color: rgba(156,32,0,0.5) !important;
+          box-shadow: 0 0 80px rgba(156,32,0,0.1), 0 20px 60px rgba(0,0,0,0.1) !important;
         }
 
         .pro-badge {
@@ -235,12 +235,12 @@ export default function Pricing() {
         }
         .cta-btn-default {
           background: transparent;
-          color: #7A7672;
-          border: 1px solid rgba(255,255,255,0.1);
+          color: #6B7280;
+          border: 1px solid rgba(0,0,0,0.08);
         }
         .cta-btn-default:hover {
-          border-color: rgba(255,255,255,0.25);
-          color: #F2EDE8;
+          border-color: rgba(0,0,0,0.15);
+          color: #111111;
         }
         .cta-btn-pro {
           background: #9C2000;
@@ -249,14 +249,14 @@ export default function Pricing() {
         }
         .cta-btn-pro:hover {
           background: linear-gradient(135deg, #9C2000, #E85D04);
-          box-shadow: 0 8px 28px rgba(156,32,0,0.5);
+          box-shadow: 0 8px 28px rgba(156,32,0,0.3);
           animation: none;
         }
 
         .feature-row {
           display:flex; align-items:flex-start; justify-content:space-between;
           gap:12px; padding: 9px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.04);
+          border-bottom: 1px solid rgba(0,0,0,0.04);
         }
         .feature-row:last-child { border-bottom: none; }
 
@@ -277,20 +277,20 @@ export default function Pricing() {
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         height: '60px', display: 'flex', alignItems: 'center', padding: '0 40px',
-        background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)',
+        background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)'
+        borderBottom: '1px solid rgba(0,0,0,0.08)'
       }}>
-        <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#F2EDE8', textDecoration: 'none', flex: '0 0 auto' }}>
+        <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#111111', textDecoration: 'none', flex: '0 0 auto' }}>
           Vibe<span style={{ color: '#9C2000' }}>Promote</span>
         </a>
         <div style={{ flex: 1 }} />
         <a href="/" style={{
-          fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#7A7672',
+          fontFamily: 'Inter', fontWeight: 500, fontSize: '14px', color: '#6B7280',
           textDecoration: 'none', marginRight: '24px', transition: 'color 0.2s'
         }}
-          onMouseEnter={e => e.target.style.color = '#F2EDE8'}
-          onMouseLeave={e => e.target.style.color = '#7A7672'}>
+          onMouseEnter={e => e.target.style.color = '#111111'}
+          onMouseLeave={e => e.target.style.color = '#6B7280'}>
           Back to home
         </a>
         <a href="/auth" style={{
@@ -310,7 +310,7 @@ export default function Pricing() {
         {/* Social proof bar */}
         <div className="social-proof-bar" style={{
           display: 'inline-flex', alignItems: 'center', gap: '10px',
-          background: 'rgba(156,32,0,0.1)', border: '1px solid rgba(156,32,0,0.25)',
+          background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.15)',
           borderRadius: '100px', padding: '8px 18px', marginBottom: '32px'
         }}>
           {/* Avatars */}
@@ -319,14 +319,14 @@ export default function Pricing() {
               <div key={ini} style={{
                 width: '24px', height: '24px', borderRadius: '50%',
                 background: i % 2 === 0 ? '#9C2000' : '#5A1200',
-                border: '2px solid #000',
+                border: '2px solid #fff',
                 marginLeft: i === 0 ? 0 : '-6px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 700, fontSize: '9px', color: '#fff'
               }}>{ini}</div>
             ))}
           </div>
-          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#FFFFFF' }}>
+          <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#111111' }}>
             1100 + builders went Pro and automated their marketing
           </span>
           <span className="pulse-dot" style={{
@@ -342,26 +342,26 @@ export default function Pricing() {
           fontFamily: 'Inter', fontWeight: 900,
           fontSize: 'clamp(36px,5vw,64px)',
           letterSpacing: '-0.04em', lineHeight: 1,
-          color: '#F2EDE8', marginBottom: '16px'
+          color: '#111111', marginBottom: '16px'
         }}>
           Pick your plan.<br />
           <span style={{ color: '#9C2000' }}>Remove Marketing Headache today.</span>
         </h1>
-        <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#7A7672', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'Inter', fontSize: '17px', color: '#6B7280', maxWidth: '460px', margin: '0 auto', lineHeight: 1.6 }}>
           Refund anytime. No hidden fees. Cancel anytime.
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center', gap: '14px', marginTop: '32px' }}>
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 400 : 600,
-            color: isAnnual ? '#44403C' : '#F2EDE8', transition: 'color 0.2s'
+            color: isAnnual ? '#9CA3AF' : '#111111', transition: 'color 0.2s'
           }}>Monthly</span>
 
           <button
             onClick={() => setIsAnnual(!isAnnual)}
             style={{
               width: '48px', height: '26px', borderRadius: '100px', border: 'none', cursor: 'pointer',
-              background: isAnnual ? '#9C2000' : 'rgba(255,255,255,0.12)',
+              background: isAnnual ? '#9C2000' : 'rgba(0,0,0,0.08)',
               position: 'relative', transition: 'background 0.3s ease', flexShrink: 0
             }}
           >
@@ -376,12 +376,12 @@ export default function Pricing() {
 
           <span style={{
             fontFamily: 'Inter', fontSize: '14px', fontWeight: isAnnual ? 600 : 400,
-            color: isAnnual ? '#F2EDE8' : '#44403C', transition: 'color 0.2s'
+            color: isAnnual ? '#111111' : '#9CA3AF', transition: 'color 0.2s'
           }}>
             Yearly
             <span style={{
               marginLeft: '8px', fontFamily: 'Inter', fontSize: '11px', fontWeight: 700,
-              background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.4)',
+              background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.2)',
               borderRadius: '100px', padding: '2px 8px', color: '#E85D04'
             }}>Save 20%</span>
           </span>
@@ -424,7 +424,7 @@ export default function Pricing() {
                       <span style={{
                         fontFamily: 'Inter', fontWeight: 700, fontSize: '11px',
                         letterSpacing: '0.08em', textTransform: 'uppercase',
-                        background: 'rgba(156,32,0,0.15)', border: '1px solid rgba(156,32,0,0.4)',
+                        background: 'rgba(156,32,0,0.05)', border: '1px solid rgba(156,32,0,0.2)',
                         borderRadius: '100px', padding: '4px 12px',
                         color: '#E85D04'
                       }}>{plan.badge}</span>
@@ -435,49 +435,49 @@ export default function Pricing() {
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{
                       fontFamily: 'Inter', fontWeight: 800, fontSize: '20px',
-                      color: '#F2EDE8',
+                      color: '#111111',
                       letterSpacing: '-0.02em', marginBottom: '4px'
                     }}>
                       {isPro ? (
                         <span style={{
-                          background: 'linear-gradient(135deg, #F2EDE8 40%, #E85D04 100%)',
+                          background: 'linear-gradient(135deg, #111111 40%, #E85D04 100%)',
                           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                           backgroundClip: 'text'
                         }}>{plan.name}</span>
                       ) : plan.name}
                     </div>
-                    <div style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.4 }}>{plan.tagline}</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: '13px', color: '#6B7280', lineHeight: 1.4 }}>{plan.tagline}</div>
                   </div>
 
                   {/* Price */}
                   {plan.id === 'free' ? (
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
-                      <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '44px', letterSpacing: '-0.04em', lineHeight: 1, color: '#F2EDE8' }}>Free</span>
+                      <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '44px', letterSpacing: '-0.04em', lineHeight: 1, color: '#111111' }}>Free</span>
                     </div>
                   ) : (
                     <div style={{ marginBottom: '8px' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                        <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '48px', letterSpacing: '-0.04em', lineHeight: 1, color: '#F2EDE8' }}>
+                        <span style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '48px', letterSpacing: '-0.04em', lineHeight: 1, color: '#111111' }}>
                           ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                         </span>
-                        <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#44403C' }}>/month</span>
+                        <span style={{ fontFamily: 'Inter', fontSize: '14px', color: '#9CA3AF' }}>/month</span>
                       </div>
 
                       {isAnnual ? (
                         <div style={{ marginTop: '6px' }}>
-                          <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#7A7672' }}>
+                          <div style={{ fontFamily: 'Inter', fontSize: '12px', color: '#6B7280' }}>
                             Billed ${plan.annualTotal}/year
                           </div>
                           <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#E85D04', fontWeight: 600, marginTop: '2px' }}>
                             2.5 months free — save ${plan.annualSavings}
                           </div>
-                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C', marginTop: '2px' }}>
+                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>
                             {plan.id === 'starter' ? 'Less than 45¢ a day' : 'Less than 90¢ a day'}
                           </div>
                         </div>
                       ) : (
                         <div style={{ marginTop: '6px' }}>
-                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#44403C' }}>
+                          <div style={{ fontFamily: 'Inter', fontSize: '11px', color: '#9CA3AF' }}>
                             {plan.id === 'starter' ? 'Less than 50¢ a day' : 'Less than $1 a day'}
                           </div>
                         </div>
@@ -495,7 +495,7 @@ export default function Pricing() {
                   </a>
 
                   {/* Divider */}
-                  <div style={{ height: '1px', background: isPro ? 'rgba(156,32,0,0.2)' : 'rgba(255,255,255,0.06)', marginBottom: '20px' }} />
+                  <div style={{ height: '1px', background: isPro ? 'rgba(156,32,0,0.1)' : 'rgba(0,0,0,0.04)', marginBottom: '20px' }} />
 
                   {/* Features */}
                   <div>
@@ -507,12 +507,12 @@ export default function Pricing() {
                           </span>
                           <span style={{
                             fontFamily: 'Inter', fontSize: '13px',
-                            color: f.locked ? '#333' : '#7A7672'
+                            color: f.locked ? '#9CA3AF' : '#6B7280'
                           }}>{f.label}</span>
                         </div>
                         <span style={{
                           fontFamily: 'Inter', fontSize: '12px', fontWeight: 500,
-                          color: f.locked ? '#2A2A2A' : isPro ? '#E85D04' : '#F2EDE8',
+                          color: f.locked ? '#9CA3AF' : isPro ? '#E85D04' : '#111111',
                           textAlign: 'right', maxWidth: '100px'
                         }}>{f.value}</span>
                       </div>
@@ -527,7 +527,7 @@ export default function Pricing() {
         {/* Bottom strip */}
         <div style={{
           marginTop: '48px', padding: '28px 32px',
-          background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)',
+          background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)',
           borderRadius: '14px', display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px'
         }}>
@@ -539,12 +539,12 @@ export default function Pricing() {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: '#9C2000', fontWeight: 700, fontSize: '14px' }}>{item.icon}</span>
-                <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#ffffff' }}>{item.text}</span>
+                <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#111111' }}>{item.text}</span>
               </div>
             ))}
           </div>
           <a href="mailto:vibepromote@gmail.com" style={{
-            fontFamily: 'Inter', fontSize: '13px', color: '#ffffff',
+            fontFamily: 'Inter', fontSize: '13px', color: '#111111',
             textDecoration: 'none', transition: 'color 0.2s'
           }}
             onMouseEnter={e => e.target.style.color = '#9C2000'}
@@ -557,18 +557,18 @@ export default function Pricing() {
         <div style={{ marginTop: '48px', display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '16px' }} className="grid grid-cols-1 md:grid-cols-2">
           {PRICING_TESTIMONIALS.map((t, i) => (
             <div key={i} style={{
-              background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)',
+              background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)',
               borderRadius: '12px', padding: '20px 22px',
               display: 'flex', gap: '12px', alignItems: 'flex-start'
             }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '50%', background: '#9C2000',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex', alignItems: 'center', justifycontent: 'center', justifyContent: 'center',
                 fontFamily: 'Inter', fontWeight: 800, fontSize: '12px', color: '#fff', flexShrink: 0
               }}>{t.name[0]}</div>
               <div>
-                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#F2EDE8', marginBottom: '4px' }}>{t.name} ({t.role} at {t.company})</div>
-                <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.55, margin: 0 }}>"{t.text}"</p>
+                <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '13px', color: '#111111', marginBottom: '4px' }}>{t.name} ({t.role} at {t.company})</div>
+                <p style={{ fontFamily: 'Inter', fontSize: '13px', color: '#6B7280', lineHeight: 1.55, margin: 0 }}>"{t.text}"</p>
               </div>
             </div>
           ))}
@@ -576,27 +576,27 @@ export default function Pricing() {
 
         {/* FAQ Section */}
         <div style={{ marginTop: '80px', maxWidth: '760px', margin: '80px auto 0' }}>
-          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '28px', color: '#F2EDE8', textAlign: 'center', marginBottom: '32px' }}>
+          <h2 style={{ fontFamily: 'Inter', fontWeight: 900, fontSize: '28px', color: '#111111', textAlign: 'center', marginBottom: '32px' }}>
             Frequently Asked Questions
           </h2>
-          <div style={{ background: '#0A0A0F', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', overflow: 'hidden' }}>
+          <div style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '16px', overflow: 'hidden' }}>
             {FAQS.map((faq, i) => {
               const isOpen = openFaqIdx === i;
               return (
-                <div key={i} style={{ borderBottom: i < FAQS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <div key={i} style={{ borderBottom: i < FAQS.length - 1 ? '1px solid rgba(0,0,0,0.08)' : 'none' }}>
                   <button
                     onClick={() => setOpenFaqIdx(isOpen ? -1 : i)}
                     style={{
-                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      width: '100%', display: 'flex', alignItems: 'center', justifycontent: 'space-between', justifyContent: 'space-between',
                       padding: '20px 24px', background: 'none', border: 'none', cursor: 'pointer',
                       textAlign: 'left', outline: 'none'
                     }}
                   >
-                    <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: '#F2EDE8' }}>{faq.q}</span>
+                    <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: '#111111' }}>{faq.q}</span>
                     <span style={{ color: '#9C2000', fontSize: '18px', fontWeight: 'bold' }}>{isOpen ? '−' : '+'}</span>
                   </button>
                   {isOpen && (
-                    <div style={{ padding: '0 24px 20px', fontFamily: 'Inter', fontSize: '13px', color: '#7A7672', lineHeight: 1.6 }}>
+                    <div style={{ padding: '0 24px 20px', fontFamily: 'Inter', fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>
                       {faq.a}
                     </div>
                   )}
@@ -608,19 +608,19 @@ export default function Pricing() {
       </div>
 
       {/* Footer */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '28px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#F2EDE8' }}>
+      <footer style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '28px 40px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#111111' }}>
             Vibe<span style={{ color: '#9C2000' }}>Promote</span>
           </div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href="/privacy" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
-              onMouseEnter={e => e.target.style.color = '#7A7672'} onMouseLeave={e => e.target.style.color = '#44403C'}>Privacy</a>
-            <a href="/terms" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
-              onMouseEnter={e => e.target.style.color = '#7A7672'} onMouseLeave={e => e.target.style.color = '#44403C'}>Terms</a>
-            <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#44403C', textDecoration: 'none' }}
-              onMouseEnter={e => e.target.style.color = '#9C2000'} onMouseLeave={e => e.target.style.color = '#44403C'}>Support</a>
-            <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#2A2A2A' }}>2026 Vibe Promote</span>
+            <a href="/privacy" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#6B7280'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Privacy</a>
+            <a href="/terms" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#6B7280'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Terms</a>
+            <a href="mailto:vibepromote@gmail.com" style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF', textDecoration: 'none' }}
+              onMouseEnter={e => e.target.style.color = '#9C2000'} onMouseLeave={e => e.target.style.color = '#9CA3AF'}>Support</a>
+            <span style={{ fontFamily: 'Inter', fontSize: '13px', color: '#9CA3AF' }}>2026 Vibe Promote</span>
           </div>
         </div>
       </footer>

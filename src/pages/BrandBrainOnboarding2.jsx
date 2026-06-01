@@ -43,7 +43,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
       className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
         active 
           ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
-          : 'bg-zinc-900 border-white/10 text-white/60 hover:border-white/20'
+          : 'bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20'
       }`}
     >
       {label}
@@ -51,7 +51,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
   );
 
   return (
-    <div className="relative min-h-screen bg-bg-base text-white font-poppins overflow-hidden flex flex-col">
+    <div className="relative min-h-screen bg-background text-foreground font-poppins overflow-hidden flex flex-col">
       <GridBackground />
       <ParticleBackground />
 
@@ -62,14 +62,14 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
             <div 
               key={s} 
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                s === 2 ? 'w-6 bg-white' : 'w-2 bg-white/20'
+                s === 2 ? 'w-6 bg-foreground' : 'w-2 bg-foreground/20'
               }`} 
             />
           ))}
         </div>
         <button 
           onClick={handleContinue}
-          className="text-sm font-medium text-white/40 hover:text-white transition-colors bg-transparent border-none cursor-pointer"
+          className="text-sm font-medium text-foreground/40 hover:text-foreground transition-colors bg-transparent border-none cursor-pointer"
         >
           Skip
         </button>
@@ -85,11 +85,11 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
           className="space-y-8"
         >
           <div>
-            <span className="text-xs tracking-[0.3em] text-white/40 uppercase font-medium mb-4 block">STEP 2</span>
-            <h1 className="text-5xl font-bold text-white leading-tight mb-3">
+            <span className="text-xs tracking-[0.3em] text-foreground/40 uppercase font-medium mb-4 block">STEP 2</span>
+            <h1 className="text-5xl font-bold text-foreground leading-tight mb-3">
               Post Maker Setup.
             </h1>
-            <p className="text-white/40 text-base mb-10">
+            <p className="text-foreground/40 text-base mb-10">
               We've prefilled these based on your niche. Edit if you see something wrong.
             </p>
           </div>
@@ -142,7 +142,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
                 placeholder="e.g. Faster setup, cleaner UI, or cheaper pricing..."
                 value={differentiator}
                 onChange={(e) => setDifferentiator(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-zinc-900 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
+                className="w-full px-5 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/20 text-sm focus:outline-none focus:border-foreground/30 transition-all resize-none"
               />
             </div>
 
@@ -153,7 +153,7 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
                 placeholder="e.g. 'spent too much on ads', 'no time to post'..."
                 value={painPoints}
                 onChange={(e) => setPainPoints(e.target.value)}
-                className="w-full px-5 py-4 rounded-2xl bg-zinc-900 border border-white/10 text-white placeholder-white/20 text-sm focus:outline-none focus:border-white/30 transition-all resize-none"
+                className="w-full px-5 py-4 rounded-2xl bg-foreground/5 border border-foreground/10 text-foreground placeholder-foreground/20 text-sm focus:outline-none focus:border-foreground/30 transition-all resize-none"
               />
             </div>
 
@@ -174,45 +174,45 @@ export default function BrandBrainOnboarding2({ app_name, app_description, onCom
           className="hidden lg:flex flex-col gap-4 relative w-full"
         >
           {/* Top Card */}
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-5 flex items-center gap-4">
+          <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-5 flex items-center gap-4">
             <Brain className="w-8 h-8 text-primary" />
             <div className="flex-1">
-              <span className="text-[10px] tracking-widest text-white/30 uppercase font-bold block">YOUR APP BRAIN</span>
-              <span className="text-white font-semibold text-sm">Building live</span>
+              <span className="text-[10px] tracking-widest text-foreground/40 uppercase font-bold block">YOUR APP BRAIN</span>
+              <span className="text-foreground font-semibold text-sm">Building live</span>
             </div>
-            <Rocket className="w-5 h-5 text-white/20" />
+            <Rocket className="w-5 h-5 text-foreground/20" />
           </div>
 
           {/* Bottom Card */}
-          <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-            <span className="text-[10px] tracking-widest text-white/30 uppercase font-bold mb-3 block">APP</span>
+          <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 backdrop-blur-sm">
+            <span className="text-[10px] tracking-widest text-foreground/40 uppercase font-bold mb-3 block">APP</span>
             
             {app_name ? (
-              <h2 className="text-white text-3xl font-bold break-words">{app_name}</h2>
+              <h2 className="text-foreground text-3xl font-bold break-words">{app_name}</h2>
             ) : (
-              <h2 className="text-white/20 italic text-3xl font-bold">Your app name</h2>
+              <h2 className="text-foreground/20 italic text-3xl font-bold">Your app name</h2>
             )}
 
             {app_description ? (
-              <p className="text-white/60 text-sm leading-relaxed mt-3 break-words">{app_description}</p>
+              <p className="text-foreground/60 text-sm leading-relaxed mt-3 break-words">{app_description}</p>
             ) : (
-              <p className="text-white/20 italic text-sm leading-relaxed mt-3">
+              <p className="text-foreground/20 italic text-sm leading-relaxed mt-3">
                 Your one-sentence description will appear here as Vibe Promote builds your launch brain in real time.
               </p>
             )}
 
             {/* Dynamic prefilled details */}
-            <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
+            <div className="mt-6 pt-6 border-t border-foreground/10 space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/40">Tone</span>
+                <span className="text-foreground/40">Tone</span>
                 <span className="text-primary font-semibold">{tone}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/40">Style</span>
+                <span className="text-foreground/40">Style</span>
                 <span className="text-primary font-semibold">{style}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/40">Platforms</span>
+                <span className="text-foreground/40">Platforms</span>
                 <span className="text-primary font-semibold truncate max-w-[180px]">{selectedPlatforms.join(', ')}</span>
               </div>
             </div>

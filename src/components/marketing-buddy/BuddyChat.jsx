@@ -89,8 +89,8 @@ export default function BuddyChat() {
             className={cn(
               "max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed relative",
               msg.role === 'user' 
-                ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-white rounded-br-sm" 
-                : "mr-auto bg-[#111111] border border-[#1F1F1F] text-zinc-300 rounded-bl-sm"
+                ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-foreground rounded-br-sm" 
+                : "mr-auto bg-foreground/5 border border-foreground/10 text-zinc-700 rounded-bl-sm"
             )}
           >
             {msg.role === 'buddy' && (
@@ -101,14 +101,14 @@ export default function BuddyChat() {
         ))}
         
         {isTyping && (
-          <div className="mr-auto bg-[#111111] border border-[#1F1F1F] rounded-xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
+          <div className="mr-auto bg-foreground/5 border border-foreground/10 rounded-xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
             <Loader2 size={14} className="text-orange-500 animate-spin mr-1" />
             <span className="text-zinc-500 text-xs">Consulting your brain...</span>
           </div>
         )}
       </div>
 
-      <div className="bg-[#0A0A0A] border-t border-[#1F1F1F] pt-4 space-y-3">
+      <div className="bg-background border-t border-foreground/10 pt-4 space-y-3">
         <div className="flex flex-wrap gap-2">
           {suggestions.map((prompt) => (
             <button
@@ -116,7 +116,7 @@ export default function BuddyChat() {
               type="button"
               onClick={() => handleSend(prompt)}
               disabled={isTyping}
-              className="bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-bold rounded-full px-3 py-1.5 text-left hover:border-zinc-600 hover:text-white transition-all disabled:opacity-50"
+              className="bg-foreground/5 border border-foreground/10 text-zinc-500 text-[10px] font-bold rounded-full px-3 py-1.5 text-left hover:border-zinc-600 hover:text-foreground transition-all disabled:opacity-50"
             >
               {prompt}
             </button>
@@ -126,7 +126,7 @@ export default function BuddyChat() {
           <textarea 
             rows={1}
             placeholder="Ask anything..."
-            className="flex-1 bg-[#111111] border border-[#1F1F1F] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-zinc-500 resize-none min-h-[46px] max-h-[120px]"
+            className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-orange-500 placeholder-zinc-500 resize-none min-h-[46px] max-h-[120px]"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onInput={(e) => {
@@ -145,7 +145,7 @@ export default function BuddyChat() {
             disabled={!inputValue.trim() || isTyping}
             className={cn(
               "p-3 rounded-xl transition-all flex-shrink-0",
-              inputValue.trim() && !isTyping ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+              inputValue.trim() && !isTyping ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "bg-zinc-200 text-zinc-400 cursor-not-allowed"
             )}
           >
             <Send size={16} />

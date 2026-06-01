@@ -58,25 +58,25 @@ Brand data: ${JSON.stringify(appData)}`;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-6 text-center font-poppins">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center font-poppins text-foreground">
         <div className="relative w-20 h-20 mb-8">
           <div className="absolute inset-0 rounded-full bg-[#F97316]/20 animate-ping" />
-          <div className="relative w-20 h-20 rounded-full bg-[#141414] border border-[#F97316]/30 flex items-center justify-center">
+          <div className="relative w-20 h-20 rounded-full bg-foreground/5 border border-[#F97316]/30 flex items-center justify-center">
             <Brain className="w-10 h-10 text-[#F97316] animate-pulse" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-[#FAFAFA] mb-2">Analyzing your positioning...</h2>
-        <p className="text-[#71717A]">Our elite strategist is crafting your unique market position.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Analyzing your positioning...</h2>
+        <p className="text-zinc-500">Our elite strategist is crafting your unique market position.</p>
       </div>
     );
   }
 
   if (error || !aiPositioning) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-6 text-center font-poppins">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center font-poppins text-foreground">
         <AlertCircle className="w-12 h-12 text-red-500 mb-6" />
-        <h2 className="text-2xl font-bold text-[#FAFAFA] mb-2">Something went wrong</h2>
-        <p className="text-[#71717A] mb-8">{error}</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Something went wrong</h2>
+        <p className="text-zinc-500 mb-8">{error}</p>
         <button 
           onClick={generatePositioning}
           className="flex items-center gap-2 px-8 py-4 bg-[#F97316] text-white rounded-xl font-bold hover:bg-[#9e4a2a] transition-all"
@@ -89,21 +89,21 @@ Brand data: ${JSON.stringify(appData)}`;
   }
 
   const Section = ({ label, icon: Icon, children, color = "text-[#F97316]" }) => (
-    <div className="py-6 border-b border-[#1F1F1F] last:border-0">
+    <div className="py-6 border-b border-foreground/10 last:border-0">
       <div className="flex items-center gap-2 mb-3">
         {Icon && <Icon className={`w-4 h-4 ${color}`} />}
-        <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#71717A]">
+        <label className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500">
           {label}
         </label>
       </div>
-      <div className="text-[#FAFAFA] text-sm leading-relaxed font-medium">
+      <div className="text-foreground text-sm leading-relaxed font-medium">
         {children}
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#FAFAFA] font-poppins py-16 px-4 sm:px-6">
+    <div className="min-h-screen bg-background text-foreground font-poppins py-16 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-16">
           <motion.div
@@ -114,10 +114,10 @@ Brand data: ${JSON.stringify(appData)}`;
             <Sparkles className="w-4 h-4 text-[#F97316]" />
             <span className="text-[11px] font-bold text-[#F97316] uppercase tracking-widest">Expert Analysis Complete</span>
           </motion.div>
-          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4" style={{ letterSpacing: '-1px' }}>
+          <h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-4" style={{ letterSpacing: '-1px' }}>
             Your Sharpest Market Position
           </h1>
-          <p className="text-[#71717A] max-w-2xl mx-auto text-lg">
+          <p className="text-zinc-500 max-w-2xl mx-auto text-lg">
             We've stripped away the fluff to find the exact words that make your audience pay attention.
           </p>
         </header>
@@ -125,9 +125,9 @@ Brand data: ${JSON.stringify(appData)}`;
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           <div className="flex flex-col">
             <div className="text-center mb-4">
-              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#71717A]">Your Original Input</span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500">Your Original Input</span>
             </div>
-            <div className="flex-1 bg-[#141414] border border-[#1F1F1F] rounded-lg p-8 flex flex-col">
+            <div className="flex-1 bg-foreground/5 border border-foreground/10 rounded-lg p-8 flex flex-col">
               <div className="flex-1">
                 <Section label="App Name">{appData.app_name}</Section>
                 <Section label="Description">{appData.app_description}</Section>
@@ -136,7 +136,7 @@ Brand data: ${JSON.stringify(appData)}`;
               </div>
               <button
                 onClick={() => onComplete({ type: 'user', data: appData })}
-                className="mt-8 w-full py-4 rounded-md border border-[#1F1F1F] text-[#71717A] text-sm font-medium hover:bg-[#1A1A1A] transition-all"
+                className="mt-8 w-full py-4 rounded-md border border-foreground/10 text-zinc-500 text-sm font-medium hover:bg-foreground/10 transition-all bg-transparent"
               >
                 Keep my version
               </button>
@@ -147,21 +147,21 @@ Brand data: ${JSON.stringify(appData)}`;
             <div className="text-center mb-4">
               <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#F97316]">Expert Positioning</span>
             </div>
-            <div className="flex-1 bg-[#141414] border border-[#F97316]/30 rounded-lg p-8 flex flex-col relative">
+            <div className="flex-1 bg-foreground/5 border border-[#F97316]/30 rounded-lg p-8 flex flex-col relative">
               <div className="absolute top-6 right-6 flex items-center gap-2">
                 <div className="flex col items-end">
-                  <span className="text-[10px] font-bold text-[#71717A] uppercase tracking-widest">Confidence</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Confidence</span>
                   <span className="text-sm font-bold text-[#F97316]">92%</span>
                 </div>
               </div>
               
               <div className="flex-1">
-                <div className="mb-8 p-6 rounded-lg bg-[#F97316]/5 border border-[#F97316]/10">
+                <div className="mb-8 p-6 rounded-lg bg-orange-50 border border-orange-100">
                   <div className="flex items-center gap-2 mb-2">
                     <Quote className="w-4 h-4 text-[#F97316]" />
                     <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#F97316]">Suggested Tagline</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-white italic">
+                  <h3 className="text-2xl font-bold text-foreground italic">
                     "{aiPositioning.suggestedTagline}"
                   </h3>
                 </div>

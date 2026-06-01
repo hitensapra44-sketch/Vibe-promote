@@ -85,14 +85,14 @@ Reference the supplied numbers directly; do not fabricate any data.`;
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="w-[320px] sm:w-[380px] bg-[#111111] border border-[#1F1F1F] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[500px]"
+            className="w-[320px] sm:w-[380px] bg-background border border-foreground/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[500px]"
           >
-            <header className="px-4 py-3 border-b border-[#1F1F1F] flex items-center justify-between bg-[#1A1A1A]">
+            <header className="px-4 py-3 border-b border-foreground/10 flex items-center justify-between bg-foreground/5">
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-orange-500" />
-                <span className="text-white text-xs font-bold uppercase tracking-widest">Analytics Buddy</span>
+                <span className="text-foreground text-xs font-bold uppercase tracking-widest">Analytics Buddy</span>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white transition-colors bg-transparent">
+              <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-foreground transition-colors bg-transparent">
                 <X size={16} />
               </button>
             </header>
@@ -102,14 +102,14 @@ Reference the supplied numbers directly; do not fabricate any data.`;
                 <div key={i} className={cn(
                   "max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed",
                   msg.role === 'user' 
-                    ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-white" 
-                    : "mr-auto bg-[#1A1A1A] border border-[#1F1F1F] text-zinc-300"
+                    ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-foreground" 
+                    : "mr-auto bg-foreground/5 border border-foreground/10 text-zinc-700"
                 )}>
                   {msg.text}
                 </div>
               ))}
               {isTyping && (
-                <div className="mr-auto bg-[#1A1A1A] border border-[#1F1F1F] rounded-xl px-3 py-2 flex gap-1">
+                <div className="mr-auto bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex gap-1">
                   <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce" />
                   <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.2s]" />
                   <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.4s]" />
@@ -117,13 +117,13 @@ Reference the supplied numbers directly; do not fabricate any data.`;
               )}
             </div>
 
-            <div className="p-4 border-t border-[#1F1F1F] bg-[#0A0A0A] space-y-3">
+            <div className="p-4 border-t border-foreground/10 bg-background space-y-3">
               <div className="flex flex-col gap-1.5">
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(s)}
-                    className="text-left px-3 py-2 rounded-lg bg-[#111111] border border-[#1F1F1F] text-zinc-400 text-[10px] font-medium hover:border-orange-500/50 hover:text-white transition-all"
+                    className="text-left px-3 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-zinc-500 text-[10px] font-medium hover:border-orange-500/50 hover:text-foreground transition-all"
                   >
                     {s}
                   </button>
@@ -136,7 +136,7 @@ Reference the supplied numbers directly; do not fabricate any data.`;
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  className="flex-1 bg-[#111111] border border-[#1F1F1F] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                  className="flex-1 bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-orange-500"
                 />
                 <button 
                   onClick={() => handleSend()}
@@ -175,7 +175,7 @@ Reference the supplied numbers directly; do not fabricate any data.`;
           }}
           className={cn(
             "w-12 h-12 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300",
-            isOpen ? "bg-[#1F1F1F] text-white" : "bg-orange-500 text-white shadow-orange-500/20"
+            isOpen ? "bg-foreground/10 text-foreground" : "bg-orange-500 text-white shadow-orange-500/20"
           )}
         >
           {isOpen ? <X size={20} /> : <MessageSquare size={20} />}
