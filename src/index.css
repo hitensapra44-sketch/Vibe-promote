@@ -5,58 +5,58 @@
 @layer base {
   :root {
     --font-geist: 'Geist', 'Inter', system-ui, sans-serif;
-    --background: #000000;
-    --foreground: #ffffff;
-    --foreground-rgb: 255, 255, 255;
-    --card: #111111;
-    --card-foreground: #ffffff;
-    --popover: #111111;
-    --popover-foreground: #ffffff;
-    --primary: 263 70% 58%;
+    --background: #ffffff;
+    --foreground: #111111;
+    --foreground-rgb: 17, 17, 17;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --primary: 24.9 91.7% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: #18181b;
-    --secondary-foreground: #ffffff;
-    --muted: #18181b;
-    --muted-foreground: #a1a1aa;
-    --accent: 330 81% 60%;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #111111;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --accent: 24.9 91.7% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: rgba(255, 255, 255, 0.2);
-    --input: rgba(255, 255, 255, 0.2);
-    --ring: 263 70% 58%;
+    --border: rgba(0, 0, 0, 0.08);
+    --input: rgba(0, 0, 0, 0.08);
+    --ring: 24.9 91.7% 50%;
     --radius: 0.5rem;
   }
 
-  .light {
-    --background: #12141C;
-    --foreground: #ffffff;
-    --foreground-rgb: 255, 255, 255;
-    --card: #1a1d28;
-    --card-foreground: #ffffff;
-    --popover: #1a1d28;
-    --popover-foreground: #ffffff;
-    --secondary: #1e2130;
-    --secondary-foreground: #ffffff;
-    --muted: #1e2130;
-    --muted-foreground: #a1a1aa;
-    --border: rgba(255, 255, 255, 0.1);
-    --input: rgba(255, 255, 255, 0.1);
+  .light, .dark {
+    --background: #ffffff;
+    --foreground: #111111;
+    --foreground-rgb: 17, 17, 17;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #111111;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --border: rgba(0, 0, 0, 0.08);
+    --input: rgba(0, 0, 0, 0.08);
   }
 
   html, body {
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: #ffffff !important;
+    color: #111111 !important;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   #root {
-    background-color: var(--background);
+    background-color: #ffffff !important;
     min-height: 100vh;
   }
 
   * {
-    border-color: var(--border);
+    border-color: rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
   }
 
