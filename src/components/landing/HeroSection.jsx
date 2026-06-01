@@ -31,59 +31,59 @@ export default function HeroSection() {
       {/* Elegant Curved SVG Connection Lines */}
       <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block">
         <svg className="w-full h-full" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Left Lines */}
+          {/* Left Lines converging to (720, 360) near 'Becoming' */}
           <motion.path
-            d="M 150 200 Q 350 250 720 350"
+            d="M 150 200 Q 350 250 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
           <motion.path
-            d="M 100 450 Q 300 450 720 380"
+            d="M 100 450 Q 300 450 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
           <motion.path
-            d="M 180 700 Q 380 650 720 410"
+            d="M 180 700 Q 380 650 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
 
-          {/* Right Lines */}
+          {/* Right Lines converging to (720, 360) near 'Becoming' */}
           <motion.path
-            d="M 1290 200 Q 1090 250 720 350"
+            d="M 1290 200 Q 1090 250 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
           <motion.path
-            d="M 1340 450 Q 1140 450 720 380"
+            d="M 1340 450 Q 1140 450 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
           />
           <motion.path
-            d="M 1260 700 Q 1060 650 720 410"
+            d="M 1260 700 Q 1060 650 720 360"
             stroke="#F97316"
-            strokeWidth="2.5"
-            strokeOpacity="0.75"
+            strokeWidth="1.5"
+            strokeOpacity="0.25"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}

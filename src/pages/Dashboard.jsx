@@ -237,13 +237,6 @@ export default function Dashboard() {
             <h1 className="text-sm font-bold text-foreground">Dashboard</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-foreground/5 transition-colors text-foreground bg-transparent border-none cursor-pointer flex items-center justify-center"
-              title="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-zinc-700" />}
-            </button>
             <button 
               onClick={() => setShowGuide(true)}
               className="px-3 py-1.5 rounded-lg border border-foreground/10 text-foreground/70 text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
