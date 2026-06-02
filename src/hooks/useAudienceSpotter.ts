@@ -91,10 +91,8 @@ export function useAudienceSpotter(userId: string) {
       for (const keyword of keywords.slice(0, 4)) {
         for (const community of communities.slice(0, 5)) {
           try {
-            const redditUrl = `https://www.reddit.com/r/${community}/search.json?q=${encodeURIComponent(keyword)}&sort=new&t=week&limit=25&restrict_sr=true`;
-            const res = await fetch(redditUrl, {
-              headers: { 'Accept': 'application/json' }
-            });
+            const proxyUrl = `https://vibe-reddit-proxy.onrender.com/search?q=${encodeURIComponent(keyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week&limit=25`;
+            const res = await fetch(proxyUrl);
             if (res.ok) {
               const data = await res.json();
               const children = data.data?.children || [];
@@ -114,10 +112,13 @@ export function useAudienceSpotter(userId: string) {
                   });
                 }
               });
+            } else {
+              console.error(`Proxy r/${community} status: ${res.status}`);
             }
           } catch (e) {
-            console.error(`Reddit fetch failed for r/${community}:`, e);
+            console.error(`Reddit proxy failed for r/${community}:`, e);
           }
+          await new Promise(r => setTimeout(r, 500));
         }
       }
     }
