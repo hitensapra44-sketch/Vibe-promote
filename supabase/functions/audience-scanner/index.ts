@@ -6,38 +6,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Fallback key in case env var is missing
-const FALLBACK_NVIDIA_KEY = "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";
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const NVIDIA_API_KEY = Deno.env.get('NVIDIA_API_KEY') || FALLBACK_NVIDIA_KEY;
+    const NVIDIA_API_KEY = Deno.env.get('NVIDIA_KEY_MISTRAL_1') || Deno.env.get('NVIDIA_KEY_MISTRAL_2') || Deno.env.get('NVIDIA_KEY_MINIMAX');
+    const SERPER_API_KEY = Deno.env.get('SERPER_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const REDDIT_WORKER_URL = Deno.env.get('REDDIT_WORKER_URL') || '';
 
-    console.log(`[audience-scanner] NVIDIA key present: ${!!NVIDIA_API_KEY}`);
-    console.log(`[audience-scanner] Supabase URL present: ${!!SUPABASE_URL}`);
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("Missing Supabase environment variables.");
-    }
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Missing Supabase env vars");
+    if (!SERPER_API_KEY) throw new Error("Missing SERPER_API_KEY");
+    if (!NVIDIA_API_KEY) throw new Error("Missing NVIDIA API key");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let user_id: string | null = null;
-    let incomingPosts: any[] = [];
     try {
       const body = await req.json();
       user_id = body?.user_id || null;
-      incomingPosts = body?.raw_posts || [];
     } catch (_) {}
 
-    console.log(`[audience-scanner] user_id from request: ${user_id}`);
+    console.log(`[audience-scanner] user_id: ${user_id}`);
 
     let brains: any[] = [];
     if (user_id) {
@@ -57,7 +49,7 @@ serve(async (req) => {
       brains = data || [];
     }
 
-    console.log(`[audience-scanner] Found ${brains.length} brand brains to process`);
+    console.log(`[audience-scanner] Found ${brains.length} brand brains`);
 
     let processedCount = 0;
     let totalInserted = 0;
@@ -66,7 +58,6 @@ serve(async (req) => {
       try {
         const currentUserId = brain.user_id;
         console.log(`[audience-scanner] Processing user: ${currentUserId}`);
-        console.log(`[audience-scanner] app_name: ${brain.app_name}, core_problem: ${brain.core_problem}`);
 
         const { count, error: countError } = await supabase
           .from('audience_signals')
@@ -75,7 +66,6 @@ serve(async (req) => {
           .eq('status', 'new');
 
         if (countError) throw countError;
-        console.log(`[audience-scanner] Current new signals count: ${count}`);
 
         if (count !== null && count >= 15) {
           console.log(`[audience-scanner] Already has 15+ signals. Skipping.`);
@@ -83,44 +73,85 @@ serve(async (req) => {
         }
 
         const needed = Math.min(5, 15 - (count || 0));
-        console.log(`[audience-scanner] Need to find: ${needed} more signals`);
+        console.log(`[audience-scanner] Need ${needed} more signals`);
 
         const keywords: string[] = JSON.parse(brain.audience_keywords || '[]');
         const communities: string[] = JSON.parse(brain.audience_communities || '[]');
         const platforms: string[] = JSON.parse(brain.audience_platforms || '[]');
-
-        console.log(`[audience-scanner] keywords: ${JSON.stringify(keywords)}`);
-        console.log(`[audience-scanner] platforms: ${JSON.stringify(platforms)}`);
-        console.log(`[audience-scanner] communities: ${JSON.stringify(communities)}`);
 
         if (keywords.length === 0) {
           console.log(`[audience-scanner] No keywords. Skipping.`);
           continue;
         }
 
-        // Use 7 days instead of 48 hours to get more posts
-        const now = Math.floor(Date.now() / 1000);
-        const sevenDaysAgo = now - (7 * 24 * 60 * 60);
-
         const rawPosts: any[] = [];
 
-        // Reddit posts come pre-fetched from browser — add them to rawPosts
-        if (platforms.includes('reddit') && incomingPosts.length > 0) {
-          const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
-          incomingPosts.forEach((p: any) => {
-            if (p.created_at > sevenDaysAgo * 1000) {
-              rawPosts.push(p);
+        // REDDIT via Serper
+        if (platforms.includes('reddit')) {
+          for (const keyword of keywords.slice(0, 4)) {
+            for (const community of communities.slice(0, 5)) {
+              try {
+                const query = `site:reddit.com/r/${community} "${keyword}"`;
+                console.log(`[audience-scanner] Serper query: ${query}`);
+
+                const serperRes = await fetch('https://google.serper.dev/search', {
+                  method: 'POST',
+                  headers: {
+                    'X-API-KEY': SERPER_API_KEY,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    q: query,
+                    num: 10,
+                    tbs: 'qdr:w'  // past week
+                  })
+                });
+
+                if (!serperRes.ok) {
+                  console.error(`[audience-scanner] Serper error: ${serperRes.status}`);
+                  continue;
+                }
+
+                const serperData = await serperRes.json();
+                const results = serperData.organic || [];
+                console.log(`[audience-scanner] Serper returned ${results.length} results for "${keyword}" in r/${community}`);
+
+                results.forEach((result: any) => {
+                  const url = result.link || '';
+                  if (!url.includes('reddit.com')) return;
+
+                  // Extract subreddit from URL
+                  const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
+                  const subreddit = subMatch ? subMatch[1] : community;
+
+                  rawPosts.push({
+                    title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
+                    body: result.snippet || '',
+                    url: url,
+                    author: 'unknown',
+                    subreddit: subreddit,
+                    upvotes: 0,
+                    comments: 0,
+                    created_at: Date.now(),
+                    platform: 'reddit'
+                  });
+                });
+
+              } catch (e) {
+                console.error(`[audience-scanner] Serper failed for r/${community}:`, e);
+              }
+
+              await new Promise(r => setTimeout(r, 200));
             }
-          });
+          }
         }
 
-        for (const keyword of keywords.slice(0, 4)) {
-          console.log(`[audience-scanner] Searching keyword: "${keyword}"`);
-
-          // HACKER NEWS
-          if (platforms.includes('hn')) {
+        // HACKER NEWS via Algolia (free, no blocks)
+        if (platforms.includes('hn')) {
+          const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+          for (const keyword of keywords.slice(0, 4)) {
             try {
-              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${sevenDaysAgo},points>1&hitsPerPage=15`;
+              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${sevenDaysAgo},points>1&hitsPerPage=10`;
               const hnRes = await fetch(hnUrl);
               if (hnRes.ok) {
                 const data = await hnRes.json();
@@ -146,11 +177,12 @@ serve(async (req) => {
           }
         }
 
-        console.log(`[audience-scanner] Total raw posts collected: ${rawPosts.length}`);
+        console.log(`[audience-scanner] Total raw posts: ${rawPosts.length}`);
 
+        // Dedup
         const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.url, p])).values());
-        console.log(`[audience-scanner] After dedup: ${uniquePosts.length}`);
 
+        // Filter already stored
         const { data: existingSignals } = await supabase
           .from('audience_signals')
           .select('post_url')
@@ -166,7 +198,7 @@ serve(async (req) => {
           if (insertedCount >= needed) break;
 
           try {
-            console.log(`[audience-scanner] Scoring post: "${post.title.substring(0, 60)}"`);
+            console.log(`[audience-scanner] Scoring: "${post.title.substring(0, 60)}"`);
 
             const aiRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
               method: "POST",
@@ -192,22 +224,8 @@ REPLY RULES — follow every single one:
 - Never use hype words like "game changer", "revolutionary", "insane", "amazing", "best tool"
 - Sound human — use casual lowercase, contractions, slight uncertainty ("imo", "kinda", "might", "depends", "ngl", "tbh")
 - Keep reply to 2-4 sentences only, never longer
-- Never paste the same reply structure twice — vary the opening every time
 - No links anywhere in the reply
 - If the subreddit feels strict or the post is not a strong match, skip the product mention entirely and just be helpful
-
-REPLY STYLES — pick whichever fits the post naturally, do not label it:
-Style A — Helpful Side Mention: Acknowledge frustration → give one useful insight → casual product mention only if relevant → stop
-Style B — Personal Experience: Relate to problem → tiny personal story → lesson → optional soft mention
-Style C — Honest Caveat: Agree with frustration → practical fix first → product mention with a caveat → realistic expectation
-Style D — Low-Key Recommendation: Direct answer → one useful insight → subtle mention → stop
-Style E — Mini Story: Short relatable story → what changed → lesson → optional soft mention
-Style F — Contrarian Take: Challenge common advice calmly → explain why → useful alternative → optional relevant mention
-
-CONTEXT YOU HAVE:
-- Product name, what it solves, who it is for, and what makes it different will be in the user message
-- Post title and body will be in the user message
-- Write the reply as if you are the founder casually helping someone, not pitching
 
 OUTPUT FORMAT:
 Respond ONLY with valid JSON, no markdown, no backticks, no explanation outside the JSON.
@@ -221,14 +239,10 @@ isRelevant should be true only if score is 70 or above AND the post is genuinely
 What it solves: ${brain.core_problem}
 Who it is for: ${brain.target_customer}
 What makes it different: ${brain.unique_differentiator}
-Founder tone: casual, builder, been through the same problems
 
-Monitored communities: ${communities.join(', ')}
 Post subreddit: r/${post.subreddit}
 Post title: ${post.title}
-Post body: ${post.body.substring(0, 800)}
-
-Write a reply following all the rules above. Pick the style that fits this specific post naturally.`
+Post body: ${post.body.substring(0, 600)}`
                   }
                 ],
                 temperature: 0.2,
@@ -237,14 +251,12 @@ Write a reply following all the rules above. Pick the style that fits this speci
             });
 
             if (!aiRes.ok) {
-              const errText = await aiRes.text();
-              console.error(`[audience-scanner] NVIDIA error ${aiRes.status}: ${errText}`);
+              console.error(`[audience-scanner] NVIDIA error ${aiRes.status}`);
               continue;
             }
 
             const aiData = await aiRes.json();
             const rawContent = aiData.choices?.[0]?.message?.content || "";
-            console.log(`[audience-scanner] AI raw response: ${rawContent.substring(0, 150)}`);
 
             const match = rawContent.match(/\{[\s\S]*\}/);
             if (!match) {
@@ -285,7 +297,7 @@ Write a reply following all the rules above. Pick the style that fits this speci
               }
             }
           } catch (e) {
-            console.error(`[audience-scanner] AI scoring failed:`, e);
+            console.error(`[audience-scanner] Scoring failed:`, e);
           }
         }
 
@@ -294,7 +306,7 @@ Write a reply following all the rules above. Pick the style that fits this speci
           .update({ last_scanned_at: new Date().toISOString() })
           .eq('user_id', currentUserId);
 
-        console.log(`[audience-scanner] Done for user ${currentUserId}. Inserted: ${insertedCount}`);
+        console.log(`[audience-scanner] Done for ${currentUserId}. Inserted: ${insertedCount}`);
         processedCount++;
 
       } catch (userError) {

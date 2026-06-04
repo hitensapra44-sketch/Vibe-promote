@@ -13,57 +13,50 @@ export function useAudienceSpotter(userId: string) {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    if (data) {
-      setSignals(data);
-      return data;
-    }
-    return [];
+    if (data) setSignals(data);
   };
 
-  // Load existing signals on mount or when userId changes
   useEffect(() => {
-    if (userId) {
-      loadSignals();
+    if (!userId) return;
 
-      const channel = supabase
-        .channel(`audience_signals_${userId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'audience_signals',
-            filter: `user_id=eq.${userId}`
-          },
-          (payload) => {
-            setSignals(prev => {
-              const exists = prev.find(s => s.id === payload.new.id);
-              if (exists) return prev;
-              return [payload.new, ...prev];
-            });
-            setIsLoading(false);
-            if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-          }
-        )
-        .subscribe();
+    loadSignals();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+    const channel = supabase
+      .channel(`audience_signals_${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'audience_signals',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          setSignals(prev => {
+            const exists = prev.find(s => s.id === payload.new.id);
+            if (exists) return prev;
+            return [payload.new, ...prev];
+          });
+          setIsLoading(false);
+          if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
   const startScan = async ({ keywords, platforms, communities }: { keywords: string[], platforms: string[], communities: string[] }) => {
     if (!userId) return;
     setIsLoading(true);
 
-    const scanStartedAt = Date.now();
-
     localStorage.setItem('vh_audience_config', JSON.stringify({
       keywords,
       platforms,
       communities,
-      scanStartedAt,
+      scanStartedAt: Date.now(),
       isScanning: true
     }));
 
@@ -72,7 +65,7 @@ export function useAudienceSpotter(userId: string) {
       setIsLoading(false);
       const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
       localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
-    }, 360000);
+    }, 120000); // 2 min timeout
 
     await supabase
       .from('brand_brains')
@@ -83,94 +76,20 @@ export function useAudienceSpotter(userId: string) {
       })
       .eq('user_id', userId);
 
-    // Browser-side Reddit fetch — no server IP blocks
-    const rawPosts: any[] = [];
-    const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
-
-    if (platforms.includes('reddit')) {
-      for (const keyword of keywords.slice(0, 4)) {
-        for (const community of communities.slice(0, 5)) {
-          try {
-            let data: any = null;
-            let success = false;
-
-            // Try direct fetch first
-            try {
-              const directUrl = `https://www.reddit.com/r/${encodeURIComponent(community)}/search.json?q=${encodeURIComponent(keyword)}&restrict_sr=1&sort=new&t=week&limit=25`;
-              const res = await fetch(directUrl, {
-                headers: {
-                  'Accept': 'application/json'
-                }
-              });
-              if (res.ok) {
-                data = await res.json();
-                success = true;
-              } else {
-                console.warn(`Direct Reddit fetch failed with status: ${res.status}. Falling back to proxy.`);
-              }
-            } catch (directErr) {
-              console.warn(`Direct Reddit fetch failed with error:`, directErr, `Falling back to proxy.`);
-            }
-
-            // Fallback to proxy if direct fetch failed
-            if (!success) {
-              const proxyUrl = `https://vibe-reddit-proxy.onrender.com/search?q=${encodeURIComponent(keyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week&limit=25`;
-              const res = await fetch(proxyUrl);
-              if (res.ok) {
-                data = await res.json();
-                success = true;
-              } else {
-                console.error(`Reddit proxy r/${community} status: ${res.status}`);
-              }
-            }
-
-            if (success && data?.data?.children) {
-              data.data.children.forEach((child: any) => {
-                const p = child.data;
-                if (p && p.created_utc > sevenDaysAgo) {
-                  rawPosts.push({
-                    title: p.title || '',
-                    body: p.selftext || '',
-                    url: `https://reddit.com${p.permalink}`,
-                    author: p.author || 'unknown',
-                    subreddit: p.subreddit || community,
-                    upvotes: p.score || 0,
-                    comments: p.num_comments || 0,
-                    created_at: p.created_utc * 1000,
-                    platform: 'reddit'
-                  });
-                }
-              });
-            }
-          } catch (e) {
-            console.error(`Reddit fetch failed for r/${community}:`, e);
-          }
-          await new Promise(r => setTimeout(r, 500));
-        }
-      }
-    }
-
-    // Fire Edge Function with raw posts for AI scoring
-    // HN fetching stays in the Edge Function since Algolia has no blocks
+    // Fire Edge Function — everything happens server-side now
     supabase.functions.invoke('audience-scanner', {
-      body: { 
-        user_id: userId,
-        raw_posts: rawPosts  // send browser-fetched Reddit posts
-      },
-    }).catch(e => console.error('Scanner fire failed:', e));
+      body: { user_id: userId }
+    }).catch(e => console.error('Scanner invoke failed:', e));
   };
 
   const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
-    // Optimistic update
     setSignals(prev => prev.map(s => s.id === id ? { ...s, status } : s));
-
     await supabase
       .from('audience_signals')
       .update({ status })
       .eq('id', id);
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
