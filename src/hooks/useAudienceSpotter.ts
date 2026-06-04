@@ -91,12 +91,41 @@ export function useAudienceSpotter(userId: string) {
       for (const keyword of keywords.slice(0, 4)) {
         for (const community of communities.slice(0, 5)) {
           try {
-            const proxyUrl = `https://vibe-reddit-proxy.onrender.com/search?q=${encodeURIComponent(keyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week&limit=25`;
-            const res = await fetch(proxyUrl);
-            if (res.ok) {
-              const data = await res.json();
-              const children = data.data?.children || [];
-              children.forEach((child: any) => {
+            let data: any = null;
+            let success = false;
+
+            // Try direct fetch first
+            try {
+              const directUrl = `https://www.reddit.com/r/${encodeURIComponent(community)}/search.json?q=${encodeURIComponent(keyword)}&restrict_sr=1&sort=new&t=week&limit=25`;
+              const res = await fetch(directUrl, {
+                headers: {
+                  'Accept': 'application/json'
+                }
+              });
+              if (res.ok) {
+                data = await res.json();
+                success = true;
+              } else {
+                console.warn(`Direct Reddit fetch failed with status: ${res.status}. Falling back to proxy.`);
+              }
+            } catch (directErr) {
+              console.warn(`Direct Reddit fetch failed with error:`, directErr, `Falling back to proxy.`);
+            }
+
+            // Fallback to proxy if direct fetch failed
+            if (!success) {
+              const proxyUrl = `https://vibe-reddit-proxy.onrender.com/search?q=${encodeURIComponent(keyword)}&sub=${encodeURIComponent(community)}&sort=new&t=week&limit=25`;
+              const res = await fetch(proxyUrl);
+              if (res.ok) {
+                data = await res.json();
+                success = true;
+              } else {
+                console.error(`Reddit proxy r/${community} status: ${res.status}`);
+              }
+            }
+
+            if (success && data?.data?.children) {
+              data.data.children.forEach((child: any) => {
                 const p = child.data;
                 if (p && p.created_utc > sevenDaysAgo) {
                   rawPosts.push({
@@ -112,11 +141,9 @@ export function useAudienceSpotter(userId: string) {
                   });
                 }
               });
-            } else {
-              console.error(`Proxy r/${community} status: ${res.status}`);
             }
           } catch (e) {
-            console.error(`Reddit proxy failed for r/${community}:`, e);
+            console.error(`Reddit fetch failed for r/${community}:`, e);
           }
           await new Promise(r => setTimeout(r, 500));
         }
