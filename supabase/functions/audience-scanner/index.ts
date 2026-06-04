@@ -231,7 +231,7 @@ OUTPUT FORMAT:
 Respond ONLY with valid JSON, no markdown, no backticks, no explanation outside the JSON.
 {"score": 1-100, "intent_type": "Seeking Solution" | "Frustrated User" | "Comparison Shopping" | "Pain Point", "suggested_reply": "your reply here", "isRelevant": true or false}
 
-isRelevant should be true only if score is 70 or above AND the post is genuinely about a problem the product solves.`
+isRelevant must be true if score is 65 or above. isRelevant must be false if score is below 65. Never contradict the score.`
                   },
                   {
                     role: "user",
@@ -267,7 +267,7 @@ Post body: ${post.body.substring(0, 600)}`
             const aiResult = JSON.parse(match[0]);
             console.log(`[audience-scanner] Score: ${aiResult.score}, Relevant: ${aiResult.isRelevant}`);
 
-            if (aiResult.isRelevant === true && aiResult.score >= 70) {
+            if (aiResult.score >= 65) {
               const { error: insertError } = await supabase
                 .from('audience_signals')
                 .upsert({
