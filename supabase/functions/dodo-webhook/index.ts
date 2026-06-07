@@ -3,14 +3,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const PRODUCT_TO_PLAN = {
   "pdt_0NeC9rFODkRRQYNQOlHlH": "starter",
-  "pdt_0Ne1moGR0X9lBvhgme2rO": "pro",
-  "pdt_0NeCAkzcVSNwW1PqKCAjA": "founder"
+  "pdt_0Ne1moGR0X9lBvhgme2rO": "pro"
 };
 
 const PRODUCT_TO_AMOUNT = {
   "pdt_0NeC9rFODkRRQYNQOlHlH": "15",
-  "pdt_0Ne1moGR0X9lBvhgme2rO": "29",
-  "pdt_0NeCAkzcVSNwW1PqKCAjA": "99"
+  "pdt_0Ne1moGR0X9lBvhgme2rO": "29"
 };
 
 console.info('dodo-webhook started');
@@ -83,7 +81,7 @@ Deno.serve(async (req) => {
         user_id: matchedUser.id,
         email: email,
         plan: plan,
-        payment_status: "active",
+        payment_status: true,
         amount: amount
       },
       { onConflict: "user_id" }
