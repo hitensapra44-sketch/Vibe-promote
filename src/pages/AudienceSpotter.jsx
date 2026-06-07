@@ -74,6 +74,7 @@ export default function AudienceSpotter() {
   const [brain, setBrain] = useState(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentDay, setCurrentDay] = useState(1);
+  const [copiedSignalId, setCopiedSignalId] = useState(null);
   const navigate = useNavigate();
   
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
@@ -609,10 +610,13 @@ export default function AudienceSpotter() {
 
                     <div className="flex items-center justify-between pt-6 border-t border-foreground/5">
                       <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-foreground/60">
-                          <Zap className="w-4 h-4" />
-                          <span className="text-xs font-bold">{signal.upvotes} Upvotes</span>
-                        </div>
+                        <button 
+                          onClick={() => window.open(signal.post_url, '_blank')}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background font-bold text-xs hover:scale-105 transition-all shadow-xl"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Open Post
+                        </button>
                         <div className="flex items-center gap-3 border-l border-foreground/10 pl-6">
                           <button 
                             onClick={() => {
@@ -637,19 +641,23 @@ export default function AudienceSpotter() {
                         <button 
                           onClick={() => {
                             navigator.clipboard.writeText(signal.suggested_reply);
+                            setCopiedSignalId(signal.id);
                             toast.success("Reply copied!");
+                            setTimeout(() => setCopiedSignalId(null), 2000);
                           }}
                           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10"
                         >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy Reply
-                        </button>
-                        <button 
-                          onClick={() => window.open(signal.post_url, '_blank')}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background font-bold text-xs hover:scale-105 transition-all shadow-xl"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Open Post
+                          {copiedSignalId === signal.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-green-500" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              Copy Reply
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>

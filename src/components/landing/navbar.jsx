@@ -21,7 +21,8 @@ export default function NavBar() {
       }}
     >
       <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
-        <a href="#" className="font-geist text-xl tracking-tight text-zinc-900" style={{ fontWeight: 800 }}>
+        <a href="#" className="font-geist text-xl tracking-tight text-zinc-900 flex items-center gap-2" style={{ fontWeight: 800 }}>
+          <img src="/logo.png" alt="Vibe Promote Logo" className="w-6 h-6 object-contain" />
           Vibe<span className="text-orange-500">Promote</span>
         </a>
 

@@ -248,7 +248,8 @@ export default function Pricing() {
         WebkitBackdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(0,0,0,0.08)'
       }}>
-        <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#111111', textDecoration: 'none', flex: '0 0 auto' }}>
+        <a href="/" style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '18px', color: '#111111', textDecoration: 'none', flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/logo.png" alt="Vibe Promote Logo" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
           Vibe<span style={{ color: '#F97316' }}>Promote</span>
         </a>
         <div style={{ flex: 1 }} />
@@ -577,7 +578,8 @@ export default function Pricing() {
       {/* Footer */}
       <footer style={{ borderTop: '1px solid rgba(0,0,0,0.08)', padding: '28px 40px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifycontent: 'space-between', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#111111' }}>
+          <div style={{ fontFamily: 'Inter', fontWeight: 700, fontSize: '16px', color: '#111111', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Vibe Promote Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
             Vibe<span style={{ color: '#F97316' }}>Promote</span>
           </div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
