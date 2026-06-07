@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon, X } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
-import GridBackground from '../components/ui/grid-background';
+import GridBackground from '../ui/grid-background';
 import { generateAICall } from '../lib/ai';
 import { supabase } from '../supabaseClient';
+import { cn } from '../lib/utils';
 
 async function fetchAndCleanPage(url) {
   try {
