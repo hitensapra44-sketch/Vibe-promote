@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon } from 'lucide-react';
+import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon, X } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
@@ -78,7 +78,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
   "category": "string"
 }`;
 
-    try {
+  try {
       const pageContent = await fetchAndCleanPage(url);
       const result = await generateAICall(systemPrompt, `Here is the extracted landing page content. Analyze it and return the JSON:\n\n${pageContent}`, null, 'onboarding');
 
@@ -126,6 +126,8 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
       });
     }
   };
+
+  const hasAnyContent = appName.trim() || appDescription.trim() || targetCustomer.trim() || coreProblem.trim() || category.trim();
 
   return (
     <div className="relative min-h-screen bg-background text-foreground font-poppins overflow-hidden">
@@ -186,56 +188,103 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-start"
+            className="max-w-3xl mx-auto"
           >
-            {/* Left Column — inputs */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">App Name</label>
+            <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-8 shadow-2xl relative">
+              {/* Card Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-primary" />
+                  <span className="text-foreground/40 text-[10px] tracking-widest font-bold uppercase">YOUR BRAND BRAIN</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={cn("w-2 h-2 rounded-full", hasAnyContent ? "bg-green-400 animate-pulse" : "bg-zinc-400")} />
+                  <span className="text-foreground/60 text-xs">
+                    {hasAnyContent ? "Building live" : "Waiting for input"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-4" />
+
+              {/* BRAND Section */}
+              <div className="space-y-2 py-4">
+                <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">BRAND</span>
                 <input
                   type="text"
+                  placeholder="Your brand name"
                   value={appName}
                   onChange={(e) => setAppName(e.target.value)}
-                  className={`w-full px-5 py-3.5 rounded-xl bg-foreground/5 border ${errors.app_name ? 'border-red-500' : 'border-foreground/10'} text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all`}
+                  className={`w-full px-5 py-3.5 rounded-xl bg-foreground/5 border ${errors.app_name ? 'border-red-500' : 'border-foreground/10'} text-lg font-bold text-foreground focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Description</label>
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-4" />
+
+              {/* DESCRIPTION Section */}
+              <div className="space-y-2 py-4">
+                <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">DESCRIPTION</span>
                 <textarea
                   rows={3}
+                  placeholder="Your one-sentence pitch will appear here as Vibe Promote builds your brand brain in real time."
                   value={appDescription}
                   onChange={(e) => setAppDescription(e.target.value)}
                   className={`w-full px-5 py-3.5 rounded-xl bg-foreground/5 border ${errors.app_description ? 'border-red-500' : 'border-foreground/10'} text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Target Audience</label>
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-4" />
+
+              {/* AUDIENCE Section */}
+              <div className="space-y-2 py-4">
+                <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">AUDIENCE</span>
                 <input
                   type="text"
+                  placeholder="Who you're building for"
                   value={targetCustomer}
                   onChange={(e) => setTargetCustomer(e.target.value)}
                   className={`w-full px-5 py-3.5 rounded-xl bg-foreground/5 border ${errors.target_customer ? 'border-red-500' : 'border-foreground/10'} text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Core Problem Solved</label>
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-4" />
+
+              {/* PROBLEM Section */}
+              <div className="space-y-2 py-4">
+                <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">PROBLEM</span>
                 <input
                   type="text"
+                  placeholder="The pain you solve"
                   value={coreProblem}
                   onChange={(e) => setCoreProblem(e.target.value)}
                   className={`w-full px-5 py-3.5 rounded-xl bg-foreground/5 border ${errors.core_problem ? 'border-red-500' : 'border-foreground/10'} text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all`}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Category</label>
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-4" />
+
+              {/* CATEGORY Section */}
+              <div className="space-y-2 py-4">
+                <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">CATEGORY</span>
                 <input
                   type="text"
+                  placeholder="e.g. marketing, productivity, developer-tools"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
                 />
               </div>
-              <div className="pt-6 flex justify-start">
+
+              {/* Divider */}
+              <div className="border-t border-foreground/10 my-6" />
+
+              {/* Footer inside card */}
+              <div className="pt-2">
                 <button
                   onClick={handleContinue}
                   className="group inline-flex items-center gap-3 px-10 py-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-base transition-all shadow-xl shadow-primary/20 w-full justify-center"
@@ -243,68 +292,6 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                   Everything looks good
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-              </div>
-            </div>
-
-            {/* Right Column — live preview card */}
-            <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 sticky top-8">
-              {/* Top section inside card */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-primary" />
-                  <span className="text-foreground/40 text-[10px] tracking-widest font-bold uppercase">YOUR BRAND BRAIN</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-foreground/60 text-xs">Building live</span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-foreground/10 my-4" />
-
-              {/* Inner preview section */}
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold mb-2 block">BRAND</span>
-                  {appName ? (
-                    <h3 className="text-foreground text-2xl font-bold">{appName}</h3>
-                  ) : (
-                    <h3 className="text-foreground/20 italic text-2xl font-bold">Your brand name</h3>
-                  )}
-                </div>
-
-                <div>
-                  {appDescription ? (
-                    <p className="text-foreground/70 text-sm leading-relaxed">{appDescription}</p>
-                  ) : (
-                    <p className="text-foreground/20 text-sm italic">Your one-sentence pitch will appear here as Vibe Hype builds your brand brain in real time.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Second divider */}
-              <div className="border-t border-foreground/10 my-4" />
-
-              {/* Two more small preview rows */}
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold mb-1 block">AUDIENCE</span>
-                  {targetCustomer ? (
-                    <p className="text-foreground/70 text-sm">{targetCustomer}</p>
-                  ) : (
-                    <p className="text-foreground/20 text-sm italic">Who you're building for</p>
-                  )}
-                </div>
-
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold mb-1 block">PROBLEM</span>
-                  {coreProblem ? (
-                    <p className="text-foreground/70 text-sm">{coreProblem}</p>
-                  ) : (
-                    <p className="text-foreground/20 text-sm italic">The pain you solve</p>
-                  )}
-                </div>
               </div>
             </div>
           </motion.div>
