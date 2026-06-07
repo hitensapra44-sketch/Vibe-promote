@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowRight, RefreshCw, Target, Zap, ShieldCheck, Quote, Brain, AlertCircle, Hash, TrendingUp } from 'lucide-react';
 import { generateAICall } from '../lib/ai';
+import { cn } from "@/lib/utils";
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);
   const [aiPositioning, setAiPositioning] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedChannels, setSelectedChannels] = useState(['Reddit', 'X', 'Threads']);
 
   const generatePositioning = async () => {
     if (!appData) return;
@@ -16,27 +18,44 @@ export default function PositioningHelper({ appData, onComplete }) {
     setLoading(true);
     setError(null);
 
-    const systemPrompt = `You are a world-class SaaS positioning strategist. You have 5 proven positioning frameworks below. Your job is to silently pick the ONE framework that best fits the brand data provided, then use it to write the positioning output. Never mention the framework name or that you used one. Just deliver the result.
+    const systemPrompt = `You are a world-class SaaS positioning strategist and growth advisor. You have 5 proven positioning frameworks. Silently pick the ONE that best fits the brand data. Never name the framework. Just deliver the result.
 
 FRAMEWORKS:
-1. Pain Agitator — Lead with the exact painful situation the user is stuck in before showing the solution. Best for: tools solving a clear daily frustration.
-2. Category Creator — Position the product as a new category, not a better version of something existing. Best for: genuinely novel tools.
-3. Outcome Promise — Lead with the transformation/result the user will get. Best for: tools with measurable ROI.
-4. Enemy Framing — Name the broken old way and position the product as the antidote. Best for: tools replacing expensive or clunky incumbents.
-5. Niche Authority — Position as the only tool built specifically for one type of person. Best for: hyper-targeted tools with a specific ICP.
+1. Pain Agitator — Lead with the exact painful situation. Best for: tools solving clear daily frustration.
+2. Category Creator — Position as a new category. Best for: genuinely novel tools.
+3. Outcome Promise — Lead with the transformation the user gets. Best for: tools with measurable ROI.
+4. Enemy Framing — Name the broken old way, position product as antidote. Best for: replacing expensive incumbents.
+5. Niche Authority — The only tool for one specific person type. Best for: hyper-targeted tools.
 
-SELECTION RULE:
-Read the brand data carefully. Pick the framework whose characteristics match best. If core_problem sounds like daily friction → Pain Agitator. If no clear comparable competitor exists → Category Creator. If ROI is obvious → Outcome Promise. If there's a clear old-way being replaced → Enemy Framing. If the ICP is very specific → Niche Authority.
+SELECTION:
+- Daily friction → Pain Agitator
+- No clear competitor → Category Creator
+- Obvious ROI → Outcome Promise
+- Clear old-way replaced → Enemy Framing
+- Very specific ICP → Niche Authority
 
-OUTPUT FORMAT (return only valid JSON, no markdown, no explanation):
+Return ONLY a valid JSON object. No markdown. No backticks. No explanation.
+
 {
-  "positioningStatement": "2-3 sentence positioning statement written in the chosen framework's style",
-  "targetAudience": "specific one-line ICP description",
-  "suggestedTagline": "5-8 word tagline in the brand's tone",
-  "coreValue": "one sentence — the single most valuable thing this product gives the user"
+  "suggestedTagline": "5-8 word tagline in the brand tone",
+  "positioningStatement": "2-3 sentences in chosen framework style. Direct, specific, no fluff.",
+  "targetAudience": "Narrow one-line ICP. NOT generic like businesses or teams.",
+  "coreProblemSolved": "One sentence: the exact pain this product eliminates.",
+  "coreValue": "One sentence: the single most valuable thing this product gives the user.",
+  "bestCommunities": [
+    { "name": "r/subredditname or community name", "reason": "One sentence why this is goldmine for the ICP" },
+    { "name": "...", "reason": "..." },
+    { "name": "...", "reason": "..." },
+    { "name": "...", "reason": "..." },
+    { "name": "...", "reason": "..." }
+  ],
+  "audienceKeywords": ["keyword people actually use when feeling this pain", "keyword", "keyword", "keyword", "keyword"],
+  "recommendedGrowthChannel": {
+    "channel": "one of: Reddit, X, Threads, Indie Hackers",
+    "explanation": "2-3 sentences why this channel beats the others for this specific ICP and problem. Be specific to this product, not generic."
+  }
 }
 
-USER MESSAGE:
 Brand data: ${JSON.stringify(appData)}`;
 
     try {
@@ -122,74 +141,116 @@ Brand data: ${JSON.stringify(appData)}`;
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-          <div className="flex flex-col">
-            <div className="text-center mb-4">
-              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500">Your Original Input</span>
-            </div>
-            <div className="flex-1 bg-foreground/5 border border-foreground/10 rounded-lg p-8 flex flex-col">
-              <div className="flex-1">
-                <Section label="App Name">{appData.app_name}</Section>
-                <Section label="Description">{appData.app_description}</Section>
-                <Section label="Target Audience">{appData.target_customer}</Section>
-                <Section label="Core Problem">{appData.core_problem}</Section>
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-foreground/5 border border-[#F97316]/30 rounded-lg p-8 flex flex-col relative">
+            <div className="absolute top-6 right-6 flex items-center gap-2">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Confidence</span>
+                <span className="text-sm font-bold text-[#F97316]">92%</span>
               </div>
-              <button
-                onClick={() => onComplete({ type: 'user', data: appData })}
-                className="mt-8 w-full py-4 rounded-md border border-foreground/10 text-zinc-500 text-sm font-medium hover:bg-foreground/10 transition-all bg-transparent"
-              >
-                Keep my version
-              </button>
             </div>
-          </div>
-
-          <div className="flex flex-col">
-            <div className="text-center mb-4">
-              <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#F97316]">Expert Positioning</span>
-            </div>
-            <div className="flex-1 bg-foreground/5 border border-[#F97316]/30 rounded-lg p-8 flex flex-col relative">
-              <div className="absolute top-6 right-6 flex items-center gap-2">
-                <div className="flex col items-end">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Confidence</span>
-                  <span className="text-sm font-bold text-[#F97316]">92%</span>
+            
+            <div className="flex-1">
+              <div className="mb-8 p-6 rounded-lg bg-orange-50 border border-orange-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <Quote className="w-4 h-4 text-[#F97316]" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#F97316]">Suggested Tagline</span>
                 </div>
+                <h3 className="text-2xl font-bold text-foreground italic">
+                  "{aiPositioning.suggestedTagline}"
+                </h3>
+                <button
+                  onClick={generatePositioning}
+                  className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-[#F97316] hover:text-[#9e4a2a] transition-colors bg-transparent border-none cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Regenerate
+                </button>
               </div>
+
+              <Section label="Positioning Statement" icon={Target}>
+                {aiPositioning.positioningStatement}
+              </Section>
               
-              <div className="flex-1">
-                <div className="mb-8 p-6 rounded-lg bg-orange-50 border border-orange-100">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Quote className="w-4 h-4 text-[#F97316]" />
-                    <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#F97316]">Suggested Tagline</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground italic">
-                    "{aiPositioning.suggestedTagline}"
-                  </h3>
+              <Section label="The Real Audience" icon={Zap}>
+                {aiPositioning.targetAudience}
+              </Section>
+
+              <Section label="Core Value" icon={ShieldCheck}>
+                {aiPositioning.coreValue}
+              </Section>
+
+              <Section label="Best Communities" icon={Zap}>
+                <ol className="list-decimal list-inside space-y-2">
+                  {aiPositioning.bestCommunities?.map((comm, idx) => (
+                    <li key={idx} className="text-sm text-foreground">
+                      <span className="font-bold">{comm.name}</span> — <span className="text-zinc-500">{comm.reason}</span>
+                    </li>
+                  ))}
+                </ol>
+              </Section>
+
+              <Section label="Audience Keywords" icon={Hash}>
+                <div className="flex flex-wrap gap-2">
+                  {aiPositioning.audienceKeywords?.map((kw, idx) => (
+                    <span key={idx} className="px-3 py-1 rounded-full bg-foreground/5 border border-foreground/10 text-xs text-foreground/80">
+                      {kw}
+                    </span>
+                  ))}
                 </div>
+              </Section>
 
-                <Section label="Positioning Statement" icon={Target}>
-                  {aiPositioning.positioningStatement}
-                </Section>
-                
-                <Section label="The Real Audience" icon={Zap}>
-                  {aiPositioning.targetAudience}
-                </Section>
-
-                <Section label="Core Value" icon={ShieldCheck}>
-                  {aiPositioning.coreValue}
-                </Section>
-
-                <Section label="Unfair Advantage" icon={Sparkles}>
-                  {aiPositioning.keyDifferentiator || "Proprietary AI-driven insights tailored to your specific niche."}
-                </Section>
-              </div>
-
-              <button
-                onClick={() => onComplete({ type: 'ai', data: aiPositioning })}
-                className="mt-8 w-full py-5 rounded-md bg-[#F97316] hover:bg-[#9e4a2a] text-white font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                Adopt this position →
-              </button>
+              <Section label="Recommended Growth Channel" icon={TrendingUp}>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {['Reddit', 'X', 'Threads', 'Indie Hackers'].map((channel) => {
+                      const isSelected = selectedChannels.includes(channel);
+                      const isTop = aiPositioning.recommendedGrowthChannel?.channel?.toLowerCase() === channel.toLowerCase();
+                      return (
+                        <button
+                          key={channel}
+                          onClick={() => {
+                            setSelectedChannels(prev => 
+                              prev.includes(channel) 
+                                ? prev.filter(c => c !== channel) 
+                                : [...prev, channel]
+                            );
+                          }}
+                          className={cn(
+                            "relative px-4 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
+                            isSelected 
+                              ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
+                              : 'bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20'
+                          )}
+                        >
+                          {channel}
+                          {isTop && (
+                            <span className="px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider bg-white text-primary rounded-md">
+                              Top
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="p-4 rounded-lg bg-foreground/5 border border-foreground/10">
+                    <p className="text-xs font-bold text-foreground mb-1">
+                      Why {aiPositioning.recommendedGrowthChannel?.channel}?
+                    </p>
+                    <p className="text-xs text-zinc-500 leading-relaxed">
+                      {aiPositioning.recommendedGrowthChannel?.explanation}
+                    </p>
+                  </div>
+                </div>
+              </Section>
             </div>
+
+            <button
+              onClick={() => onComplete({ type: 'ai', data: { ...aiPositioning, selectedChannels } })}
+              className="mt-8 w-full py-5 rounded-md bg-[#F97316] hover:bg-[#9e4a2a] text-white font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              Adopt this position →
+            </button>
           </div>
         </div>
       </div>
