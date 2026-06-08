@@ -5,12 +5,10 @@ import { useAuth } from '../lib/AuthContext';
 import { toast } from 'sonner';
 import BrandBrainOnboarding from './BrandBrainOnboarding';
 import PositioningHelper from './PositioningHelper';
-import BrandBrainOnboarding2 from './BrandBrainOnboarding2';
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
   const [step1Data, setStep1Data] = useState(null);
-  const [step2Data, setStep2Data] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -19,26 +17,7 @@ export default function Onboarding() {
     setStep(1.5); // Move to Positioning Helper
   };
 
-  const handlePositioningComplete = (result) => {
-    // If they chose AI, we update the core fields with AI's improved versions
-    if (result.type === 'ai') {
-      setStep1Data(prev => ({
-        ...prev,
-        app_description: result.data.positioningStatement,
-        target_customer: result.data.targetAudience,
-        suggested_tagline: result.data.suggestedTagline,
-        core_value: result.data.coreValue
-      }));
-    }
-    setStep(2);
-  };
-
-  const handleStep2Complete = (data) => {
-    setStep2Data(data);
-    handleFinalComplete(data);
-  };
-
-  const handleFinalComplete = async (step2 = step2Data) => {
+  const handlePositioningComplete = async (result) => {
     if (!user) {
       toast.error("You must be logged in to save your progress.");
       navigate('/auth');
@@ -51,19 +30,19 @@ export default function Onboarding() {
       const brainData = {
         user_id: user.id,
         app_name: step1Data.app_name,
-        app_description: step1Data.app_description,
-        target_customer: step1Data.target_customer,
-        core_problem: step1Data.core_problem,
-        suggested_tagline: step1Data.suggested_tagline || '',
-        core_value: step1Data.core_value || '',
-        unique_differentiator: step2.unique_differentiator,
-        pain_phrases: step2.pain_phrases,
-        brand_tone: step2.brand_tone,
-        writing_style: step2.writing_style,
-        primary_platform: step2.primary_platform,
-        primary_cta: step2.primary_cta,
+        app_description: result.data.positioningStatement || step1Data.app_description,
+        target_customer: result.data.targetAudience || step1Data.target_customer,
+        core_problem: result.data.coreProblemSolved || step1Data.core_problem,
+        suggested_tagline: result.data.suggestedTagline || '',
+        core_value: result.data.coreValue || '',
+        unique_differentiator: result.data.coreValue || '',
+        pain_phrases: result.data.audienceKeywords ? result.data.audienceKeywords.join(', ') : '',
+        brand_tone: 'Authentic Founder',
+        writing_style: 'Casual, direct, no-BS',
+        primary_platform: result.data.selectedChannels ? result.data.selectedChannels.join(', ') : 'Reddit',
+        primary_cta: result.data.suggestedTagline || '',
         current_stage: 'MVP',
-        posting_frequency: step2.posting_frequency || 'Daily'
+        posting_frequency: 'Daily'
       };
 
       const { error } = await supabase
@@ -89,12 +68,6 @@ export default function Onboarding() {
         <PositioningHelper 
           appData={step1Data} 
           onComplete={handlePositioningComplete} 
-        />
-      )}
-      {step === 2 && (
-        <BrandBrainOnboarding2 
-          {...step1Data} 
-          onComplete={handleStep2Complete} 
         />
       )}
     </div>
