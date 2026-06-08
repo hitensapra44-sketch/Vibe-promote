@@ -112,23 +112,23 @@ Return ONLY valid JSON.
   "competitiveAdvantage": "One sentence explaining what makes this product different from the most common alternative.",
   "bestCommunities": [
     {
-      "name": "subreddit name (e.g., r/SaaS)",
+      "name": "subreddit name ()",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name (e.g., r/startups)",
+      "name": "subreddit name ()",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name (e.g., r/indiehackers)",
+      "name": "subreddit name ()",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name (e.g., r/SideProject)",
+      "name": "subreddit name ()",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name (e.g., r/entrepreneur)",
+      "name": "subreddit name ()",
       "reason": "Why people discussing this problem spend time here."
     }
   ],
@@ -143,10 +143,7 @@ Return ONLY valid JSON.
     "channel": "single best channel",
     "explanation": "2-3 concise sentences explaining why this channel is the best fit for this audience."
   },
-  "callToAction": "A short, punchy one-line statement that motivates the founder to take action. 5-12 words. Not salesy. No exclamation marks.",
-  "marketInsight": "One non-obvious observation about the audience, buying behavior, or market dynamics.",
-  "bestAcquisitionStrategy": "One sentence describing the highest-leverage customer acquisition approach.",
-  "biggestGrowthOpportunity": "One highly specific opportunity where this product is most likely to acquire its next 100 users."
+  "callToAction": "A short, punchy one-line statement that motivates the founder to take action. 5-12 words. Not salesy. No exclamation marks.","
 }`;
 
     const userMessage = `Brand data: ${JSON.stringify(appData)}`;
