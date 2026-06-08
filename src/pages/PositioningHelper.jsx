@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, RefreshCw, Brain, AlertCircle, Hash, Target, Zap, ShieldCheck, Quote } from 'lucide-react';
+import { Sparkles, ArrowRight, Brain, AlertCircle, Plus, X, Target, Zap } from 'lucide-react';
 import { generateAICall } from '../lib/ai';
 import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
 
 export default function PositioningHelper({ appData, onComplete }) {
   const [loading, setLoading] = useState(true);
@@ -24,12 +25,10 @@ export default function PositioningHelper({ appData, onComplete }) {
     { name: '', reason: '' },
     { name: '', reason: '' }
   ]);
-  const [keywords, setKeywords] = useState('');
+  const [keywords, setKeywords] = useState([]);
+  const [newKeyword, setNewKeyword] = useState('');
   const [selectedChannels, setSelectedChannels] = useState(['Reddit', 'X', 'Threads']);
   const [cta, setCta] = useState('');
-  const [marketInsight, setMarketInsight] = useState('');
-  const [bestAcquisitionStrategy, setBestAcquisitionStrategy] = useState('');
-  const [biggestGrowthOpportunity, setBiggestGrowthOpportunity] = useState('');
 
   const generatePositioning = async () => {
     if (!appData) return;
@@ -92,14 +91,14 @@ COMMUNITY RULES:
 * Prioritize Reddit communities (subreddits) that will be the perfect fit for the founder's product.
 * Prefer high-intent subreddits over large generic ones.
 * Explain why the audience is valuable.
-* Return only genuinely relevant subreddits.
+* Return exactly 5 genuinely relevant subreddits.
 
 KEYWORD RULES:
 * Keywords should reflect problems people are trying to solve.
 * Prefer intent-driven keywords.
 * Avoid broad marketing terms.
 * Use phrases users would actually search.
-* Return keywords as an array of individual strings, not as a single comma-separated string.
+* Return exactly 5 keywords as an array of individual strings.
 
 Return ONLY valid JSON.
 
@@ -112,23 +111,23 @@ Return ONLY valid JSON.
   "competitiveAdvantage": "One sentence explaining what makes this product different from the most common alternative.",
   "bestCommunities": [
     {
-      "name": "subreddit name ()",
+      "name": "subreddit name (e.g. r/SaaS)",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name ()",
+      "name": "subreddit name (e.g. r/startups)",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name ()",
+      "name": "subreddit name (e.g. r/indiehackers)",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name ()",
+      "name": "subreddit name (e.g. r/SideProject)",
       "reason": "Why people discussing this problem spend time here."
     },
     {
-      "name": "subreddit name ()",
+      "name": "subreddit name (e.g. r/entrepreneur)",
       "reason": "Why people discussing this problem spend time here."
     }
   ],
@@ -143,7 +142,7 @@ Return ONLY valid JSON.
     "channel": "single best channel",
     "explanation": "2-3 concise sentences explaining why this channel is the best fit for this audience."
   },
-  "callToAction": "A short, punchy one-line statement that motivates the founder to take action. 5-12 words. Not salesy. No exclamation marks.","
+  "callToAction": "A short, punchy one-line statement that motivates the founder to take action. 5-12 words. Not salesy. No exclamation marks."
 }`;
 
     const userMessage = `Brand data: ${JSON.stringify(appData)}`;
@@ -169,9 +168,9 @@ Return ONLY valid JSON.
       }
       
       if (parsed.audienceKeywords && Array.isArray(parsed.audienceKeywords)) {
-        setKeywords(parsed.audienceKeywords.join(', '));
+        setKeywords(parsed.audienceKeywords.slice(0, 5));
       } else {
-        setKeywords('');
+        setKeywords([]);
       }
 
       // Set recommended growth channel
@@ -188,9 +187,6 @@ Return ONLY valid JSON.
       // Set CTA
       setCta(parsed.callToAction || parsed.suggestedTagline || '');
 
-      setMarketInsight(parsed.marketInsight || '');
-      setBestAcquisitionStrategy(parsed.bestAcquisitionStrategy || '');
-      setBiggestGrowthOpportunity(parsed.biggestGrowthOpportunity || '');
     } catch (err) {
       console.error("Generation Error:", err);
       setError("Failed to analyze positioning. Please try again.");
@@ -203,6 +199,24 @@ Return ONLY valid JSON.
     generatePositioning();
   }, [appData]);
 
+  const handleAddKeyword = () => {
+    if (!newKeyword.trim()) return;
+    if (keywords.length >= 5) {
+      toast.error("Maximum of 5 keywords allowed");
+      return;
+    }
+    if (keywords.includes(newKeyword.trim())) {
+      toast.error("Keyword already exists");
+      return;
+    }
+    setKeywords([...keywords, newKeyword.trim()]);
+    setNewKeyword('');
+  };
+
+  const handleRemoveKeyword = (indexToRemove) => {
+    setKeywords(keywords.filter((_, idx) => idx !== indexToRemove));
+  };
+
   const handleAdopt = () => {
     onComplete({
       type: 'ai',
@@ -214,12 +228,9 @@ Return ONLY valid JSON.
         coreValue,
         competitiveAdvantage,
         bestCommunities,
-        audienceKeywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
+        audienceKeywords: keywords,
         selectedChannels,
-        primary_cta: cta,
-        marketInsight,
-        bestAcquisitionStrategy,
-        biggestGrowthOpportunity
+        primary_cta: cta
       }
     });
   };
@@ -277,165 +288,206 @@ Return ONLY valid JSON.
         </header>
 
         <div className="max-w-3xl mx-auto">
-          <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-8 shadow-2xl relative">
+          <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-8 sm:p-10 shadow-2xl relative">
             {/* Card Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary" />
-                <span className="text-foreground/40 text-[10px] tracking-widest font-bold uppercase">YOUR POSITIONING BRAIN</span>
+                <Brain className="w-6 h-6 text-primary" />
+                <span className="text-foreground/40 text-xs tracking-widest font-bold uppercase">YOUR POSITIONING BRAIN</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-foreground/60 text-xs">Building live</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-foreground/60 text-sm">Building live</span>
               </div>
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* TAGLINE Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">TAGLINE</span>
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">TAGLINE</span>
               <input
                 type="text"
                 placeholder="Your suggested tagline"
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all font-medium"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* POSITIONING STATEMENT Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">POSITIONING STATEMENT</span>
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">POSITIONING STATEMENT</span>
               <textarea
-                rows={3}
+                rows={5}
                 placeholder="Your positioning statement"
                 value={positioningStatement}
                 onChange={(e) => setPositioningStatement(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none leading-relaxed"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* TARGET AUDIENCE Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">TARGET AUDIENCE</span>
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">TARGET AUDIENCE</span>
               <input
                 type="text"
                 placeholder="Your target audience"
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all font-medium"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* CORE PROBLEM Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">CORE PROBLEM</span>
-              <input
-                type="text"
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">CORE PROBLEM</span>
+              <textarea
+                rows={3}
                 placeholder="The core problem solved"
                 value={coreProblem}
                 onChange={(e) => setCoreProblem(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none leading-relaxed"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* CORE VALUE Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">CORE VALUE</span>
-              <input
-                type="text"
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">CORE VALUE</span>
+              <textarea
+                rows={3}
                 placeholder="The core value delivered"
                 value={coreValue}
                 onChange={(e) => setCoreValue(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none leading-relaxed"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* COMPETITIVE ADVANTAGE Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">COMPETITIVE ADVANTAGE</span>
-              <input
-                type="text"
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">COMPETITIVE ADVANTAGE</span>
+              <textarea
+                rows={3}
                 placeholder="Your competitive advantage"
                 value={competitiveAdvantage}
                 onChange={(e) => setCompetitiveAdvantage(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none leading-relaxed"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* BEST COMMUNITIES Section */}
-            <div className="space-y-4 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">BEST COMMUNITIES</span>
-              {bestCommunities.map((comm, idx) => (
-                <div key={idx} className="space-y-2 p-4 rounded-xl bg-foreground/5 border border-foreground/10">
-                  <span className="text-[9px] uppercase tracking-widest text-foreground/40 font-bold block">Community {idx + 1}</span>
-                  <input
-                    type="text"
-                    placeholder="Community Name (e.g. r/SaaS)"
-                    value={comm.name}
-                    onChange={(e) => {
-                      const updated = [...bestCommunities];
-                      updated[idx].name = e.target.value;
-                      setBestCommunities(updated);
-                    }}
-                    className="w-full px-4 py-2 rounded-lg bg-background border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
-                  />
-                  <textarea
-                    rows={2}
-                    placeholder="Why high-intent buyers discuss this problem here"
-                    value={comm.reason}
-                    onChange={(e) => {
-                      const updated = [...bestCommunities];
-                      updated[idx].reason = e.target.value;
-                      setBestCommunities(updated);
-                    }}
-                    className="w-full px-4 py-2 rounded-lg bg-background border border-foreground/10 text-xs text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none"
-                  />
-                </div>
-              ))}
+            <div className="space-y-6 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">BEST COMMUNITIES (SHOWING ALL 5)</span>
+              <div className="space-y-4">
+                {bestCommunities.map((comm, idx) => (
+                  <div key={idx} className="space-y-3 p-5 rounded-xl bg-foreground/5 border border-foreground/10">
+                    <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">Community {idx + 1}</span>
+                    <input
+                      type="text"
+                      placeholder="Community Name (e.g. r/SaaS)"
+                      value={comm.name}
+                      onChange={(e) => {
+                        const updated = [...bestCommunities];
+                        updated[idx].name = e.target.value;
+                        setBestCommunities(updated);
+                      }}
+                      className="w-full px-5 py-3 rounded-lg bg-background border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all font-medium"
+                    />
+                    <textarea
+                      rows={3}
+                      placeholder="Why high-intent buyers discuss this problem here"
+                      value={comm.reason}
+                      onChange={(e) => {
+                        const updated = [...bestCommunities];
+                        updated[idx].reason = e.target.value;
+                        setBestCommunities(updated);
+                      }}
+                      className="w-full px-5 py-3 rounded-lg bg-background border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none leading-relaxed"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* KEYWORDS Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">KEYWORDS (comma separated)</span>
-              <input
-                type="text"
-                placeholder="e.g. email outreach, cold email, lead generation"
-                value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
-              />
+            <div className="space-y-3 py-6">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">KEYWORDS (MAX 5)</span>
+                <span className="text-xs text-foreground/40 font-medium">{keywords.length}/5</span>
+              </div>
+              
+              {/* Keyword Tags */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {keywords.map((k, i) => (
+                  <div 
+                    key={i} 
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold"
+                  >
+                    <span>{k}</span>
+                    <button 
+                      type="button"
+                      onClick={() => handleRemoveKeyword(i)} 
+                      className="hover:text-foreground transition-colors bg-transparent p-0.5 flex items-center justify-center"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+                {keywords.length === 0 && (
+                  <span className="text-sm text-foreground/40 italic">No keywords added yet. Add some below.</span>
+                )}
+              </div>
+
+              {/* Add Keyword Input */}
+              {keywords.length < 5 && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add a keyword (e.g. cold email)"
+                    value={newKeyword}
+                    onChange={(e) => setNewKeyword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
+                    className="flex-1 px-5 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddKeyword}
+                    className="px-4 py-3 rounded-xl bg-foreground/10 hover:bg-foreground/15 text-foreground font-bold text-sm transition-all flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* RECOMMENDED CHANNELS Section */}
-            <div className="space-y-4 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">RECOMMENDED CHANNELS</span>
+            <div className="space-y-4 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">RECOMMENDED CHANNELS</span>
               <div className="flex flex-wrap gap-2">
                 {['Reddit', 'X', 'Threads', 'Indie Hackers', 'Hacker News'].map((channel) => {
                   const isSelected = selectedChannels.includes(channel);
@@ -451,7 +503,7 @@ Return ONLY valid JSON.
                         );
                       }}
                       className={cn(
-                        "px-4 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
+                        "px-5 py-3 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5",
                         isSelected 
                           ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
                           : 'bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20'
@@ -465,82 +517,31 @@ Return ONLY valid JSON.
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
+            <div className="border-t border-foreground/10 my-6" />
 
             {/* CALL TO ACTION Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">CALL TO ACTION</span>
+            <div className="space-y-3 py-6">
+              <span className="text-xs uppercase tracking-widest text-foreground/40 font-bold block">CALL TO ACTION</span>
               <input
                 type="text"
                 placeholder="Your primary call to action"
                 value={cta}
                 onChange={(e) => setCta(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+                className="w-full px-6 py-4 rounded-xl bg-foreground/5 border border-foreground/10 text-base text-foreground focus:outline-none focus:border-primary/50 transition-all font-medium"
               />
             </div>
 
             {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
-
-            {/* MARKET INSIGHT Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">MARKET INSIGHT</span>
-              <textarea
-                rows={3}
-                placeholder="One non-obvious observation about the audience or market dynamics"
-                value={marketInsight}
-                onChange={(e) => setMarketInsight(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none"
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
-
-            {/* BEST ACQUISITION STRATEGY Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">BEST ACQUISITION STRATEGY</span>
-              <textarea
-                rows={3}
-                placeholder="The highest-leverage customer acquisition approach"
-                value={bestAcquisitionStrategy}
-                onChange={(e) => setBestAcquisitionStrategy(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none"
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-foreground/10 my-4" />
-
-            {/* BIGGEST GROWTH OPPORTUNITY Section */}
-            <div className="space-y-2 py-4">
-              <span className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold block">BIGGEST GROWTH OPPORTUNITY</span>
-              <textarea
-                rows={3}
-                placeholder="Where this product is most likely to acquire its next 100 users"
-                value={biggestGrowthOpportunity}
-                onChange={(e) => setBiggestGrowthOpportunity(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-xl bg-foreground/5 border border-foreground/10 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none"
-              />
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-foreground/10 my-6" />
+            <div className="border-t border-foreground/10 my-8" />
 
             {/* Footer inside card */}
-            <div className="pt-2 flex gap-4">
-              <button
-                onClick={generatePositioning}
-                className="flex-1 py-4 border border-foreground/10 text-foreground/60 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
-              >
-                Regenerate ↺
-              </button>
+            <div className="pt-2">
               <button
                 onClick={handleAdopt}
-                className="flex-[2] py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                className="w-full py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 text-base"
               >
                 Adopt this position
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
