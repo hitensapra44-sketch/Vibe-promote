@@ -244,8 +244,8 @@ Return ONLY valid JSON.
             <Brain className="w-10 h-10 text-[#F97316] animate-pulse" />
           </div>
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Analyzing your positioning...</h2>
-        <p className="text-zinc-500">Our elite strategist is crafting your unique market position.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Analyzing best positioning for your app</h2>
+        <p className="text-zinc-500">Making the best postioning to market your app</p>
       </div>
     );
   }
