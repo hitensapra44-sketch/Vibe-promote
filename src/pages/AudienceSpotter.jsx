@@ -86,6 +86,10 @@ export default function AudienceSpotter() {
   const [dismissingId, setDismissingId] = useState(null);
   const [dismissReason, setDismissReason] = useState(null);
 
+  const [replyModes, setReplyModes] = useState({});
+  const [voiceSample, setVoiceSample] = useState('');
+  const [replyCtaText, setReplyCtaText] = useState('');
+
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
 
   const isLocked = limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder;
@@ -106,6 +110,11 @@ export default function AudienceSpotter() {
     async function init() {
       if (!user) return;
       try {
+        const savedVoice = localStorage.getItem('vh_voice_sample');
+        if (savedVoice) setVoiceSample(savedVoice);
+        const savedCta = localStorage.getItem('vh_reply_cta');
+        if (savedCta) setReplyCtaText(savedCta);
+
         const { data: brainData } = await supabase.from('brand_brains').select('*').eq('user_id', user.id).maybeSingle();
         const { count } = await supabase.from('audience_signals').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
         const savedConfig = localStorage.getItem('vh_audience_config');
@@ -349,6 +358,61 @@ export default function AudienceSpotter() {
                 </div>
               )}
 
+              {settingsTab === 'Reply Voice' && (
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-bold">Your Reply Voice</h2>
+                    <p className="text-foreground/60 text-sm">
+                      Paste a reply you wrote that felt like you. AI uses this as tone context.
+                    </p>
+                    <textarea
+                      value={voiceSample}
+                      onChange={(e) => setVoiceSample(e.target.value)}
+                      placeholder="Paste a reply you've written before that felt natural and got good responses. The AI will use this as tone inspiration..."
+                      className="w-full h-40 bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground text-sm focus:outline-none focus:border-primary resize-none placeholder-foreground/30"
+                    />
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('vh_voice_sample', voiceSample);
+                        toast.success("Voice sample saved!");
+                      }}
+                      className="px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
+                    >
+                      Save Voice Sample
+                    </button>
+                  </div>
+
+                  <div className="mt-10 border-t border-foreground/10 pt-8 space-y-4">
+                    <h2 className="text-xl font-bold">Current CTA</h2>
+                    <p className="text-foreground/60 text-sm">
+                      What's the call-to-action you want people to take after reading your reply?
+                    </p>
+                    <input
+                      type="text"
+                      value={replyCtaText}
+                      onChange={(e) => setReplyCtaText(e.target.value)}
+                      placeholder="e.g. Check out vibepromote.tech — free to try"
+                      className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground text-sm focus:outline-none focus:border-primary transition-all placeholder-foreground/30"
+                    />
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('vh_reply_cta', replyCtaText);
+                        toast.success("CTA saved!");
+                      }}
+                      className="px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
+                    >
+                      Save CTA
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {settingsTab === 'Notifications' && (
+                <div className="py-20 text-center">
+                  <p className="text-foreground/60">Coming soon in the next update.</p>
+                </div>
+              )}
+
               {settingsTab === 'Product' && (
                 <div className="space-y-8">
                   <div className="p-8 rounded-2xl bg-foreground/5 border border-foreground/10 space-y-6">
@@ -372,12 +436,6 @@ export default function AudienceSpotter() {
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {(settingsTab === 'Reply Voice' || settingsTab === 'Notifications') && (
-                <div className="py-20 text-center">
-                  <p className="text-foreground/60">Coming soon in the next update.</p>
                 </div>
               )}
             </div>
@@ -598,6 +656,43 @@ export default function AudienceSpotter() {
 
                     <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">{signal.post_title}</h2>
                     <p className="text-foreground/60 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
+
+                    {/* Reply Mode Buttons */}
+                    <div className="mb-4 space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { id: 'helpful', label: 'Helpful' },
+                          { id: 'expert', label: 'Expert' },
+                          { id: 'founder_story', label: 'Founder Story' },
+                          { id: 'soft_promo', label: 'Soft Promo' }
+                        ].map((mode) => {
+                          const activeMode = replyModes[signal.id] || 'helpful';
+                          const isSelected = activeMode === mode.id;
+                          return (
+                            <button
+                              key={mode.id}
+                              onClick={() => setReplyModes(prev => ({ ...prev, [signal.id]: mode.id }))}
+                              className={cn(
+                                "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all bg-transparent",
+                                isSelected 
+                                  ? "bg-primary/10 border-primary text-primary" 
+                                  : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
+                              )}
+                            >
+                              {mode.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-foreground/40">
+                        Reply tone: {([
+                          { id: 'helpful', label: 'Helpful' },
+                          { id: 'expert', label: 'Expert' },
+                          { id: 'founder_story', label: 'Founder Story' },
+                          { id: 'soft_promo', label: 'Soft Promo' }
+                        ].find(m => m.id === (replyModes[signal.id] || 'helpful'))?.label)}
+                      </p>
+                    </div>
 
                     <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8">
                       <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
