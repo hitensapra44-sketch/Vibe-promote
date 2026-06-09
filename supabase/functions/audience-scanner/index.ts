@@ -102,8 +102,7 @@ serve(async (req) => {
                   },
                   body: JSON.stringify({
                     q: query,
-                    num: 10,
-                    tbs: 'qdr:w'  // past week
+                    num: 10
                   })
                 });
 
