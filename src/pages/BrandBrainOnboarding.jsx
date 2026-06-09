@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, ArrowRight, Brain, Rocket, Globe, Loader2, Link as LinkIcon, X, ArrowLeft } from 'lucide-react';
 import ParticleBackground from '../components/landing/particlebackground';
 import GridBackground from '../components/ui/grid-background';
 import { generateAICall } from '../lib/ai';
@@ -23,6 +23,13 @@ async function fetchAndCleanPage(url) {
   }
 }
 
+const LOADING_STEPS = [
+  "Analyzing your home page...",
+  "Understanding your SaaS...",
+  "Checking your ICP...",
+  "Finalizing everything..."
+];
+
 export default function BrandBrainOnboarding({ onComplete }) {
   const [url, setUrl] = useState(() => {
     return localStorage.getItem('onboarding_url') || 'https://';
@@ -34,6 +41,7 @@ export default function BrandBrainOnboarding({ onComplete }) {
   const [category, setCategory] = useState('');
   
   const [extracting, setExtracting] = useState(false);
+  const [loadingStepIdx, setLoadingStepIdx] = useState(0);
   const [hasExtracted, setHasExtracted] = useState(false);
   const [errors, setErrors] = useState({
     app_name: '',
@@ -41,6 +49,20 @@ export default function BrandBrainOnboarding({ onComplete }) {
     target_customer: '',
     core_problem: ''
   });
+
+  // Cycle through loading steps during extraction
+  useEffect(() => {
+    let interval;
+    if (extracting) {
+      setLoadingStepIdx(0);
+      interval = setInterval(() => {
+        setLoadingStepIdx((prev) => (prev + 1) % LOADING_STEPS.length);
+      }, 2500);
+    } else {
+      setLoadingStepIdx(0);
+    }
+    return () => clearInterval(interval);
+  }, [extracting]);
 
   const handleExtract = async (e) => {
     e?.preventDefault();
@@ -136,6 +158,23 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
       <ParticleBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-20">
+        {/* Back Button on Top Left when in manual/extracted view */}
+        {hasExtracted && !extracting && (
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute top-8 left-6 z-20"
+          >
+            <button
+              onClick={() => setHasExtracted(false)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-all text-xs font-bold cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to URL Input
+            </button>
+          </motion.div>
+        )}
+
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -147,7 +186,7 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
             <span className="text-primary">brand brain.</span>
           </h1>
           
-          {!hasExtracted ? (
+          {!hasExtracted && !extracting && (
             <div className="max-w-lg mx-auto">
               <p className="text-zinc-500 mb-8 text-base">Paste your URL. We'll handle the rest.</p>
               <form onSubmit={handleExtract} className="relative group">
@@ -169,23 +208,58 @@ OUTPUT: Return ONLY a single valid JSON object. No markdown. No backticks. No ex
                     disabled={extracting || !url || url === 'https://'}
                     className="px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20"
                   >
-                    {extracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Sparkles className="w-4 h-4" /> Analyze</>}
+                    <Sparkles className="w-4 h-4" /> Analyze
                   </button>
                 </div>
               </form>
-              <button 
-                onClick={() => setHasExtracted(true)}
-                className="mt-6 text-xs text-zinc-500 hover:text-foreground transition-colors underline underline-offset-4 bg-transparent border-none cursor-pointer"
-              >
-                Or fill details manually
-              </button>
+              
+              <div className="mt-8">
+                <button 
+                  onClick={() => setHasExtracted(true)}
+                  className="px-6 py-3 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground/80 hover:text-foreground hover:bg-foreground/10 transition-all text-xs font-bold cursor-pointer"
+                >
+                  Or fill details manually
+                </button>
+              </div>
             </div>
-          ) : (
+          )}
+
+          {hasExtracted && !extracting && (
             <p className="text-zinc-500 text-sm">We've extracted your details. Edit what you feel is wrong</p>
           )}
         </motion.div>
 
-        {hasExtracted && (
+        {/* Beautiful Loading Screen during extraction */}
+        {extracting && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md mx-auto text-center py-16 px-8 bg-foreground/5 border border-foreground/10 rounded-2xl shadow-2xl"
+          >
+            <div className="relative w-20 h-20 mx-auto mb-8">
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Brain className="w-8 h-8 text-primary animate-pulse" />
+              </div>
+            </div>
+            
+            <AnimatePresence mode="wait">
+              <motion.h3 
+                key={loadingStepIdx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="text-lg font-bold text-foreground mb-2"
+              >
+                {LOADING_STEPS[loadingStepIdx]}
+              </motion.h3>
+            </AnimatePresence>
+            <p className="text-zinc-500 text-xs">This takes about 10-15 seconds as we read your landing page.</p>
+          </motion.div>
+        )}
+
+        {hasExtracted && !extracting && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
