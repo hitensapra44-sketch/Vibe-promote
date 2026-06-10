@@ -27,7 +27,8 @@ import {
   AlertCircle,
   Lock,
   XCircle,
-  CheckCircle2
+  CheckCircle2,
+  AtSign
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -52,8 +53,8 @@ const STEPS = [
 const PLATFORMS = [
   { id: 'reddit', name: 'Reddit', icon: MessageSquare, color: '#FF4500', available: true },
   { id: 'hn', name: 'Hacker News', icon: Globe, color: '#FF6600', available: true },
-  { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', available: false, comingSoon: true },
-  { id: 'bluesky', name: 'Bluesky', icon: Globe, color: '#0560ff', available: false, comingSoon: true },
+  { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', available: false, locked: true },
+  { id: 'threads', name: 'Threads', icon: AtSign, color: '#000000', available: false, locked: true },
 ];
 
 const DISMISS_REASONS = [
@@ -83,6 +84,11 @@ export default function AudienceSpotter() {
   const [keywords, setKeywords] = useState([]);
   const [newKeyword, setNewKeyword] = useState('');
 
+  // Editable product fields
+  const [editAppName, setEditAppName] = useState('');
+  const [editAppDescription, setEditAppDescription] = useState('');
+  const [editTargetCustomer, setEditTargetCustomer] = useState('');
+
   const [dismissingId, setDismissingId] = useState(null);
   const [dismissReason, setDismissReason] = useState(null);
 
@@ -93,6 +99,9 @@ export default function AudienceSpotter() {
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
 
   const isLocked = limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder;
+
+  const maxKeywords = plan === 'free' ? 5 : plan === 'starter' ? 10 : 100;
+  const maxCommunities = plan === 'free' ? 5 : plan === 'starter' ? 10 : 100;
 
   // Filter out signals that are not 'new'
   const activeSignals = useMemo(() => signals.filter(s => s.status === 'new'), [signals]);
@@ -121,44 +130,54 @@ export default function AudienceSpotter() {
         
         if (brainData) {
           setBrain(brainData);
+          setEditAppName(brainData.app_name || '');
+          setEditAppDescription(brainData.app_description || '');
+          setEditTargetCustomer(brainData.target_customer || '');
           
-          // Autofill logic for new users
-          if (count === 0 && !savedConfig) {
-            // Suggest keywords from pain phrases or core problem (up to 15)
-            const suggestedKeywords = brainData.pain_phrases 
-              ? brainData.pain_phrases.split(',').map(k => k.trim()).filter(Boolean)
-              : [brainData.core_problem].filter(Boolean);
-            setKeywords(suggestedKeywords.slice(0, 15));
-
-            // Suggest 10 high-traffic communities
-            setCommunities([
-              'SaaS', 
-              'startups', 
-              'indiehackers', 
-              'SideProject', 
-              'entrepreneur', 
-              'GrowthHacking', 
-              'marketing', 
-              'Business', 
-              'smallbusiness', 
-              'solopreneur'
-            ]);
+          // Load from brand brain if they exist
+          let brainKeywords = [];
+          let brainCommunities = [];
+          
+          if (brainData.audience_keywords) {
+            try {
+              brainKeywords = JSON.parse(brainData.audience_keywords);
+            } catch (e) {
+              brainKeywords = brainData.audience_keywords.split(',').map(k => k.trim()).filter(Boolean);
+            }
+          } else if (brainData.pain_phrases) {
+            brainKeywords = brainData.pain_phrases.split(',').map(k => k.trim()).filter(Boolean);
           }
+
+          if (brainData.audience_communities) {
+            try {
+              brainCommunities = JSON.parse(brainData.audience_communities);
+            } catch (e) {
+              brainCommunities = brainData.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+            }
+          }
+
+          // Fallback if empty
+          if (brainKeywords.length === 0) {
+            brainKeywords = [brainData.core_problem].filter(Boolean);
+          }
+          if (brainCommunities.length === 0) {
+            brainCommunities = ['SaaS', 'startups', 'indiehackers', 'SideProject', 'entrepreneur'];
+          }
+
+          setKeywords(brainKeywords.slice(0, maxKeywords));
+          setCommunities(brainCommunities.slice(0, maxCommunities));
         }
 
         if (count > 0) {
           setIsConfigured(true);
-          if (brainData?.audience_keywords) setKeywords(JSON.parse(brainData.audience_keywords));
-          if (brainData?.audience_platforms) setSelectedPlatforms(JSON.parse(brainData.audience_platforms));
-          if (brainData?.audience_communities) setCommunities(JSON.parse(brainData.audience_communities));
         } else if (savedConfig) {
           const config = JSON.parse(savedConfig);
           if (config.isScanning) {
             setIsConfigured(true);
-            setKeywords(config.keywords);
+            setKeywords(config.keywords.slice(0, maxKeywords));
             setSelectedPlatforms(config.platforms);
-            setCommunities(config.communities);
-            startScan({ keywords: config.keywords, platforms: config.platforms, communities: config.communities });
+            setCommunities(config.communities.slice(0, maxCommunities));
+            startScan({ keywords: config.keywords.slice(0, maxKeywords), platforms: config.platforms, communities: config.communities.slice(0, maxCommunities) });
           }
         }
 
@@ -200,7 +219,50 @@ export default function AudienceSpotter() {
     markTaskComplete(user.id, 'run_user_finder', supabase);
   };
 
+  const handleSaveChanges = async () => {
+    setIsConfigured(true);
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('brand_brains')
+        .update({
+          app_name: editAppName,
+          app_description: editAppDescription,
+          target_customer: editTargetCustomer,
+          audience_keywords: JSON.stringify(keywords),
+          audience_platforms: JSON.stringify(selectedPlatforms),
+          audience_communities: JSON.stringify(communities)
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setBrain(prev => ({
+        ...prev,
+        app_name: editAppName,
+        app_description: editAppDescription,
+        target_customer: editTargetCustomer,
+        audience_keywords: JSON.stringify(keywords),
+        audience_platforms: JSON.stringify(selectedPlatforms),
+        audience_communities: JSON.stringify(communities)
+      }));
+
+      toast.success("Settings saved successfully!");
+      startScan({ keywords, platforms: selectedPlatforms, communities });
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      toast.error("Failed to save settings.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const addCommunity = () => {
+    if (communities.length >= maxCommunities) {
+      toast.error(`Your plan limits you to ${maxCommunities} subreddits.`);
+      return;
+    }
     if (newCommunity && !communities.includes(newCommunity)) {
       setCommunities([...communities, newCommunity.replace('r/', '').trim()]);
       setNewCommunity('');
@@ -208,6 +270,10 @@ export default function AudienceSpotter() {
   };
 
   const addKeyword = () => {
+    if (keywords.length >= maxKeywords) {
+      toast.error(`Your plan limits you to ${maxKeywords} keywords.`);
+      return;
+    }
     if (newKeyword && !keywords.includes(newKeyword)) {
       setKeywords([...keywords, newKeyword.trim()]);
       setNewKeyword('');
@@ -293,7 +359,7 @@ export default function AudienceSpotter() {
                           <p.icon className="w-6 h-6 text-foreground" />
                         </div>
                         <span className="font-bold text-sm">{p.name}</span>
-                        {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Pro</span>}
+                        {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Locked</span>}
                       </div>
                     ))}
                   </div>
@@ -303,7 +369,10 @@ export default function AudienceSpotter() {
               {settingsTab === 'Monitoring' && (
                 <div className="space-y-12">
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold">Keywords</h2>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold">Keywords</h2>
+                      <span className="text-xs text-foreground/60 font-bold uppercase">Limit: {keywords.length}/{maxKeywords}</span>
+                    </div>
                     <div className="relative">
                       <input 
                         type="text" 
@@ -311,9 +380,14 @@ export default function AudienceSpotter() {
                         value={newKeyword}
                         onChange={(e) => setNewKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
-                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all"
+                        disabled={keywords.length >= maxKeywords}
+                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all disabled:opacity-50"
                       />
-                      <button onClick={addKeyword} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent">
+                      <button 
+                        onClick={addKeyword} 
+                        disabled={keywords.length >= maxKeywords}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent disabled:opacity-50"
+                      >
                         <Plus className="w-5 h-5 text-foreground" />
                       </button>
                     </div>
@@ -330,7 +404,10 @@ export default function AudienceSpotter() {
                   </div>
 
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold">Communities</h2>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold">Communities</h2>
+                      <span className="text-xs text-foreground/60 font-bold uppercase">Limit: {communities.length}/{maxCommunities}</span>
+                    </div>
                     <div className="relative">
                       <input 
                         type="text" 
@@ -338,9 +415,14 @@ export default function AudienceSpotter() {
                         value={newCommunity}
                         onChange={(e) => setNewCommunity(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addCommunity()}
-                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all"
+                        disabled={communities.length >= maxCommunities}
+                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground focus:outline-none focus:border-primary transition-all disabled:opacity-50"
                       />
-                      <button onClick={addCommunity} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent">
+                      <button 
+                        onClick={addCommunity} 
+                        disabled={communities.length >= maxCommunities}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 transition-all bg-transparent disabled:opacity-50"
+                      >
                         <Plus className="w-5 h-5 text-foreground" />
                       </button>
                     </div>
@@ -420,19 +502,34 @@ export default function AudienceSpotter() {
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                         <Brain className="w-6 h-6 text-primary" />
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold">{brain?.app_name}</h3>
-                        <p className="text-foreground/60 text-sm">Using your Brand Brain for filtering.</p>
+                      <div className="flex-1">
+                        <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-1">App Name</p>
+                        <input 
+                          type="text"
+                          value={editAppName}
+                          onChange={(e) => setEditAppName(e.target.value)}
+                          className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary font-bold"
+                        />
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
                         <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-1">Description</p>
-                        <p className="text-sm text-foreground/80">{brain?.app_description}</p>
+                        <textarea
+                          rows={3}
+                          value={editAppDescription}
+                          onChange={(e) => setEditAppDescription(e.target.value)}
+                          className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary resize-none leading-relaxed"
+                        />
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mb-1">Target Audience</p>
-                        <p className="text-sm text-foreground/80">{brain?.target_customer}</p>
+                        <input 
+                          type="text"
+                          value={editTargetCustomer}
+                          onChange={(e) => setEditTargetCustomer(e.target.value)}
+                          className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
+                        />
                       </div>
                     </div>
                   </div>
@@ -443,7 +540,7 @@ export default function AudienceSpotter() {
             <div className="mt-12 pt-8 border-t border-foreground/5 flex justify-end">
               <button 
                 onClick={() => {
-                  handleCreateSignal();
+                  handleSaveChanges();
                   setShowSettings(false);
                 }}
                 className="px-8 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-all shadow-lg shadow-primary/20"

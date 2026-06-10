@@ -42,7 +42,10 @@ export default function Onboarding() {
         primary_platform: result.data.selectedChannels ? result.data.selectedChannels.join(', ') : 'Reddit',
         primary_cta: result.data.suggestedTagline || '',
         current_stage: 'MVP',
-        posting_frequency: 'Daily'
+        posting_frequency: 'Daily',
+        audience_communities: result.data.bestCommunities ? JSON.stringify(result.data.bestCommunities.map(c => c.name.replace('r/', '').trim()).filter(Boolean)) : '[]',
+        audience_keywords: result.data.audienceKeywords ? JSON.stringify(result.data.audienceKeywords) : '[]',
+        audience_platforms: result.data.selectedChannels ? JSON.stringify(result.data.selectedChannels.map(c => c.toLowerCase())) : '["reddit"]'
       };
 
       const { error } = await supabase

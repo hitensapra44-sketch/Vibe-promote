@@ -19,7 +19,8 @@ import {
   Edit2,
   Check,
   X,
-  Plus
+  Plus,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -57,7 +58,23 @@ export default function BrandBrainView() {
           .maybeSingle();
 
         if (data) {
-          setBrain(data);
+          let formattedCommunities = '';
+          if (data.audience_communities) {
+            try {
+              const parsed = JSON.parse(data.audience_communities);
+              if (Array.isArray(parsed)) {
+                formattedCommunities = parsed.join(', ');
+              } else {
+                formattedCommunities = data.audience_communities;
+              }
+            } catch (e) {
+              formattedCommunities = data.audience_communities;
+            }
+          }
+          setBrain({
+            ...data,
+            audience_communities: formattedCommunities
+          });
         } else if (!error) {
           navigate('/onboarding');
         }
@@ -72,9 +89,15 @@ export default function BrandBrainView() {
 
   const handleSaveField = async (field) => {
     try {
+      let valueToSave = editValue;
+      if (field === 'audience_communities') {
+        const arr = editValue.split(',').map(c => c.trim()).filter(Boolean);
+        valueToSave = JSON.stringify(arr);
+      }
+
       const { error } = await supabase
         .from('brand_brains')
-        .update({ [field]: editValue })
+        .update({ [field]: valueToSave })
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -271,6 +294,7 @@ export default function BrandBrainView() {
             <InfoCard label="Brand Tone" field="brand_tone" value={brain?.brand_tone} icon={Brain} />
             <InfoCard label="Writing Style" field="writing_style" value={brain?.writing_style} icon={PenTool} />
             <InfoCard label="Primary Platforms" field="primary_platform" value={brain?.primary_platform} icon={Globe} isTags={true} />
+            <InfoCard label="Communities" field="audience_communities" value={brain?.audience_communities} icon={Users} isTags={true} />
             
             <div className="md:col-span-3">
               <InfoCard label="Primary Call to Action" field="primary_cta" value={brain?.primary_cta} icon={Zap} />
