@@ -130,11 +130,12 @@ serve(async (req) => {
         }
 
         const rawPosts: any[] = [];
+        const twoDaysAgoLimit = Date.now() - (2 * 24 * 60 * 60 * 1000);
 
         // REDDIT via Serper — CAPPED: max 2 keywords × 3 communities = 6 calls max
         if (platforms.includes('reddit')) {
-          const keywordsToScan = keywords.slice(0, 2);       // ← was 4, now 2
-          const communitiesToScan = communities.slice(0, 3);  // ← was 5, now 3
+          const keywordsToScan = keywords.slice(0, 2);
+          const communitiesToScan = communities.slice(0, 3);
 
           for (const keyword of keywordsToScan) {
             for (const community of communitiesToScan) {
@@ -167,7 +168,7 @@ serve(async (req) => {
                       'X-API-KEY': SERPER_API_KEY,
                       'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ q: query, num: 10 })
+                    body: JSON.stringify({ q: query, num: 10, tbs: "qdr:2d" })
                   });
 
                   if (!serperRes.ok) {
@@ -198,17 +199,28 @@ serve(async (req) => {
                   const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                   const subreddit = subMatch ? subMatch[1] : community;
 
-                  rawPosts.push({
-                    title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
-                    body: result.snippet || '',
-                    url: url,
-                    author: 'unknown',
-                    subreddit: subreddit,
-                    upvotes: 0,
-                    comments: 0,
-                    created_at: Date.now(),
-                    platform: 'reddit'
-                  });
+                  let postDate = Date.now();
+                  if (result.date) {
+                    const parsed = Date.parse(result.date);
+                    if (!isNaN(parsed)) {
+                      postDate = parsed;
+                    }
+                  }
+
+                  // JS-level safety net filter
+                  if (postDate >= twoDaysAgoLimit) {
+                    rawPosts.push({
+                      title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
+                      body: result.snippet || '',
+                      url: url,
+                      author: 'unknown',
+                      subreddit: subreddit,
+                      upvotes: 0,
+                      comments: 0,
+                      created_at: postDate,
+                      platform: 'reddit'
+                    });
+                  }
                 });
 
               } catch (e) {
@@ -220,29 +232,33 @@ serve(async (req) => {
           }
         }
 
-        // HACKER NEWS via Algolia — unchanged, free and no blocks
+        // HACKER NEWS via Algolia — filtered to last 2 days
         if (platforms.includes('hn')) {
-          const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+          const twoDaysAgoUnix = Math.floor(Date.now() / 1000) - (2 * 24 * 60 * 60);
           for (const keyword of keywords.slice(0, 4)) {
             try {
-              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${sevenDaysAgo},points>1&hitsPerPage=10`;
+              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${twoDaysAgoUnix}&hitsPerPage=20`;
               const hnRes = await fetch(hnUrl);
               if (hnRes.ok) {
                 const data = await hnRes.json();
                 const hits = data.hits || [];
                 console.log(`[audience-scanner] HN returned ${hits.length} posts for "${keyword}"`);
                 hits.forEach((hit: any) => {
-                  rawPosts.push({
-                    title: hit.title,
-                    body: hit.story_text || '',
-                    url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
-                    author: hit.author,
-                    subreddit: 'HackerNews',
-                    upvotes: hit.points || 0,
-                    comments: hit.num_comments || 0,
-                    created_at: hit.created_at_i * 1000,
-                    platform: 'hacker_news'
-                  });
+                  const postDate = hit.created_at_i * 1000;
+                  // JS-level safety net filter
+                  if (postDate >= twoDaysAgoLimit) {
+                    rawPosts.push({
+                      title: hit.title,
+                      body: hit.story_text || '',
+                      url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
+                      author: hit.author,
+                      subreddit: 'HackerNews',
+                      upvotes: hit.points || 0,
+                      comments: hit.num_comments || 0,
+                      created_at: postDate,
+                      platform: 'hacker_news'
+                    });
+                  }
                 });
               }
             } catch (e) {

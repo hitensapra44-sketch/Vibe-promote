@@ -96,6 +96,10 @@ export default function AudienceSpotter() {
   const [voiceSample, setVoiceSample] = useState('');
   const [replyCtaText, setReplyCtaText] = useState('');
 
+  // On-demand reply generation states
+  const [generatedReplies, setGeneratedReplies] = useState({});   // { [signalId]: string }
+  const [generatingReply, setGeneratingReply] = useState({});     // { [signalId]: boolean }
+
   const { signals, isLoading, startScan, updateSignalStatus } = useAudienceSpotter(user?.id);
 
   const isLocked = limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder;
@@ -224,6 +228,10 @@ export default function AudienceSpotter() {
     setIsLoading(true);
 
     try {
+      // Save voice sample and CTA to localStorage
+      localStorage.setItem('vh_voice_sample', voiceSample);
+      localStorage.setItem('vh_reply_cta', replyCtaText);
+
       const { error } = await supabase
         .from('brand_brains')
         .update({
@@ -309,6 +317,43 @@ export default function AudienceSpotter() {
     toast.success("Post removed. We'll use this feedback to improve.");
   };
 
+  // On-demand reply generation logic
+  const handleGenerateReply = async (signal) => {
+    const mode = replyModes[signal.id] || 'helpful';
+    setGeneratingReply(prev => ({ ...prev, [signal.id]: true }));
+    
+    const prompt = `
+    You are a helpful reply assistant for a SaaS founder.
+    
+    Product: ${brain?.app_name || 'their product'}
+    Description: ${brain?.app_description || ''}
+    Target audience: ${brain?.target_customer || ''}
+    ${replyCtaText ? `CTA to include subtly: ${replyCtaText}` : ''}
+    ${voiceSample ? `Write in this founder's voice/tone (use as style reference only): ${voiceSample}` : ''}
+    
+    Reddit post title: ${signal.post_title}
+    Reddit post body: ${signal.post_body || ''}
+    
+    Reply tone: ${mode}
+    - helpful: genuinely helpful, no promotion, solve their problem directly
+    - expert: authoritative and knowledgeable, share insight/experience
+    - founder_story: share a brief personal founder experience related to their problem
+    - soft_promo: helpful first, then naturally mention the product without being pushy
+    
+    Write a Reddit reply in the selected tone. Keep it concise (3-5 sentences max). Sound human, not like AI. Do not use bullet points. Do not start with "I". Return ONLY the reply text, nothing else.
+    `;
+    
+    try {
+      const result = await generateAICall(prompt, "Generate the reply now.", null, 'copilot');
+      setGeneratedReplies(prev => ({ ...prev, [signal.id]: result }));
+    } catch (err) {
+      console.error("Error generating reply:", err);
+      toast.error("Failed to generate reply.");
+    } finally {
+      setGeneratingReply(prev => ({ ...prev, [signal.id]: false }));
+    }
+  };
+
   if (isInitialLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
   if (showSettings) {
@@ -353,15 +398,40 @@ export default function AudienceSpotter() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-bold">Where should we listen?</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {PLATFORMS.map(p => (
-                      <div key={p.id} className={cn("p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center", p.available ? "border-foreground/10 bg-foreground/5" : "opacity-40 border-foreground/10 bg-foreground/5")}>
-                        <div className="w-12 h-12 rounded-xl bg-foreground/5 flex items-center justify-center">
-                          <p.icon className="w-6 h-6 text-foreground" />
+                    {PLATFORMS.map(p => {
+                      const isSelected = selectedPlatforms.includes(p.id);
+                      return (
+                        <div 
+                          key={p.id} 
+                          onClick={() => {
+                            if (!p.available) return;
+                            if (isSelected) {
+                              if (selectedPlatforms.length > 1) {
+                                setSelectedPlatforms(selectedPlatforms.filter(id => id !== p.id));
+                              } else {
+                                toast.error("Select at least one platform");
+                              }
+                            } else {
+                              setSelectedPlatforms([...selectedPlatforms, p.id]);
+                            }
+                          }}
+                          className={cn(
+                            "p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center cursor-pointer",
+                            !p.available ? "opacity-40 border-foreground/10 bg-foreground/5 cursor-not-allowed" :
+                            isSelected ? "border-primary bg-primary/5" : "border-foreground/10 bg-foreground/5 hover:border-foreground/20"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                            isSelected ? "bg-primary/10 text-primary" : "bg-foreground/5 text-foreground"
+                          )}>
+                            <p.icon className="w-6 h-6" />
+                          </div>
+                          <span className={cn("font-bold text-sm", isSelected ? "text-primary" : "text-foreground")}>{p.name}</span>
+                          {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Locked</span>}
                         </div>
-                        <span className="font-bold text-sm">{p.name}</span>
-                        {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Locked</span>}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -453,15 +523,6 @@ export default function AudienceSpotter() {
                       placeholder="Paste a reply you've written before that felt natural and got good responses. The AI will use this as tone inspiration..."
                       className="w-full h-40 bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground text-sm focus:outline-none focus:border-primary resize-none placeholder-foreground/30"
                     />
-                    <button
-                      onClick={() => {
-                        localStorage.setItem('vh_voice_sample', voiceSample);
-                        toast.success("Voice sample saved!");
-                      }}
-                      className="px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
-                    >
-                      Save Voice Sample
-                    </button>
                   </div>
 
                   <div className="mt-10 border-t border-foreground/10 pt-8 space-y-4">
@@ -476,15 +537,6 @@ export default function AudienceSpotter() {
                       placeholder="e.g. Check out vibepromote.tech — free to try"
                       className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-6 py-4 text-foreground text-sm focus:outline-none focus:border-primary transition-all placeholder-foreground/30"
                     />
-                    <button
-                      onClick={() => {
-                        localStorage.setItem('vh_reply_cta', replyCtaText);
-                        toast.success("CTA saved!");
-                      }}
-                      className="px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
-                    >
-                      Save CTA
-                    </button>
                   </div>
                 </div>
               )}
@@ -738,8 +790,12 @@ export default function AudienceSpotter() {
                         <div>
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-foreground font-bold text-sm">{signal.subreddit}</span>
-                            <span className="text-foreground/40 text-xs">•</span>
-                            <span className="text-foreground/60 text-xs font-medium">by u/{signal.author}</span>
+                            {signal.author && signal.author !== 'unknown' && (
+                              <>
+                                <span className="text-foreground/40 text-xs">•</span>
+                                <span className="text-foreground/60 text-xs font-medium">by u/{signal.author}</span>
+                              </>
+                            )}
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-1.5 bg-foreground/5 border border-foreground/10 px-2.5 py-1 rounded-lg">
@@ -754,8 +810,8 @@ export default function AudienceSpotter() {
                     <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">{signal.post_title}</h2>
                     <p className="text-foreground/60 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
 
-                    {/* Reply Mode Buttons */}
-                    <div className="mb-4 space-y-2">
+                    {/* Reply Mode Buttons & On-demand Generation */}
+                    <div className="mb-4 space-y-4">
                       <div className="flex flex-wrap gap-2">
                         {[
                           { id: 'helpful', label: 'Helpful' },
@@ -768,7 +824,16 @@ export default function AudienceSpotter() {
                           return (
                             <button
                               key={mode.id}
-                              onClick={() => setReplyModes(prev => ({ ...prev, [signal.id]: mode.id }))}
+                              onClick={() => {
+                                setReplyModes(prev => ({ ...prev, [signal.id]: mode.id }));
+                                if (generatedReplies[signal.id]) {
+                                  setGeneratedReplies(prev => {
+                                    const next = { ...prev };
+                                    delete next[signal.id];
+                                    return next;
+                                  });
+                                }
+                              }}
                               className={cn(
                                 "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all bg-transparent",
                                 isSelected 
@@ -781,24 +846,36 @@ export default function AudienceSpotter() {
                           );
                         })}
                       </div>
-                      <p className="text-[10px] text-foreground/40">
-                        Reply tone: {([
-                          { id: 'helpful', label: 'Helpful' },
-                          { id: 'expert', label: 'Expert' },
-                          { id: 'founder_story', label: 'Founder Story' },
-                          { id: 'soft_promo', label: 'Soft Promo' }
-                        ].find(m => m.id === (replyModes[signal.id] || 'helpful'))?.label)}
-                      </p>
+                      
+                      <button
+                        onClick={() => handleGenerateReply(signal)}
+                        disabled={generatingReply[signal.id]}
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/10"
+                      >
+                        {generatingReply[signal.id] ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            {generatedReplies[signal.id] ? "Regenerate Reply →" : "Generate Reply →"}
+                          </>
+                        )}
+                      </button>
                     </div>
 
-                    <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8">
-                      <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
-                      <div className="flex items-center gap-2 mb-3">
-                        <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
+                    {generatedReplies[signal.id] && (
+                      <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8 animate-in fade-in duration-300">
+                        <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
+                        <div className="flex items-center gap-2 mb-3">
+                          <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
+                        </div>
+                        <p className="text-foreground text-sm italic leading-relaxed font-medium">"{generatedReplies[signal.id]}"</p>
                       </div>
-                      <p className="text-foreground text-sm italic leading-relaxed font-medium">"{signal.suggested_reply}"</p>
-                    </div>
+                    )}
 
                     <div className="flex items-center justify-between pt-6 border-t border-foreground/5">
                       <div className="flex items-center gap-6">
@@ -832,12 +909,17 @@ export default function AudienceSpotter() {
                       <div className="flex items-center gap-3">
                         <button 
                           onClick={() => {
-                            navigator.clipboard.writeText(signal.suggested_reply);
+                            if (!generatedReplies[signal.id]) {
+                              toast.error("Generate a reply first!");
+                              return;
+                            }
+                            navigator.clipboard.writeText(generatedReplies[signal.id]);
                             setCopiedSignalId(signal.id);
                             toast.success("Reply copied!");
                             setTimeout(() => setCopiedSignalId(null), 2000);
                           }}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10"
+                          disabled={!generatedReplies[signal.id]}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           {copiedSignalId === signal.id ? (
                             <>
