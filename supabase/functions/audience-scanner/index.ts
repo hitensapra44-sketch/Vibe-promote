@@ -6,6 +6,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Simple hash for cache key
+async function hashQuery(query: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(query.toLowerCase().trim());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+}
+
+// Per-user daily scan limits by plan
+function getDailyLimit(plan: string): number {
+  if (plan === 'pro') return 999;
+  if (plan === 'starter') return 10;
+  return 3; // free
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -59,6 +75,35 @@ serve(async (req) => {
         const currentUserId = brain.user_id;
         console.log(`[audience-scanner] Processing user: ${currentUserId}`);
 
+        // ── PER-USER DAILY RATE LIMIT ──────────────────────────────────
+        // Get user plan from user_payments
+        const { data: paymentData } = await supabase
+          .from('user_payments')
+          .select('plan')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        const userPlan = paymentData?.plan || 'free';
+        const dailyLimit = getDailyLimit(userPlan);
+
+        // Count scans today
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const { count: scansToday } = await supabase
+          .from('audience_signals')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', currentUserId)
+          .gte('created_at', todayStart.toISOString());
+
+        // Each scan inserts up to 5 signals — treat 5 inserts as 1 scan
+        const scanCount = Math.floor((scansToday || 0) / 5);
+        if (scanCount >= dailyLimit) {
+          console.log(`[audience-scanner] User ${currentUserId} hit daily limit (${dailyLimit} scans). Skipping.`);
+          continue;
+        }
+        // ──────────────────────────────────────────────────────────────
+
         const { count, error: countError } = await supabase
           .from('audience_signals')
           .select('*', { count: 'exact', head: true })
@@ -86,40 +131,70 @@ serve(async (req) => {
 
         const rawPosts: any[] = [];
 
-        // REDDIT via Serper
+        // REDDIT via Serper — CAPPED: max 2 keywords × 3 communities = 6 calls max
         if (platforms.includes('reddit')) {
-          for (const keyword of keywords.slice(0, 4)) {
-            for (const community of communities.slice(0, 5)) {
+          const keywordsToScan = keywords.slice(0, 2);       // ← was 4, now 2
+          const communitiesToScan = communities.slice(0, 3);  // ← was 5, now 3
+
+          for (const keyword of keywordsToScan) {
+            for (const community of communitiesToScan) {
               try {
                 const query = `site:reddit.com/r/${community} "${keyword}"`;
-                console.log(`[audience-scanner] Serper query: ${query}`);
+                const queryHash = await hashQuery(query);
 
-                const serperRes = await fetch('https://google.serper.dev/search', {
-                  method: 'POST',
-                  headers: {
-                    'X-API-KEY': SERPER_API_KEY,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    q: query,
-                    num: 10
-                  })
-                });
+                // ── CACHE CHECK ──────────────────────────────────────────
+                const CACHE_TTL_HOURS = 24;
+                const cacheExpiry = new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
 
-                if (!serperRes.ok) {
-                  console.error(`[audience-scanner] Serper error: ${serperRes.status}`);
-                  continue;
+                const { data: cached } = await supabase
+                  .from('serper_cache')
+                  .select('results, created_at')
+                  .eq('query_hash', queryHash)
+                  .gte('created_at', cacheExpiry)
+                  .maybeSingle();
+
+                let results: any[] = [];
+
+                if (cached) {
+                  console.log(`[audience-scanner] CACHE HIT: "${query}"`);
+                  results = cached.results as any[];
+                } else {
+                  console.log(`[audience-scanner] CACHE MISS — calling Serper: "${query}"`);
+
+                  const serperRes = await fetch('https://google.serper.dev/search', {
+                    method: 'POST',
+                    headers: {
+                      'X-API-KEY': SERPER_API_KEY,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ q: query, num: 10 })
+                  });
+
+                  if (!serperRes.ok) {
+                    console.error(`[audience-scanner] Serper error: ${serperRes.status}`);
+                    continue;
+                  }
+
+                  const serperData = await serperRes.json();
+                  results = serperData.organic || [];
+                  console.log(`[audience-scanner] Serper returned ${results.length} results`);
+
+                  // Store in cache
+                  await supabase
+                    .from('serper_cache')
+                    .upsert({
+                      query_hash: queryHash,
+                      query_text: query,
+                      results: results,
+                      created_at: new Date().toISOString()
+                    }, { onConflict: 'query_hash' });
                 }
-
-                const serperData = await serperRes.json();
-                const results = serperData.organic || [];
-                console.log(`[audience-scanner] Serper returned ${results.length} results for "${keyword}" in r/${community}`);
+                // ─────────────────────────────────────────────────────────
 
                 results.forEach((result: any) => {
                   const url = result.link || '';
                   if (!url.includes('reddit.com')) return;
 
-                  // Extract subreddit from URL
                   const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                   const subreddit = subMatch ? subMatch[1] : community;
 
@@ -145,7 +220,7 @@ serve(async (req) => {
           }
         }
 
-        // HACKER NEWS via Algolia (free, no blocks)
+        // HACKER NEWS via Algolia — unchanged, free and no blocks
         if (platforms.includes('hn')) {
           const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
           for (const keyword of keywords.slice(0, 4)) {
@@ -178,7 +253,7 @@ serve(async (req) => {
 
         console.log(`[audience-scanner] Total raw posts: ${rawPosts.length}`);
 
-        // Dedup
+        // Dedup by URL
         const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.url, p])).values());
 
         // Filter already stored
