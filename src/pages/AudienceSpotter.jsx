@@ -400,11 +400,17 @@ export default function AudienceSpotter() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {PLATFORMS.map(p => {
                       const isSelected = selectedPlatforms.includes(p.id);
+                      const isLockedPlatform = (p.id === 'twitter' || p.id === 'threads') && plan === 'free';
                       return (
                         <div 
                           key={p.id} 
                           onClick={() => {
                             if (!p.available) return;
+                            if (isLockedPlatform) {
+                              toast.error("X and Threads monitoring is a Pro feature. Please upgrade your plan.");
+                              navigate('/pricing');
+                              return;
+                            }
                             if (isSelected) {
                               if (selectedPlatforms.length > 1) {
                                 setSelectedPlatforms(selectedPlatforms.filter(id => id !== p.id));
@@ -418,17 +424,20 @@ export default function AudienceSpotter() {
                           className={cn(
                             "p-8 rounded-2xl border transition-all flex flex-col items-center gap-4 text-center cursor-pointer",
                             !p.available ? "opacity-40 border-foreground/10 bg-foreground/5 cursor-not-allowed" :
+                            isLockedPlatform ? "border-foreground/10 bg-foreground/5 hover:border-orange-500/30" :
                             isSelected ? "border-primary bg-primary/5" : "border-foreground/10 bg-foreground/5 hover:border-foreground/20"
                           )}
                         >
                           <div className={cn(
                             "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                            isLockedPlatform ? "bg-orange-500/10 text-orange-500" :
                             isSelected ? "bg-primary/10 text-primary" : "bg-foreground/5 text-foreground"
                           )}>
                             <p.icon className="w-6 h-6" />
                           </div>
                           <span className={cn("font-bold text-sm", isSelected ? "text-primary" : "text-foreground")}>{p.name}</span>
                           {!p.available && <span className="text-[10px] font-bold text-primary uppercase">Locked</span>}
+                          {isLockedPlatform && <span className="text-[10px] font-bold text-orange-500 uppercase">Pro Feature</span>}
                         </div>
                       );
                     })}

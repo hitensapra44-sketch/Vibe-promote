@@ -264,6 +264,24 @@ export default function Dashboard() {
             </button>
           </section>
 
+          {/* New Update Section */}
+          <section className="rounded-2xl p-6 border border-orange-500/20 bg-orange-500/[0.02] space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-orange-500" />
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">New Update</h3>
+            </div>
+            <ul className="space-y-2.5 text-sm text-foreground/80 pl-1">
+              <li className="flex items-start gap-2.5">
+                <span className="text-orange-500 font-bold mt-0.5">•</span>
+                <span>Now you can add your original reply as the context to make better replies in User Finder.</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-orange-500 font-bold mt-0.5">•</span>
+                <span>X and Threads search is available now!</span>
+              </li>
+            </ul>
+          </section>
+
           {/* App Update Section */}
           <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
