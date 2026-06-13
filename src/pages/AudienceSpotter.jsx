@@ -53,8 +53,8 @@ const STEPS = [
 const PLATFORMS = [
   { id: 'reddit', name: 'Reddit', icon: MessageSquare, color: '#FF4500', available: true },
   { id: 'hn', name: 'Hacker News', icon: Globe, color: '#FF6600', available: true },
-  { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', available: false, locked: true },
-  { id: 'threads', name: 'Threads', icon: AtSign, color: '#000000', available: false, locked: true },
+  { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', available: true },
+  { id: 'threads', name: 'Threads', icon: AtSign, color: '#000000', available: true },
 ];
 
 const DISMISS_REASONS = [

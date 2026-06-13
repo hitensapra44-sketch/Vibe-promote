@@ -375,8 +375,8 @@ serve(async (req) => {
 
         // --- INTEGRATION OF X AND THREADS ---
         const [xResult, threadsResult] = await Promise.allSettled([
-          searchXPosts(keywords, currentUserId),
-          searchThreadsPosts(keywords, currentUserId)
+          platforms.includes('twitter') ? searchXPosts(keywords, currentUserId) : Promise.resolve([]),
+          platforms.includes('threads') ? searchThreadsPosts(keywords, currentUserId) : Promise.resolve([])
         ])
         const xPosts = xResult.status === "fulfilled" ? xResult.value : []
         const threadsPosts = threadsResult.status === "fulfilled" ? threadsResult.value : []
