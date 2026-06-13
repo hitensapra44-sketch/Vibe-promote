@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,6 +20,112 @@ function getDailyLimit(plan: string): number {
   if (plan === 'pro') return 999;
   if (plan === 'starter') return 10;
   return 3; // free
+}
+
+async function searchXPosts(keywords: string[], userId: string): Promise<any[]> {
+  try {
+    const RAPIDAPI_KEY = Deno.env.get("RAPIDAPI_KEY");
+    if (!RAPIDAPI_KEY) return [];
+
+    const results: any[] = [];
+    // Loop through first 3 keywords only
+    for (const keyword of keywords.slice(0, 3)) {
+      try {
+        const url = `https://twitter-api45.p.rapidapi.com/search.php?query=${encodeURIComponent(keyword)}&search_type=Latest`;
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": "twitter-api45.p.rapidapi.com"
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const timeline = data?.timeline || [];
+          for (const tweet of timeline) {
+            results.push({
+              user_id: userId,
+              source: "x",
+              post_url: `https://twitter.com/i/web/status/${tweet.tweet_id}`,
+              post_title: (tweet.text || "").slice(0, 100),
+              post_content: tweet.text || "",
+              community: "Twitter/X",
+              intent_score: null,
+              found_at: tweet.created_at || new Date().toISOString(),
+              // Standard fields for the scoring loop:
+              title: (tweet.text || "").slice(0, 100),
+              body: tweet.text || "",
+              url: `https://twitter.com/i/web/status/${tweet.tweet_id}`,
+              author: 'unknown',
+              subreddit: "Twitter/X",
+              platform: "x",
+              upvotes: 0,
+              comments: 0,
+              created_at: tweet.created_at || new Date().toISOString()
+            });
+          }
+        }
+      } catch (e) {
+        console.error(`[audience-scanner] X search failed for keyword "${keyword}":`, e);
+      }
+      await new Promise(r => setTimeout(r, 1200));
+    }
+    return results;
+  } catch (e) {
+    console.error("[audience-scanner] searchXPosts global failure:", e);
+    return [];
+  }
+}
+
+async function searchThreadsPosts(keywords: string[], userId: string): Promise<any[]> {
+  try {
+    const THREADS_TOKEN = Deno.env.get("THREADS_ACCESS_TOKEN");
+    if (!THREADS_TOKEN) return [];
+
+    const results: any[] = [];
+    // Loop through first 2 keywords only
+    for (const keyword of keywords.slice(0, 2)) {
+      try {
+        const url = `https://graph.threads.net/v1.0/keyword_search?q=${encodeURIComponent(keyword)}&search_type=RECENT&fields=id,text,timestamp,permalink,username&limit=10&access_token=${THREADS_TOKEN}`;
+        const res = await fetch(url);
+
+        if (res.ok) {
+          const data = await res.json();
+          const posts = data?.data || [];
+          for (const post of posts) {
+            results.push({
+              user_id: userId,
+              source: "threads",
+              post_url: post.permalink || "",
+              post_title: (post.text || "").slice(0, 100),
+              post_content: post.text || "",
+              community: "Threads",
+              intent_score: null,
+              found_at: post.timestamp || new Date().toISOString(),
+              // Standard fields for the scoring loop:
+              title: (post.text || "").slice(0, 100),
+              body: post.text || "",
+              url: post.permalink || "",
+              author: post.username || 'unknown',
+              subreddit: "Threads",
+              platform: "threads",
+              upvotes: 0,
+              comments: 0,
+              created_at: post.timestamp || new Date().toISOString()
+            });
+          }
+        }
+      } catch (e) {
+        console.error(`[audience-scanner] Threads search failed for keyword "${keyword}":`, e);
+      }
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    return results;
+  } catch (e) {
+    console.error("[audience-scanner] searchThreadsPosts global failure:", e);
+    return [];
+  }
 }
 
 serve(async (req) => {
@@ -267,10 +373,20 @@ serve(async (req) => {
           }
         }
 
-        console.log(`[audience-scanner] Total raw posts: ${rawPosts.length}`);
+        // --- INTEGRATION OF X AND THREADS ---
+        const [xResult, threadsResult] = await Promise.allSettled([
+          searchXPosts(keywords, currentUserId),
+          searchThreadsPosts(keywords, currentUserId)
+        ])
+        const xPosts = xResult.status === "fulfilled" ? xResult.value : []
+        const threadsPosts = threadsResult.status === "fulfilled" ? threadsResult.value : []
+
+        const allResults = [...rawPosts, ...xPosts, ...threadsPosts]
+
+        console.log(`[audience-scanner] Total raw posts: ${allResults.length}`);
 
         // Dedup by URL
-        const uniquePosts = Array.from(new Map(rawPosts.map(p => [p.url, p])).values());
+        const uniquePosts = Array.from(new Map(allResults.map(p => [p.url, p])).values());
 
         // Filter already stored
         const { data: existingSignals } = await supabase
