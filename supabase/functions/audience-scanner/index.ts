@@ -314,6 +314,7 @@ serve(async (req) => {
                 results.forEach((result: any) => {
                   const url = result.link || '';
                   if (!url.includes('reddit.com')) return;
+                  if (!url.includes('/comments/')) return; // skip subreddit homepages, only keep actual posts
 
                   const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                   const subreddit = subMatch ? subMatch[1] : community;
@@ -408,8 +409,9 @@ serve(async (req) => {
           .eq('user_id', currentUserId);
 
         const existingUrls = new Set((existingSignals || []).map((s: any) => s.post_url));
-        const filteredPosts = uniquePosts.filter(p => !existingUrls.has(p.url));
-        console.log(`[audience-scanner] New posts to score: ${filteredPosts.length}`);
+        const allFilteredPosts = uniquePosts.filter(p => !existingUrls.has(p.url));
+        const filteredPosts = allFilteredPosts.slice(0, 15);
+        console.log(`[audience-scanner] New posts to score: ${filteredPosts.length} (of ${allFilteredPosts.length} found)`);
 
         let insertedCount = 0;
 
