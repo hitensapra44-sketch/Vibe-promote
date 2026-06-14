@@ -238,7 +238,6 @@ export default function AudienceSpotter() {
 
   const handleSaveChanges = async () => {
     setIsConfigured(true);
-    setIsLoading(true);
 
     try {
       // Save voice sample and CTA to localStorage
@@ -275,7 +274,7 @@ export default function AudienceSpotter() {
       console.error("Error saving settings:", err);
       toast.error("Failed to save settings.");
     } finally {
-      setIsLoading(false);
+      // no-op, isLoading is managed by useAudienceSpotter hook
     }
   };
 
@@ -428,7 +427,7 @@ export default function AudienceSpotter() {
                               if (selectedPlatforms.length > 1) {
                                 setSelectedPlatforms(selectedPlatforms.filter(id => id !== p.id));
                               } else {
-                                font-bold.error("Select at least one platform");
+                                toast.error("Select at least one platform");
                               }
                             } else {
                               setSelectedPlatforms([...selectedPlatforms, p.id]);

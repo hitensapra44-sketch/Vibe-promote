@@ -311,10 +311,18 @@ serve(async (req) => {
                 }
                 // ─────────────────────────────────────────────────────────
 
+                console.log(`[audience-scanner] Raw links for "${query}": ${results.map((r: any) => r.link).join(' | ')}`);
                 results.forEach((result: any) => {
                   const url = result.link || '';
                   if (!url.includes('reddit.com')) return;
-                  if (!url.includes('/comments/')) return; // skip subreddit homepages, only keep actual posts
+
+                  // Skip subreddit homepage/listing pages, but allow /comments/ posts
+                  // and old.reddit.com / share-link formats
+                  const pathAfterDomain = url.split('reddit.com')[1] || '';
+                  const segments = pathAfterDomain.split('/').filter(Boolean);
+                  // segments like ['r','indiehackers'] = homepage, skip
+                  // segments like ['r','indiehackers','comments','abc','title'] = real post, keep
+                  if (segments.length <= 2) return;
 
                   const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                   const subreddit = subMatch ? subMatch[1] : community;
