@@ -141,6 +141,7 @@ export default function AudienceSpotter() {
           // Load from brand brain if they exist
           let brainKeywords = [];
           let brainCommunities = [];
+          let brainPlatforms = [];
           
           if (brainData.audience_keywords) {
             try {
@@ -160,6 +161,14 @@ export default function AudienceSpotter() {
             }
           }
 
+          if (brainData.audience_platforms) {
+            try {
+              brainPlatforms = JSON.parse(brainData.audience_platforms);
+            } catch (e) {
+              brainPlatforms = brainData.audience_platforms.split(',').map(p => p.trim()).filter(Boolean);
+            }
+          }
+
           // Fallback if empty
           if (brainKeywords.length === 0) {
             brainKeywords = [brainData.core_problem].filter(Boolean);
@@ -167,9 +176,13 @@ export default function AudienceSpotter() {
           if (brainCommunities.length === 0) {
             brainCommunities = ['SaaS', 'startups', 'indiehackers', 'SideProject', 'entrepreneur'];
           }
+          if (brainPlatforms.length === 0) {
+            brainPlatforms = ['reddit'];
+          }
 
           setKeywords(brainKeywords.slice(0, maxKeywords));
           setCommunities(brainCommunities.slice(0, maxCommunities));
+          setSelectedPlatforms(brainPlatforms);
         }
 
         if (count > 0) {
@@ -415,7 +428,7 @@ export default function AudienceSpotter() {
                               if (selectedPlatforms.length > 1) {
                                 setSelectedPlatforms(selectedPlatforms.filter(id => id !== p.id));
                               } else {
-                                toast.error("Select at least one platform");
+                                font-bold.error("Select at least one platform");
                               }
                             } else {
                               setSelectedPlatforms([...selectedPlatforms, p.id]);
