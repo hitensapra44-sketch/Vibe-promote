@@ -25,7 +25,11 @@ function getDailyLimit(plan: string): number {
 async function searchXPosts(keywords: string[], userId: string): Promise<any[]> {
   try {
     const RAPIDAPI_KEY = Deno.env.get("RAPIDAPI_KEY");
-    if (!RAPIDAPI_KEY) return [];
+    if (!RAPIDAPI_KEY) {
+      console.log("[audience-scanner] X: RAPIDAPI_KEY not set, skipping");
+      return [];
+    }
+    console.log(`[audience-scanner] X: searching keywords ${JSON.stringify(keywords.slice(0,3))}`);
 
     const results: any[] = [];
     // Loop through first 3 keywords only
@@ -40,9 +44,11 @@ async function searchXPosts(keywords: string[], userId: string): Promise<any[]> 
           }
         });
 
+        console.log(`[audience-scanner] X: response status ${res.status} for "${keyword}"`);
         if (res.ok) {
           const data = await res.json();
           const timeline = data?.timeline || [];
+          console.log(`[audience-scanner] X: got ${timeline.length} tweets for "${keyword}"`);
           for (const tweet of timeline) {
             results.push({
               user_id: userId,
@@ -81,7 +87,11 @@ async function searchXPosts(keywords: string[], userId: string): Promise<any[]> 
 async function searchThreadsPosts(keywords: string[], userId: string): Promise<any[]> {
   try {
     const THREADS_TOKEN = Deno.env.get("THREADS_ACCESS_TOKEN");
-    if (!THREADS_TOKEN) return [];
+    if (!THREADS_TOKEN) {
+      console.log("[audience-scanner] Threads: THREADS_ACCESS_TOKEN not set, skipping");
+      return [];
+    }
+    console.log(`[audience-scanner] Threads: searching keywords ${JSON.stringify(keywords.slice(0,2))}`);
 
     const results: any[] = [];
     // Loop through first 2 keywords only
@@ -90,9 +100,11 @@ async function searchThreadsPosts(keywords: string[], userId: string): Promise<a
         const url = `https://graph.threads.net/v1.0/keyword_search?q=${encodeURIComponent(keyword)}&search_type=RECENT&fields=id,text,timestamp,permalink,username&limit=10&access_token=${THREADS_TOKEN}`;
         const res = await fetch(url);
 
+        console.log(`[audience-scanner] Threads: response status ${res.status} for "${keyword}"`);
         if (res.ok) {
           const data = await res.json();
           const posts = data?.data || [];
+          console.log(`[audience-scanner] Threads: got ${posts.length} posts for "${keyword}"`);
           for (const post of posts) {
             results.push({
               user_id: userId,
@@ -230,6 +242,10 @@ serve(async (req) => {
         const communities: string[] = JSON.parse(brain.audience_communities || '[]');
         const platforms: string[] = JSON.parse(brain.audience_platforms || '[]');
 
+        console.log(`[audience-scanner] Platforms enabled: ${JSON.stringify(platforms)}`);
+        console.log(`[audience-scanner] RAPIDAPI_KEY set: ${!!Deno.env.get("RAPIDAPI_KEY")}`);
+        console.log(`[audience-scanner] THREADS_ACCESS_TOKEN set: ${!!Deno.env.get("THREADS_ACCESS_TOKEN")}`);
+
         if (keywords.length === 0) {
           console.log(`[audience-scanner] No keywords. Skipping.`);
           continue;
@@ -361,9 +377,12 @@ serve(async (req) => {
         }
 
         // HACKER NEWS via Algolia — filtered to last 7 days
+        // Skip overly generic keywords that pull unrelated "Show HN" / "Ask HN" noise
+        const HN_SKIP_TERMS = ['how to get user', 'get user', 'how to get users'];
         if (platforms.includes('hn')) {
           const twoDaysAgoUnix = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
-          for (const keyword of keywords.slice(0, 4)) {
+          const hnKeywords = keywords.slice(0, 4).filter(k => !HN_SKIP_TERMS.includes(k.toLowerCase().trim()));
+          for (const keyword of hnKeywords) {
             try {
               const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${twoDaysAgoUnix}&hitsPerPage=20`;
               const hnRes = await fetch(hnUrl);
