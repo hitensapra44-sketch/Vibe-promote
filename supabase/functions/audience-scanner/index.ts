@@ -236,7 +236,7 @@ serve(async (req) => {
         }
 
         const rawPosts: any[] = [];
-        const twoDaysAgoLimit = Date.now() - (2 * 24 * 60 * 60 * 1000);
+        const twoDaysAgoLimit = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
         // REDDIT via Serper — CAPPED: max 2 keywords × 3 communities = 6 calls max
         if (platforms.includes('reddit')) {
@@ -246,12 +246,14 @@ serve(async (req) => {
           for (const keyword of keywordsToScan) {
             for (const community of communitiesToScan) {
               try {
-                const query = `site:reddit.com/r/${community} "${keyword}"`;
+                const query = `site:reddit.com/r/${community} ${keyword}`;
                 const queryHash = await hashQuery(query);
 
                 // ── CACHE CHECK ──────────────────────────────────────────
                 const CACHE_TTL_HOURS = 24;
+                const EMPTY_CACHE_TTL_HOURS = 1;
                 const cacheExpiry = new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
+                const emptyCacheExpiry = new Date(Date.now() - EMPTY_CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
 
                 const { data: cached } = await supabase
                   .from('serper_cache')
@@ -261,10 +263,21 @@ serve(async (req) => {
                   .maybeSingle();
 
                 let results: any[] = [];
+                let useCache = false;
 
                 if (cached) {
+                  const cachedResults = cached.results as any[];
+                  if (cachedResults.length === 0 && cached.created_at < emptyCacheExpiry) {
+                    // empty result is older than 1 hour, treat as expired, refetch
+                    useCache = false;
+                  } else {
+                    useCache = true;
+                    results = cachedResults;
+                  }
+                }
+
+                if (useCache) {
                   console.log(`[audience-scanner] CACHE HIT: "${query}"`);
-                  results = cached.results as any[];
                 } else {
                   console.log(`[audience-scanner] CACHE MISS — calling Serper: "${query}"`);
 
@@ -274,7 +287,7 @@ serve(async (req) => {
                       'X-API-KEY': SERPER_API_KEY,
                       'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ q: query, num: 10, tbs: "qdr:2d" })
+                    body: JSON.stringify({ q: query, num: 10, tbs: "qdr:7d" })
                   });
 
                   if (!serperRes.ok) {
@@ -338,9 +351,9 @@ serve(async (req) => {
           }
         }
 
-        // HACKER NEWS via Algolia — filtered to last 2 days
+        // HACKER NEWS via Algolia — filtered to last 7 days
         if (platforms.includes('hn')) {
-          const twoDaysAgoUnix = Math.floor(Date.now() / 1000) - (2 * 24 * 60 * 60);
+          const twoDaysAgoUnix = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
           for (const keyword of keywords.slice(0, 4)) {
             try {
               const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${twoDaysAgoUnix}&hitsPerPage=20`;
