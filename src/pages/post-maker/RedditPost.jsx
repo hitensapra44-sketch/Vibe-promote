@@ -12,7 +12,8 @@ import {
   ChevronUp,
   Loader2,
   ChevronLeft,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
@@ -145,6 +146,7 @@ export default function RedditPost() {
   const { used: postsUsed } = useUsage('post_maker');
   const [step, setStep] = useState(2);
   const [selectedMode, setSelectedMode] = useState(null);
+  const [selectedSubreddit, setSelectedSubreddit] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [customContext, setCustomContext] = useState("");
   const [selectedTone, setSelectedTone] = useState("Authentic Founder");
@@ -208,15 +210,16 @@ export default function RedditPost() {
     fetchBrain();
   }, [user]);
 
-  const subredditKey = getSubredditKey(brain);
-  const activeIntel = subredditKey ? SUBREDDIT_INTEL[subredditKey] : null;
-
   const handleBack = () => {
     if (step === 2) {
       navigate('/post-maker');
     } else if (step === 3) {
-      setSelectedMode(null);
-      setStep(2);
+      if (selectedSubreddit) {
+        setSelectedSubreddit(null);
+      } else {
+        setSelectedMode(null);
+        setStep(2);
+      }
     } else if (step === 4) {
       setSelectedTemplate(null);
       setStep(3);
@@ -236,7 +239,7 @@ You are a ghostwriter for indie founders. Write honest, value-first Reddit posts
 
 BRAND:
 ${JSON.stringify(brain)}
-${activeIntel ? `SUBREDDIT CONTEXT: Posting to r/${subredditKey}. Typical tone: ${activeIntel.tone}. Average length: ${activeIntel.avgLength}. Avoid: ${activeIntel.downvoted}.` : ''}
+${selectedSubreddit ? `SUBREDDIT CONTEXT: Posting to r/${selectedSubreddit}. Typical tone: ${SUBREDDIT_INTEL[selectedSubreddit].tone}. Average length: ${SUBREDDIT_INTEL[selectedSubreddit].avgLength}. Avoid: ${SUBREDDIT_INTEL[selectedSubreddit].downvoted}.` : ''}
 
 TASK: Write one complete Reddit post using the "${selectedTemplate?.name || 'custom'}" template.
 
@@ -322,6 +325,7 @@ Return ONLY valid JSON, no markdown, no backticks:
   const resetAll = () => {
     setStep(2);
     setSelectedMode(null);
+    setSelectedSubreddit(null);
     setSelectedTemplate(null);
     setCustomContext("");
     setSelectedTone("Authentic Founder");
@@ -392,56 +396,92 @@ Return ONLY valid JSON, no markdown, no backticks:
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               {selectedMode === "template" ? (
                 <>
-                  <div className="mb-8">
-                    <h1 className="text-2xl font-semibold text-foreground">
-                      {activeIntel ? `Best formats for r/${subredditKey}` : "Templates that work on Reddit"}
-                    </h1>
-                    <p className="text-foreground/60 text-sm">
-                      {activeIntel ? "AI generated for your niche. Pick one to use." : "These formats are getting real traction on Reddit"}
-                    </p>
-                  </div>
-                  <div className="space-y-4">
-                    {(activeIntel ? activeIntel.formats : platformTemplates.Reddit).map((t, i) => (
-                      <div key={i} className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-foreground text-sm font-semibold">{t.name}</h3>
-                          <button
-                            onClick={() => { setSelectedTemplate(t); setStep(4); }}
-                            className="bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 hover:bg-orange-600 transition-all"
-                          >
-                            Use This Template
-                          </button>
-                        </div>
-                        <p className="text-foreground/60 text-sm">{t.why}</p>
-                        {t.exampleUrl && (
-                          <div className="mt-1">
-                            <a href={t.exampleUrl} target="_blank" rel="noopener noreferrer" className="text-[#F97316] text-xs hover:underline">
-                              See real example →
-                            </a>
-                          </div>
-                        )}
-                        <div className="border-t border-foreground/10 pt-3">
-                          <button 
-                            onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
-                            className="flex items-center gap-2 text-foreground/50 text-[10px] font-bold uppercase tracking-widest hover:text-foreground/80 transition-colors"
-                          >
-                            {expandedTemplate === i ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                            Structure Preview
-                          </button>
-                          {expandedTemplate === i && (
-                            <div className="mt-3 space-y-1">
-                              {t.structure.split(' → ').map((step, idx) => (
-                                <div key={idx} className="flex gap-2 text-foreground/50 text-xs">
-                                  <span className="text-orange-500/50">•</span>
-                                  <span>{step}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                  {!selectedSubreddit ? (
+                    /* Subreddit Selection List */
+                    <div className="space-y-6">
+                      <div className="mb-8">
+                        <h1 className="text-2xl font-semibold text-foreground">Select a Subreddit</h1>
+                        <p className="text-foreground/60 text-sm">Choose a community to see proven formats tailored for it</p>
                       </div>
-                    ))}
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {Object.keys(SUBREDDIT_INTEL).map((sub) => (
+                          <div
+                            key={sub}
+                            onClick={() => setSelectedSubreddit(sub)}
+                            className="p-6 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 cursor-pointer transition-all flex items-center gap-4"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                              <MessageSquare className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h3 className="text-foreground text-sm font-bold">r/{sub}</h3>
+                              <p className="text-foreground/60 text-xs mt-1">View {SUBREDDIT_INTEL[sub].formats.length} proven formats</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Formats for Selected Subreddit */
+                    <>
+                      <div className="mb-8">
+                        <button
+                          onClick={() => setSelectedSubreddit(null)}
+                          className="text-foreground/60 text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-4 bg-transparent"
+                        >
+                          ← Back to subreddits
+                        </button>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                          Best formats for r/{selectedSubreddit}
+                        </h1>
+                        <p className="text-foreground/60 text-sm">
+                          AI generated for your niche. Pick one to use.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        {SUBREDDIT_INTEL[selectedSubreddit].formats.map((t, i) => (
+                          <div key={i} className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-foreground text-sm font-semibold">{t.name}</h3>
+                              <button
+                                onClick={() => { setSelectedTemplate(t); setStep(4); }}
+                                className="bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 hover:bg-orange-600 transition-all"
+                              >
+                                Use This Template
+                              </button>
+                            </div>
+                            <p className="text-foreground/60 text-sm">{t.why}</p>
+                            {t.exampleUrl && (
+                              <div className="mt-1">
+                                <a href={t.exampleUrl} target="_blank" rel="noopener noreferrer" className="text-[#F97316] text-xs hover:underline">
+                                  See real example →
+                                </a>
+                              </div>
+                            )}
+                            <div className="border-t border-foreground/10 pt-3">
+                              <button 
+                                onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
+                                className="flex items-center gap-2 text-foreground/50 text-[10px] font-bold uppercase tracking-widest hover:text-foreground/80 transition-colors"
+                              >
+                                {expandedTemplate === i ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                Structure Preview
+                              </button>
+                              {expandedTemplate === i && (
+                                <div className="mt-3 space-y-1">
+                                  {t.structure.split(' → ').map((step, idx) => (
+                                    <div key={idx} className="flex gap-2 text-foreground/50 text-xs">
+                                      <span className="text-orange-500/50">•</span>
+                                      <span>{step}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <div className="space-y-6">

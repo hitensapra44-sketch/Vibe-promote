@@ -9,6 +9,7 @@ import Sidebar from '../../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { usePlan } from '../../lib/usePlan';
 import { useUsage } from '../../lib/useUsage';
+import { toast } from 'sonner';
 
 const platforms = [
   { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
@@ -28,6 +29,15 @@ export default function PostMaker() {
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const navigate = useNavigate();
 
+  // Weekly Plan States
+  const [step, setStep] = useState('platform'); // 'platform', 'weeklyPlanQuestions', 'weeklyPlanFull'
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [wizardStep, setWizardStep] = useState(0);
+  const [planAnswers, setPlanAnswers] = useState({ goal: null, comfort_level: null, posting_frequency: null, platforms: [], selected_subreddits: [] });
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [brain, setBrain] = useState(null);
+
   const isLocked = limits.postMaker !== "unlimited" && postsUsed >= limits.postMaker;
 
   useEffect(() => {
@@ -43,10 +53,50 @@ export default function PostMaker() {
       if (paymentData?.payment_status) {
         setIsPaid(true);
       }
+
+      const { data: brainData } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (brainData) setBrain(brainData);
+
+      try {
+        const { data: planData, error: planError } = await supabase.functions.invoke('generate-content-plan', {
+          method: 'GET'
+        });
+        if (planData?.plan_json) {
+          setWeeklyPlan(planData.plan_json);
+        }
+      } catch (err) {
+        console.error("Error fetching weekly plan:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+
       setLoading(false);
     }
     fetchData();
   }, [user]);
+
+  async function generateWeeklyPlan() {
+    setGeneratingPlan(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-content-plan', {
+        method: 'POST',
+        body: planAnswers
+      });
+      if (error) throw error;
+      setWeeklyPlan(data.plan_json);
+      setStep('platform');
+      toast.success("Your weekly plan is ready!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate your plan.");
+    } finally {
+      setGeneratingPlan(false);
+    }
+  }
 
   const handleContinue = () => {
     if (!selectedPlatform) return;
@@ -188,43 +238,406 @@ export default function PostMaker() {
             </div>
           ) : (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="mb-12">
-                <h1 className="text-2xl font-semibold text-foreground">Post Maker</h1>
-                <p className="text-foreground/60 text-sm">Where are you posting today?</p>
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-                {platforms.map((p) => (
-                  <button
-                    key={p.id}
-                    disabled={!p.available}
-                    onClick={() => setSelectedPlatform(p)}
-                    className={cn(
-                      "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
-                      !p.available ? "opacity-40 cursor-not-allowed bg-foreground/5 border-foreground/10" : 
-                      selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
-                    )}
-                  >
-                    {p.comingSoon && (
-                      <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/60 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
-                    )}
-                    <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")} />
-                    <div>
-                      <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
-                      <p className="text-foreground/60 text-[10px] mt-1">{p.desc}</p>
+              
+              {/* STEP: Platform Selection */}
+              {step === 'platform' && (
+                <>
+                  {/* Weekly Plan Section */}
+                  {!planLoading && (
+                    <div className="mb-8">
+                      {weeklyPlan === null ? (
+                        <button
+                          onClick={() => setStep('weeklyPlanQuestions')}
+                          className="w-full p-6 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 text-left transition-all flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                              <Calendar className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-bold text-foreground group-hover:text-orange-500 transition-colors">Get Your Weekly Content Plan</h3>
+                              <p className="text-foreground/60 text-xs mt-1">Tell us your goals, get 7 days of content ideas — done.</p>
+                            </div>
+                          </div>
+                          <ArrowRight className="w-5 h-5 text-foreground/60 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+                        </button>
+                      ) : (
+                        <div className="p-6 rounded-xl border border-foreground/10 bg-foreground/5 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-orange-500" />
+                              <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Today's Post Plan</span>
+                            </div>
+                            <button
+                              onClick={() => setStep('weeklyPlanFull')}
+                              className="text-xs font-bold text-orange-500 hover:underline bg-transparent"
+                            >
+                              View Full Week →
+                            </button>
+                          </div>
+                          {(() => {
+                            const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                            const todayEntry = weeklyPlan.days?.find(d => d.day === todayName);
+                            if (todayEntry && todayEntry.active) {
+                              return (
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-500 uppercase">
+                                      {todayEntry.platform}
+                                    </span>
+                                    {todayEntry.subreddit && (
+                                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-foreground/5 text-foreground/60">
+                                        {todayEntry.subreddit}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="text-base font-bold text-foreground">{todayEntry.format_name}</h4>
+                                  <p className="text-sm text-foreground/60 leading-relaxed">{todayEntry.angle}</p>
+                                  {todayEntry.hook && (
+                                    <p className="text-xs text-foreground/60 italic bg-foreground/5 p-3 rounded-lg border border-foreground/10">
+                                      Hook idea: "{todayEntry.hook}"
+                                    </p>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      if (todayEntry.platform === 'reddit') {
+                                        navigate('/post-maker/reddit', { state: { planEntry: todayEntry } });
+                                      } else if (todayEntry.platform === 'twitter') {
+                                        navigate('/post-maker/x');
+                                      } else if (todayEntry.platform === 'ih') {
+                                        navigate('/post-maker/indiehackers');
+                                      }
+                                    }}
+                                    className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                                  >
+                                    <Sparkles className="w-4 h-4" /> Generate This Post
+                                  </button>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <p className="text-sm text-foreground/60">No post scheduled today — check your full week plan</p>
+                              );
+                            }
+                          })()}
+                        </div>
+                      )}
                     </div>
-                  </button>
-                ))}
-              </div>
+                  )}
 
-              {selectedPlatform && (
-                <button
-                  onClick={handleContinue}
-                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                  Continue with {selectedPlatform.name} →
-                </button>
+                  <div className="mb-12">
+                    <h1 className="text-2xl font-semibold text-foreground">Post Maker</h1>
+                    <p className="text-foreground/60 text-sm">Where are you posting today?</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                    {platforms.map((p) => (
+                      <button
+                        key={p.id}
+                        disabled={!p.available}
+                        onClick={() => setSelectedPlatform(p)}
+                        className={cn(
+                          "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
+                          !p.available ? "opacity-40 cursor-not-allowed bg-foreground/5 border-foreground/10" : 
+                          selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
+                        )}
+                      >
+                        {p.comingSoon && (
+                          <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/60 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
+                        )}
+                        <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")} />
+                        <div>
+                          <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
+                          <p className="text-foreground/60 text-[10px] mt-1">{p.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedPlatform && (
+                    <button
+                      onClick={handleContinue}
+                      className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      Continue with {selectedPlatform.name} →
+                    </button>
+                  )}
+                </>
               )}
+
+              {/* STEP: Weekly Plan Questions */}
+              {step === 'weeklyPlanQuestions' && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
+                  {wizardStep === 0 && (
+                    <div className="space-y-6">
+                      <h2 className="text-xl font-bold text-foreground">What's your main goal right now?</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                          "Get first users",
+                          "Get more signups",
+                          "Get product feedback",
+                          "Validate my idea",
+                          "Build authority",
+                          "Grow an audience"
+                        ].map((goal) => (
+                          <button
+                            key={goal}
+                            onClick={() => {
+                              setPlanAnswers({ ...planAnswers, goal });
+                              setWizardStep(1);
+                            }}
+                            className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 text-left text-sm font-bold text-foreground transition-all"
+                          >
+                            {goal}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {wizardStep === 1 && (
+                    <div className="space-y-6">
+                      <button
+                        onClick={() => setWizardStep(0)}
+                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <h2 className="text-xl font-bold text-foreground">How comfortable are you sharing your journey publicly?</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                          "Very comfortable",
+                          "Somewhat comfortable",
+                          "Prefer educational content",
+                          "Prefer product-focused content"
+                        ].map((comfort) => (
+                          <button
+                            key={comfort}
+                            onClick={() => {
+                              setPlanAnswers({ ...planAnswers, comfort_level: comfort });
+                              setWizardStep(2);
+                            }}
+                            className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 text-left text-sm font-bold text-foreground transition-all"
+                          >
+                            {comfort}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {wizardStep === 2 && (
+                    <div className="space-y-6">
+                      <button
+                        onClick={() => setWizardStep(1)}
+                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <h2 className="text-xl font-bold text-foreground">How much can you realistically post?</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                          "Daily",
+                          "3-5 times per week",
+                          "1-2 times per week"
+                        ].map((freq) => (
+                          <button
+                            key={freq}
+                            onClick={() => {
+                              setPlanAnswers({ ...planAnswers, posting_frequency: freq });
+                              setWizardStep(3);
+                            }}
+                            className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 text-left text-sm font-bold text-foreground transition-all"
+                          >
+                            {freq}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {wizardStep === 3 && (
+                    <div className="space-y-6">
+                      <button
+                        onClick={() => setWizardStep(2)}
+                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <h2 className="text-xl font-bold text-foreground">Which platforms?</h2>
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                        {platforms.map((p) => {
+                          const isSelected = planAnswers.platforms.includes(p.id);
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => {
+                                const nextPlatforms = isSelected
+                                  ? planAnswers.platforms.filter(id => id !== p.id)
+                                  : [...planAnswers.platforms, p.id];
+                                setPlanAnswers({ ...planAnswers, platforms: nextPlatforms });
+                              }}
+                              className={cn(
+                                "p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
+                                isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
+                              )}
+                            >
+                              <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-foreground")} />
+                              <p className={cn("text-sm font-bold", isSelected ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (planAnswers.platforms.includes('reddit')) {
+                            setWizardStep(4);
+                          } else {
+                            generateWeeklyPlan();
+                          }
+                        }}
+                        disabled={planAnswers.platforms.length === 0 || generatingPlan}
+                        className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Next →"}
+                      </button>
+                    </div>
+                  )}
+
+                  {wizardStep === 4 && (
+                    <div className="space-y-6">
+                      <button
+                        onClick={() => setWizardStep(3)}
+                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <h2 className="text-xl font-bold text-foreground">Which subreddits?</h2>
+                      {(() => {
+                        let communities = [];
+                        if (brain?.audience_communities) {
+                          try {
+                            communities = JSON.parse(brain.audience_communities);
+                          } catch (e) {
+                            if (typeof brain.audience_communities === 'string') {
+                              communities = brain.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+                            }
+                          }
+                        }
+                        if (!Array.isArray(communities)) {
+                          communities = [];
+                        }
+                        return (
+                          <div className="space-y-6">
+                            <div className="flex flex-wrap gap-2">
+                              {communities.map((sub) => {
+                                const isSelected = planAnswers.selected_subreddits.includes(sub);
+                                return (
+                                  <button
+                                    key={sub}
+                                    onClick={() => {
+                                      const nextSubs = isSelected
+                                        ? planAnswers.selected_subreddits.filter(s => s !== sub)
+                                        : [...planAnswers.selected_subreddits, sub];
+                                      setPlanAnswers({ ...planAnswers, selected_subreddits: nextSubs });
+                                    }}
+                                    className={cn(
+                                      "px-4 py-2 rounded-full text-xs font-bold border transition-all bg-transparent",
+                                      isSelected ? "bg-[#F97316]/10 border-[#F97316] text-[#F97316]" : "border-foreground/10 text-foreground/60 hover:border-foreground/20"
+                                    )}
+                                  >
+                                    r/{sub}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <button
+                              onClick={generateWeeklyPlan}
+                              disabled={generatingPlan}
+                              className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                              {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate My Plan"}
+                            </button>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STEP: Weekly Plan Full View */}
+              {step === 'weeklyPlanFull' && weeklyPlan && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+                  <button
+                    onClick={() => setStep('platform')}
+                    className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground">Your Weekly Plan</h2>
+                    <p className="text-foreground/60 text-sm mt-1">{weeklyPlan.week_overview}</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {weeklyPlan.days?.map((dayEntry, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "p-6 rounded-xl border border-foreground/10 bg-foreground/5 space-y-4",
+                          !dayEntry.active && "opacity-50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-bold text-foreground">{dayEntry.day}</h3>
+                          {dayEntry.active ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-500 uppercase">
+                                {dayEntry.platform}
+                              </span>
+                              {dayEntry.subreddit && (
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-foreground/5 text-foreground/60">
+                                  {dayEntry.subreddit}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-foreground/60">No post scheduled</span>
+                          )}
+                        </div>
+
+                        {dayEntry.active && (
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-bold text-foreground">{dayEntry.format_name}</h4>
+                            <p className="text-xs text-foreground/60 leading-relaxed">{dayEntry.angle}</p>
+                            {dayEntry.hook && (
+                              <p className="text-xs text-foreground/60 italic bg-foreground/5 p-3 rounded-lg border border-foreground/10">
+                                Hook idea: "{dayEntry.hook}"
+                              </p>
+                            )}
+                            <button
+                              onClick={() => {
+                                if (dayEntry.platform === 'reddit') {
+                                  navigate('/post-maker/reddit', { state: { planEntry: dayEntry } });
+                                } else if (dayEntry.platform === 'twitter') {
+                                  navigate('/post-maker/x');
+                                } else if (dayEntry.platform === 'ih') {
+                                  navigate('/post-maker/indiehackers');
+                                }
+                              }}
+                              className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" /> Generate This Post
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </div>
