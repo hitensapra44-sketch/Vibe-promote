@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Twitter,
   Globe,
-  Layout
+  Layout,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -74,6 +75,12 @@ export default function PostMaker() {
   const [tone, setTone] = useState('Authentic Founder');
   const [context, setContext] = useState('');
   const [isPaid, setIsPaid] = useState(false);
+
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [wizardStep, setWizardStep] = useState(0); // 0=goal, 1=comfort, 2=frequency, 3=platforms, 4=subreddits
+  const [planAnswers, setPlanAnswers] = useState({ goal: null, comfort_level: null, posting_frequency: null, platforms: [], selected_subreddits: [] });
+  const [generatingPlan, setGeneratingPlan] = useState(false);
   
   const navigate = useNavigate();
 
@@ -97,10 +104,43 @@ export default function PostMaker() {
         .eq('user_id', user.id)
         .maybeSingle();
       if (data) setBrain(data);
+
+      try {
+        const { data: planData, error: planError } = await supabase.functions.invoke('generate-content-plan', {
+          method: 'GET'
+        });
+        if (planData?.plan_json) {
+          setWeeklyPlan(planData.plan_json);
+        }
+      } catch (err) {
+        console.error("Error fetching weekly plan:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+
       setLoading(false);
     }
     fetchData();
   }, [user]);
+
+  async function generateWeeklyPlan() {
+    setGeneratingPlan(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-content-plan', {
+        method: 'POST',
+        body: planAnswers
+      });
+      if (error) throw error;
+      setWeeklyPlan(data.plan_json);
+      setStep('platform');
+      toast.success("Your weekly plan is ready!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate your plan.");
+    } finally {
+      setGeneratingPlan(false);
+    }
+  }
 
   const generatePost = async () => {
     setStep('output');
@@ -142,6 +182,94 @@ export default function PostMaker() {
           
           {step === 'platform' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Weekly Plan Section */}
+              {!planLoading && (
+                <div className="mb-8">
+                  {weeklyPlan === null ? (
+                    <button
+                      onClick={() => setStep('weeklyPlanQuestions')}
+                      className="w-full p-6 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-white group-hover:text-[#F97316] transition-colors">Get Your Weekly Content Plan</h3>
+                          <p className="text-[#A1A1AA] text-xs mt-1">Tell us your goals, get 7 days of content ideas — done.</p>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-[#A1A1AA] group-hover:text-[#F97316] group-hover:translate-x-1 transition-all" />
+                    </button>
+                  ) : (
+                    <div className="p-6 rounded-xl border border-[#1F1F1F] bg-[#111111] space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-[#F97316]" />
+                          <span className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider">Today's Post Plan</span>
+                        </div>
+                        <button
+                          onClick={() => setStep('weeklyPlanFull')}
+                          className="text-xs font-bold text-[#F97316] hover:underline bg-transparent"
+                        >
+                          View Full Week →
+                        </button>
+                      </div>
+                      {(() => {
+                        const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                        const todayEntry = weeklyPlan.days?.find(d => d.day === todayName);
+                        if (todayEntry && todayEntry.active) {
+                          return (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#F97316]/10 text-[#F97316] uppercase">
+                                  {todayEntry.platform}
+                                </span>
+                                {todayEntry.subreddit && (
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-white/5 text-[#A1A1AA]">
+                                    {todayEntry.subreddit}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="text-base font-bold text-white">{todayEntry.format_name}</h4>
+                              <p className="text-sm text-[#A1A1AA] leading-relaxed">{todayEntry.angle}</p>
+                              {todayEntry.hook && (
+                                <p className="text-xs text-[#A1A1AA] italic bg-white/5 p-3 rounded-lg border border-[#1F1F1F]">
+                                  Hook idea: "{todayEntry.hook}"
+                                </p>
+                              )}
+                              <button
+                                onClick={() => {
+                                  const matchedPlatform = platforms.find(p => p.id === (todayEntry.platform === 'twitter' ? 'twitter' : todayEntry.platform === 'reddit' ? 'reddit' : todayEntry.platform));
+                                  setSelectedPlatform(matchedPlatform || platforms[0]);
+                                  setSelectedFormat({
+                                    id: 'plan',
+                                    name: todayEntry.format_name,
+                                    desc: todayEntry.angle,
+                                    traction: 'High',
+                                    engagement: 80,
+                                    why: todayEntry.expected_outcome
+                                  });
+                                  setContext(todayEntry.hook || '');
+                                  generatePost();
+                                }}
+                                className="w-full py-2.5 bg-[#F97316] hover:bg-[#EA6C0A] text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                              >
+                                <Sparkles className="w-4 h-4" /> Generate This Post
+                              </button>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <p className="text-sm text-[#A1A1AA]">No post scheduled today — check your full week plan</p>
+                          );
+                        }
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="mb-12">
                 <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
                 <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
@@ -179,6 +307,282 @@ export default function PostMaker() {
                   Continue with {selectedPlatform.name} →
                 </button>
               )}
+            </div>
+          )}
+
+          {step === 'weeklyPlanQuestions' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
+              {wizardStep === 0 && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-white">What's your main goal right now?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Get first users",
+                      "Get more signups",
+                      "Get product feedback",
+                      "Validate my idea",
+                      "Build authority",
+                      "Grow an audience"
+                    ].map((goal) => (
+                      <button
+                        key={goal}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, goal });
+                          setWizardStep(1);
+                        }}
+                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                      >
+                        {goal}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 1 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(0)}
+                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-white">How comfortable are you sharing your journey publicly?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Very comfortable",
+                      "Somewhat comfortable",
+                      "Prefer educational content",
+                      "Prefer product-focused content"
+                    ].map((comfort) => (
+                      <button
+                        key={comfort}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, comfort_level: comfort });
+                          setWizardStep(2);
+                        }}
+                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                      >
+                        {comfort}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 2 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(1)}
+                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-white">How much can you realistically post?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Daily",
+                      "3-5 times per week",
+                      "1-2 times per week"
+                    ].map((freq) => (
+                      <button
+                        key={freq}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, posting_frequency: freq });
+                          setWizardStep(3);
+                        }}
+                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                      >
+                        {freq}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 3 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(2)}
+                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-white">Which platforms?</h2>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    {platforms.map((p) => {
+                      const isSelected = planAnswers.platforms.includes(p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            const nextPlatforms = isSelected
+                              ? planAnswers.platforms.filter(id => id !== p.id)
+                              : [...planAnswers.platforms, p.id];
+                            setPlanAnswers({ ...planAnswers, platforms: nextPlatforms });
+                          }}
+                          className={cn(
+                            "p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
+                            isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                          )}
+                        >
+                          <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-white")} />
+                          <p className={cn("text-sm font-bold", isSelected ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (planAnswers.platforms.includes('reddit')) {
+                        setWizardStep(4);
+                      } else {
+                        generateWeeklyPlan();
+                      }
+                    }}
+                    disabled={planAnswers.platforms.length === 0 || generatingPlan}
+                    className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Next →"}
+                  </button>
+                </div>
+              )}
+
+              {wizardStep === 4 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(3)}
+                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-white">Which subreddits?</h2>
+                  {(() => {
+                    let communities = [];
+                    if (brain?.audience_communities) {
+                      try {
+                        communities = JSON.parse(brain.audience_communities);
+                      } catch (e) {
+                        if (typeof brain.audience_communities === 'string') {
+                          communities = brain.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+                        }
+                      }
+                    }
+                    if (!Array.isArray(communities)) {
+                      communities = [];
+                    }
+                    return (
+                      <div className="space-y-6">
+                        <div className="flex flex-wrap gap-2">
+                          {communities.map((sub) => {
+                            const isSelected = planAnswers.selected_subreddits.includes(sub);
+                            return (
+                              <button
+                                key={sub}
+                                onClick={() => {
+                                  const nextSubs = isSelected
+                                    ? planAnswers.selected_subreddits.filter(s => s !== sub)
+                                    : [...planAnswers.selected_subreddits, sub];
+                                  setPlanAnswers({ ...planAnswers, selected_subreddits: nextSubs });
+                                }}
+                                className={cn(
+                                  "px-4 py-2 rounded-full text-xs font-bold border transition-all bg-transparent",
+                                  isSelected ? "bg-[#F97316]/10 border-[#F97316] text-[#F97316]" : "border-[#1F1F1F] text-[#A1A1AA] hover:border-white/20"
+                                )}
+                              >
+                                r/{sub}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={generateWeeklyPlan}
+                          disabled={generatingPlan}
+                          className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate My Plan"}
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 'weeklyPlanFull' && weeklyPlan && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+              <button
+                onClick={() => setStep('platform')}
+                className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Your Weekly Plan</h2>
+                <p className="text-[#A1A1AA] text-sm mt-1">{weeklyPlan.week_overview}</p>
+              </div>
+
+              <div className="space-y-4">
+                {weeklyPlan.days?.map((dayEntry, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "p-6 rounded-xl border border-[#1F1F1F] bg-[#111111] space-y-4",
+                      !dayEntry.active && "opacity-50"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-white">{dayEntry.day}</h3>
+                      {dayEntry.active ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#F97316]/10 text-[#F97316] uppercase">
+                            {dayEntry.platform}
+                          </span>
+                          {dayEntry.subreddit && (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded bg-white/5 text-[#A1A1AA]">
+                              {dayEntry.subreddit}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-[#A1A1AA]">No post scheduled</span>
+                      )}
+                    </div>
+
+                    {dayEntry.active && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-bold text-white">{dayEntry.format_name}</h4>
+                        <p className="text-xs text-[#A1A1AA] leading-relaxed">{dayEntry.angle}</p>
+                        {dayEntry.hook && (
+                          <p className="text-xs text-[#A1A1AA] italic bg-white/5 p-3 rounded-lg border border-[#1F1F1F]">
+                            Hook idea: "{dayEntry.hook}"
+                          </p>
+                        )}
+                        <button
+                          onClick={() => {
+                            const matchedPlatform = platforms.find(p => p.id === (dayEntry.platform === 'twitter' ? 'twitter' : dayEntry.platform === 'reddit' ? 'reddit' : dayEntry.platform));
+                            setSelectedPlatform(matchedPlatform || platforms[0]);
+                            setSelectedFormat({
+                              id: 'plan',
+                              name: dayEntry.format_name,
+                              desc: dayEntry.angle,
+                              traction: 'High',
+                              engagement: 80,
+                              why: dayEntry.expected_outcome
+                            });
+                            setContext(dayEntry.hook || '');
+                            generatePost();
+                          }}
+                          className="w-full py-2 bg-[#F97316] hover:bg-[#EA6C0A] text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" /> Generate This Post
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
