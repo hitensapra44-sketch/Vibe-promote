@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { generateAICall } from '../../lib/ai';
 import { toast } from 'sonner';
 import Sidebar from '../../components/Sidebar';
@@ -58,6 +58,8 @@ export default function RedditPost() {
   const [currentDay, setCurrentDay] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const planEntry = location.state?.planEntry || null;
 
   useEffect(() => {
     async function fetchBrain() {
@@ -74,7 +76,19 @@ export default function RedditPost() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (data) setBrain(data);
+      if (data) {
+        setBrain(data);
+        if (planEntry) {
+          setSelectedMode("template");
+          setSelectedTemplate({
+            name: planEntry.format_name,
+            why: planEntry.expected_outcome || "Matched to your weekly content plan.",
+            structure: planEntry.angle
+          });
+          setCustomContext(planEntry.hook || "");
+          setStep(4);
+        }
+      }
 
       // Fetch current day
       const { data: tasksData } = await supabase

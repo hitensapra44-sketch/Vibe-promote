@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MessageSquare, Twitter, Globe, Zap, Layout, Lock, ArrowRight, XCircle, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Twitter, Globe, Zap, Layout, Lock, ArrowRight, XCircle, CheckCircle2, Sparkles, Calendar, ArrowLeft, Loader2, PenLine } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
 import Sidebar from '../../components/Sidebar';
