@@ -37,6 +37,104 @@ const platformTemplates = {
   ]
 };
 
+const SUBREDDIT_INTEL = {
+  "SaaS": {
+    formats: [
+      { name: "Personal Milestone/Validation Story", why: "Emotional \"doesn't feel real\" hook + proof of a metric/win drives high engagement.", structure: "Emotional hook with proof → timeline of what you built → metrics/screenshot proof → 3 key lessons → invite similar stories", exampleUrl: "https://www.reddit.com/r/SaaS/comments/1u1tbml/i_just_crossed_0000_mrr_after_one_month_heres_how/" },
+      { name: "Reality Check / Anti-Hype", why: "Bold contrarian claims about common SaaS myths cut through hype fatigue.", structure: "Bold claim against a popular belief → personal/example evidence → blunt practical advice → ask community to agree or push back", exampleUrl: "https://www.reddit.com/r/SaaS/comments/1tnnyd4/reality_check_no_one_is_going_to_pay_for_your/" },
+      { name: "Channel/Growth Discovery Story", why: "Surprise discovery of an unexpected growth channel feels authentic and shareable.", structure: "Surprising discovery hook → how you noticed it → why it happened → what changed → question to community", exampleUrl: "https://www.reddit.com/r/SaaS/comments/1tsam1y/i_accidentally_discovered_that_chatgpt_was/" }
+    ],
+    tone: "Founder to founder, transparent, numbers-driven",
+    avgLength: "300-700 words",
+    downvoted: "Hard selling, vague hype without metrics, generic launch announcements"
+  },
+  "startups": {
+    formats: [
+      { name: "Cautionary Tale / External Setback", why: "Shared risk and dramatic stakes drive empathy and high comment counts.", structure: "Dramatic setback hook with specifics → what happened → business impact → reflection → \"I will not promote\" + open question", exampleUrl: "https://www.reddit.com/r/startups/comments/1twro01/google_just_killed_my_1m_arr_startup_because_a/" },
+      { name: "Contrarian Myth-Busting", why: "Challenging a widely-held startup belief sparks identity-level debate.", structure: "State the common myth → analogy or comparison → examples that contradict it → distinguish exceptions → invite disagreement", exampleUrl: "https://www.reddit.com/r/startups/comments/1tm33jr/founding_a_tech_startup_to_get_rich_is_like/" },
+      { name: "Industry Slop Critique", why: "Calling out a visible trend or quality drop resonates with shared frustration.", structure: "Name what changed → why it's frustrating → concrete examples → ask for alternatives or pushback", exampleUrl: "https://www.reddit.com/r/startups/comments/1th2mr2/what_is_up_with_the_absolute_slop_from_yc_these/" }
+    ],
+    tone: "Direct, risk-aware, occasionally combative",
+    avgLength: "200-500 words",
+    downvoted: "Generic motivational posts, vague venting without specifics, self-promotion"
+  },
+  "SideProject": {
+    formats: [
+      { name: "Fun/Playful Build + Demo", why: "Visual, shareable, low-stakes builds get high upvotes through novelty.", structure: "Quirky/fun hook with media → why you built it → quick build story → invite feedback or roast", exampleUrl: "https://www.reddit.com/r/SideProject/comments/1tdf6hr/i_built_a_free_fulllength_nsfw_movie_streaming/" },
+      { name: "Prototype-to-Product Update", why: "Before/after continuity arcs perform well because the community already invested attention earlier.", structure: "\"X weeks ago I posted [prototype]\" → what changed since → what's now live → ask for feedback", exampleUrl: "https://www.reddit.com/r/SideProject/comments/1t3uytg/update_1_month_ago_i_posted_my_prototype_here_and/" },
+      { name: "Revenue/Validation Contrast", why: "Unexpected earnings comparisons between projects are surprising and relatable.", structure: "Set up two projects or expectations → reveal the surprising outcome → lesson learned → ask what they'd guess", exampleUrl: null }
+    ],
+    tone: "Casual, playful, low-ego",
+    avgLength: "150-400 words",
+    downvoted: "Overly serious self-promotion, no visuals, generic \"check out my app\" posts"
+  },
+  "WebDev": {
+    formats: [
+      { name: "Security/Risk Warning", why: "Devs react fast to operational risk and threat intel relevant to their stack.", structure: "Name the threat → attack mechanism/path → blast radius → immediate mitigation steps", exampleUrl: "https://www.reddit.com/r/webdev/comments/1u1zoi3/89_npm_packages_got_compromised_again_deleting/" },
+      { name: "Industry/AI Disruption Opinion", why: "Strong stances on tech trends create ideological tension and high comment volume.", structure: "Bold stance on a trend → anecdote or quote → concrete example → implication for the field", exampleUrl: "https://www.reddit.com/r/webdev/comments/1tvsfgj/im_calling_it_now_the_adoption_of_ai_agents_into/" },
+      { name: "Personal Build/Frustration Showcase", why: "Relatable technical struggles and learning journeys build trust without selling.", structure: "Specific technical frustration or build moment → what you tried → what worked → what you'd tell others", exampleUrl: null }
+    ],
+    tone: "Technical, skeptical of hype, blunt",
+    avgLength: "200-500 words",
+    downvoted: "Marketing-flavored self-promotion, vague AI good/bad takes with no mechanism"
+  },
+  "Marketing": {
+    formats: [
+      { name: "Platform Pain / Workflow Breakdown", why: "Operator-level pain on a specific tool/platform is highly relatable to practitioners.", structure: "Specific task you tried → exact failure chain step by step → why the system is broken → what it should do instead", exampleUrl: "https://www.reddit.com/r/marketing/comments/1tj7ea3/navigating_the_hell_that_is_meta_business_suite/" },
+      { name: "Contrarian Trend Take", why: "Sharp claims about a market shift compress complex change into something arguable.", structure: "Assertion that an old tactic is dying → contrast with the new approach → reasoning → invite debate", exampleUrl: "https://www.reddit.com/r/marketing/comments/1u6azdi/5_years_in_seo_outdated_3_months_in_aeo_visionary/" },
+      { name: "Agency/Service Frustration", why: "Shared pain with agencies or vendors creates easy agreement and low-friction engagement.", structure: "What was promised → what actually happened → impact → ask for advice on a better process", exampleUrl: "https://www.reddit.com/r/marketing/comments/1tfx9d9/dishonest_agencies_one_after_another/" }
+    ],
+    tone: "Operator-focused, frustrated but constructive",
+    avgLength: "150-400 words",
+    downvoted: "Abstract \"marketing is changing\" posts with no specific platform or consequence"
+  },
+  "GrowthHacking": {
+    formats: [
+      { name: "No-Budget Acquisition Case Study", why: "Tactical, reusable sequences with no resources required are immediately actionable.", structure: "State the constraint → tactic/channel tried → result achieved → exact step-by-step sequence", exampleUrl: "https://www.reddit.com/r/GrowthHacking/comments/1txl1w4/im_an_engineer_with_zero_marketing_skills_heres/" },
+      { name: "Contrarian Obituary of Old Playbook", why: "Declaring an old growth tactic dead with a clear replacement model drives strong reactions.", structure: "Declare the old tactic dead → explain the market shift → introduce the replacement motion → ask what others are seeing", exampleUrl: "https://www.reddit.com/r/GrowthHacking/comments/1tny72q/unpopular_opinion_growth_hacking_died_around_2020/" },
+      { name: "Milestone + Launch Combo", why: "Pairing a revenue milestone with a live launch action creates urgency and credibility.", structure: "Revenue/traction context → launch action taken today → why now → ask for support or feedback", exampleUrl: "https://www.reddit.com/r/GrowthHacking/comments/1thnbbz/after_making_200k_arr_we_launched_on_product_hunt/" }
+    ],
+    tone: "Tactical, scrappy, numbers-first",
+    avgLength: "150-400 words",
+    downvoted: "Tool spam, low-trust promotional posts, vague growth-hack buzzwords"
+  },
+  "SEO": {
+    formats: [
+      { name: "Official Update/News + Implication", why: "Practitioners want to know about platform changes and what to do about them immediately.", structure: "Name the platform change → what it breaks or affects → tactical response steps", exampleUrl: "https://www.reddit.com/r/SEO/comments/1t7di79/google_faq_rich_results_are_no_longer_appearing/" },
+      { name: "Personal Proof/Ranking Win", why: "Visible proof of outranking competitors builds credibility and curiosity about method.", structure: "Proof of the win → context on the niche/keyword → approach used → offer to share more", exampleUrl: "https://www.reddit.com/r/SEO/comments/1t207d3/im_beating_almost_every_web_design_agency_and/" },
+      { name: "Tool/Workflow Discussion", why: "Low-friction questions about tools invite quick, high-volume practitioner replies.", structure: "Context on the task → direct question about a tool or process → what outcome you're curious about", exampleUrl: null }
+    ],
+    tone: "Data-driven, practitioner-to-practitioner",
+    avgLength: "150-400 words",
+    downvoted: "Generic \"learn SEO\" questions, stale tactics, claims without proof"
+  },
+  "Sales": {
+    formats: [
+      { name: "Veteran Wisdom Dump", why: "Long-tenure authority plus sharp, opinionated rules earns trust and saves.", structure: "Career length/summary hook → key lessons listed → tactical rules → closing mindset point", exampleUrl: "https://www.reddit.com/r/sales/comments/1tw6tts/ill_give_you_everything_i_learned_over_30_years/" },
+      { name: "Commission/Quota Milestone", why: "Concrete dollar milestones are a strong status signal and social proof in this community.", structure: "Milestone number hook → context/starting point → trajectory to get there → why it matters emotionally", exampleUrl: "https://www.reddit.com/r/sales/comments/1t8x2v8/just_closed_my_biggest_deal_of_my_life_60k_gross/" },
+      { name: "Exit/Career-Change Narrative", why: "Career-identity stories about leaving a role after a long run are emotionally resonant.", structure: "Announce the exit → reason for leaving → tradeoffs considered → what comes next", exampleUrl: "https://www.reddit.com/r/sales/comments/1tk1n6h/i_did_it_im_out/" }
+    ],
+    tone: "Confident, numbers-anchored, candid",
+    avgLength: "200-500 words",
+    downvoted: "Abstract motivation posts with no numbers or lived experience"
+  }
+};
+
+function getSubredditKey(brain) {
+  if (!brain?.audience_communities) return null;
+  let communities = [];
+  try {
+    communities = JSON.parse(brain.audience_communities);
+  } catch (e) {
+    if (typeof brain.audience_communities === 'string') {
+      communities = brain.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+    }
+  }
+  if (!Array.isArray(communities) || communities.length === 0) return null;
+  const first = communities[0].replace(/^r\//i, '').trim();
+  return SUBREDDIT_INTEL[first] ? first : null;
+}
+
 const postingTips = {
   Reddit: "Post between 9am-12pm EST on weekdays. Add a genuine comment yourself right after posting to start the conversation. Never reply to your own post with a link immediately."
 };
@@ -110,6 +208,9 @@ export default function RedditPost() {
     fetchBrain();
   }, [user]);
 
+  const subredditKey = getSubredditKey(brain);
+  const activeIntel = subredditKey ? SUBREDDIT_INTEL[subredditKey] : null;
+
   const handleBack = () => {
     if (step === 2) {
       navigate('/post-maker');
@@ -135,6 +236,7 @@ You are a ghostwriter for indie founders. Write honest, value-first Reddit posts
 
 BRAND:
 ${JSON.stringify(brain)}
+${activeIntel ? `SUBREDDIT CONTEXT: Posting to r/${subredditKey}. Typical tone: ${activeIntel.tone}. Average length: ${activeIntel.avgLength}. Avoid: ${activeIntel.downvoted}.` : ''}
 
 TASK: Write one complete Reddit post using the "${selectedTemplate?.name || 'custom'}" template.
 
@@ -271,7 +373,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                   <div className="absolute top-4 right-4 text-orange-500 text-[10px] font-bold uppercase tracking-widest">Recommended</div>
                   <LayoutTemplate className="w-8 h-8 text-orange-500 mb-4" />
                   <h3 className="text-foreground text-lg font-bold">Use a Proven Template</h3>
-                  <p className="text-foreground/60 text-sm mt-2">Pick from 5 templates that are working right now on Reddit</p>
+                  <p className="text-foreground/60 text-sm mt-2">Pick from templates that are working right now on Reddit</p>
                 </div>
                 <div
                   onClick={() => { setSelectedMode("write"); setStep(3); }}
@@ -291,11 +393,15 @@ Return ONLY valid JSON, no markdown, no backticks:
               {selectedMode === "template" ? (
                 <>
                   <div className="mb-8">
-                    <h1 className="text-2xl font-semibold text-foreground">Pick a template that's working right now</h1>
-                    <p className="text-foreground/60 text-sm">These formats are getting real traction on Reddit</p>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                      {activeIntel ? `Best formats for r/${subredditKey}` : "Templates that work on Reddit"}
+                    </h1>
+                    <p className="text-foreground/60 text-sm">
+                      {activeIntel ? "AI generated for your niche. Pick one to use." : "These formats are getting real traction on Reddit"}
+                    </p>
                   </div>
                   <div className="space-y-4">
-                    {platformTemplates.Reddit.map((t, i) => (
+                    {(activeIntel ? activeIntel.formats : platformTemplates.Reddit).map((t, i) => (
                       <div key={i} className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 flex flex-col gap-3">
                         <div className="flex items-center justify-between">
                           <h3 className="text-foreground text-sm font-semibold">{t.name}</h3>
@@ -307,6 +413,13 @@ Return ONLY valid JSON, no markdown, no backticks:
                           </button>
                         </div>
                         <p className="text-foreground/60 text-sm">{t.why}</p>
+                        {t.exampleUrl && (
+                          <div className="mt-1">
+                            <a href={t.exampleUrl} target="_blank" rel="noopener noreferrer" className="text-[#F97316] text-xs hover:underline">
+                              See real example →
+                            </a>
+                          </div>
+                        )}
                         <div className="border-t border-foreground/10 pt-3">
                           <button 
                             onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
