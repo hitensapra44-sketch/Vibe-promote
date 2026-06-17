@@ -40,6 +40,21 @@ const SUBREDDIT_INTEL: Record<string, string> = {
 3. Exit/Career-Change Narrative — why I left → tradeoffs → next step. Example: https://www.reddit.com/r/sales/comments/1tk1n6h/i_did_it_im_out/`
 };
 
+// Fallback formats for any selected subreddit NOT in SUBREDDIT_INTEL above
+const GENERIC_REDDIT_FALLBACK = `1. Builder Story — what you're building, why you started, the biggest challenge so far, then a genuine question. Works in almost any subreddit.
+2. Feedback Request — share one real decision or feature, then ask directly for honest feedback on it.
+3. Lessons Learned — one concrete mistake or insight from building, and what changed because of it.
+4. Validation Post — share an early result or signal, and ask if others have seen something similar.
+5. Question Post — ask the community a genuine, specific question tied to your product's problem space.
+6. Weekly Reflection — what changed this week, what worked, what didn't, what's next.`;
+
+// X currently has no structural guidance at all — always pick from these
+const GENERIC_X_TEMPLATES = `1. Founder Insight — an observation, the insight behind it, then a one-line takeaway.
+2. Build Update — what happened, the progress made, the lesson learned.
+3. Mistake Learned — the mistake, what happened as a result, the lesson.
+4. Customer Insight — something a user or prospect said or did, what it reveals, the implication for the product.
+5. Contrarian Take — a common belief in the space, why you disagree, what you'd say instead.`;
+
 const PROMPT_TEMPLATE = `You are the content strategist inside Vibe Promote.
 
 Generate a 7-day content plan for this founder. Output ONLY valid JSON, no preamble, no markdown.
@@ -53,21 +68,29 @@ Posting Frequency: {{posting_frequency}}
 Selected Platforms: {{selected_platforms}}
 Selected Subreddits (if Reddit selected): {{selected_subreddits}}
 
-# SUBREDDIT INTELLIGENCE (use only if Reddit is selected, pick formats only from this list for the relevant subreddit)
+# SUBREDDIT INTELLIGENCE (use only if Reddit is selected — specific formats per subreddit, or generic fallback if a subreddit has no specific intel)
 
 {{subreddit_intel_block}}
 
+# GENERIC REDDIT FORMATS (fallback — use ONLY for a selected subreddit with no specific intel above)
+
+{{generic_reddit_block}}
+
+# GENERIC X FORMATS (always use these for X — pick the one matching Goal and Comfort Level)
+
+{{generic_x_block}}
+
 # RULES
 
-1. Only generate entries for platforms in Selected Platforms. Do not invent platforms.
-2. Respect Posting Frequency:
-   - "Daily" -> 7 entries total across the week (spread across selected platforms)
-   - "3-5 times per week" -> 3-5 entries total
-   - "1-2 times per week" -> 1-2 entries total
-   Do not create more posts than the frequency allows, even if multiple platforms are selected.
-3. If Reddit is selected, every Reddit entry must use one of the 3 formats provided for that subreddit in SUBREDDIT INTELLIGENCE. Pick the format that best matches Goal and Comfort Level. Reference the "example" field as structural inspiration only — never copy wording.
-4. For X, Threads, Indie Hackers: choose format freely based on platform norms (X = hooks/contrarian/build-in-public; Threads = conversational/personal; IH = founder story/progress), matched to Goal and Comfort Level.
-5. Distribute content types across the week — do not repeat the same format/subreddit on consecutive active days unless frequency is very low (1-2/week).
+1. Only generate entries for platforms in Selected Platforms. Selected Platforms will only ever contain "reddit" and/or "twitter". Do not invent platforms.
+2. Respect Posting Frequency exactly — do not deviate:
+   - "Daily" -> exactly 7 active entries, one per day, every day active.
+   - "3-5 times per week" -> exactly 4 active entries total, spread with an alternating active/skip pattern across the week (e.g. Mon active, Tue skip, Wed active, Thu skip, Fri active, Sat skip, Sun active).
+   - "1-2 times per week" -> exactly 2 active entries total, spread apart across the week (e.g. one early, one late), all remaining days inactive.
+   Never produce a different number of active days than this mapping specifies.
+3. If Reddit is selected: for a subreddit covered under SUBREDDIT INTELLIGENCE with specific formats, use one of its 3 specific formats. For a selected subreddit with no specific intel (marked "no specific intel on file"), use one of the 6 GENERIC REDDIT FORMATS instead. Never invent a format outside these two lists. Treat any "example" field as structural inspiration only — never copy wording.
+4. If X (twitter) is selected: always pick one of the 5 GENERIC X FORMATS, matched to Goal and Comfort Level.
+5. Distribute content across the week — do not repeat the same format/subreddit on consecutive active days unless frequency is very low (1-2/week).
 6. Comfort Level rules:
    - "Very comfortable" -> personal/journey formats allowed freely
    - "Somewhat comfortable" -> mix personal and product-focused
@@ -99,7 +122,7 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
   ]
 }
 
-For non-Reddit platforms, omit "subreddit" and "example_reference_url" fields.
+For X entries, omit "subreddit" and "example_reference_url" fields.
 
 Do not output anything except this JSON object.`;
 
@@ -110,6 +133,21 @@ function getThisWeeksMonday(): string {
   const monday = new Date(d.setDate(diff));
   return monday.toISOString().slice(0, 10);
 }
+
+function buildSubredditIntelBlock(selectedSubreddits: string[] | undefined): string {
+  if (!selectedSubreddits || !Array.isArray(selectedSubreddits)) return '';
+  return selectedSubreddits
+    .map(sub => {
+      const intel = SUBREDDIT_INTEL[sub];
+      if (intel) {
+        return `### ${sub}\n${intel}`;
+      }
+      return `### ${sub} (no specific intel on file)\nUse the GENERIC REDDIT FORMATS section instead for this subreddit.`;
+    })
+    .join('\n\n');
+}
+
+const ALLOWED_PLATFORMS = ['reddit', 'twitter'];
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -156,6 +194,16 @@ serve(async (req) => {
     if (req.method === 'POST') {
       const { goal, comfort_level, posting_frequency, platforms, selected_subreddits } = await req.json();
 
+      // Defensive: weekly plan only ever supports reddit + X right now,
+      // regardless of what's stored in brand_brains or sent by the client.
+      const safePlatforms = Array.isArray(platforms)
+        ? platforms.filter((p: string) => ALLOWED_PLATFORMS.includes(p))
+        : [];
+      const finalPlatforms = safePlatforms.length > 0 ? safePlatforms : ALLOWED_PLATFORMS;
+      const finalSubreddits = finalPlatforms.includes('reddit') && Array.isArray(selected_subreddits)
+        ? selected_subreddits
+        : [];
+
       const { data: brain, error: brainError } = await supabase
         .from('brand_brains')
         .select('*')
@@ -164,25 +212,18 @@ serve(async (req) => {
 
       if (brainError) throw brainError;
 
-      let subreddit_intel_block = '';
-      if (selected_subreddits && Array.isArray(selected_subreddits)) {
-        subreddit_intel_block = selected_subreddits
-          .map(sub => {
-            const intel = SUBREDDIT_INTEL[sub];
-            return intel ? `### ${sub}\n${intel}` : '';
-          })
-          .filter(Boolean)
-          .join('\n\n');
-      }
+      const subreddit_intel_block = buildSubredditIntelBlock(finalSubreddits);
 
       const finalPrompt = PROMPT_TEMPLATE
         .replace('{{brand_brain}}', JSON.stringify(brain || {}))
         .replace('{{goal}}', goal || '')
         .replace('{{comfort_level}}', comfort_level || '')
         .replace('{{posting_frequency}}', posting_frequency || '')
-        .replace('{{selected_platforms}}', JSON.stringify(platforms || []))
-        .replace('{{selected_subreddits}}', JSON.stringify(selected_subreddits || []))
-        .replace('{{subreddit_intel_block}}', subreddit_intel_block);
+        .replace('{{selected_platforms}}', JSON.stringify(finalPlatforms))
+        .replace('{{selected_subreddits}}', JSON.stringify(finalSubreddits))
+        .replace('{{subreddit_intel_block}}', subreddit_intel_block)
+        .replace('{{generic_reddit_block}}', GENERIC_REDDIT_FALLBACK)
+        .replace('{{generic_x_block}}', GENERIC_X_TEMPLATES);
 
       const aiServiceUrl = `${supabaseUrl}/functions/v1/ai-service`;
       const aiRes = await fetch(aiServiceUrl, {
@@ -240,8 +281,8 @@ serve(async (req) => {
           goal,
           comfort_level,
           posting_frequency,
-          platforms,
-          selected_subreddits,
+          platforms: finalPlatforms,
+          selected_subreddits: finalSubreddits,
           plan_json: parsedPlan,
           created_at: new Date().toISOString()
         }, { onConflict: 'user_id,week_start_date' });

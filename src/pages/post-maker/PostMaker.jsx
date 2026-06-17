@@ -20,6 +20,46 @@ const platforms = [
   { id: 'linkedin', name: 'LinkedIn', desc: 'Professional + personal mix.', icon: Layout, color: '#0077b5', available: false, comingSoon: true },
 ];
 
+const ELIGIBLE_PLATFORMS = ['reddit', 'twitter'];
+
+function getPlatformsFromBrain(brainData) {
+  if (!brainData) return ELIGIBLE_PLATFORMS;
+  let rawPlatforms = [];
+  if (brainData.primary_platform) {
+    try {
+      rawPlatforms = JSON.parse(brainData.primary_platform);
+    } catch (e) {
+      if (typeof brainData.primary_platform === 'string') {
+        rawPlatforms = brainData.primary_platform.split(',').map(p => p.trim()).filter(Boolean);
+      }
+    }
+  }
+  if (!Array.isArray(rawPlatforms)) {
+    rawPlatforms = [];
+  }
+  const normalized = rawPlatforms.map(p => p.toLowerCase().trim());
+  const mapped = normalized.map(p => p === 'x' ? 'twitter' : p);
+  const filtered = mapped.filter(p => ELIGIBLE_PLATFORMS.includes(p));
+  return filtered.length > 0 ? filtered : ELIGIBLE_PLATFORMS;
+}
+
+function getCommunitiesFromBrain(brainData) {
+  let communities = [];
+  if (brainData?.audience_communities) {
+    try {
+      communities = JSON.parse(brainData.audience_communities);
+    } catch (e) {
+      if (typeof brainData.audience_communities === 'string') {
+        communities = brainData.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+      }
+    }
+  }
+  if (!Array.isArray(communities)) {
+    communities = [];
+  }
+  return communities;
+}
+
 export default function PostMaker() {
   const { user, plan } = useAuth();
   const { limits } = usePlan();
@@ -370,6 +410,17 @@ export default function PostMaker() {
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
                   {wizardStep === 0 && (
                     <div className="space-y-6">
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between text-xs font-bold text-foreground/60 uppercase tracking-wider">
+                          <span>Question {wizardStep + 1} of 3</span>
+                        </div>
+                        <div className="w-full bg-foreground/5 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500 transition-all duration-300" 
+                            style={{ width: `${((wizardStep + 1) / 3) * 100}%` }}
+                          />
+                        </div>
+                      </div>
                       <h2 className="text-xl font-bold text-foreground">What's your main goal right now?</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
@@ -403,6 +454,17 @@ export default function PostMaker() {
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between text-xs font-bold text-foreground/60 uppercase tracking-wider">
+                          <span>Question {wizardStep + 1} of 3</span>
+                        </div>
+                        <div className="w-full bg-foreground/5 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500 transition-all duration-300" 
+                            style={{ width: `${((wizardStep + 1) / 3) * 100}%` }}
+                          />
+                        </div>
+                      </div>
                       <h2 className="text-xl font-bold text-foreground">How comfortable are you sharing your journey publicly?</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
@@ -434,6 +496,17 @@ export default function PostMaker() {
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between text-xs font-bold text-foreground/60 uppercase tracking-wider">
+                          <span>Question {wizardStep + 1} of 3</span>
+                        </div>
+                        <div className="w-full bg-foreground/5 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500 transition-all duration-300" 
+                            style={{ width: `${((wizardStep + 1) / 3) * 100}%` }}
+                          />
+                        </div>
+                      </div>
                       <h2 className="text-xl font-bold text-foreground">How much can you realistically post?</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
@@ -444,7 +517,14 @@ export default function PostMaker() {
                           <button
                             key={freq}
                             onClick={() => {
-                              setPlanAnswers({ ...planAnswers, posting_frequency: freq });
+                              const platforms = getPlatformsFromBrain(brain);
+                              const selected_subreddits = platforms.includes('reddit') ? getCommunitiesFromBrain(brain) : [];
+                              setPlanAnswers({ 
+                                ...planAnswers, 
+                                posting_frequency: freq,
+                                platforms,
+                                selected_subreddits
+                              });
                               setWizardStep(3);
                             }}
                             className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-orange-500/50 text-left text-sm font-bold text-foreground transition-all"
@@ -464,103 +544,73 @@ export default function PostMaker() {
                       >
                         <ArrowLeft className="w-4 h-4" /> Back
                       </button>
-                      <h2 className="text-xl font-bold text-foreground">Which platforms?</h2>
-                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                        {platforms.map((p) => {
-                          const isSelected = planAnswers.platforms.includes(p.id);
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={() => {
-                                const nextPlatforms = isSelected
-                                  ? planAnswers.platforms.filter(id => id !== p.id)
-                                  : [...planAnswers.platforms, p.id];
-                                setPlanAnswers({ ...planAnswers, platforms: nextPlatforms });
-                              }}
-                              className={cn(
-                                "p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
-                                isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
-                              )}
-                            >
-                              <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-foreground")} />
-                              <p className={cn("text-sm font-bold", isSelected ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
-                            </button>
-                          );
-                        })}
+                      <h2 className="text-xl font-bold text-white">Review & Confirm</h2>
+                      
+                      <div className="space-y-4">
+                        <div className="border border-foreground/10 bg-foreground/5 rounded-xl p-4 flex flex-col gap-1">
+                          <span className="text-xs text-foreground/50 uppercase font-bold tracking-wider">Goal</span>
+                          <span className="text-sm font-medium text-white">{planAnswers.goal}</span>
+                        </div>
+                        <div className="border border-foreground/10 bg-foreground/5 rounded-xl p-4 flex flex-col gap-1">
+                          <span className="text-xs text-foreground/50 uppercase font-bold tracking-wider">Comfort Level</span>
+                          <span className="text-sm font-medium text-white">{planAnswers.comfort_level}</span>
+                        </div>
+                        <div className="border border-foreground/10 bg-foreground/5 rounded-xl p-4 flex flex-col gap-1">
+                          <span className="text-xs text-foreground/50 uppercase font-bold tracking-wider">Posting Frequency</span>
+                          <span className="text-sm font-medium text-white">{planAnswers.posting_frequency}</span>
+                        </div>
                       </div>
+
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Platforms</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {planAnswers.platforms.map((p) => (
+                            <span
+                              key={p}
+                              className="px-4 py-2 rounded-full border border-orange-500/30 text-orange-500 text-xs font-bold bg-orange-500/5"
+                            >
+                              {p === 'twitter' ? 'X (Twitter)' : p === 'reddit' ? 'Reddit' : p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {planAnswers.platforms.includes('reddit') && (
+                        <div className="space-y-3">
+                          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Communities</h3>
+                          {planAnswers.selected_subreddits && planAnswers.selected_subreddits.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {planAnswers.selected_subreddits.map((sub) => (
+                                <span
+                                  key={sub}
+                                  className="px-4 py-2 rounded-full border border-foreground/10 text-foreground/60 text-xs font-bold bg-foreground/5"
+                                >
+                                  r/{sub}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-foreground/40 italic">
+                              No communities saved in Brand Brain yet — we'll use general Reddit best practices.
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       <button
-                        onClick={() => {
-                          if (planAnswers.platforms.includes('reddit')) {
-                            setWizardStep(4);
-                          } else {
-                            generateWeeklyPlan();
-                          }
-                        }}
-                        disabled={planAnswers.platforms.length === 0 || generatingPlan}
+                        onClick={generateWeeklyPlan}
+                        disabled={generatingPlan}
                         className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Next →"}
+                        {generatingPlan ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating Plan...
+                          </>
+                        ) : (
+                          "Confirm & Generate My Plan"
+                        )}
                       </button>
-                    </div>
-                  )}
-
-                  {wizardStep === 4 && (
-                    <div className="space-y-6">
-                      <button
-                        onClick={() => setWizardStep(3)}
-                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
-                      >
-                        <ArrowLeft className="w-4 h-4" /> Back
-                      </button>
-                      <h2 className="text-xl font-bold text-foreground">Which subreddits?</h2>
-                      {(() => {
-                        let communities = [];
-                        if (brain?.audience_communities) {
-                          try {
-                            communities = JSON.parse(brain.audience_communities);
-                          } catch (e) {
-                            if (typeof brain.audience_communities === 'string') {
-                              communities = brain.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
-                            }
-                          }
-                        }
-                        if (!Array.isArray(communities)) {
-                          communities = [];
-                        }
-                        return (
-                          <div className="space-y-6">
-                            <div className="flex flex-wrap gap-2">
-                              {communities.map((sub) => {
-                                const isSelected = planAnswers.selected_subreddits.includes(sub);
-                                return (
-                                  <button
-                                    key={sub}
-                                    onClick={() => {
-                                      const nextSubs = isSelected
-                                        ? planAnswers.selected_subreddits.filter(s => s !== sub)
-                                        : [...planAnswers.selected_subreddits, sub];
-                                      setPlanAnswers({ ...planAnswers, selected_subreddits: nextSubs });
-                                    }}
-                                    className={cn(
-                                      "px-4 py-2 rounded-full text-xs font-bold border transition-all bg-transparent",
-                                      isSelected ? "bg-[#F97316]/10 border-[#F97316] text-[#F97316]" : "border-foreground/10 text-foreground/60 hover:border-foreground/20"
-                                    )}
-                                  >
-                                    r/{sub}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <button
-                              onClick={generateWeeklyPlan}
-                              disabled={generatingPlan}
-                              className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                              {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate My Plan"}
-                            </button>
-                          </div>
-                        );
-                      })()}
                     </div>
                   )}
                 </div>
