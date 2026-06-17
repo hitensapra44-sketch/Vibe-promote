@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MessageSquare, Twitter, Globe, Zap, Layout, Lock, ArrowRight, XCircle, CheckCircle2, Sparkles, Calendar, ArrowLeft, Loader2, PenLine } from 'lucide-react';
+import { MessageSquare, Twitter, Globe, Zap, Layout, Lock, ArrowRight, XCircle, CheckCircle2, Sparkles, Calendar, ArrowLeft, Loader2, PenLine, AtSign } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
 import Sidebar from '../../components/Sidebar';
@@ -14,13 +14,11 @@ import { toast } from 'sonner';
 const platforms = [
   { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
   { id: 'twitter', name: 'X (Twitter)', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#FFFFFF', available: true },
-  { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: MessageSquare, color: '#FFFFFF', available: false, comingSoon: true },
+  { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: AtSign, color: '#FFFFFF', available: true },
   { id: 'ih', name: 'Indie Hackers', desc: 'Founder stories win here.', icon: Globe, color: '#0073b1', available: true },
-  { id: 'ph', name: 'Product Hunt', desc: 'Make your launch land.', icon: Zap, color: '#da552f', available: false, comingSoon: true },
-  { id: 'linkedin', name: 'LinkedIn', desc: 'Professional + personal mix.', icon: Layout, color: '#0077b5', available: false, comingSoon: true },
 ];
 
-const ELIGIBLE_PLATFORMS = ['reddit', 'twitter'];
+const ELIGIBLE_PLATFORMS = ['reddit', 'twitter', 'threads', 'ih'];
 
 function getPlatformsFromBrain(brainData) {
   if (!brainData) return ELIGIBLE_PLATFORMS;
@@ -138,13 +136,14 @@ export default function PostMaker() {
     }
   }
 
-  const handleContinue = () => {
-    if (!selectedPlatform) return;
-    if (selectedPlatform.id === 'reddit') {
+  const handlePlatformClick = (p) => {
+    if (p.id === 'reddit') {
       navigate('/post-maker/reddit');
-    } else if (selectedPlatform.id === 'twitter') {
+    } else if (p.id === 'twitter') {
       navigate('/post-maker/x');
-    } else if (selectedPlatform.id === 'ih') {
+    } else if (p.id === 'threads') {
+      navigate('/post-maker/threads');
+    } else if (p.id === 'ih') {
       navigate('/post-maker/indiehackers');
     }
   };
@@ -346,6 +345,8 @@ export default function PostMaker() {
                                         navigate('/post-maker/x');
                                       } else if (todayEntry.platform === 'ih') {
                                         navigate('/post-maker/indiehackers');
+                                      } else if (todayEntry.platform === 'threads') {
+                                        navigate('/post-maker/threads');
                                       }
                                     }}
                                     className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"
@@ -370,38 +371,26 @@ export default function PostMaker() {
                     <p className="text-foreground/60 text-sm">Where are you posting today?</p>
                   </div>
 
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                  <div className="grid grid-cols-2 gap-4 mb-12">
                     {platforms.map((p) => (
                       <button
                         key={p.id}
                         disabled={!p.available}
-                        onClick={() => setSelectedPlatform(p)}
+                        onClick={() => handlePlatformClick(p)}
                         className={cn(
-                          "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
+                          "relative p-8 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-4 bg-transparent",
                           !p.available ? "opacity-40 cursor-not-allowed bg-foreground/5 border-foreground/10" : 
                           selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
                         )}
                       >
-                        {p.comingSoon && (
-                          <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/60 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
-                        )}
-                        <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")} />
+                        <p.icon className={cn("w-12 h-12", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")} />
                         <div>
-                          <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
-                          <p className="text-foreground/60 text-[10px] mt-1">{p.desc}</p>
+                          <p className={cn("text-base font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
+                          <p className="text-foreground/60 text-xs mt-1">{p.desc}</p>
                         </div>
                       </button>
                     ))}
                   </div>
-
-                  {selectedPlatform && (
-                    <button
-                      onClick={handleContinue}
-                      className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
-                    >
-                      Continue with {selectedPlatform.name} →
-                    </button>
-                  )}
                 </>
               )}
 
@@ -410,6 +399,12 @@ export default function PostMaker() {
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
                   {wizardStep === 0 && (
                     <div className="space-y-6">
+                      <button
+                        onClick={() => setStep('platform')}
+                        className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent mb-4"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back to Post Maker
+                      </button>
                       <div className="space-y-2 mb-6">
                         <div className="flex justify-between text-xs font-bold text-foreground/60 uppercase tracking-wider">
                           <span>Question {wizardStep + 1} of 3</span>
@@ -563,15 +558,33 @@ export default function PostMaker() {
 
                       <div className="space-y-3">
                         <h3 className="text-sm font-bold text-white uppercase tracking-wider">Platforms</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {planAnswers.platforms.map((p) => (
-                            <span
-                              key={p}
-                              className="px-4 py-2 rounded-full border border-orange-500/30 text-orange-500 text-xs font-bold bg-orange-500/5"
-                            >
-                              {p === 'twitter' ? 'X (Twitter)' : p === 'reddit' ? 'Reddit' : p}
-                            </span>
-                          ))}
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'reddit', name: 'Reddit', icon: MessageSquare },
+                            { id: 'twitter', name: 'X (Twitter)', icon: Twitter },
+                            { id: 'threads', name: 'Threads', icon: AtSign },
+                            { id: 'ih', name: 'Indie Hackers', icon: Globe }
+                          ].map((p) => {
+                            const isSelected = planAnswers.platforms.includes(p.id);
+                            return (
+                              <button
+                                key={p.id}
+                                onClick={() => {
+                                  const nextPlatforms = isSelected
+                                    ? planAnswers.platforms.filter(id => id !== p.id)
+                                    : [...planAnswers.platforms, p.id];
+                                  setPlanAnswers({ ...planAnswers, platforms: nextPlatforms });
+                                }}
+                                className={cn(
+                                  "p-4 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-2 bg-transparent",
+                                  isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                                )}
+                              >
+                                <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-white")} />
+                                <p className={cn("text-xs font-bold", isSelected ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -599,7 +612,7 @@ export default function PostMaker() {
 
                       <button
                         onClick={generateWeeklyPlan}
-                        disabled={generatingPlan}
+                        disabled={generatingPlan || planAnswers.platforms.length === 0}
                         className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {generatingPlan ? (
@@ -674,6 +687,8 @@ export default function PostMaker() {
                                   navigate('/post-maker/x');
                                 } else if (dayEntry.platform === 'ih') {
                                   navigate('/post-maker/indiehackers');
+                                } else if (dayEntry.platform === 'threads') {
+                                  navigate('/post-maker/threads');
                                 }
                               }}
                               className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2"

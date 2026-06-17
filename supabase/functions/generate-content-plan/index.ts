@@ -55,6 +55,16 @@ const GENERIC_X_TEMPLATES = `1. Founder Insight — an observation, the insight 
 4. Customer Insight — something a user or prospect said or did, what it reveals, the implication for the product.
 5. Contrarian Take — a common belief in the space, why you disagree, what you'd say instead.`;
 
+const GENERIC_THREADS_TEMPLATES = `1. Relatable Moment — a short, conversational post about a specific frustrating moment your audience has had, ending with how your app solves it.
+2. Honest Take — a hot take or opinion in your niche, asking the audience to share their thoughts.
+3. Mini Story — a short personal story with a clear arc and lesson.
+4. Before/After — contrasting the painful status quo with the new reality using your app.`;
+
+const GENERIC_IH_TEMPLATES = `1. Milestone Breakdown — sharing a specific milestone, what worked, what failed, and key lessons.
+2. Failure Autopsy — transparently sharing a failure, why it happened, and what you learned.
+3. Technical Process — showing how you built a specific feature or solved a technical problem.
+4. Build In Public Update — monthly or weekly progress update with metrics and challenges.`;
+
 const PROMPT_TEMPLATE = `You are the content strategist inside Vibe Promote.
 
 Generate a 7-day content plan for this founder. Output ONLY valid JSON, no preamble, no markdown.
@@ -80,9 +90,17 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
 
 {{generic_x_block}}
 
+# GENERIC THREADS FORMATS (always use these for Threads — pick the one matching Goal and Comfort Level)
+
+{{generic_threads_block}}
+
+# GENERIC INDIE HACKERS FORMATS (always use these for Indie Hackers — pick the one matching Goal and Comfort Level)
+
+{{generic_ih_block}}
+
 # RULES
 
-1. Only generate entries for platforms in Selected Platforms. Selected Platforms will only ever contain "reddit" and/or "twitter". Do not invent platforms.
+1. Only generate entries for platforms in Selected Platforms. Selected Platforms can contain "reddit", "twitter", "threads", and/or "ih". Do not invent platforms.
 2. Respect Posting Frequency exactly — do not deviate:
    - "Daily" -> exactly 7 active entries, one per day, every day active.
    - "3-5 times per week" -> exactly 4 active entries total, spread with an alternating active/skip pattern across the week (e.g. Mon active, Tue skip, Wed active, Thu skip, Fri active, Sat skip, Sun active).
@@ -90,14 +108,16 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
    Never produce a different number of active days than this mapping specifies.
 3. If Reddit is selected: for a subreddit covered under SUBREDDIT INTELLIGENCE with specific formats, use one of its 3 specific formats. For a selected subreddit with no specific intel (marked "no specific intel on file"), use one of the 6 GENERIC REDDIT FORMATS instead. Never invent a format outside these two lists. Treat any "example" field as structural inspiration only — never copy wording.
 4. If X (twitter) is selected: always pick one of the 5 GENERIC X FORMATS, matched to Goal and Comfort Level.
-5. Distribute content across the week — do not repeat the same format/subreddit on consecutive active days unless frequency is very low (1-2/week).
-6. Comfort Level rules:
+5. If Threads is selected: always pick one of the 4 GENERIC THREADS FORMATS, matched to Goal and Comfort Level.
+6. If Indie Hackers (ih) is selected: always pick one of the 4 GENERIC INDIE HACKERS FORMATS, matched to Goal and Comfort Level.
+7. Distribute content across the week — do not repeat the same format/subreddit on consecutive active days unless frequency is very low (1-2/week).
+8. Comfort Level rules:
    - "Very comfortable" -> personal/journey formats allowed freely
    - "Somewhat comfortable" -> mix personal and product-focused
    - "Prefer educational content" -> lean toward teaching/insight formats
    - "Prefer product-focused content" -> lean toward product updates, features, results, avoid personal vulnerability formats
-7. Every entry must tie back to Goal (e.g. if Goal = "Get product feedback", angle should invite feedback/questions).
-8. Days with no scheduled post should have "active": false and no other fields except "day" and "active".
+9. Every entry must tie back to Goal (e.g. if Goal = "Get product feedback", angle should invite feedback/questions).
+10. Days with no scheduled post should have "active": false and no other fields except "day" and "active".
 
 # OUTPUT FORMAT - return exactly this structure:
 
@@ -122,7 +142,7 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
   ]
 }
 
-For X entries, omit "subreddit" and "example_reference_url" fields.
+For X, Threads, and Indie Hackers entries, omit "subreddit" and "example_reference_url" fields.
 
 Do not output anything except this JSON object.`;
 
@@ -147,7 +167,7 @@ function buildSubredditIntelBlock(selectedSubreddits: string[] | undefined): str
     .join('\n\n');
 }
 
-const ALLOWED_PLATFORMS = ['reddit', 'twitter'];
+const ALLOWED_PLATFORMS = ['reddit', 'twitter', 'threads', 'ih'];
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -194,8 +214,6 @@ serve(async (req) => {
     if (req.method === 'POST') {
       const { goal, comfort_level, posting_frequency, platforms, selected_subreddits } = await req.json();
 
-      // Defensive: weekly plan only ever supports reddit + X right now,
-      // regardless of what's stored in brand_brains or sent by the client.
       const safePlatforms = Array.isArray(platforms)
         ? platforms.filter((p: string) => ALLOWED_PLATFORMS.includes(p))
         : [];
@@ -223,7 +241,9 @@ serve(async (req) => {
         .replace('{{selected_subreddits}}', JSON.stringify(finalSubreddits))
         .replace('{{subreddit_intel_block}}', subreddit_intel_block)
         .replace('{{generic_reddit_block}}', GENERIC_REDDIT_FALLBACK)
-        .replace('{{generic_x_block}}', GENERIC_X_TEMPLATES);
+        .replace('{{generic_x_block}}', GENERIC_X_TEMPLATES)
+        .replace('{{generic_threads_block}}', GENERIC_THREADS_TEMPLATES)
+        .replace('{{generic_ih_block}}', GENERIC_IH_TEMPLATES);
 
       const aiServiceUrl = `${supabaseUrl}/functions/v1/ai-service`;
       const aiRes = await fetch(aiServiceUrl, {
