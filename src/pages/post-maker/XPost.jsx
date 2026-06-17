@@ -24,18 +24,10 @@ import { cn } from "@/lib/utils";
 import { usePlan } from '../../lib/usePlan';
 import { useUsage, incrementUsage } from '../../lib/useUsage';
 import { markTaskComplete } from '../../components/TaskWidget';
+import TemplateDetailCard from '../../components/post-maker/TemplateDetailCard';
+import { templatesData } from '../../components/post-maker/templatesData';
 
 const selectedPlatform = "X";
-
-const platformTemplates = {
-  Twitter: [
-    { name: "The Scroll-Stopping Hot Take", why: "First line creates tension. People reply to disagree which feeds the algorithm.", structure: "Line 1 bold controversial statement under 12 words → setup why people think opposite → your proof with specific numbers → real insight in one sentence → question that invites replies" },
-    { name: "The Story Thread", why: "Narrative pulls people through. Each tweet ends with reason to read next.", structure: "Tweet 1 hook most dramatic moment → Tweet 2 context who you are → Tweets 3-5 specific journey events → Tweet 6 turning point → Tweet 7 result with numbers → Tweet 8 lesson for reader → Final tweet CTA" },
-    { name: "The Numbered Insight List", why: "Easy to read, save, share. Respects people's time.", structure: "Hook tweet with specific milestone → each numbered tweet one insight one proof one takeaway → keep each under 220 chars → last tweet most surprising insight → final CTA" },
-    { name: "The Before/After", why: "Contrast creates curiosity. People want to know what caused the change.", structure: "Tweet 1 before state specific and painful → Tweet 2 one thing that changed without revealing → Tweets 3-4 what you actually did → Tweet 5 after state with numbers → Tweet 6 underlying principle → Final CTA" },
-    { name: "The Unpopular Opinion With Receipts", why: "Disagreement drives replies. Proof stops it being dismissed.", structure: "State opinion plainly no hedging → acknowledge mainstream view → your specific contradicting experience → data or result backing you up → nuance when mainstream view is right → question to reader" }
-  ]
-};
 
 const postingTips = {
   Twitter: "Post between 8am-10am or 6pm-9pm in your audience's timezone. Reply to the first few comments fast — early engagement signals matter most."
@@ -53,7 +45,6 @@ export default function XPost() {
   const [generatedPost, setGeneratedPost] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [brain, setBrain] = useState(null);
-  const [expandedTemplate, setExpandedTemplate] = useState(null);
   const [copyStatus, setCopyStatus] = useState("Copy Post");
   const [currentDay, setCurrentDay] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
@@ -240,7 +231,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                   <div className="absolute top-4 right-4 text-orange-500 text-[10px] font-bold uppercase tracking-widest">Recommended</div>
                   <LayoutTemplate className="w-8 h-8 text-orange-500 mb-4" />
                   <h3 className="text-foreground text-lg font-bold">Use a Proven Template</h3>
-                  <p className="text-foreground/60 text-sm mt-2">Pick from 5 templates that are working right now on X</p>
+                  <p className="text-foreground/60 text-sm mt-2">Pick from templates that are working right now on X</p>
                 </div>
                 <div
                   onClick={() => { setSelectedMode("write"); setStep(3); }}
@@ -263,39 +254,13 @@ Return ONLY valid JSON, no markdown, no backticks:
                     <h1 className="text-2xl font-semibold text-foreground">Pick a template that's working right now</h1>
                     <p className="text-foreground/60 text-sm">These formats are getting real traction on X</p>
                   </div>
-                  <div className="space-y-4">
-                    {platformTemplates.Twitter.map((t, i) => (
-                      <div key={i} className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-foreground text-sm font-semibold">{t.name}</h3>
-                          <button
-                            onClick={() => { setSelectedTemplate(t); setStep(4); }}
-                            className="bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 hover:bg-orange-600 transition-all"
-                          >
-                            Use This Template
-                          </button>
-                        </div>
-                        <p className="text-foreground/60 text-sm">{t.why}</p>
-                        <div className="border-t border-foreground/10 pt-3">
-                          <button 
-                            onClick={() => setExpandedTemplate(expandedTemplate === i ? null : i)}
-                            className="flex items-center gap-2 text-foreground/50 text-[10px] font-bold uppercase tracking-widest hover:text-foreground/80 transition-colors"
-                          >
-                            {expandedTemplate === i ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                            Structure Preview
-                          </button>
-                          {expandedTemplate === i && (
-                            <div className="mt-3 space-y-1">
-                              {t.structure.split(' → ').map((step, idx) => (
-                                <div key={idx} className="flex gap-2 text-foreground/50 text-xs">
-                                  <span className="text-orange-500/50">•</span>
-                                  <span>{step}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  <div className="space-y-8">
+                    {templatesData.X.map((t) => (
+                      <TemplateDetailCard 
+                        key={t.id} 
+                        template={t} 
+                        onSelect={() => { setSelectedTemplate(t); setStep(4); }} 
+                      />
                     ))}
                   </div>
                 </>
