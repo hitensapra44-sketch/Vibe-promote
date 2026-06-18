@@ -90,6 +90,9 @@ serve(async (req) => {
     } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
       model = 'meta/llama-3.1-8b-instruct';
+    } else if (feature === 'content_plan') {
+      apiKey = KEYS.MISTRAL_2;
+      model = 'meta/llama-3.1-8b-instruct';
     } else if (feature === 'userfinder') {
       apiKey = KEYS.MISTRAL_2;
       model = 'meta/llama-3.3-70b-instruct';
@@ -114,8 +117,9 @@ serve(async (req) => {
     let response = await tryCall(apiKey, model);
 
     if (!response.ok && feature !== 'onboarding') {
-      console.log(`[ai-service] Primary key failed for ${feature}, trying secondary Mistral key...`);
-      response = await tryCall(KEYS.MISTRAL_2, model);
+      const secondaryKey = apiKey === KEYS.MISTRAL_2 ? KEYS.MISTRAL_1 : KEYS.MISTRAL_2;
+      console.log(`[ai-service] Primary key failed for ${feature}, trying secondary key...`);
+      response = await tryCall(secondaryKey, model);
     }
 
     if (!response.ok) {

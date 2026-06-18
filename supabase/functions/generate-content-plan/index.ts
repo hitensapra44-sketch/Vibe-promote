@@ -254,7 +254,7 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          feature: 'post',
+          feature: 'content_plan',
           messages: [
             { role: 'system', content: finalPrompt },
             { role: 'user', content: 'Generate the content plan now.' }
