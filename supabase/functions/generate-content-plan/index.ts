@@ -134,10 +134,14 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
       "platform": "reddit",
       "subreddit": "r/SaaS",
       "format_name": "Personal Milestone/Validation Story",
+      "format_description": "Short one-line explanation of the format.",
+      "goal": "What business objective this post supports (one sentence).",
+      "outcome_types": ["Engagement", "Authority"],
+      "why_this_post": "Explain why this post appears in the user's weekly plan (under 2 sentences).",
+      "why_this_format": "Explain why this content format was selected (under 2 sentences).",
+      "why_this_platform": "Explain why the platform, subreddit, or community was selected (under 2 sentences).",
       "angle": "specific angle tied to this founder's product and goal",
-      "hook": "1-line hook idea",
-      "expected_outcome": "comments / signups / feedback / etc",
-      "example_reference_url": "https://..."
+      "hook": "1-line hook idea"
     },
     {
       "day": "Tuesday",
@@ -146,7 +150,8 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
   ]
 }
 
-For X, Threads, and Indie Hackers entries, omit "subreddit" and "example_reference_url" fields.
+For X, Threads, and Indie Hackers entries, omit "subreddit" field.
+The outcome_types array must only contain values from: ["Engagement", "Feedback", "Authority", "Validation", "Awareness", "Traffic", "Leads"].
 
 Do not output anything except this JSON object.`;
 
