@@ -20,24 +20,28 @@ const SUBREDDIT_INTEL: Record<string, string> = {
 3. Revenue/Validation Contrast — unexpected earnings comparison + lesson learned.`,
 
   "r/WebDev": `1. Security/Risk Warning — threat + mechanism + impact + mitigation steps. Example: https://www.reddit.com/r/webdev/comments/1u1zoi3/89_npm_packages_got_compromised_again_deleting/
-2. Industry/AI Disruption Opinion — strong stance on a tech trend + implication. Example: https://www.reddit.com/r/webdev/comments/1tvsfgj/im_calling_it_now_the_adoption_of_ai_agents_into/
-3. Personal Build/Frustration Showcase — technical build story or learning journey + reaction.`,
+2. Industry/AI Disruption Opinion — strong stance on a tech trend + implication. Example: https://www.geog.com.cn/CN/10.11821/dlxb201610010
+3. WebDev is a technical community. Keep it focused on code, architecture, and real-world problems.`,
 
   "r/Marketing": `1. Platform Pain / Workflow Breakdown — exact failure chain on a tool/platform + missing fix. Example: https://www.reddit.com/r/marketing/comments/1tj7ea3/navigating_the_hell_that_is_meta_business_suite/
 2. Contrarian Trend Take — "[old tactic] is dead, [new tactic] is where leverage is." Example: https://www.reddit.com/r/marketing/comments/1u6azdi/5_years_in_seo_outdated_3_months_in_aeo_visionary/
-3. Agency/Service Frustration — bad experience + promised vs delivered + ask for advice. Example: https://www.reddit.com/r/marketing/comments/1tfx9d9/dishonest_agencies_one_after_another/`,
+3. Agency/Service Frustration — bad experience + promised vs delivered + ask for advice. Example: https://www.reddit.com/r/marketing/comments/1tfx9d9/dishonest_agencies_are_killing_startups/`,
 
-  "r/GrowthHacking": `1. No-Budget Acquisition Case Study — constraint → tactic → result → exact sequence. Example: https://www.reddit.com/r/GrowthHacking/comments/1txl1w4/im_an_engineer_with_zero_marketing_skills_heres/
-2. Contrarian Obituary of Old Playbook — "[old tactic] is dead because [market shift]." Example: https://www.reddit.com/r/GrowthHacking/comments/1tny72q/unpopular_opinion_growth_hacking_died_around_2020/
-3. Milestone + Launch Combo — revenue context + launch action + ask. Example: https://www.reddit.com/r/GrowthHacking/comments/1thnbbz/after_making_200k_arr_we_launched_on_product_hunt/`,
-
-  "r/SEO": `1. Official Update/News + Implication — platform change → what breaks → tactical response. Example: https://www.reddit.com/r/SEO/comments/1t7di79/google_faq_rich_results_are_no_longer_appearing/
-2. Personal Proof/Ranking Win — proof of ranking/result + approach used. Example: https://www.reddit.com/r/SEO/comments/1t207d3/im_beating_almost_every_web_design_agency_and/
-3. Tool/Workflow Discussion — "Anyone using [tool] for [task]?" + curiosity ask.`,
-
-  "r/Sales": `1. Veteran Wisdom Dump — career summary → lessons → tactical rules. Example: https://www.reddit.com/r/sales/comments/1tw6tts/ill_give_you_everything_i_learned_over_30_years/
-2. Commission/Quota Milestone — context → trajectory → why it matters. Example: https://www.reddit.com/r/sales/comments/1t8x2v8/just_closed_my_biggest_deal_of_my_life_60k_gross/
-3. Exit/Career-Change Narrative — why I left → tradeoffs → next step. Example: https://www.reddit.com/r/sales/comments/1tk1n6h/i_did_it_im_out/`
+  "GrowthHacking": {
+    tone: "Tactical, scrappy, numbers-first",
+    avgLength: "150-400 words",
+    downvoted: "Tool spam, low-trust promotional posts, vague growth-hack buzzwords"
+  },
+  "SEO": {
+    tone: "Data-driven, practitioner-to-practitioner",
+    avgLength: "150-400 words",
+    downvoted: "Generic \"learn SEO\" questions, stale tactics, claims without proof"
+  },
+  "Sales": {
+    tone: "Confident, numbers-anchored, candid",
+    avgLength: "200-500 words",
+    downvoted: "Abstract motivation posts with no numbers or lived experience"
+  }
 };
 
 // Fallback formats for any selected subreddit NOT in SUBREDDIT_INTEL above
@@ -94,9 +98,9 @@ Selected Subreddits (if Reddit selected): {{selected_subreddits}}
 
 {{generic_threads_block}}
 
-# GENERIC INDIE HACKERS FORMATS (always use these for Indie Hackers — pick the one matching Goal and Comfort Level)
+# GENERIC INDIE HACKERS FORMATS (always use these for Indie Hackers)
 
-{{generic_ih_block}}
+{{ih-milestone-breakdown}}
 
 # RULES
 
@@ -250,7 +254,7 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${supabaseServiceKey}`,
-          'apikey': supabaseAnonKey,
+          'apikey': supabaseServiceKey,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
