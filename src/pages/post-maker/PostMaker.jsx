@@ -35,8 +35,6 @@ const platforms = [
   { id: 'twitter', name: 'X (Twitter)', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#FFFFFF', available: true },
   { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: MessageSquare, color: '#FFFFFF', available: true },
   { id: 'ih', name: 'Indie Hackers', desc: 'Founder stories win here.', icon: Globe, color: '#0073b1', available: true },
-  { id: 'ph', name: 'Product Hunt', desc: 'Make your launch land.', icon: Zap, color: '#da552f', available: true },
-  { id: 'linkedin', name: 'LinkedIn', desc: 'Professional + personal mix.', icon: Layout, color: '#0077b5', available: true },
 ];
 
 const formats = [
@@ -177,7 +175,6 @@ export default function PostMaker() {
   const renderContentCard = (dayEntry) => {
     if (!dayEntry || !dayEntry.active) return null;
 
-    // Fallbacks for older plans
     const formatDescription = dayEntry.format_description || dayEntry.angle || "A custom format tailored to your audience.";
     const goalText = dayEntry.goal || "Build trust and drive organic engagement.";
     const outcomeTypes = dayEntry.outcome_types || [dayEntry.expected_outcome || 'Engagement'];
@@ -199,26 +196,22 @@ export default function PostMaker() {
 
     return (
       <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
-        {/* Day */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Day</span>
           <p className="text-lg font-bold text-white">{dayEntry.day}</p>
         </div>
 
-        {/* Post Title */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Post Title</span>
           <p className="text-base font-bold text-orange-500">{dayEntry.format_name}</p>
           <p className="text-zinc-400 text-sm mt-1 leading-relaxed">{formatDescription}</p>
         </div>
 
-        {/* Goal */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Goal</span>
           <p className="text-zinc-300 text-sm leading-relaxed">{goalText}</p>
         </div>
 
-        {/* Outcome Type */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">Outcome Type</span>
           <div className="flex flex-wrap gap-2">
@@ -230,25 +223,21 @@ export default function PostMaker() {
           </div>
         </div>
 
-        {/* Why This Post */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Post</span>
           <p className="text-zinc-300 text-sm leading-relaxed">{whyThisPost}</p>
         </div>
 
-        {/* Why This Format */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Format</span>
           <p className="text-zinc-300 text-sm leading-relaxed">{whyThisFormat}</p>
         </div>
 
-        {/* Why This Platform */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Platform</span>
           <p className="text-zinc-300 text-sm leading-relaxed">{whyThisPlatform}</p>
         </div>
 
-        {/* Platform */}
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Platform</span>
           <p className="text-sm font-bold text-white capitalize">{dayEntry.platform === 'twitter' ? 'X' : dayEntry.platform}</p>
@@ -257,7 +246,6 @@ export default function PostMaker() {
           )}
         </div>
 
-        {/* CTA Button */}
         <div className="pt-4">
           <button
             onClick={() => {
@@ -358,25 +346,23 @@ export default function PostMaker() {
                   <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                {/* Larger platform boxes in a 2-column grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
                   {platforms.map((p) => (
                     <button
                       key={p.id}
                       disabled={p.comingSoon}
                       onClick={() => setSelectedPlatform(p)}
                       className={cn(
-                        "relative p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3",
+                        "relative p-8 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-4 min-h-[160px]",
                         p.comingSoon ? "opacity-40 cursor-not-allowed bg-[#111111] border-[#1F1F1F]" : 
                         selectedPlatform?.id === p.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
                       )}
                     >
-                      {p.comingSoon && (
-                        <span className="absolute top-2 right-2 bg-[#1F1F1F] text-[#52525B] text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Coming Soon</span>
-                      )}
-                      <p.icon className={cn("w-6 h-6", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
+                      <p.icon className={cn("w-8 h-8", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")} />
                       <div>
-                        <p className={cn("text-sm font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
-                        <p className="text-[#A1A1AA] text-[10px] mt-1">{p.desc}</p>
+                        <p className={cn("text-base font-bold", selectedPlatform?.id === p.id ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                        <p className="text-[#A1A1AA] text-xs mt-1.5">{p.desc}</p>
                       </div>
                     </button>
                   ))}
@@ -493,7 +479,7 @@ export default function PostMaker() {
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                   <h2 className="text-xl font-bold text-white">Which platforms?</h2>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     {platforms.map((p) => {
                       const isSelected = planAnswers.platforms.includes(p.id);
                       return (
