@@ -26,7 +26,7 @@ import { usePlan } from '../../lib/usePlan';
 import { useUsage, incrementUsage } from '../../lib/useUsage';
 import { markTaskComplete } from '../../components/TaskWidget';
 import TemplateDetailCard from '../../components/post-maker/TemplateDetailCard';
-import { templatesData } from '../../components/post-maker/templatesData';
+import { templatesData, subredditTemplates } from '../../components/post-maker/templatesData';
 
 const selectedPlatform = "Reddit";
 
@@ -146,6 +146,42 @@ export default function RedditPost() {
     fetchBrain();
   }, [user]);
 
+  const getSubredditKeyFromBrain = (b) => {
+    if (!b || !b.audience_communities) return null;
+    let communitiesList = [];
+    try {
+      communitiesList = JSON.parse(b.audience_communities);
+    } catch (e) {
+      if (typeof b.audience_communities === 'string') {
+        communitiesList = b.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+      }
+    }
+    if (!Array.isArray(communitiesList)) return null;
+    
+    const recognizedKeys = Object.keys(subredditTemplates);
+    for (const comm of communitiesList) {
+      const cleanComm = comm.replace(/^r\//i, '').trim().toLowerCase();
+      const matchedKey = recognizedKeys.find(k => k.toLowerCase() === cleanComm);
+      if (matchedKey) return matchedKey;
+    }
+    return null;
+  };
+
+  const getSubredditKey = (sub) => {
+    if (!sub) return null;
+    const clean = sub.replace(/^r\//i, '').trim().toLowerCase();
+    const keys = Object.keys(subredditTemplates);
+    return keys.find(k => k.toLowerCase() === clean) || null;
+  };
+
+  const getTemplatesToDisplay = () => {
+    const subKey = selectedSubreddit || (brain && getSubredditKeyFromBrain(brain));
+    if (subKey && subredditTemplates[subKey]) {
+      return subredditTemplates[subKey];
+    }
+    return templatesData.Reddit;
+  };
+
   const handleBack = () => {
     if (step === 2) {
       navigate('/post-maker');
@@ -170,12 +206,17 @@ export default function RedditPost() {
     setIsLoading(true);
     setStep(5);
 
+    const subKey = selectedSubreddit || (brain && getSubredditKeyFromBrain(brain));
+    const subredditContextLine = subKey && SUBREDDIT_INTEL[subKey]
+      ? `SUBREDDIT CONTEXT: Posting to r/${subKey}. Typical tone: ${SUBREDDIT_INTEL[subKey].tone}. Average length: ${SUBREDDIT_INTEL[subKey].avgLength}. Avoid: ${SUBREDDIT_INTEL[subKey].downvoted}.`
+      : '';
+
     const prompt = `
 You are a ghostwriter for indie founders. Write honest, value-first Reddit posts that feel like real experiences, not marketing.
 
 BRAND:
 ${JSON.stringify(brain)}
-${selectedSubreddit ? `SUBREDDIT CONTEXT: Posting to r/${selectedSubreddit}. Typical tone: ${SUBREDDIT_INTEL[selectedSubreddit].tone}. Average length: ${SUBREDDIT_INTEL[selectedSubreddit].avgLength}. Avoid: ${SUBREDDIT_INTEL[selectedSubreddit].downvoted}.` : ''}
+${subredditContextLine}
 
 TASK: Write one complete Reddit post using the "${selectedTemplate?.name || 'custom'}" template.
 
@@ -268,6 +309,8 @@ Return ONLY valid JSON, no markdown, no backticks:
     setGeneratedPost(null);
   };
 
+  const templatesToDisplay = getTemplatesToDisplay();
+
   return (
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
@@ -332,7 +375,7 @@ Return ONLY valid JSON, no markdown, no backticks:
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               {selectedMode === "template" ? (
                 <>
-                  {!selectedSubreddit ? (
+                  {!selectedSubreddit && !getSubredditKeyFromBrain(brain) ? (
                     /* Subreddit Selection List */
                     <div className="space-y-6">
                       <div className="mb-8">
@@ -368,14 +411,14 @@ Return ONLY valid JSON, no markdown, no backticks:
                           ← Back to subreddits
                         </button>
                         <h1 className="text-2xl font-semibold text-foreground">
-                          Best formats for r/{selectedSubreddit}
+                          Best formats for r/{selectedSubreddit || getSubredditKeyFromBrain(brain)}
                         </h1>
                         <p className="text-foreground/60 text-sm">
                           AI generated for your niche. Pick one to use.
                         </p>
                       </div>
                       <div className="space-y-8">
-                        {templatesData.Reddit.map((t) => (
+                        {templatesToDisplay.map((t) => (
                           <TemplateDetailCard 
                             key={t.id} 
                             template={t} 
