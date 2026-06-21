@@ -30,3 +30,9 @@ dist-ssr
 .env
 .vite
 .dyad/
+
+# AI Context Exclusions
+testi and trust.txt
+prompt to use.txt
+apguide.txt
+mistral - onboarding key.txt
