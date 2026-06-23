@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Allow: /founder
+Allow: /blog
+Allow: /blog/*
 Allow: /ai-marketing-tool
 Allow: /saas-marketing-tool
 Allow: /indie-hacker-marketing
@@ -10,4 +13,5 @@ Allow: /bootstrapped-founder-marketing
 Allow: /how-to-market-your-saas
 Allow: /best-ai-marketing-tools-for-founders
 
+# Sitemaps
 Sitemap: https://vibepromote.tech/sitemap.xml
