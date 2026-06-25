@@ -202,18 +202,18 @@ export default function PostMaker() {
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Post Title</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Post Title</span>
           <p className="text-base font-bold text-orange-500">{dayEntry.format_name}</p>
           <p className="text-foreground/70 text-sm mt-1 leading-relaxed">{formatDescription}</p>
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Goal</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Goal</span>
           <p className="text-foreground/80 text-sm leading-relaxed">{goalText}</p>
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">Outcome Type</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-2">Outcome Type</span>
           <div className="flex flex-wrap gap-2">
             {outcomeTypes.map((type, idx) => (
               <span key={idx} className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold uppercase tracking-wider">
@@ -224,22 +224,22 @@ export default function PostMaker() {
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Post</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Why This Post</span>
           <p className="text-foreground/80 text-sm leading-relaxed">{whyThisPost}</p>
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Format</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Why This Format</span>
           <p className="text-foreground/80 text-sm leading-relaxed">{whyThisFormat}</p>
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Platform</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Why This Platform</span>
           <p className="text-foreground/80 text-sm leading-relaxed">{whyThisPlatform}</p>
         </div>
 
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Platform</span>
+          <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Platform</span>
           <p className="text-sm font-bold text-foreground capitalize">{dayEntry.platform === 'twitter' ? 'X' : dayEntry.platform}</p>
           {dayEntry.subreddit && (
             <p className="text-xs text-foreground/70 mt-1">Subreddit: <span className="text-orange-500 font-semibold">{dayEntry.subreddit}</span></p>
@@ -285,26 +285,26 @@ export default function PostMaker() {
                   {weeklyPlan === null ? (
                     <button
                       onClick={() => setStep('weeklyPlanQuestions')}
-                      className="w-full p-6 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left transition-all flex items-center justify-between group"
+                      className="w-full p-6 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-[#F97316]/50 text-left transition-all flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
                           <Calendar className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-white group-hover:text-[#F97316] transition-colors">Get Your Weekly Content Plan</h3>
-                          <p className="text-[#A1A1AA] text-xs mt-1">Tell us your goals, get 7 days of content ideas — done.</p>
+                          <h3 className="text-sm font-bold text-foreground group-hover:text-[#F97316] transition-colors">Get Your Weekly Content Plan</h3>
+                          <p className="text-foreground/60 text-xs mt-1">Tell us your goals, get 7 days of content ideas — done.</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-[#A1A1AA] group-hover:text-[#F97316] group-hover:translate-x-1 transition-all" />
+                      <ArrowRight className="w-5 h-5 text-foreground/60 group-hover:text-[#F97316] group-hover:translate-x-1 transition-all" />
                     </button>
                   ) : (
                     <div className="space-y-6">
                       {/* Weekly Strategy Section */}
-                      <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-6 sm:p-8 space-y-3">
-                        <h2 className="text-xl font-bold text-white">This Week's Strategy</h2>
-                        <p className="text-zinc-400 text-sm leading-relaxed">
-                          <span className="text-zinc-500 font-bold uppercase tracking-wider text-xs block mb-1">Goal</span>
+                      <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 sm:p-8 space-y-3">
+                        <h2 className="text-xl font-bold text-foreground">This Week's Strategy</h2>
+                        <p className="text-foreground/70 text-sm leading-relaxed">
+                          <span className="text-foreground/50 font-bold uppercase tracking-wider text-xs block mb-1">Goal</span>
                           {weeklyPlan.week_overview || "Build consistent momentum and trust with your target audience."}
                         </p>
                       </div>
@@ -312,7 +312,7 @@ export default function PostMaker() {
                       <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-[#F97316]" />
-                          <span className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider">Today's Post Plan</span>
+                          <span className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Today's Post Plan</span>
                         </div>
                         <button
                           onClick={() => setStep('weeklyPlanFull')}
@@ -329,8 +329,8 @@ export default function PostMaker() {
                           return renderContentCard(todayEntry);
                         } else {
                           return (
-                            <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-8 text-center">
-                              <p className="text-sm text-[#A1A1AA]">No post scheduled today — check your full week plan</p>
+                            <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-8 text-center">
+                              <p className="text-sm text-foreground/60">No post scheduled today — check your full week plan</p>
                             </div>
                           );
                         }
@@ -340,10 +340,10 @@ export default function PostMaker() {
                 </div>
               )}
 
-              <div className="pt-6 border-t border-[#1F1F1F]">
+              <div className="pt-6 border-t border-foreground/10">
                 <div className="mb-8">
-                  <h1 className="text-2xl font-semibold text-white">Post Maker</h1>
-                  <p className="text-[#A1A1AA] text-sm">Where are you posting today?</p>
+                  <h1 className="text-2xl font-semibold text-foreground">Post Maker</h1>
+                  <p className="text-foreground/60 text-sm">Where are you posting today?</p>
                 </div>
 
                 {/* Larger platform boxes in a 2-column grid */}
@@ -365,14 +365,14 @@ export default function PostMaker() {
                       }}
                       className={cn(
                         "relative p-8 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-4 min-h-[160px]",
-                        p.comingSoon ? "opacity-40 cursor-not-allowed bg-[#111111] border-[#1F1F1F]" : 
-                        "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                        p.comingSoon ? "opacity-40 cursor-not-allowed bg-foreground/5 border-foreground/10" : 
+                        "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
                       )}
                     >
-                      <p.icon className="w-8 h-8 text-white" />
+                      <p.icon className="w-8 h-8 text-foreground" />
                       <div>
-                        <p className="text-base font-bold text-white">{p.name}</p>
-                        <p className="text-[#A1A1AA] text-xs mt-1.5">{p.desc}</p>
+                        <p className="text-base font-bold text-foreground">{p.name}</p>
+                        <p className="text-foreground/60 text-xs mt-1.5">{p.desc}</p>
                       </div>
                     </button>
                   ))}
@@ -385,7 +385,7 @@ export default function PostMaker() {
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
               {wizardStep === 0 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-bold text-white">What's your main goal right now?</h2>
+                  <h2 className="text-xl font-bold text-foreground">What's your main goal right now?</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       "Get first users",
@@ -401,7 +401,7 @@ export default function PostMaker() {
                           setPlanAnswers({ ...planAnswers, goal });
                           setWizardStep(1);
                         }}
-                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                        className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-[#F97316]/50 text-left text-sm font-bold text-foreground transition-all"
                       >
                         {goal}
                       </button>
@@ -414,11 +414,11 @@ export default function PostMaker() {
                 <div className="space-y-6">
                   <button
                     onClick={() => setWizardStep(0)}
-                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                    className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
-                  <h2 className="text-xl font-bold text-white">How comfortable are you sharing your journey publicly?</h2>
+                  <h2 className="text-xl font-bold text-foreground">How comfortable are you sharing your journey publicly?</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       "Very comfortable",
@@ -432,7 +432,7 @@ export default function PostMaker() {
                           setPlanAnswers({ ...planAnswers, comfort_level: comfort });
                           setWizardStep(2);
                         }}
-                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                        className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-[#F97316]/50 text-left text-sm font-bold text-foreground transition-all"
                       >
                         {comfort}
                       </button>
@@ -445,11 +445,11 @@ export default function PostMaker() {
                 <div className="space-y-6">
                   <button
                     onClick={() => setWizardStep(1)}
-                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                    className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
-                  <h2 className="text-xl font-bold text-white">How much can you realistically post?</h2>
+                  <h2 className="text-xl font-bold text-foreground">How much can you realistically post?</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       "Daily",
@@ -462,7 +462,7 @@ export default function PostMaker() {
                           setPlanAnswers({ ...planAnswers, posting_frequency: freq });
                           setWizardStep(3);
                         }}
-                        className="p-5 rounded-xl border border-[#1F1F1F] bg-[#111111] hover:border-[#F97316]/50 text-left text-sm font-bold text-white transition-all"
+                        className="p-5 rounded-xl border border-foreground/10 bg-foreground/5 hover:border-[#F97316]/50 text-left text-sm font-bold text-foreground transition-all"
                       >
                         {freq}
                       </button>
@@ -475,11 +475,11 @@ export default function PostMaker() {
                 <div className="space-y-6">
                   <button
                     onClick={() => setWizardStep(2)}
-                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                    className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
-                  <h2 className="text-xl font-bold text-white">Which platforms?</h2>
+                  <h2 className="text-xl font-bold text-foreground">Which platforms?</h2>
                   <div className="grid grid-cols-2 gap-4">
                     {platforms.map((p) => {
                       const isSelected = planAnswers.platforms.includes(p.id);
@@ -494,11 +494,11 @@ export default function PostMaker() {
                           }}
                           className={cn(
                             "p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-transparent",
-                            isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                            isSelected ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
                           )}
                         >
-                          <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-white")} />
-                          <p className={cn("text-sm font-bold", isSelected ? "text-[#F97316]" : "text-white")}>{p.name}</p>
+                          <p.icon className={cn("w-6 h-6", isSelected ? "text-[#F97316]" : "text-foreground")} />
+                          <p className={cn("text-sm font-bold", isSelected ? "text-[#F97316]" : "text-foreground")}>{p.name}</p>
                         </button>
                       );
                     })}
@@ -523,11 +523,11 @@ export default function PostMaker() {
                 <div className="space-y-6">
                   <button
                     onClick={() => setWizardStep(3)}
-                    className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                    className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
-                  <h2 className="text-xl font-bold text-white">Which subreddits?</h2>
+                  <h2 className="text-xl font-bold text-foreground">Which subreddits?</h2>
                   {(() => {
                     let communities = [];
                     if (brain?.audience_communities) {
@@ -558,7 +558,7 @@ export default function PostMaker() {
                                 }}
                                 className={cn(
                                   "px-4 py-2 rounded-full text-xs font-bold border transition-all bg-transparent",
-                                  isSelected ? "bg-[#F97316]/10 border-[#F97316] text-[#F97316]" : "border-[#1F1F1F] text-[#A1A1AA] hover:border-white/20"
+                                  isSelected ? "bg-[#F97316]/10 border-[#F97316] text-[#F97316]" : "border-foreground/10 text-foreground/60 hover:border-foreground/20"
                                 )}
                               >
                                 r/{sub}
@@ -585,16 +585,16 @@ export default function PostMaker() {
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
               <button
                 onClick={() => setStep('platform')}
-                className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white bg-transparent"
+                className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground bg-transparent"
               >
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
               
               {/* Weekly Strategy Section */}
-              <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-6 sm:p-8 space-y-3">
-                <h2 className="text-xl font-bold text-white">This Week's Strategy</h2>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  <span className="text-zinc-500 font-bold uppercase tracking-wider text-xs block mb-1">Goal</span>
+              <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 sm:p-8 space-y-3">
+                <h2 className="text-xl font-bold text-foreground">This Week's Strategy</h2>
+                <p className="text-foreground/70 text-sm leading-relaxed">
+                  <span className="text-foreground/50 font-bold uppercase tracking-wider text-xs block mb-1">Goal</span>
                   {weeklyPlan.week_overview || "Build consistent momentum and trust with your target audience."}
                 </p>
               </div>
@@ -605,9 +605,9 @@ export default function PostMaker() {
                     {dayEntry.active ? (
                       renderContentCard(dayEntry)
                     ) : (
-                      <div className="bg-[#111111]/50 border border-[#1F1F1F]/50 rounded-2xl p-6 flex items-center justify-between">
-                        <span className="text-sm font-bold text-zinc-500">{dayEntry.day}</span>
-                        <span className="text-xs text-zinc-600 font-medium">No post scheduled</span>
+                      <div className="bg-foreground/5/50 border border-foreground/10/50 rounded-2xl p-6 flex items-center justify-between">
+                        <span className="text-sm font-bold text-foreground/50">{dayEntry.day}</span>
+                        <span className="text-xs text-foreground/40 font-medium">No post scheduled</span>
                       </div>
                     )}
                   </div>
@@ -618,13 +618,13 @@ export default function PostMaker() {
 
           {step === 'format' && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-              <button onClick={() => setStep('platform')} className="text-[#A1A1AA] text-sm flex items-center gap-2 hover:text-white mb-8">
+              <button onClick={() => setStep('platform')} className="text-foreground/60 text-sm flex items-center gap-2 hover:text-foreground mb-8">
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
               
               <div className="mb-12">
-                <h2 className="text-xl font-semibold text-white">What's working on {selectedPlatform.name} right now</h2>
-                <p className="text-[#A1A1AA] text-sm">Formats getting traction in your niche</p>
+                <h2 className="text-xl font-semibold text-foreground">What's working on {selectedPlatform.name} right now</h2>
+                <p className="text-foreground/60 text-sm">Formats getting traction in your niche</p>
               </div>
 
               <div className="space-y-4 mb-12">
@@ -634,35 +634,35 @@ export default function PostMaker() {
                     onClick={() => setSelectedFormat(f)}
                     className={cn(
                       "w-full p-5 rounded-xl border text-left transition-all flex flex-col lg:flex-row justify-between gap-6",
-                      selectedFormat?.id === f.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-[#111111] border-[#1F1F1F] hover:border-[#F97316]/30"
+                      selectedFormat?.id === f.id ? "bg-[#F97316]/5 border-[#F97316]" : "bg-foreground/5 border-foreground/10 hover:border-[#F97316]/30"
                     )}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-base font-bold text-white">{f.name}</h3>
+                        <h3 className="text-base font-bold text-foreground">{f.name}</h3>
                         <span className={cn(
                           "text-[10px] font-bold px-2 py-0.5 rounded-md border",
-                          f.traction === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-[#1F1F1F] text-[#A1A1AA] border-[#1F1F1F]"
+                          f.traction === 'High' ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "bg-foreground/10 text-foreground/60 border-foreground/10"
                         )}>
                           {f.traction === 'High' ? '🔥 High Traction' : '👀 Medium'}
                         </span>
                       </div>
-                      <p className="text-[#A1A1AA] text-sm mb-4">{f.why}</p>
+                      <p className="text-foreground/60 text-sm mb-4">{f.why}</p>
                       
                       {/* Skeleton Preview */}
-                      <div className="bg-[#1A1A1A] rounded-lg p-4 space-y-2 border border-[#1F1F1F]">
-                        <div className="h-2 bg-[#1F1F1F] rounded w-3/4" />
-                        <div className="h-2 bg-[#1F1F1F] rounded w-full" />
-                        <div className="h-2 bg-[#1F1F1F] rounded w-1/2" />
+                      <div className="bg-foreground/5 rounded-lg p-4 space-y-2 border border-foreground/10">
+                        <div className="h-2 bg-foreground/10 rounded w-3/4" />
+                        <div className="h-2 bg-foreground/10 rounded w-full" />
+                        <div className="h-2 bg-foreground/10 rounded w-1/2" />
                       </div>
                     </div>
                     
                     <div className="lg:w-32 flex flex-col justify-center">
-                      <p className="text-[10px] text-[#52525B] font-bold uppercase tracking-widest mb-2">Engagement</p>
-                      <div className="w-full h-1 bg-[#1F1F1F] rounded-full overflow-hidden mb-1">
+                      <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-widest mb-2">Engagement</p>
+                      <div className="w-full h-1 bg-foreground/10 rounded-full overflow-hidden mb-1">
                         <div className="h-full bg-[#F97316]" style={{ width: `${f.engagement}%` }} />
                       </div>
-                      <p className="text-xs font-bold text-white">{f.engagement}%</p>
+                      <p className="text-xs font-bold text-foreground">{f.engagement}%</p>
                     </div>
                   </button>
                 ))}
@@ -671,7 +671,7 @@ export default function PostMaker() {
               {selectedFormat && (
                 <button
                   onClick={generatePost}
-                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-foreground font-medium rounded-lg transition-all flex items-center justify-center gap-2"
                 >
                   Generate My Post →
                 </button>
@@ -683,14 +683,14 @@ export default function PostMaker() {
             <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
               {/* Left Column - Controls */}
               <div className="lg:w-[280px] space-y-8">
-                <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-4">
-                  <p className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest mb-3">Brand Context</p>
-                  <p className="text-white text-xs font-bold truncate">{brain?.app_name}</p>
-                  <p className="text-[#A1A1AA] text-[10px] mt-1 line-clamp-2">{brain?.core_problem}</p>
+                <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-4">
+                  <p className="text-foreground/50 text-[10px] font-bold uppercase tracking-widest mb-3">Brand Context</p>
+                  <p className="text-foreground text-xs font-bold truncate">{brain?.app_name}</p>
+                  <p className="text-foreground/60 text-[10px] mt-1 line-clamp-2">{brain?.core_problem}</p>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">Tone</label>
+                  <label className="text-foreground/60 text-[10px] font-bold uppercase tracking-widest">Tone</label>
                   <div className="grid grid-cols-2 gap-2">
                     {['Authentic Founder', 'Educational', 'Punchy / Bold', 'Conversational'].map(t => (
                       <button
@@ -698,7 +698,7 @@ export default function PostMaker() {
                         onClick={() => setTone(t)}
                         className={cn(
                           "py-2.5 text-[10px] font-bold rounded-lg border transition-all",
-                          tone === t ? "border-[#F97316] text-[#F97316] bg-[#F97316]/5" : "border-[#1F1F1F] text-[#A1A1AA] hover:border-[#52525B]"
+                          tone === t ? "border-[#F97316] text-[#F97316] bg-[#F97316]/5" : "border-foreground/10 text-foreground/60 hover:border-[#52525B]"
                         )}
                       >
                         {t}
@@ -708,20 +708,20 @@ export default function PostMaker() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[#A1A1AA] text-[10px] font-bold uppercase tracking-widest">Anything to highlight?</label>
+                  <label className="text-foreground/60 text-[10px] font-bold uppercase tracking-widest">Anything to highlight?</label>
                   <input
                     type="text"
                     placeholder="e.g. 'just hit 100 users'..."
                     value={context}
                     onChange={(e) => setContext(e.target.value)}
-                    className="w-full bg-[#111111] border border-[#1F1F1F] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#F97316]/50 placeholder-[#52525B]"
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:border-[#F97316]/50 placeholder-[#52525B]"
                   />
                 </div>
 
                 <button
                   onClick={generatePost}
                   disabled={generating}
-                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2"
+                  className="w-full h-11 bg-[#F97316] hover:bg-[#EA6C0A] text-foreground font-medium rounded-lg transition-all flex items-center justify-center gap-2"
                 >
                   {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   Generate Post
@@ -734,11 +734,11 @@ export default function PostMaker() {
                   {generating ? (
                     <motion.div 
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px]"
+                      className="bg-foreground/5 border border-foreground/10 rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px]"
                     >
                       <Loader2 className="w-8 h-8 text-[#F97316] animate-spin mb-4" />
                       <h3 className="text-lg font-bold">Writing your post...</h3>
-                      <p className="text-[#A1A1AA] text-sm">Matching your brand voice and {selectedPlatform.name} vibe.</p>
+                      <p className="text-foreground/60 text-sm">Matching your brand voice and {selectedPlatform.name} vibe.</p>
                     </motion.div>
                   ) : post ? (
                     <motion.div 
@@ -747,23 +747,23 @@ export default function PostMaker() {
                     >
                       {/* Platform Preview Card */}
                       <div className={cn(
-                        "bg-[#111111] border border-[#1F1F1F] rounded-xl overflow-hidden border-l-2",
+                        "bg-foreground/5 border border-foreground/10 rounded-xl overflow-hidden border-l-2",
                         selectedPlatform.id === 'reddit' ? "border-l-[#FF4500]" : 
                         selectedPlatform.id === 'ih' ? "border-l-[#0073b1]" : "border-l-[#da552f]"
                       )}>
-                        <div className="p-4 border-b border-[#1F1F1F] flex items-center gap-2">
+                        <div className="p-4 border-b border-foreground/10 flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-[#1F1F1F] flex items-center justify-center">
-                            <selectedPlatform.icon className="w-3 h-3 text-[#52525B]" />
+                            <selectedPlatform.icon className="w-3 h-3 text-foreground/50" />
                           </div>
-                          <span className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">
+                          <span className="text-foreground/50 text-[10px] font-bold uppercase tracking-widest">
                             {selectedPlatform.id === 'reddit' ? 'r/SaaS' : selectedPlatform.name} • Posted by u/you
                           </span>
                         </div>
                         <div className="p-6 space-y-4">
-                          <h3 className="text-lg font-bold text-white">{post.title}</h3>
-                          <p className="text-[#A1A1AA] text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
+                          <h3 className="text-lg font-bold text-foreground">{post.title}</h3>
+                          <p className="text-foreground/60 text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
                         </div>
-                        <div className="px-6 py-3 bg-[#1A1A1A] flex items-center gap-4 text-[#52525B] text-[10px] font-bold">
+                        <div className="px-6 py-3 bg-foreground/5 flex items-center gap-4 text-foreground/50 text-[10px] font-bold">
                           <span>▲ 0</span>
                           <span>💬 0 comments</span>
                           <span>🔗 Share</span>
@@ -773,13 +773,13 @@ export default function PostMaker() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-                          <span className="text-[#52525B] text-[10px] font-bold uppercase tracking-widest">{post.body.length} chars</span>
+                          <span className="text-foreground/50 text-[10px] font-bold uppercase tracking-widest">{post.body.length} chars</span>
                         </div>
                       </div>
 
-                      <div className="bg-[#111111] border border-[#1F1F1F] border-l-2 border-l-[#F97316] p-4 rounded-lg">
-                        <p className="text-[#A1A1AA] text-xs leading-relaxed">
-                          <span className="text-white font-bold">💡 Tip:</span> Post between 9–11AM EST Tuesday for best reach. Don't add your link in the post — put it in the first comment after posting.
+                      <div className="bg-foreground/5 border border-foreground/10 border-l-2 border-l-[#F97316] p-4 rounded-lg">
+                        <p className="text-foreground/60 text-xs leading-relaxed">
+                          <span className="text-foreground font-bold">💡 Tip:</span> Post between 9–11AM EST Tuesday for best reach. Don't add your link in the post — put it in the first comment after posting.
                         </p>
                       </div>
 
@@ -789,14 +789,14 @@ export default function PostMaker() {
                             navigator.clipboard.writeText(`${post.title}\n\n${post.body}`);
                             toast.success("Post copied!");
                           }}
-                          className="flex-1 h-11 bg-[#F97316] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2"
+                          className="flex-1 h-11 bg-[#F97316] text-foreground font-bold rounded-lg text-xs flex items-center justify-center gap-2"
                         >
                           <Copy className="w-4 h-4" /> Copy Post
                         </button>
-                        <button onClick={generatePost} className="flex-1 h-11 border border-[#1F1F1F] text-white font-bold rounded-lg text-xs hover:bg-[#111111]">
+                        <button onClick={generatePost} className="flex-1 h-11 border border-foreground/10 text-foreground font-bold rounded-lg text-xs hover:bg-foreground/5">
                           Regenerate ↺
                         </button>
-                        <button onClick={() => setStep('format')} className="flex-1 h-11 border border-[#1F1F1F] text-white font-bold rounded-lg text-xs hover:bg-[#111111]">
+                        <button onClick={() => setStep('format')} className="flex-1 h-11 border border-foreground/10 text-foreground font-bold rounded-lg text-xs hover:bg-foreground/5">
                           Try Different Format
                         </button>
                       </div>
