@@ -195,28 +195,28 @@ export default function PostMaker() {
     }
 
     return (
-      <div className="bg-[#111111] border border-[#1F1F1F] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
+      <div className="bg-foreground/5 text-foreground truncate">
         <div>
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Day</span>
-          <p className="text-lg font-bold text-white">{dayEntry.day}</p>
+          <span className="text-xs font-bold text-foreground/70 uppercase tracking-widest block mb-1">Day</span>
+          <p className="text-lg font-bold text-foreground">{dayEntry.day}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Post Title</span>
           <p className="text-base font-bold text-orange-500">{dayEntry.format_name}</p>
-          <p className="text-zinc-400 text-sm mt-1 leading-relaxed">{formatDescription}</p>
+          <p className="text-foreground/70 text-sm mt-1 leading-relaxed">{formatDescription}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Goal</span>
-          <p className="text-zinc-300 text-sm leading-relaxed">{goalText}</p>
+          <p className="text-foreground/80 text-sm leading-relaxed">{goalText}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-2">Outcome Type</span>
           <div className="flex flex-wrap gap-2">
             {outcomeTypes.map((type, idx) => (
-              <span key={idx} className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-wider">
+              <span key={idx} className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold uppercase tracking-wider">
                 {type}
               </span>
             ))}
@@ -225,24 +225,24 @@ export default function PostMaker() {
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Post</span>
-          <p className="text-zinc-300 text-sm leading-relaxed">{whyThisPost}</p>
+          <p className="text-foreground/80 text-sm leading-relaxed">{whyThisPost}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Format</span>
-          <p className="text-zinc-300 text-sm leading-relaxed">{whyThisFormat}</p>
+          <p className="text-foreground/80 text-sm leading-relaxed">{whyThisFormat}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Why This Platform</span>
-          <p className="text-zinc-300 text-sm leading-relaxed">{whyThisPlatform}</p>
+          <p className="text-foreground/80 text-sm leading-relaxed">{whyThisPlatform}</p>
         </div>
 
         <div>
           <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-1">Platform</span>
-          <p className="text-sm font-bold text-white capitalize">{dayEntry.platform === 'twitter' ? 'X' : dayEntry.platform}</p>
+          <p className="text-sm font-bold text-foreground capitalize">{dayEntry.platform === 'twitter' ? 'X' : dayEntry.platform}</p>
           {dayEntry.subreddit && (
-            <p className="text-xs text-zinc-400 mt-1">Subreddit: <span className="text-orange-400 font-semibold">{dayEntry.subreddit}</span></p>
+            <p className="text-xs text-foreground/70 mt-1">Subreddit: <span className="text-orange-500 font-semibold">{dayEntry.subreddit}</span></p>
           )}
         </div>
 
@@ -268,10 +268,10 @@ export default function PostMaker() {
     );
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#F97316] animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-6 h-6 text-orange-500 animate-spin" /></div>;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-poppins flex relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
