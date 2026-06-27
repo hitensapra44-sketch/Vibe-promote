@@ -28,6 +28,14 @@ import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter
+} from '@/components/ui/sheet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
