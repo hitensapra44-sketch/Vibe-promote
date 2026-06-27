@@ -19,7 +19,8 @@ import {
   PenLine,
   Settings,
   Zap,
-  Target
+  Target,
+  CalendarClock
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -47,7 +48,7 @@ export default function Sidebar({ isPaid }) {
     { icon: Sparkles, label: 'Co-pilot', path: '/marketing-buddy', available: true },
     { icon: Settings, label: 'Settings', path: '/settings', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
-    { icon: Calendar, label: 'Auto Poster', path: '#', available: false, comingSoon: true },
+    { icon: CalendarClock, label: 'Auto Poster', path: '/auto-poster', available: true },
   ];
 
   return (

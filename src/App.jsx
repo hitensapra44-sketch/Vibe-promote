@@ -26,6 +26,7 @@ import ResultsTracker from './pages/results-tracker/ResultsTracker';
 import MarketingBuddy from './pages/marketing-buddy/MarketingBuddy';
 import Settings from './pages/Settings';
 import ConnectedAccounts from './pages/ConnectedAccounts';
+import AutoPoster from './pages/AutoPoster';
 import FeedbackWidget from './components/FeedbackWidget';
 import TaskWidget from './components/TaskWidget';
 import ProgressPage from './pages/ProgressPage';
@@ -54,7 +55,8 @@ const AuthenticatedApp = () => {
         '/connected-accounts',
         '/dashboard/results-tracker',
         '/pricing',
-        '/progress'
+        '/progress',
+        '/auto-poster'
       ];
 
       if (protectedPaths.includes(location.pathname)) return;
@@ -120,6 +122,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={isAuthenticated ? <Settings /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/connected-accounts" element={isAuthenticated ? <ConnectedAccounts /> : (isLoadingAuth ? null : <Home />)} />
         <Route path="/progress" element={isAuthenticated ? <ProgressPage /> : (isLoadingAuth ? null : <Home />)} />
+        <Route path="/auto-poster" element={isAuthenticated ? <AutoPoster /> : (isLoadingAuth ? null : <Home />)} />
         
         <Route path="*" element={<PageNotFound />} />
       </Routes>
