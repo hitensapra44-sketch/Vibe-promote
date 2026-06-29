@@ -941,5 +941,6 @@ export default function AutoPoster() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </div>
   );
 }
