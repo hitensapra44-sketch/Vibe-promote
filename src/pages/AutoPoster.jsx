@@ -277,7 +277,7 @@ export default function AutoPoster() {
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredPosts]);
 
-  const getChannelIcon = (platform) => {
+  const getPlatformIcon = (platform) => {
     switch (platform) {
       case 'x':
         return <Twitter className="w-4 h-4" />;
@@ -291,10 +291,10 @@ export default function AutoPoster() {
   };
 
   const channels = [
-    { id: 'all', label: 'All Channels' },
-    { id: 'x', label: 'X', icon: getChannelIcon('x') },
-    { id: 'threads', label: 'Threads', icon: getChannelIcon('threads') },
-    { id: 'reddit', label: 'Reddit', icon: getChannelIcon('reddit') },
+    { id: 'all', label: 'All Channels', icon: <Hash className="w-4 h-4" /> },
+    { id: 'x', label: 'X', icon: <Twitter className="w-4 h-4" /> },
+    { id: 'threads', label: 'Threads', icon: <span className="text-xs font-bold">@</span> },
+    { id: 'reddit', label: 'Reddit', icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   const resetForm = useCallback(() => {
@@ -468,19 +468,6 @@ export default function AutoPoster() {
     return <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border', v.className)}>{v.label}</span>;
   };
 
-  const getPlatformIcon = (platform) => {
-    switch (platform) {
-      case 'x':
-        return <Twitter className="w-4 h-4" />;
-      case 'threads':
-        return <span className="text-xs font-bold">@</span>;
-      case 'reddit':
-        return <MessageSquare className="w-4 h-4" />;
-      default:
-        return <Hash className="w-4 h-4" />;
-    }
-  };
-
   const renderPostCard = (post, isUpcomingFailed = false) => {
     const isReddit = post.platform === 'reddit';
     const isFailed = post.status === 'failed';
@@ -642,44 +629,68 @@ export default function AutoPoster() {
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={true} />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-4">
-            <h1 className="text-sm font-bold text-foreground">Auto Poster</h1>
-          </div>
-          <Button
-            size="sm"
-            className="h-8 gap-2 text-[11px] font-bold"
-            onClick={openNewSheet}
-          >
+      {/* ── MAIN AREA ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Top header */}
+        <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30 flex-shrink-0">
+          <h1 className="text-sm font-bold text-foreground">Auto Poster</h1>
+          <Button size="sm" className="h-8 gap-2 text-[11px] font-bold" onClick={openNewSheet}>
             <Plus className="w-3.5 h-3.5" />
             New Post
           </Button>
         </header>
 
-        <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full">
+        {/* Two-column body */}
+        <div className="flex flex-1 overflow-hidden">
+
+          {/* ── LEFT: Channel list (Buffer-style) ── */}
+          <aside className="w-56 flex-shrink-0 border-r border-[#1F1F1F] bg-background flex flex-col overflow-y-auto">
+            <div className="px-4 pt-5 pb-2">
+              <p className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Channels</p>
+            </div>
+            <nav className="flex flex-col gap-0.5 px-2 pb-4">
+              {channels.map((ch) => (
+                <button
+                  key={ch.id}
+                  onClick={() => setActiveChannel(ch.id)}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all w-full text-left',
+                    activeChannel === ch.id
+                      ? 'bg-[#1F1F1F] text-white border-l-2 border-[#F97316] pl-[10px]'
+                      : 'text-[#A1A1AA] hover:bg-[#1A1A1A] hover:text-white'
+                  )}
+                >
+                  <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === ch.id ? 'text-[#F97316]' : 'text-[#52525B]')}>
+                    {ch.icon}
+                  </span>
+                  {ch.label}
+                  {ch.id !== 'all' && (
+                    <span className="ml-auto text-[10px] text-[#52525B] font-normal">
+                      {posts.filter(p => p.platform === ch.id).length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          {/* ── RIGHT: Queue ── */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-6 max-w-2xl mx-auto w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="bg-[#111111] border border-[#1F1F1F] p-1">
-              <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">
-                Today
-              </TabsTrigger>
-              <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">
-                Upcoming
-              </TabsTrigger>
-              <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">
-                Drafts
-              </TabsTrigger>
-              <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">
-                Published
-              </TabsTrigger>
+              <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Today</TabsTrigger>
+              <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Upcoming</TabsTrigger>
+              <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Drafts</TabsTrigger>
+              <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Published</TabsTrigger>
             </TabsList>
 
             <TabsContent value="today" className="space-y-4 mt-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
-                </div>
-              ) : filteredPosts.length === 0 ? (
+              <p className="text-sm font-medium text-[#52525B]">
+                Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </p>
+              {filteredPosts.length === 0 ? (
                 <div className="text-center py-20">
                   <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
                   <p className="text-sm text-[#52525B]">Nothing scheduled for today. Create your first post.</p>
@@ -690,11 +701,7 @@ export default function AutoPoster() {
             </TabsContent>
 
             <TabsContent value="upcoming" className="space-y-6 mt-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
-                </div>
-              ) : filteredPosts.length === 0 ? (
+              {filteredPosts.length === 0 ? (
                 <div className="text-center py-20">
                   <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
                   <p className="text-sm text-[#52525B]">No upcoming posts. Plan your week.</p>
@@ -702,7 +709,7 @@ export default function AutoPoster() {
               ) : (
                 groupedUpcoming.map(([dateKey, groupPosts]) => (
                   <div key={dateKey} className="space-y-3">
-                    <h3 className="text-xs font-bold text-[#52525B] uppercase tracking-wider sticky top-14 bg-background py-2">
+                    <h3 className="text-xs font-bold text-[#52525B] uppercase tracking-wider sticky top-0 bg-background py-2">
                       {formatDateLabel(dateKey)}
                     </h3>
                     <div className="space-y-3">
@@ -714,31 +721,21 @@ export default function AutoPoster() {
             </TabsContent>
 
             <TabsContent value="drafts" className="space-y-4 mt-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
-                </div>
-              ) : filteredPosts.length === 0 ? (
+              {filteredPosts.length === 0 ? (
                 <div className="text-center py-20">
                   <Pencil className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
                   <p className="text-sm text-[#52525B]">No drafts saved.</p>
                 </div>
               ) : (
                 filteredPosts.map(post => (
-                  <motion.div
-                    layout
-                    key={post.id}
-                    className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3"
-                  >
+                  <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
                           {getPlatformIcon(post.platform)}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                          </div>
+                          <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
                           <p className="text-[10px] text-[#52525B] mt-0.5">
                             Created {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </p>
@@ -766,31 +763,21 @@ export default function AutoPoster() {
             </TabsContent>
 
             <TabsContent value="published" className="space-y-4 mt-0">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
-                </div>
-              ) : filteredPosts.length === 0 ? (
+              {filteredPosts.length === 0 ? (
                 <div className="text-center py-20">
                   <CheckCircle2 className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
                   <p className="text-sm text-[#52525B]">No published posts yet.</p>
                 </div>
               ) : (
                 filteredPosts.map(post => (
-                  <motion.div
-                    layout
-                    key={post.id}
-                    className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3 opacity-80"
-                  >
+                  <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3 opacity-80">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
                           {getPlatformIcon(post.platform)}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                          </div>
+                          <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <Clock className="w-3 h-3 text-[#52525B]" />
                             <span className="text-[10px] text-[#52525B]">{formatScheduledTime(post.scheduled_at)}</span>
@@ -884,9 +871,9 @@ export default function AutoPoster() {
                     <Label htmlFor="mode-ai" className="text-xs font-bold text-white cursor-pointer">
                       AI Recommended
                     </Label>
-                        <p className="text-[10px] text-[#52525B] mt-1">
-                          {formPlatform === 'x' ? 'X' : formPlatform === 'threads' ? 'Threads' : 'Reddit'} → Tomorrow {AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[formPlatform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[formPlatform].minute} {(AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                        </p>
+                    <p className="text-[10px] text-[#52525B] mt-1">
+                      {PLATFORM_LABELS[formPlatform]} → Tomorrow {AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[formPlatform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[formPlatform].minute} {(AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
+                    </p>
                   </div>
                 </div>
                 <div className={cn(
