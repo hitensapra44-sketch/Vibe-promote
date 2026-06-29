@@ -796,8 +796,10 @@ export default function AutoPoster() {
           </Tabs>
         </div>
       </main>
+      </div>
+    </div>
 
-      <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
+    <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-lg bg-background border-l border-foreground/5 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-base font-bold">{editingPost ? 'Edit Post' : 'Create New Post'}</SheetTitle>
@@ -939,8 +941,7 @@ export default function AutoPoster() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
-    </div>
-    </div>
-  );
+</AlertDialog>
+  </div>
+);
 }
