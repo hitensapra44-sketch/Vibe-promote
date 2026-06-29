@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -117,6 +115,7 @@ export default function AutoPoster() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState('today');
+  const [activeChannel, setActiveChannel] = useState('all');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -242,25 +241,31 @@ export default function AutoPoster() {
   const todayString = useMemo(() => getTodayString(), []);
 
   const filteredPosts = useMemo(() => {
+    let result = posts;
+    
+    if (activeChannel !== 'all') {
+      result = result.filter(p => p.platform === activeChannel);
+    }
+    
     switch (activeTab) {
       case 'today':
-        return posts.filter(p => {
+        return result.filter(p => {
           const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
           return postDate === todayString;
         });
       case 'upcoming':
-        return posts.filter(p => {
+        return result.filter(p => {
           const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
           return postDate > todayString && p.status !== 'published';
         });
       case 'drafts':
-        return posts.filter(p => p.status === 'draft');
+        return result.filter(p => p.status === 'draft');
       case 'published':
-        return posts.filter(p => p.status === 'published');
+        return result.filter(p => p.status === 'published');
       default:
         return [];
     }
-  }, [posts, activeTab, todayString]);
+  }, [posts, activeTab, activeChannel, todayString]);
 
   const groupedUpcoming = useMemo(() => {
     const groups = {};
@@ -271,6 +276,26 @@ export default function AutoPoster() {
     });
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredPosts]);
+
+  const getChannelIcon = (platform) => {
+    switch (platform) {
+      case 'x':
+        return <Twitter className="w-4 h-4" />;
+      case 'threads':
+        return <span className="text-xs font-bold">@</span>;
+      case 'reddit':
+        return <MessageSquare className="w-4 h-4" />;
+      default:
+        return <Hash className="w-4 h-4" />;
+    }
+  };
+
+  const channels = [
+    { id: 'all', label: 'All Channels' },
+    { id: 'x', label: 'X', icon: getChannelIcon('x') },
+    { id: 'threads', label: 'Threads', icon: getChannelIcon('threads') },
+    { id: 'reddit', label: 'Reddit', icon: getChannelIcon('reddit') },
+  ];
 
   const resetForm = useCallback(() => {
     setFormContent('');
