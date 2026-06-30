@@ -33,7 +33,7 @@ import ProgressPage from './pages/ProgressPage';
 import SeoLandingPage from './pages/SeoLandingPage';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth } = useAuth();
+  const { isLoadingAuth, isAuthenticated, user, authEvent } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
