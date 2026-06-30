@@ -33,13 +33,12 @@ import ProgressPage from './pages/ProgressPage';
 import SeoLandingPage from './pages/SeoLandingPage';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isAuthenticated, user, authEvent } = useAuth();
+  const { isLoadingAuth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoadingAuth && isAuthenticated && user?.id && authEvent === 'SIGNED_IN') {
-      // Define paths that should not trigger an automatic redirect if the user is already there
       const protectedPaths = [
         '/dashboard',
         '/onboarding',
