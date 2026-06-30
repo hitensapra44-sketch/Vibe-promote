@@ -26,15 +26,7 @@ export default function Footer() {
             Marketing Resources & Solutions
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-xs">
-            <Link to="/ai-marketing-tool" className="text-zinc-500 hover:text-orange-500 transition-colors">AI Marketing Tool</Link>
-            <Link to="/saas-marketing-tool" className="text-zinc-500 hover:text-orange-500 transition-colors">SaaS Marketing Tool</Link>
             <Link to="/indie-hacker-marketing" className="text-zinc-500 hover:text-orange-500 transition-colors">Indie Hacker Marketing</Link>
-            <Link to="/reddit-marketing-tool" className="text-zinc-500 hover:text-orange-500 transition-colors">Reddit Marketing Tool</Link>
-            <Link to="/marketing-copilot" className="text-zinc-500 hover:text-orange-500 transition-colors">AI Marketing Copilot</Link>
-            <Link to="/startup-marketing-tool" className="text-zinc-500 hover:text-orange-500 transition-colors">Startup Marketing Tool</Link>
-            <Link to="/bootstrapped-founder-marketing" className="text-zinc-500 hover:text-orange-500 transition-colors">Bootstrapped Founder Marketing</Link>
-            <Link to="/how-to-market-your-saas" className="text-zinc-500 hover:text-orange-500 transition-colors">How to Market Your SaaS</Link>
-            <Link to="/best-ai-marketing-tools-for-founders" className="text-zinc-500 hover:text-orange-500 transition-colors">Best AI Marketing Tools</Link>
           </div>
         </div>
       </div>
