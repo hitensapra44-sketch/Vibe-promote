@@ -19,7 +19,9 @@ import {
   Pencil,
   RefreshCw,
   Minus,
-  TrendingUp
+  TrendingUp,
+  Unlink,
+  Link2
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -41,6 +43,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,6 +79,31 @@ const AI_RECOMMENDED_TIMES = {
   threads: { hour: 15, minute: 0 },
   reddit: { hour: 20, minute: 0 },
 };
+
+function generateRandomString(length) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], '');
+}
+
+async function sha256(plain) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return window.crypto.subtle.digest('SHA-256', data);
+}
+
+function base64urlencode(a) {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(a)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generatePKCE() {
+  const verifier = generateRandomString(64);
+  const hashed = await sha256(verifier);
+  const challenge = base64urlencode(hashed);
+  sessionStorage.setItem('buffer_code_verifier', verifier);
+  return { verifier, challenge };
+}
 
 function getAIRecommendedTime(platform) {
   const now = new Date();
@@ -125,6 +153,8 @@ export default function AutoPoster() {
   const [formPlatform, setFormPlatform] = useState('x');
   const [formSubreddit, setFormSubreddit] = useState('');
   const [formScheduledAt, setFormScheduledAt] = useState('');
+  const [formRemindEmail, setFormRemindEmail] = useState(false);
+  const [formRemindAt, setFormRemindAt] = useState('');
   const [scheduleMode, setScheduleMode] = useState('ai');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [improvingPostId, setImprovingPostId] = useState(null);
@@ -138,6 +168,21 @@ export default function AutoPoster() {
         .select('*')
         .eq('user_id', user.id)
         .order('scheduled_at', { ascending: true });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: bufferAccounts = [] } = useQuery({
+    queryKey: ['buffer-accounts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from('social_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('buffer_access_token', 'is', null)
+        .eq('is_active', true);
       return data || [];
     },
     enabled: !!user,
@@ -238,6 +283,44 @@ export default function AutoPoster() {
     },
   });
 
+  const handleConnectBuffer = async () => {
+    const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
+    if (!clientId) {
+      toast.error('Buffer OAuth is not configured');
+      return;
+    }
+
+    const { challenge } = await generatePKCE();
+    const redirectUri = 'https://vibepromote.tech/oauth/buffer/callback';
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
+      scope: 'read,write',
+    });
+
+    window.location.href = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
+  };
+
+  const handleDisconnectBuffer = async (accountId) => {
+    const { error } = await supabase
+      .from('social_accounts')
+      .update({ is_active: false })
+      .eq('id', accountId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast.error('Failed to disconnect account');
+      return;
+    }
+
+    toast.success('Account disconnected');
+    queryClient.invalidateQueries({ queryKey: ['buffer-accounts', user?.id] });
+  };
+
   const todayString = useMemo(() => getTodayString(), []);
 
   const filteredPosts = useMemo(() => {
@@ -302,6 +385,8 @@ export default function AutoPoster() {
     setFormPlatform('x');
     setFormSubreddit('');
     setFormScheduledAt('');
+    setFormRemindEmail(false);
+    setFormRemindAt('');
     setScheduleMode('ai');
     setEditingPost(null);
     setIsSubmitting(false);
@@ -318,6 +403,8 @@ export default function AutoPoster() {
     setFormPlatform(post.platform);
     setFormSubreddit(post.subreddit || '');
     setFormScheduledAt(new Date(post.scheduled_at).toISOString().slice(0, 16));
+    setFormRemindEmail(post.remind_email || false);
+    setFormRemindAt(post.remind_at ? new Date(post.remind_at).toISOString().slice(0, 16) : '');
     setScheduleMode('custom');
     setIsSheetOpen(true);
   }, []);
@@ -328,6 +415,8 @@ export default function AutoPoster() {
     setFormPlatform(post.platform);
     setFormSubreddit(post.subreddit || '');
     setFormScheduledAt('');
+    setFormRemindEmail(post.remind_email || false);
+    setFormRemindAt(post.remind_at ? new Date(post.remind_at).toISOString().slice(0, 16) : '');
     setScheduleMode('ai');
     setIsSheetOpen(true);
   }, []);
@@ -369,6 +458,8 @@ export default function AutoPoster() {
             subreddit: formPlatform === 'reddit' ? formSubreddit : null,
             scheduled_at: scheduledAtISO,
             status: 'draft',
+            remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
+            remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
           },
         });
         postId = updated.id;
@@ -380,6 +471,8 @@ export default function AutoPoster() {
           subreddit: formPlatform === 'reddit' ? formSubreddit : null,
           scheduled_at: scheduledAtISO,
           status: 'draft',
+          remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
+          remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
         });
         postId = created.id;
       }
@@ -672,7 +765,53 @@ export default function AutoPoster() {
                   )}
                 </button>
               ))}
+
+              {bufferAccounts.length > 0 && (
+                <>
+                  <div className="px-3 pt-3 pb-1">
+                    <p className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Buffer Accounts</p>
+                  </div>
+                  {bufferAccounts.map((account) => (
+                    <div
+                      key={account.id}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all w-full',
+                        activeChannel === account.platform
+                          ? 'bg-[#1F1F1F] text-white border-l-2 border-[#F97316] pl-[10px]'
+                          : 'text-[#A1A1AA] hover:bg-[#1A1A1A] hover:text-white'
+                      )}
+                    >
+                      <button
+                        onClick={() => setActiveChannel(account.platform)}
+                        className="flex items-center gap-3 flex-1 text-left bg-transparent border-none p-0"
+                      >
+                        <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === account.platform ? 'text-[#F97316]' : 'text-[#52525B]')}>
+                          {getPlatformIcon(account.platform)}
+                        </span>
+                        <span className="truncate">{account.buffer_channel_name}</span>
+                      </button>
+                      <button
+                        onClick={() => handleDisconnectBuffer(account.id)}
+                        className="p-1 rounded hover:bg-[#1F1F1F] text-[#52525B] hover:text-red-400 transition-all bg-transparent border-none"
+                        title="Disconnect"
+                      >
+                        <Unlink className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
             </nav>
+
+            <div className="px-4 pt-2 pb-4">
+              <button
+                onClick={handleConnectBuffer}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#111111] border border-[#1F1F1F] text-[#A1A1AA] hover:text-white hover:border-[#52525B] transition-all bg-transparent"
+              >
+                <Link2 className="w-3.5 h-3.5" />
+                Connect Account
+              </button>
+            </div>
           </aside>
 
           {/* ── RIGHT: Queue ── */}
@@ -858,6 +997,26 @@ export default function AutoPoster() {
                   placeholder="e.g. SaaS"
                   className="bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] h-10"
                 />
+              </div>
+            )}
+
+            {formPlatform === 'reddit' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Remind me by email</Label>
+                  <Switch
+                    checked={formRemindEmail}
+                    onCheckedChange={setFormRemindEmail}
+                  />
+                </div>
+                {formRemindEmail && (
+                  <Input
+                    type="datetime-local"
+                    value={formRemindAt}
+                    onChange={(e) => setFormRemindAt(e.target.value)}
+                    className="bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] h-10"
+                  />
+                )}
               </div>
             )}
 
