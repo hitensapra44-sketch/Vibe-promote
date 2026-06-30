@@ -31,7 +31,7 @@ const PLANS = [
     annualTotal: 144,
     annualSavings: 36,
     monthlyHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
-    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NeC9rFODkRRQYNQOlHlH?quantity=1',
+    annualHref: 'https://checkout.dodopayments.com/buy/pdt_0NfXVLJOSq7SibMDdSngh?quantity=1',
     period: '/month',
     cta: 'Start 3-day free trial',
     featured: false,
