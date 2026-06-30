@@ -183,7 +183,6 @@ export default function Founder() {
         <section className="border-t border-zinc-100 pt-16 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
             <Link to="/" className="text-sm font-bold text-zinc-500 hover:text-orange-500 transition-colors">Home</Link>
-            <Link to="/blog" className="text-sm font-bold text-zinc-500 hover:text-orange-500 transition-colors">Blog</Link>
             <Link to="/pricing" className="text-sm font-bold text-zinc-500 hover:text-orange-500 transition-colors">Pricing</Link>
           </div>
           <Link 

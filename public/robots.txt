@@ -1,8 +1,6 @@
 User-agent: *
 Allow: /
 Allow: /founder
-Allow: /blog
-Allow: /blog/*
 Allow: /ai-marketing-tool
 Allow: /saas-marketing-tool
 Allow: /indie-hacker-marketing
