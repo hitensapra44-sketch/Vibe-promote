@@ -750,10 +750,10 @@ export default function AutoPoster() {
         {/* Top header */}
         <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30 flex-shrink-0">
           <h1 className="text-sm font-bold text-foreground">Auto Poster</h1>
-<Button size="sm" className="h-8 gap-2 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all" onClick={openNewSheet}>
-              <Plus className="w-3.5 h-3.5" />
-              New Post
-            </Button>
+          <Button size="sm" className="h-8 gap-2 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all" onClick={openNewSheet}>
+            <Plus className="w-3.5 h-3.5" />
+            New Post
+          </Button>
         </header>
 
         {/* Two-column body */}
@@ -906,15 +906,15 @@ export default function AutoPoster() {
                                   </p>
                                 </div>
                               </div>
-                              <Button
-                                size="sm"
-                                                  variant="ghost"
-                                className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
-                                onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
-                              >
-                                <Sparkles className="w-3 h-3" />
-                                Generate
-                              </Button>
+<Button
+                                 size="sm"
+                                 variant="ghost"
+                                 className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
+                                 onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
+                               >
+                                 <Sparkles className="w-3 h-3" />
+                                 Generate
+                               </Button>
                             </div>
                           ))}
                         </div>
@@ -965,15 +965,15 @@ export default function AutoPoster() {
                                   </div>
                                 </div>
 <Button
-                                   size="sm"
-                                   variant="ghost"
-                                   className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
-                                   onClick={() => handleGenerateFromPlaceholder(platform, day)}
-                                 >
-                                   <Sparkles className="w-3 h-3" />
-                                   Generate
-                                 </Button>
-                              </div>
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
+                                onClick={() => handleGenerateFromPlaceholder(platform, day)}
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                Generate
+                              </Button>
+                               </div>
                             );
                           })}
                         </div>
