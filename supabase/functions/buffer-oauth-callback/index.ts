@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,22 +38,21 @@ serve(async (req) => {
       })
     }
 
-    const tokenRes = await fetch('https://api.bufferapp.com/oauth2/token', {
+    const tokenRes = await fetch('https://auth.buffer.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
         grant_type: 'authorization_code',
         code,
         redirect_uri: redirectUri,
-        client_id: clientId,
-        client_secret: clientSecret,
         code_verifier,
       }),
     })
 
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text()
-      return new Response(JSON.stringify({ error: `Token exchange failed: ${errText}` }), {
+      return new Response(JSON.stringify({ error: 'Token exchange failed' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -63,17 +61,30 @@ serve(async (req) => {
     const tokenData = await tokenRes.json()
     const accessToken = tokenData.access_token
 
-    const profilesRes = await fetch('https://api.bufferapp.com/1/profiles.json?access_token=' + encodeURIComponent(accessToken))
-    if (!profilesRes.ok) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch Buffer profiles' }), {
+    const graphqlRes = await fetch('https://api.buffer.com', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `query { channels { id name service } }`,
+      }),
+    })
+
+    if (!graphqlRes.ok) {
+      return new Response(JSON.stringify({ error: 'Failed to fetch channels' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const profiles = await profilesRes.json()
+    const graphqlData = await graphqlRes.json()
+    const channels = (graphqlData?.data?.channels || []).filter(
+      ch => ch.service === 'twitter' || ch.service === 'threads'
+    )
 
-    return new Response(JSON.stringify({ access_token: accessToken, channels: profiles }), {
+    return new Response(JSON.stringify({ access_token: accessToken, channels }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
