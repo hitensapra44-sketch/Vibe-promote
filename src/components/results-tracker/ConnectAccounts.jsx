@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Lock, 
+  Lock,
   Loader2, 
   MessageSquare, 
   Zap, 
@@ -18,17 +18,16 @@ import { cn } from "@/lib/utils";
 import { supabase } from '../../supabaseClient';
 import { useAuth } from '../../lib/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
 
 const platforms = [
   { id: 'Reddit', name: 'Reddit', desc: 'Karma & engagement', icon: MessageSquare, color: '#FF4500' },
   { id: 'Product Hunt', name: 'Product Hunt', desc: 'Coming soon', icon: Zap, color: '#DA552F', comingSoon: true },
-  { id: 'Twitter', name: 'X / Twitter', desc: 'Coming soon', icon: Twitter, color: '#333333', comingSoon: true },
-  { id: 'Threads', name: 'Threads', desc: 'Coming soon', icon: AtSign, color: '#000000', comingSoon: true },
+  { id: 'Twitter', name: 'X / Twitter', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#333333' },
+  { id: 'Threads', name: 'Threads', desc: 'Conversational & personal.', icon: AtSign, color: '#000000' },
 ];
 
 export default function ConnectAccounts({ onConnect }) {
-  const { user, plan } = useAuth();
+  const { user } = useAuth();
   const [step, setStep] = useState('platform-select'); 
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [username, setUsername] = useState('');
@@ -36,8 +35,6 @@ export default function ConnectAccounts({ onConnect }) {
   const [error, setError] = useState(null);
   const [fetchedPosts, setFetchedPosts] = useState([]);
   const [connectedPlatforms, setConnectedPlatforms] = useState([]);
-
-  const isFree = plan === 'free';
 
   useEffect(() => {
     async function fetchConnected() {
@@ -87,7 +84,6 @@ export default function ConnectAccounts({ onConnect }) {
 
   const handleStartFetch = async (e) => {
     e?.preventDefault();
-    if (isFree) return;
     if (!username.trim()) {
       setError("Please enter a username.");
       return;
@@ -158,26 +154,6 @@ export default function ConnectAccounts({ onConnect }) {
       setLoading(false);
     }
   };
-
-  if (isFree) {
-    return (
-      <div className="bg-[#111111] border border-orange-500/20 rounded-2xl p-12 flex flex-col items-center text-center">
-        <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6">
-          <Lock className="w-8 h-8 text-orange-500" />
-        </div>
-        <h3 className="text-white font-bold text-xl mb-2">Connect Accounts is a Pro Feature</h3>
-        <p className="text-zinc-500 text-sm max-w-sm mb-8">
-          Upgrade to Pro to link your platforms and track your performance in real-time.
-        </p>
-        <Link 
-          to="/pricing" 
-          className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all shadow-lg shadow-orange-500/20"
-        >
-          Upgrade Now
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
