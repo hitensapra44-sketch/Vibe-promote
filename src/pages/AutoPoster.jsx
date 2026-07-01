@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Send,
   CalendarClock,
+  Calendar,
   Loader2,
   Copy,
   AlertCircle,
@@ -160,6 +161,7 @@ export default function AutoPoster() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [improvingPostId, setImprovingPostId] = useState(null);
 
+  const [showFullWeek, setShowFullWeek] = useState(false);
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
 
@@ -846,17 +848,85 @@ export default function AutoPoster() {
                 </TabsList>
 
                 <TabsContent value="today" className="space-y-4 mt-0">
-                  <p className="text-sm font-medium text-[#52525B]">
-                    Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                  </p>
-                  {filteredPosts.length === 0 ? (
-                    <div className="text-center py-20">
-                      <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                      <p className="text-sm text-[#52525B]">Nothing scheduled for today. Create your first post.</p>
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#F97316]" />
+                      <span className="text-xs font-bold text-[#52525B] uppercase tracking-wider">Today's Post Plan</span>
                     </div>
-                  ) : (
-                    filteredPosts.map(post => renderPostCard(post, post.status === 'failed'))
+                    {!planLoading && weeklyPlan && (
+                      <button
+                        onClick={() => setShowFullWeek(!showFullWeek)}
+                        className="text-xs font-bold text-[#F97316] hover:underline bg-transparent"
+                      >
+                        {showFullWeek ? 'Hide Full Week' : 'View Full Week →'}
+                      </button>
+                    )}
+                  </div>
+
+                  {showFullWeek && weeklyPlan && (
+                    <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 space-y-3">
+                      {weeklyPlan.week_overview && (
+                        <p className="text-xs text-[#A1A1AA] mb-3">{weeklyPlan.week_overview}</p>
+                      )}
+                      <div className="space-y-2">
+                        {weeklyPlan.days?.map((dayEntry, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-[#0A0A0A] border border-[#1F1F1F]">
+                            <span className="text-xs font-bold text-[#A1A1AA]">{dayEntry.day}</span>
+                            <span className="text-xs text-[#52525B]">{dayEntry.active ? dayEntry.format_name : 'No post scheduled'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
+
+                  {!showFullWeek && (() => {
+                    const platformsToShow = activeChannel === 'all' ? ['reddit', 'x', 'threads'] : [activeChannel];
+                    const platformsWithPosts = new Set(posts.filter(p => {
+                      const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
+                      return postDate === todayString && p.platform && p.status !== 'published';
+                    }).map(p => p.platform));
+
+                    const hasAnyNonPublishedPosts = platformsWithPosts.size > 0;
+                    const emptyPlatforms = platformsToShow.filter(p => !platformsWithPosts.has(p));
+
+                    if (!hasAnyNonPublishedPosts && emptyPlatforms.length > 0) {
+                      return (
+                        <div className="space-y-3">
+                          {emptyPlatforms.map((platform) => (
+                            <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
+                                  {getPlatformIcon(platform)}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
+                                  <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
+                                    <Clock className="w-3 h-3" />
+                                    Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-[11px] font-bold text-[#F97316] hover:text-[#EA6C0A] hover:bg-[#F97316]/10 gap-1"
+                                onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
+                              >
+                                <Sparkles className="w-3 h-3" />
+                                Generate
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-3">
+                        {filteredPosts.map(post => renderPostCard(post, post.status === 'failed'))}
+                      </div>
+                    );
+                  })()}
                 </TabsContent>
 
                 <TabsContent value="upcoming" className="space-y-6 mt-0">
