@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Send,
   CalendarClock,
@@ -141,6 +141,7 @@ function getTodayString() {
 export default function AutoPoster() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('today');
   const [activeChannel, setActiveChannel] = useState('all');
@@ -158,6 +159,28 @@ export default function AutoPoster() {
   const [scheduleMode, setScheduleMode] = useState('ai');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [improvingPostId, setImprovingPostId] = useState(null);
+
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPlan() {
+      if (!user) return;
+      try {
+        const { data: planData } = await supabase.functions.invoke('generate-content-plan', {
+          method: 'GET'
+        });
+        if (planData?.plan_json) {
+          setWeeklyPlan(planData.plan_json);
+        }
+      } catch (err) {
+        console.error("Error fetching weekly plan:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+    }
+    fetchPlan();
+  }, [user]);
 
   const { data: posts = [], isLoading, refetch } = useQuery({
     queryKey: ['scheduled-posts', user?.id],
@@ -350,15 +373,31 @@ export default function AutoPoster() {
     }
   }, [posts, activeTab, activeChannel, todayString]);
 
-  const groupedUpcoming = useMemo(() => {
-    const groups = {};
-    filteredPosts.forEach(p => {
-      const dateKey = new Date(p.scheduled_at).toISOString().slice(0, 10);
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(p);
-    });
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-  }, [filteredPosts]);
+  const next7Days = useMemo(() => {
+    const days = [];
+    const now = new Date();
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }, []);
+
+  const handleGenerateFromPlaceholder = (platform, date) => {
+    const weekdayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const planEntry = weeklyPlan?.days?.find(d => d.day === weekdayName && d.platform === (platform === 'x' ? 'twitter' : platform));
+    
+    const route = {
+      reddit: '/post-maker/reddit',
+      x: '/post-maker/x',
+      threads: '/post-maker/threads',
+    }[platform];
+
+    if (route) {
+      navigate(route, { state: { planEntry } });
+    }
+  };
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -550,17 +589,6 @@ export default function AutoPoster() {
   const charLimit = CHAR_LIMITS[formPlatform];
   const showCharWarning = charLimit !== Infinity && charCount > charLimit;
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      scheduled: { className: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: 'Scheduled' },
-      published: { className: 'bg-green-500/10 text-green-500 border-green-500/20', label: 'Published' },
-      failed: { className: 'bg-red-500/10 text-red-500 border-red-500/20', label: 'Failed' },
-      draft: { className: 'bg-gray-500/10 text-gray-400 border-gray-500/20', label: 'Draft' },
-    };
-    const v = variants[status] || variants.draft;
-    return <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border', v.className)}>{v.label}</span>;
-  };
-
   const renderPostCard = (post, isUpcomingFailed = false) => {
     const isReddit = post.platform === 'reddit';
     const isFailed = post.status === 'failed';
@@ -679,7 +707,7 @@ export default function AutoPoster() {
                 Improving...
               </span>
             ) : (
-              post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content
+              post.content
             )}
           </p>
         </div>
@@ -709,14 +737,6 @@ export default function AutoPoster() {
       </motion.div>
     );
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#F97316] animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
@@ -817,128 +837,161 @@ export default function AutoPoster() {
           {/* ── RIGHT: Queue ── */}
           <main className="flex-1 overflow-y-auto">
             <div className="p-6 max-w-2xl mx-auto w-full">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="bg-[#111111] border border-[#1F1F1F] p-1">
-              <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Today</TabsTrigger>
-              <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Upcoming</TabsTrigger>
-              <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Drafts</TabsTrigger>
-              <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Published</TabsTrigger>
-            </TabsList>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <TabsList className="bg-[#111111] border border-[#1F1F1F] p-1">
+                  <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Today</TabsTrigger>
+                  <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Upcoming</TabsTrigger>
+                  <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Drafts</TabsTrigger>
+                  <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Published</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="today" className="space-y-4 mt-0">
-              <p className="text-sm font-medium text-[#52525B]">
-                Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-              </p>
-              {filteredPosts.length === 0 ? (
-                <div className="text-center py-20">
-                  <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                  <p className="text-sm text-[#52525B]">Nothing scheduled for today. Create your first post.</p>
-                </div>
-              ) : (
-                filteredPosts.map(post => renderPostCard(post, post.status === 'failed'))
-              )}
-            </TabsContent>
-
-            <TabsContent value="upcoming" className="space-y-6 mt-0">
-              {filteredPosts.length === 0 ? (
-                <div className="text-center py-20">
-                  <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                  <p className="text-sm text-[#52525B]">No upcoming posts. Plan your week.</p>
-                </div>
-              ) : (
-                groupedUpcoming.map(([dateKey, groupPosts]) => (
-                  <div key={dateKey} className="space-y-3">
-                    <h3 className="text-xs font-bold text-[#52525B] uppercase tracking-wider sticky top-0 bg-background py-2">
-                      {formatDateLabel(dateKey)}
-                    </h3>
-                    <div className="space-y-3">
-                      {groupPosts.map(post => renderPostCard(post, post.status === 'failed'))}
+                <TabsContent value="today" className="space-y-4 mt-0">
+                  <p className="text-sm font-medium text-[#52525B]">
+                    Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  </p>
+                  {filteredPosts.length === 0 ? (
+                    <div className="text-center py-20">
+                      <CalendarClock className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
+                      <p className="text-sm text-[#52525B]">Nothing scheduled for today. Create your first post.</p>
                     </div>
-                  </div>
-                ))
-              )}
-            </TabsContent>
+                  ) : (
+                    filteredPosts.map(post => renderPostCard(post, post.status === 'failed'))
+                  )}
+                </TabsContent>
 
-            <TabsContent value="drafts" className="space-y-4 mt-0">
-              {filteredPosts.length === 0 ? (
-                <div className="text-center py-20">
-                  <Pencil className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                  <p className="text-sm text-[#52525B]">No drafts saved.</p>
-                </div>
-              ) : (
-                filteredPosts.map(post => (
-                  <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
-                          {getPlatformIcon(post.platform)}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                          <p className="text-[10px] text-[#52525B] mt-0.5">
-                            Created {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </p>
+                <TabsContent value="upcoming" className="space-y-6 mt-0">
+                  {next7Days.map((day) => {
+                    const dateStr = day.toISOString().slice(0, 10);
+                    const platformsToShow = activeChannel === 'all' ? ['reddit', 'x', 'threads'] : [activeChannel];
+                    
+                    return (
+                      <div key={dateStr} className="space-y-3">
+                        <h3 className="text-xs font-bold text-[#52525B] uppercase tracking-wider sticky top-0 bg-background py-2">
+                          {formatDateLabel(day.toISOString())}
+                        </h3>
+                        <div className="space-y-3">
+                          {platformsToShow.map((platform) => {
+                            const platformPosts = posts.filter(p => {
+                              const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
+                              return postDate === dateStr && p.platform === platform && p.status !== 'published';
+                            });
+
+                            if (platformPosts.length > 0) {
+                              return platformPosts.map(post => renderPostCard(post, post.status === 'failed'));
+                            }
+
+                            return (
+                              <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
+                                    {getPlatformIcon(platform)}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
+                                    <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
+                                      <Clock className="w-3 h-3" />
+                                      Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 text-[11px] font-bold text-[#F97316] hover:text-[#EA6C0A] hover:bg-[#F97316]/10 gap-1"
+                                  onClick={() => handleGenerateFromPlaceholder(platform, day)}
+                                >
+                                  <Sparkles className="w-3 h-3" />
+                                  Generate
+                                </Button>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                      {getStatusBadge(post.status)}
-                    </div>
-                    <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
-                      {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
-                    </p>
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 text-[10px] font-bold border-[#1F1F1F] text-[#A1A1AA] hover:bg-[#1F1F1F] hover:text-white"
-                        onClick={() => openScheduleNowSheet(post)}
-                      >
-                        <CalendarClock className="w-3 h-3 mr-1.5" />
-                        Schedule Now
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </TabsContent>
+                    );
+                  })}
+                </TabsContent>
 
-            <TabsContent value="published" className="space-y-4 mt-0">
-              {filteredPosts.length === 0 ? (
-                <div className="text-center py-20">
-                  <CheckCircle2 className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                  <p className="text-sm text-[#52525B]">No published posts yet.</p>
-                </div>
-              ) : (
-                filteredPosts.map(post => (
-                  <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3 opacity-80">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
-                          {getPlatformIcon(post.platform)}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-3 h-3 text-[#52525B]" />
-                            <span className="text-[10px] text-[#52525B]">{formatScheduledTime(post.scheduled_at)}</span>
+                <TabsContent value="drafts" className="space-y-4 mt-0">
+                  {filteredPosts.length === 0 ? (
+                    <div className="text-center py-20">
+                      <Pencil className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
+                      <p className="text-sm text-[#52525B]">No drafts saved.</p>
+                    </div>
+                  ) : (
+                    filteredPosts.map(post => (
+                      <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
+                              {getPlatformIcon(post.platform)}
+                            </div>
+                            <div>
+                              <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
+                              <p className="text-[10px] text-[#52525B] mt-0.5">
+                                Created {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
                           </div>
+                          {getStatusBadge(post.status)}
                         </div>
-                      </div>
-                      {getStatusBadge(post.status)}
-                    </div>
-                    <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
-                      {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
-                    </p>
-                  </motion.div>
-                ))
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-      </div>
-    </div>
+                        <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
+                          {post.content}
+                        </p>
+                        <div className="flex justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-[10px] font-bold border-[#1F1F1F] text-[#A1A1AA] hover:bg-[#1F1F1F] hover:text-white"
+                            onClick={() => openScheduleNowSheet(post)}
+                          >
+                            <CalendarClock className="w-3 h-3 mr-1.5" />
+                            Schedule Now
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
+                </TabsContent>
 
-    <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
+                <TabsContent value="published" className="space-y-4 mt-0">
+                  {filteredPosts.length === 0 ? (
+                    <div className="text-center py-20">
+                      <CheckCircle2 className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
+                      <p className="text-sm text-[#52525B]">No published posts yet.</p>
+                    </div>
+                  ) : (
+                    filteredPosts.map(post => (
+                      <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3 opacity-80">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
+                              {getPlatformIcon(post.platform)}
+                            </div>
+                            <div>
+                              <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <Clock className="w-3 h-3 text-[#52525B]" />
+                                <span className="text-[10px] text-[#52525B]">{formatScheduledTime(post.scheduled_at)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {getStatusBadge(post.status)}
+                        </div>
+                        <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
+                          {post.content}
+                        </p>
+                      </motion.div>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-lg bg-background border-l border-foreground/5 overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-base font-bold">{editingPost ? 'Edit Post' : 'Create New Post'}</SheetTitle>
@@ -1100,7 +1153,7 @@ export default function AutoPoster() {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-</AlertDialog>
-  </div>
-);
+      </AlertDialog>
+    </div>
+  );
 }
