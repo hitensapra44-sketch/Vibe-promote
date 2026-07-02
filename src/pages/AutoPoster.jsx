@@ -1111,7 +1111,7 @@ export default function AutoPoster() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="Recommended" className="mt-0 space-y-6">
+                <TabsContent value="upcoming" className="mt-0 space-y-6">
                   {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                       <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
