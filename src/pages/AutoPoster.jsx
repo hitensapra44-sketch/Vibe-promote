@@ -121,7 +121,7 @@ function formatScheduledTime(dateStr) {
   const isToday = date.toDateString() === now.toDateString();
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+  const isTomorrow = date.toDateString() === tomorrow.slateDateString ? false : date.toDateString() === tomorrow.toDateString();
 
   const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
@@ -591,9 +591,8 @@ export default function AutoPoster() {
   const charLimit = CHAR_LIMITS[formPlatform];
   const showCharWarning = charLimit !== Infinity && charCount > charLimit;
 
-  const renderPostCard = (post, isUpcomingFailed = false) => {
+  const renderPostCard = (post, isFailed = false) => {
     const isReddit = post.platform === 'reddit';
-    const isFailed = post.status === 'failed';
     const isImproving = improvingPostId === post.id;
     const canEditDelete = post.status !== 'published';
 
@@ -602,11 +601,10 @@ export default function AutoPoster() {
         layout
         key={post.id}
         className={cn(
-          'rounded-xl border bg-[#111111] p-5 space-y-3 transition-all',
-          isFailed && isUpcomingFailed ? 'border-l-2 border-l-red-500 border-[#1F1F1F]' : 'border-[#1F1F1F]'
+          'rounded-xl border bg-foreground/5 p-5 space-y-3 transition-all border-foreground/10'
         )}
       >
-        {isFailed && isUpcomingFailed && (
+        {isFailed && (
           <div className="flex items-start gap-2 text-red-400">
             <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
@@ -619,14 +617,14 @@ export default function AutoPoster() {
           <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1 space-y-3">
-              <p className="text-xs text-amber-200/80">
+              <p className="text-xs text-amber-600">
                 Reddit doesn't support auto-publishing. Copy your post and paste it manually.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-[10px] font-bold border-amber-500/30 text-amber-200 hover:bg-amber-500/10"
+                  className="h-7 text-[10px] font-bold border-orange-500/20 text-orange-500 hover:bg-orange-500/10 px-2"
                   onClick={() => handleCopy(post.content)}
                 >
                   <Copy className="w-3 h-3 mr-1.5" />
@@ -635,7 +633,7 @@ export default function AutoPoster() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 text-[10px] font-bold border-amber-500/30 text-amber-200 hover:bg-amber-500/10"
+                  className="h-8 text-[10px] font-bold border-orange-500/20 text-orange-500 hover:bg-orange-500/10"
                   onClick={() => window.open(`https://reddit.com/r/${post.subreddit || ''}/submit`, '_blank')}
                 >
                   <ExternalLink className="w-3 h-3 mr-1.5" />
@@ -648,17 +646,17 @@ export default function AutoPoster() {
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
+            <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
               {getPlatformIcon(post.platform)}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                {post.subreddit && <span className="text-[10px] text-[#52525B]">r/{post.subreddit}</span>}
+                <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
+                {post.subreddit && <span className="text-[10px] text-foreground/60">r/{post.subreddit}</span>}
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <Clock className="w-3 h-3 text-[#52525B]" />
-                <span className="text-[10px] text-[#52525B]">{formatScheduledTime(post.scheduled_at)}</span>
+                <Clock className="w-3 h-3 text-foreground/40" />
+                <span className="text-[10px] text-foreground/40">{formatScheduledTime(post.scheduled_at)}</span>
               </div>
             </div>
           </div>
@@ -668,7 +666,7 @@ export default function AutoPoster() {
             {canEditDelete && (
               <DropdownMenu open={openMenuId === post.id} onOpenChange={(open) => setOpenMenuId(open ? post.id : null)}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-[#52525B] hover:text-white">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground/40 hover:text-foreground">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -702,7 +700,7 @@ export default function AutoPoster() {
         </div>
 
         <div className="relative">
-          <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
+          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
             {isImproving ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="w-3 h-3 animate-spin text-[#F97316]" />
@@ -714,7 +712,7 @@ export default function AutoPoster() {
           </p>
         </div>
 
-        {isFailed && isUpcomingFailed && (
+        {isFailed && (
           <div className="flex flex-wrap gap-2 pt-1">
             <Button
               size="sm"
@@ -728,7 +726,7 @@ export default function AutoPoster() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-[10px] font-bold text-[#52525B] hover:text-white"
+              className="h-8 text-[10px] font-bold text-foreground/40 hover:text-foreground"
               onClick={() => window.open('https://buffer.com', '_blank')}
             >
               <ExternalLink className="w-3 h-3 mr-1.5" />
@@ -742,7 +740,7 @@ export default function AutoPoster() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
-      <Sidebar isPaid={true} />
+      <Sidebar isPaid={isPaid} />
 
       {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -760,9 +758,9 @@ export default function AutoPoster() {
         <div className="flex flex-1 overflow-hidden">
 
           {/* ── LEFT: Channel list (Buffer-style) ── */}
-          <aside className="w-56 flex-shrink-0 border-r border-[#1F1F1F] bg-background flex flex-col overflow-y-auto">
+          <aside className="w-56 flex-shrink-0 border-r border-foreground/5 bg-background flex flex-col overflow-y-auto">
             <div className="px-4 pt-5 pb-2">
-              <p className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Channels</p>
+              <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Channels</p>
             </div>
             <nav className="flex flex-col gap-0.5 px-2 pb-4">
               {channels.map((ch) => (
@@ -770,18 +768,18 @@ export default function AutoPoster() {
                   key={ch.id}
                   onClick={() => setActiveChannel(ch.id)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all w-full text-left',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all w-full text-left bg-transparent border-none cursor-pointer',
                     activeChannel === ch.id
-                      ? 'bg-[#1F1F1F] text-white border-l-2 border-[#F97316] pl-[10px]'
-                      : 'text-[#A1A1AA] hover:bg-[#1A1A1A] hover:text-white'
+                      ? 'bg-foreground/5 text-foreground border-l-2 border-[#F97316] pl-[10px]'
+                      : 'text-foreground/60 hover:bg-foreground/5 hover:text-foreground'
                   )}
                 >
-                  <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === ch.id ? 'text-[#F97316]' : 'text-[#52525B]')}>
+                  <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === ch.id ? 'text-[#F97316]' : 'text-foreground/40')}>
                     {ch.icon}
                   </span>
                   {ch.label}
                   {ch.id !== 'all' && (
-                    <span className="ml-auto text-[10px] text-[#52525B] font-normal">
+                    <span className="ml-auto text-[10px] text-foreground/40 font-normal">
                       {posts.filter(p => p.platform === ch.id).length}
                     </span>
                   )}
@@ -791,7 +789,7 @@ export default function AutoPoster() {
               {bufferAccounts.length > 0 && (
                 <>
                   <div className="px-3 pt-3 pb-1">
-                    <p className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Buffer Accounts</p>
+                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Buffer Accounts</p>
                   </div>
                   {bufferAccounts.map((account) => (
                     <div
@@ -799,22 +797,22 @@ export default function AutoPoster() {
                       className={cn(
                         'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all w-full',
                         activeChannel === account.platform
-                          ? 'bg-[#1F1F1F] text-white border-l-2 border-[#F97316] pl-[10px]'
-                          : 'text-[#A1A1AA] hover:bg-[#1A1A1A] hover:text-white'
+                          ? 'bg-foreground/5 text-foreground border-l-2 border-[#F97316] pl-[10px]'
+                          : 'text-foreground/60 hover:bg-foreground/5 hover:text-foreground'
                       )}
                     >
                       <button
                         onClick={() => setActiveChannel(account.platform)}
-                        className="flex items-center gap-3 flex-1 text-left bg-transparent border-none p-0"
+                        className="flex items-center gap-3 flex-1 text-left bg-transparent border-none p-0 cursor-pointer"
                       >
-                        <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === account.platform ? 'text-[#F97316]' : 'text-[#52525B]')}>
+                        <span className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', activeChannel === account.platform ? 'text-[#F97316]' : 'text-foreground/40')}>
                           {getPlatformIcon(account.platform)}
                         </span>
                         <span className="truncate">{account.buffer_channel_name}</span>
                       </button>
                       <button
                         onClick={() => handleDisconnectBuffer(account.id)}
-                        className="p-1 rounded hover:bg-[#1F1F1F] text-[#52525B] hover:text-red-400 transition-all bg-transparent border-none"
+                        className="p-1 rounded hover:bg-foreground/5 text-foreground/40 hover:text-red-400 transition-all bg-transparent border-none cursor-pointer"
                         title="Disconnect"
                       >
                         <Unlink className="w-3.5 h-3.5" />
@@ -828,7 +826,7 @@ export default function AutoPoster() {
             <div className="px-4 pt-2 pb-4">
               <button
                 onClick={handleConnectBuffer}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#111111] border border-[#1F1F1F] text-[#A1A1AA] hover:text-white hover:border-[#52525B] transition-all bg-transparent"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold bg-foreground/5 border border-foreground/10 text-foreground/60 hover:text-foreground hover:border-foreground/20 transition-all bg-transparent cursor-pointer"
               >
                 <Link2 className="w-3.5 h-3.5" />
                 Connect Account
@@ -840,219 +838,186 @@ export default function AutoPoster() {
           <main className="flex-1 overflow-y-auto">
             <div className="p-6 max-w-2xl mx-auto w-full">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="bg-[#111111] border border-[#1F1F1F] p-1">
-                  <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Today</TabsTrigger>
-                  <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Upcoming</TabsTrigger>
-                  <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Drafts</TabsTrigger>
-                  <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-[#1F1F1F] data-[state=active]:text-white">Published</TabsTrigger>
+                <TabsList className="bg-foreground/5 border border-foreground/10 p-1">
+                  <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Today</TabsTrigger>
+                  <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Drafts</TabsTrigger>
+                  <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Published</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="today" className="space-y-4 mt-0">
-                  <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-[#F97316]" />
-                      <span className="text-xs font-bold text-[#52525B] uppercase tracking-wider">Today's Post Plan</span>
+                <TabsContent value="today" className="mt-0 space-y-6">
+                  <h3 className="text-sm text-foreground/40">
+                    Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  </h3>
+                  {postsLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
                     </div>
-                    {!planLoading && weeklyPlan && (
-                      <button
-                        onClick={() => setShowFullWeek(!showFullWeek)}
-                        className="text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1.5 rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all bg-transparent"
-                      >
-                        {showFullWeek ? 'Hide Full Week' : 'View Full Week →'}
-                      </button>
-                    )}
-                  </div>
-
-                  {showFullWeek && weeklyPlan && (
-                    <div className="bg-[#111111] border border-[#1F1F1F] rounded-xl p-4 space-y-3">
-                      {weeklyPlan.week_overview && (
-                        <p className="text-xs text-[#A1A1AA] mb-3">{weeklyPlan.week_overview}</p>
-                      )}
-                      <div className="space-y-2">
-                        {weeklyPlan.days?.map((dayEntry, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-[#0A0A0A] border border-[#1F1F1F]">
-                            <span className="text-xs font-bold text-[#A1A1AA]">{dayEntry.day}</span>
-                            <span className="text-xs text-[#52525B]">{dayEntry.active ? dayEntry.format_name : 'No post scheduled'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {!showFullWeek && (() => {
-                    const platformsToShow = activeChannel === 'all' ? ['reddit', 'x', 'threads'] : [activeChannel];
-                    const platformsWithPosts = new Set(posts.filter(p => {
-                      const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
-                      return postDate === todayString && p.platform && p.status !== 'published';
-                    }).map(p => p.platform));
-
-                    const hasAnyNonPublishedPosts = platformsWithPosts.size > 0;
-                    const emptyPlatforms = platformsToShow.filter(p => !platformsWithPosts.has(p));
-
-                    if (!hasAnyNonPublishedPosts && emptyPlatforms.length > 0) {
-                      return (
-                        <div className="space-y-3">
-{emptyPlatforms.map((platform) => (
-                <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
-                      {getPlatformIcon(platform)}
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
-                      <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3" />
-                        Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
-                    onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    Generate
-                  </Button>
-                </div>
-              ))}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="space-y-3">
-                        {filteredPosts.map(post => renderPostCard(post, post.status === 'failed'))}
-                      </div>
-                    );
-                  })()}
-                </TabsContent>
-
-                <TabsContent value="upcoming" className="space-y-6 mt-0">
-                  {next7Days.map((day) => {
-                    const dateStr = day.toISOString().slice(0, 10);
-                    const platformsToShow = activeChannel === 'all' ? ['reddit', 'x', 'threads'] : [activeChannel];
-                    
-                    return (
-                      <div key={dateStr} className="space-y-3">
-                        <h3 className="text-xs font-bold text-[#52525B] uppercase tracking-wider sticky top-0 bg-background py-2">
-                          {formatDateLabel(day.toISOString())}
-                        </h3>
-                        <div className="space-y-3">
-                          {platformsToShow.map((platform) => {
-                            const platformPosts = posts.filter(p => {
-                              const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
-                              return postDate === dateStr && p.platform === platform && p.status !== 'published';
-                            });
-
-                            if (platformPosts.length > 0) {
-                              return platformPosts.map(post => renderPostCard(post, post.status === 'failed'));
-                            }
-
-return (
-                            <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
-                                  {getPlatformIcon(platform)}
-                                </div>
-                                <div>
-                                  <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
-                                  <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
-                                    <Clock className="w-3 h-3" />
-                                    Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
-                                onClick={() => handleGenerateFromPlaceholder(platform, day)}
-                              >
-                                <Sparkles className="w-3 h-3" />
-                                Generate
-                              </Button>
-                            </div>
-                          );
-                        })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </TabsContent>
-
-                <TabsContent value="drafts" className="space-y-4 mt-0">
-                  {filteredPosts.length === 0 ? (
+                  ) : queuePosts.length === 0 ? (
                     <div className="text-center py-20">
-                      <Pencil className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                      <p className="text-sm text-[#52525B]">No drafts saved.</p>
+                      <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
+                      <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
                     </div>
                   ) : (
-                    filteredPosts.map(post => (
-                      <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
-                              {getPlatformIcon(post.platform)}
+                    <div className="space-y-3">
+                      {queuePosts.map((post) => (
+                        <motion.div
+                          key={post.id}
+                          layout
+                          className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
+                                {getPlatformIcon(post.platform)}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[10px] text-foreground/40">{formatScheduledTime(post.scheduled_at)}</span>
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                              <p className="text-[10px] text-[#52525B] mt-0.5">
-                                Created {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </p>
-                            </div>
+                            {getStatusBadge(post.status)}
                           </div>
-                          {getStatusBadge(post.status)}
-                        </div>
-                        <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
-                          {post.content}
-                        </p>
-                        <div className="flex justify-end">
-<Button
-                             size="sm"
-                             variant="outline"
-                             className="h-8 text-[10px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
-                             onClick={() => openScheduleNowSheet(post)}
-                           >
-                             <CalendarClock className="w-3 h-3 mr-1.5" />
-                             Schedule Now
-                           </Button>
-                        </div>
-                      </motion.div>
-                    ))
+                          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                            {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
+                          </p>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
+                              onClick={() => openEditSheet(post)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
+                              onClick={() => {
+                                navigator.clipboard.writeText(post.content);
+                                toast.success('Copied!');
+                              }}
+                            >
+                              Copy
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                   )}
                 </TabsContent>
 
-                <TabsContent value="published" className="space-y-4 mt-0">
-                  {filteredPosts.length === 0 ? (
+                <TabsContent value="drafts" className="mt-0 space-y-6">
+                  {postsLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
+                    </div>
+                  ) : draftPosts.length === 0 ? (
                     <div className="text-center py-20">
-                      <CheckCircle2 className="w-10 h-10 text-[#52525B] mx-auto mb-4" />
-                      <p className="text-sm text-[#52525B]">No published posts yet.</p>
+                      <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
+                      <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
                     </div>
                   ) : (
-                    filteredPosts.map(post => (
-                      <motion.div layout key={post.id} className="rounded-xl border border-[#1F1F1F] bg-[#111111] p-5 space-y-3 opacity-80">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
-                              {getPlatformIcon(post.platform)}
-                            </div>
-                            <div>
-                              <span className="text-xs font-bold text-white">{PLATFORM_LABELS[post.platform]}</span>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <Clock className="w-3 h-3 text-[#52525B]" />
-                                <span className="text-[10px] text-[#52525B]">{formatScheduledTime(post.scheduled_at)}</span>
+                    <div className="space-y-3">
+                      {draftPosts.map((post) => (
+                        <motion.div
+                          key={post.id}
+                          layout
+                          className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
+                                {getPlatformIcon(post.platform)}
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
+                                <p className="text-[10px] text-foreground/40 mt-0.5">
+                                  Created {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
                               </div>
                             </div>
+                            {getStatusBadge(post.status)}
                           </div>
-                          {getStatusBadge(post.status)}
-                        </div>
-                        <p className="text-sm text-[#A1A1AA] leading-relaxed line-clamp-3">
-                          {post.content}
-                        </p>
-                      </motion.div>
-                    ))
+                          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                            {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
+                          </p>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
+                              onClick={() => openEditSheet(post)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
+                              onClick={() => {
+                                navigator.clipboard.writeText(post.content);
+                                toast.success('Copied!');
+                              }}
+                            >
+                              Copy
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-7 text-[10px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
+                              onClick={() => openScheduleNowSheet(post)}
+                            >
+                              Schedule Now
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="published" className="mt-0 space-y-6">
+                  {postsLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
+                    </div>
+                  ) : publishedPosts.length === 0 ? (
+                    <div className="text-center py-20">
+                      <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
+                      <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {publishedPosts.map((post) => (
+                        <motion.div
+                          key={post.id}
+                          layout
+                          className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 space-y-3 opacity-80"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
+                                {getPlatformIcon(post.platform)}
+                              </div>
+                              <div>
+                                <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[10px] text-foreground/40">{formatScheduledTime(post.scheduled_at)}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {getStatusBadge(post.status)}
+                          </div>
+                          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+                            {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>
@@ -1062,168 +1027,117 @@ return (
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
-        <SheetContent side="right" className="w-full sm:max-w-lg bg-background border-l border-foreground/5 overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-md bg-background border-l border-foreground/10 overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-base font-bold">{editingPost ? 'Edit Post' : 'Create New Post'}</SheetTitle>
-            <SheetDescription className="text-xs text-[#52525B]">
-              Write, schedule, and publish your content.
+            <SheetTitle className="text-base font-bold">New Post</SheetTitle>
+            <SheetDescription className="text-xs text-foreground/60">
+              Create a draft post for your channel.
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleScheduleNow} className="space-y-6 mt-6">
+          <div className="space-y-6 mt-6">
             <div className="space-y-3">
-              <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Platform</Label>
+              <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Platform</Label>
               <div className="grid grid-cols-3 gap-2">
-                {['x', 'threads', 'reddit'].map((p) => (
+                {['reddit', 'x', 'threads'].map((p) => {
+                  const platform = {
+                    reddit: { icon: MessageSquare, name: 'Reddit' },
+                    x: { icon: Twitter, name: 'X' },
+                    threads: { icon: MessageSquare, name: 'Threads' },
+                  }[p];
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setFormPlatform(p)}
+                      className={cn(
+                        'h-10 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer',
+                        formPlatform === p
+                          ? 'border-[#F97316] text-[#F97316] bg-[#F97316]/5'
+                          : 'border-foreground/10 text-foreground/60 hover:border-foreground/30 bg-transparent'
+                      )}
+                    >
+                      <platform.icon className="w-4 h-4" />
+                      <span>{platform.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Goal</Label>
+              <div className="flex flex-wrap gap-2">
+                {GOALS.map((goal) => (
                   <button
-                    key={p}
+                    key={goal}
                     type="button"
-                    onClick={() => setFormPlatform(p)}
+                    onClick={() => setSheetGoal(goal)}
                     className={cn(
-                      'h-10 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-2',
-                      formPlatform === p
-                        ? 'border-[#F97316] text-[#F97316] bg-[#F97316]/5'
-                        : 'border-[#1F1F1F] text-[#A1A1AA] hover:border-[#52525B] bg-transparent'
+                      'px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer',
+                      sheetGoal === goal
+                        ? 'border-[#F97316] text-[#F97316] bg-[#F97316]/10'
+                        : 'border-foreground/10 text-foreground/60 hover:border-foreground/30 bg-transparent'
                     )}
                   >
-                    {getPlatformIcon(p)}
-                    {PLATFORM_LABELS[p]}
+                    {goal}
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Content</Label>
-                <span className={cn('text-[10px] font-bold', showCharWarning ? 'text-red-400' : 'text-[#52525B]')}>
-                  {charCount}{charLimit !== Infinity && ` / ${charLimit}`}
-                </span>
-              </div>
+              <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Content</Label>
               <Textarea
-                value={formContent}
-                onChange={(e) => setFormContent(e.target.value)}
+                value={sheetContent}
+                onChange={(e) => setSheetContent(e.target.value)}
                 placeholder="What's on your mind?"
-                className={cn(
-                  'min-h-[200px] bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] resize-none',
-                  showCharWarning && 'border-red-500'
-                )}
+                className="min-h-[200px] bg-foreground/5 border-foreground/10 text-foreground placeholder-foreground/40 resize-none"
               />
             </div>
 
-            {formPlatform === 'reddit' && (
+            {sheetPlatform === 'reddit' && (
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Subreddit</Label>
+                <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Subreddit</Label>
                 <Input
-                  value={formSubreddit}
-                  onChange={(e) => setFormSubreddit(e.target.value)}
+                  value={sheetSubreddit}
+                  onChange={(e) => setSheetSubreddit(e.target.value)}
                   placeholder="e.g. SaaS"
-                  className="bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] h-10"
+                  className="bg-foreground/5 border-foreground/10 text-foreground placeholder-foreground/40 h-10"
                 />
               </div>
             )}
 
-            {formPlatform === 'reddit' && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Remind me by email</Label>
-                  <Switch
-                    checked={formRemindEmail}
-                    onCheckedChange={setFormRemindEmail}
-                  />
-                </div>
-                {formRemindEmail && (
-                  <Input
-                    type="datetime-local"
-                    value={formRemindAt}
-                    onChange={(e) => setFormRemindAt(e.target.value)}
-                    className="bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] h-10"
-                  />
-                )}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <Label className="text-[10px] font-bold text-[#52525B] uppercase tracking-widest">Schedule</Label>
-              <RadioGroup value={scheduleMode} onValueChange={setScheduleMode} className="space-y-3">
-                <div className={cn(
-                  'flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all',
-                  scheduleMode === 'ai' ? 'border-[#F97316] bg-[#F97316]/5' : 'border-[#1F1F1F] bg-transparent'
-                )}>
-                  <RadioGroupItem value="ai" id="mode-ai" className="mt-0.5" />
-                  <div className="flex-1" onClick={() => setScheduleMode('ai')}>
-                    <Label htmlFor="mode-ai" className="text-xs font-bold text-white cursor-pointer">
-                      AI Recommended
-                    </Label>
-                    <p className="text-[10px] text-[#52525B] mt-1">
-                      {PLATFORM_LABELS[formPlatform]} → Tomorrow {AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[formPlatform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[formPlatform].minute} {(AI_RECOMMENDED_TIMES[formPlatform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                    </p>
-                  </div>
-                </div>
-                <div className={cn(
-                  'flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all',
-                  scheduleMode === 'custom' ? 'border-[#F97316] bg-[#F97316]/5' : 'border-[#1F1F1F] bg-transparent'
-                )}>
-                  <RadioGroupItem value="custom" id="mode-custom" className="mt-0.5" />
-                  <div className="flex-1" onClick={() => setScheduleMode('custom')}>
-                    <Label htmlFor="mode-custom" className="text-xs font-bold text-white cursor-pointer">
-                      Custom Time
-                    </Label>
-                    {scheduleMode === 'custom' && (
-                      <Input
-                        type="datetime-local"
-                        value={formScheduledAt}
-                        onChange={(e) => setFormScheduledAt(e.target.value)}
-                        className="mt-2 bg-[#111111] border-[#1F1F1F] text-white placeholder-[#52525B] h-9 text-xs"
-                      />
-                    )}
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <SheetFooter className="pt-4">
+            <div className="pt-4">
               <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-11 text-xs font-bold"
+                onClick={handleGenerateDraft}
+                disabled={generatingDraft || !sheetContent.trim()}
+                className="w-full h-11 text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
               >
-                {isSubmitting ? (
+                {generatingDraft ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Scheduling...
+                    Generating...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Schedule Post
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate Post
                   </>
                 )}
               </Button>
-            </SheetFooter>
-          </form>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
-
-      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <AlertDialogContent className="bg-background border-foreground/5">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold">Delete this post?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-[#52525B]">
-              This action cannot be undone. The post will be permanently removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 text-xs font-bold">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}
-              className="h-9 text-xs font-bold bg-red-500 hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
+
+const GOALS = [
+  "Get comments",
+  "Get signups", 
+  "Get feedback",
+  "Build authority",
+  "Tell story",
+];
