@@ -160,7 +160,16 @@ export default function AutoPoster() {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const [formContent, setFormContent] = useState('');
-  const [formPlatform, setFormPlatform] = useState('x');
+  const [selectedPlatforms, setSelectedPlatforms] = useState(['x']);
+
+  const togglePlatform = (platform) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
   const [formSubreddit, setFormSubreddit] = useState('');
   const [formScheduledAt, setFormScheduledAt] = useState('');
   const [formRemindEmail, setFormRemindEmail] = useState(false);
@@ -460,7 +469,7 @@ export default function AutoPoster() {
 
   const resetForm = useCallback(() => {
     setFormContent('');
-    setFormPlatform('x');
+    setSelectedPlatforms(['x']);
     setFormSubreddit('');
     setFormScheduledAt('');
     setFormRemindEmail(false);
@@ -479,7 +488,7 @@ export default function AutoPoster() {
   const openEditSheet = useCallback((post) => {
     setEditingPost(post);
     setFormContent(post.content);
-    setFormPlatform(post.platform);
+    setSelectedPlatforms([post.platform]);
     setFormSubreddit(post.subreddit || '');
     setFormScheduledAt(new Date(post.scheduled_at).toISOString().slice(0, 16));
     setFormRemindEmail(post.remind_email || false);
@@ -491,8 +500,8 @@ export default function AutoPoster() {
   const openScheduleNowSheet = useCallback((post) => {
     setEditingPost(post);
     setFormContent(post.content);
-    setFormPlatform(post.platform);
-    setFormSubreddit(post.subreddit || '');
+    setSelectedPlatforms([post.platform]);
+    setFormSubreddit('');
     setFormScheduledAt('');
     setFormRemindEmail(post.remind_email || false);
     setFormRemindAt(post.remind_at ? new Date(post.remind_at).toISOString().slice(0, 16) : '');
@@ -501,18 +510,18 @@ export default function AutoPoster() {
   }, []);
 
   useEffect(() => {
-    if (formPlatform && !formScheduledAt && scheduleMode === 'ai') {
-      const aiTime = getAIRecommendedTime(formPlatform);
+    if (selectedPlatforms.length > 0 && !formScheduledAt && scheduleMode === 'ai') {
+      const aiTime = getAIRecommendedTime(selectedPlatforms[0]);
       setFormScheduledAt(aiTime.toISOString().slice(0, 16));
     }
-  }, [formPlatform, scheduleMode, formScheduledAt]);
+  }, [selectedPlatforms, scheduleMode, formScheduledAt]);
 
   const handleGenerateDraft = async () => {
     if (!formContent.trim()) return;
     
     setGeneratingDraft(true);
     try {
-      const systemPrompt = `You are a viral content strategist for ${PLATFORM_LABELS[formPlatform]}. 
+      const systemPrompt = `You are a viral content strategist for ${PLATFORM_LABELS[selectedPlatforms[0]]}. 
       Goal: ${sheetGoal || 'Get signups'}. 
       Context: ${formContent}.
       
@@ -526,13 +535,13 @@ export default function AutoPoster() {
 
       const result = await generateAICall(systemPrompt, "Generate the post now.", null, 'post');
       const parsed = JSON.parse(result);
-      const content = formPlatform === 'reddit' ? `${parsed.title}\n\n${parsed.body}` : parsed.body || '';
+      const content = selectedPlatforms[0] === 'reddit' ? `${parsed.title}\n\n${parsed.body}` : parsed.body || '';
 
       await createMutation.mutateAsync({
         user_id: user.id,
         content,
-        platform: formPlatform,
-        subreddit: formPlatform === 'reddit' ? formSubreddit : null,
+        platform: selectedPlatforms[0],
+        subreddit: selectedPlatforms[0] === 'reddit' ? formSubreddit : null,
         scheduled_at: new Date().toISOString(),
         status: 'draft',
       });
@@ -559,7 +568,7 @@ export default function AutoPoster() {
       toast.error('Please select a time');
       return;
     }
-    if (formPlatform === 'reddit' && !formSubreddit.trim()) {
+    if (selectedPlatforms.includes('reddit') && !formSubreddit.trim()) {
       toast.error('Please enter a subreddit');
       return;
     }
@@ -569,51 +578,62 @@ export default function AutoPoster() {
     const scheduledAtISO = new Date(formScheduledAt).toISOString();
 
     try {
-      let postId;
       if (editingPost) {
         const updated = await updateMutation.mutateAsync({
           id: editingPost.id,
           updates: {
             content: formContent,
-            platform: formPlatform,
-            subreddit: formPlatform === 'reddit' ? formSubreddit : null,
+            platform: editingPost.platform,
+            subreddit: editingPost.platform === 'reddit' ? formSubreddit : null,
             scheduled_at: scheduledAtISO,
             status: 'draft',
-            remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
-            remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
+            remind_email: editingPost.platform === 'reddit' ? formRemindEmail : false,
+            remind_at: editingPost.platform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
           },
         });
-        postId = updated.id;
-      } else {
-        const created = await createMutation.mutateAsync({
-          user_id: user.id,
+
+        const result = await scheduleMutation.mutateAsync({
+          post_id: updated.id,
+          platform: editingPost.platform,
           content: formContent,
-          platform: formPlatform,
-          subreddit: formPlatform === 'reddit' ? formSubreddit : null,
           scheduled_at: scheduledAtISO,
-          status: 'draft',
-          remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
-          remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
+          subreddit: editingPost.platform === 'reddit' ? formSubreddit : undefined,
         });
-        postId = created.id;
-      }
 
-      const result = await scheduleMutation.mutateAsync({
-        post_id: postId,
-        platform: formPlatform,
-        content: formContent,
-        scheduled_at: scheduledAtISO,
-        subreddit: formPlatform === 'reddit' ? formSubreddit : undefined,
-      });
-
-      if (result.success) {
-        toast.success('Post scheduled');
-        setIsSheetOpen(false);
-        resetForm();
-        refetch();
+        if (!result.success) {
+          toast.error(result.error || `Failed to schedule post for ${PLATFORM_LABELS[editingPost.platform]}`);
+        }
       } else {
-        toast.error(result.error || 'Failed to schedule post');
+        for (const platform of selectedPlatforms) {
+          const created = await createMutation.mutateAsync({
+            user_id: user.id,
+            content: formContent,
+            platform: platform,
+            subreddit: platform === 'reddit' ? formSubreddit : null,
+            scheduled_at: scheduledAtISO,
+            status: 'draft',
+            remind_email: platform === 'reddit' ? formRemindEmail : false,
+            remind_at: platform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
+          });
+
+          const result = await scheduleMutation.mutateAsync({
+            post_id: created.id,
+            platform: platform,
+            content: formContent,
+            scheduled_at: scheduledAtISO,
+            subreddit: platform === 'reddit' ? formSubreddit : undefined,
+          });
+
+          if (!result.success) {
+            toast.error(result.error || `Failed to schedule post for ${PLATFORM_LABELS[platform]}`);
+          }
+        }
       }
+
+      toast.success('Post scheduled');
+      setIsSheetOpen(false);
+      resetForm();
+      refetch();
     } catch (err) {
       console.error('Schedule error:', err);
       toast.error('Failed to schedule post');
@@ -701,7 +721,7 @@ export default function AutoPoster() {
 
       setEditingPost(null);
       setFormContent(content);
-      setFormPlatform(platform);
+      setSelectedPlatforms([platform]);
       setFormSubreddit('');
       setFormScheduledAt(scheduledAt.toISOString().slice(0, 16));
       setFormRemindEmail(false);
@@ -886,7 +906,7 @@ export default function AutoPoster() {
           <h1 className="text-sm font-bold text-foreground">Auto Poster</h1>
           <Button size="sm" className="h-8 gap-2 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all" onClick={openNewSheet}>
             <Plus className="w-3.5 h-3.5" />
-            New Post
+            Schedule Post
           </Button>
         </header>
 
@@ -1195,30 +1215,31 @@ export default function AutoPoster() {
       <Sheet open={isSheetOpen} onOpenChange={(open) => { setIsSheetOpen(open); if (!open) resetForm(); }}>
         <SheetContent side="right" className="w-full sm:max-w-md bg-background border-l border-foreground/10 overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-base font-bold">New Post</SheetTitle>
+            <SheetTitle className="text-base font-bold">Schedule Post</SheetTitle>
             <SheetDescription className="text-xs text-foreground/60">
-              Create a draft post for your channel.
+              Create and schedule a post for your channel.
             </SheetDescription>
           </SheetHeader>
 
           <div className="space-y-6 mt-6">
             <div className="space-y-3">
               <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Platform</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {['reddit', 'x', 'threads'].map((p) => {
                   const platform = {
                     reddit: { icon: MessageSquare, name: 'Reddit' },
                     x: { icon: Twitter, name: 'X' },
                     threads: { icon: MessageSquare, name: 'Threads' },
                   }[p];
+                  const isSelected = selectedPlatforms.includes(p);
                   return (
                     <button
                       key={p}
                       type="button"
-                      onClick={() => setFormPlatform(p)}
+                      onClick={() => togglePlatform(p)}
                       className={cn(
-                        'h-10 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer',
-                        formPlatform === p
+                        'h-10 px-4 rounded-lg border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer',
+                        isSelected
                           ? 'border-[#F97316] text-[#F97316] bg-[#F97316]/5'
                           : 'border-foreground/10 text-foreground/60 hover:border-foreground/30 bg-transparent'
                       )}
@@ -1262,7 +1283,44 @@ export default function AutoPoster() {
               />
             </div>
 
-            {formPlatform === 'reddit' && (
+            <div className="space-y-3">
+              <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Schedule Time</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="datetime-local"
+                  value={formScheduledAt}
+                  onChange={(e) => setFormScheduledAt(e.target.value)}
+                  className="bg-foreground/5 border-foreground/10 text-foreground placeholder-foreground/40 h-10 flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const aiTime = getAIRecommendedTime(selectedPlatforms[0] || 'x');
+                    setFormScheduledAt(aiTime.toISOString().slice(0, 16));
+                  }}
+                  className="h-10 text-xs font-bold border-foreground/10 text-foreground/60 hover:text-foreground whitespace-nowrap"
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                  AI Recommend
+                </Button>
+              </div>
+              {selectedPlatforms.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {selectedPlatforms.map(p => {
+                    const time = AI_RECOMMENDED_TIMES[p];
+                    if (!time) return null;
+                    return (
+                      <span key={p} className="text-[10px] text-foreground/40">
+                        {PLATFORM_LABELS[p]}: {formatRecommendedTime(time.hour, time.minute)}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {selectedPlatforms.includes('reddit') && (
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Subreddit</Label>
                 <Input
@@ -1274,11 +1332,29 @@ export default function AutoPoster() {
               </div>
             )}
 
-            <div className="pt-4">
+            <div className="pt-4 space-y-2">
+              <Button
+                onClick={handleScheduleNow}
+                disabled={isSubmitting || !formContent.trim() || !formScheduledAt}
+                className="w-full h-11 text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <CalendarClock className="w-4 h-4 mr-2" />
+                    Schedule Post
+                  </>
+                )}
+              </Button>
               <Button
                 onClick={handleGenerateDraft}
                 disabled={generatingDraft || !formContent.trim()}
-                className="w-full h-11 text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
+                variant="outline"
+                className="w-full h-11 text-xs font-bold border-foreground/10 text-foreground/60 hover:text-foreground transition-all"
               >
                 {generatingDraft ? (
                   <>
