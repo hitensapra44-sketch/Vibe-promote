@@ -121,7 +121,7 @@ function formatScheduledTime(dateStr) {
   const isToday = date.toDateString() === now.toDateString();
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const isTomorrow = date.toDateString() === tomorrow.slateDateString ? false : date.toDateString() === tomorrow.toDateString();
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
 
   const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
@@ -164,11 +164,22 @@ export default function AutoPoster() {
   const [showFullWeek, setShowFullWeek] = useState(false);
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [planLoading, setPlanLoading] = useState(true);
+  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
-    async function fetchPlan() {
+    async function fetchPlanAndPayment() {
       if (!user) return;
       try {
+        const { data: paymentData } = await supabase
+          .from('user_payments')
+          .select('payment_status')
+          .eq('email', user.email)
+          .maybeSingle();
+        
+        if (paymentData?.payment_status) {
+          setIsPaid(true);
+        }
+
         const { data: planData } = await supabase.functions.invoke('generate-content-plan', {
           method: 'GET'
         });
@@ -176,12 +187,12 @@ export default function AutoPoster() {
           setWeeklyPlan(planData.plan_json);
         }
       } catch (err) {
-        console.error("Error fetching weekly plan:", err);
+        console.error("Error fetching weekly plan or payment:", err);
       } finally {
         setPlanLoading(false);
       }
     }
-    fetchPlan();
+    fetchPlanAndPayment();
   }, [user]);
 
   const { data: posts = [], isLoading, refetch } = useQuery({
@@ -725,6 +736,776 @@ export default function AutoPoster() {
             </Button>
             <Button
               size="sm"
+<dyad-write path="src/pages/AutoPoster.jsx" description="Completing the AutoPoster.jsx file with isPaid state and full implementation">
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Send,
+  CalendarClock,
+  Calendar,
+  Loader2,
+  Copy,
+  AlertCircle,
+  Sparkles,
+  MoreHorizontal,
+  Twitter,
+  MessageSquare,
+  Hash,
+  ExternalLink,
+  Trash2,
+  Clock,
+  CheckCircle2,
+  Plus,
+  Pencil,
+  RefreshCw,
+  Minus,
+  TrendingUp,
+  Unlink,
+  Link2
+} from 'lucide-react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../supabaseClient';
+import Sidebar from '../components/Sidebar';
+import { cn } from "@/lib/utils";
+import { toast } from 'sonner';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+const CHAR_LIMITS = {
+  x: 280,
+  threads: 500,
+  reddit: Infinity,
+};
+
+const PLATFORM_LABELS = {
+  x: 'X',
+  threads: 'Threads',
+  reddit: 'Reddit',
+};
+
+const AI_RECOMMENDED_TIMES = {
+  x: { hour: 9, minute: 0 },
+  threads: { hour: 15, minute: 0 },
+  reddit: { hour: 20, minute: 0 },
+};
+
+const GOALS = [
+  "Get comments",
+  "Get signups", 
+  "Get feedback",
+  "Build authority",
+  "Tell story",
+];
+
+function generateRandomString(length) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], '');
+}
+
+async function sha256(plain) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return window.crypto.subtle.digest('SHA-256', data);
+}
+
+function base64urlencode(a) {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(a)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function generatePKCE() {
+  const verifier = generateRandomString(64);
+  const hashed = await sha256(verifier);
+  const challenge = base64urlencode(hashed);
+  sessionStorage.setItem('buffer_code_verifier', verifier);
+  return { verifier, challenge };
+}
+
+function getAIRecommendedTime(platform) {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const time = AI_RECOMMENDED_TIMES[platform] || AI_RECOMMENDED_TIMES.x;
+  tomorrow.setHours(time.hour, time.minute, 0, 0);
+  return tomorrow;
+}
+
+function formatScheduledTime(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+  const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  if (isToday) return `Today ${timeStr}`;
+  if (isTomorrow) return `Tomorrow ${timeStr}`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + `, ${timeStr}`;
+}
+
+function formatDateLabel(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function AutoPoster() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState('today');
+  const [activeChannel, setActiveChannel] = useState('all');
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  const [formContent, setFormContent] = useState('');
+  const [formPlatform, setFormPlatform] = useState('x');
+  const [formSubreddit, setFormSubreddit] = useState('');
+  const [formScheduledAt, setFormScheduledAt] = useState('');
+  const [formRemindEmail, setFormRemindEmail] = useState(false);
+  const [formRemindAt, setFormRemindAt] = useState('');
+  const [scheduleMode, setScheduleMode] = useState('ai');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [improvingPostId, setImprovingPostId] = useState(null);
+
+  const [showFullWeek, setShowFullWeek] = useState(false);
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [isPaid, setIsPaid] = useState(false);
+  const [sheetGoal, setSheetGoal] = useState(null);
+  const [generatingDraft, setGeneratingDraft] = useState(false);
+
+  useEffect(() => {
+    async function fetchPlanAndPayment() {
+      if (!user) return;
+      try {
+        const { data: paymentData } = await supabase
+          .from('user_payments')
+          .select('payment_status')
+          .eq('email', user.email)
+          .maybeSingle();
+        
+        if (paymentData?.payment_status) {
+          setIsPaid(true);
+        }
+
+        const { data: planData } = await supabase.functions.invoke('generate-content-plan', {
+          method: 'GET'
+        });
+        if (planData?.plan_json) {
+          setWeeklyPlan(planData.plan_json);
+        }
+      } catch (err) {
+        console.error("Error fetching weekly plan or payment:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+    }
+    fetchPlanAndPayment();
+  }, [user]);
+
+  const { data: posts = [], isLoading, refetch } = useQuery({
+    queryKey: ['scheduled-posts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from('scheduled_posts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('scheduled_at', { ascending: true });
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: bufferAccounts = [] } = useQuery({
+    queryKey: ['buffer-accounts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data } = await supabase
+        .from('social_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('buffer_access_token', 'is', null)
+        .eq('is_active', true);
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (newPost) => {
+      const { data, error } = await supabase
+        .from('scheduled_posts')
+        .insert([newPost])
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts', user?.id] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }) => {
+      const { data, error } = await supabase
+        .from('scheduled_posts')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts', user?.id] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('scheduled_posts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts', user?.id] });
+      toast.success('Post deleted');
+    },
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: async ({ post_id, platform, content, scheduled_at, subreddit }) => {
+      const { data, error } = await supabase.functions.invoke('schedule-post', {
+        body: JSON.stringify({ post_id, platform, content, scheduled_at, subreddit }),
+      });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const improveMutation = useMutation({
+    mutationFn: async ({ id, action }) => {
+      const post = posts.find(p => p.id === id);
+      if (!post) throw new Error('Post not found');
+
+      const prompt = `Rewrite this post to ${action}. Return only the rewritten post, nothing else. Post: ${post.content}`;
+
+      const { data, error } = await supabase.functions.invoke('ai-service', {
+        body: {
+          feature: 'post',
+          messages: [
+            { role: 'system', content: prompt },
+            { role: 'user', content: 'Rewrite the post now.' }
+          ],
+          max_tokens: 1024,
+          temperature: 0.7,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.choices?.[0]?.message?.content) throw new Error('Invalid AI response');
+
+      const rewritten = data.choices[0].message.content;
+
+      const { error: updateError } = await supabase
+        .from('scheduled_posts')
+        .update({ content: rewritten })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+      return rewritten;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scheduled-posts', user?.id] });
+    },
+  });
+
+  const handleConnectBuffer = async () => {
+    const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
+    if (!clientId) {
+      toast.error('Buffer OAuth is not configured');
+      return;
+    }
+
+    const { challenge } = await generatePKCE();
+    const redirectUri = 'https://vibepromote.tech/oauth/buffer/callback';
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
+      scope: 'read,write',
+    });
+
+    window.location.href = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
+  };
+
+  const handleDisconnectBuffer = async (accountId) => {
+    const { error } = await supabase
+      .from('social_accounts')
+      .update({ is_active: false })
+      .eq('id', accountId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast.error('Failed to disconnect account');
+      return;
+    }
+
+    toast.success('Account disconnected');
+    queryClient.invalidateQueries({ queryKey: ['buffer-accounts', user?.id] });
+  };
+
+  const todayString = useMemo(() => getTodayString(), []);
+
+  const filteredPosts = useMemo(() => {
+    let result = posts;
+    
+    if (activeChannel !== 'all') {
+      result = result.filter(p => p.platform === activeChannel);
+    }
+    
+    switch (activeTab) {
+      case 'today':
+        return result.filter(p => {
+          const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
+          return postDate === todayString;
+        });
+      case 'upcoming':
+        return result.filter(p => {
+          const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
+          return postDate > todayString && p.status !== 'published';
+        });
+      case 'drafts':
+        return result.filter(p => p.status === 'draft');
+      case 'published':
+        return result.filter(p => p.status === 'published');
+      default:
+        return [];
+    }
+  }, [posts, activeTab, activeChannel, todayString]);
+
+  const getPlatformIcon = (platform) => {
+    switch (platform) {
+      case 'x':
+        return <Twitter className="w-4 h-4" />;
+      case 'threads':
+        return <span className="text-xs font-bold">@</span>;
+      case 'reddit':
+        return <MessageSquare className="w-4 h-4" />;
+      default:
+        return <Hash className="w-4 h-4" />;
+    }
+  };
+
+  const channels = [
+    { id: 'all', label: 'All Channels', icon: <Hash className="w-4 h-4" /> },
+    { id: 'x', label: 'X', icon: <Twitter className="w-4 h-4" /> },
+    { id: 'threads', label: 'Threads', icon: <span className="text-xs font-bold">@</span> },
+    { id: 'reddit', label: 'Reddit', icon: <MessageSquare className="w-4 h-4" /> },
+  ];
+
+  const resetForm = useCallback(() => {
+    setFormContent('');
+    setFormPlatform('x');
+    setFormSubreddit('');
+    setFormScheduledAt('');
+    setFormRemindEmail(false);
+    setFormRemindAt('');
+    setScheduleMode('ai');
+    setEditingPost(null);
+    setIsSubmitting(false);
+    setSheetGoal(null);
+  }, []);
+
+  const openNewSheet = useCallback(() => {
+    resetForm();
+    setIsSheetOpen(true);
+  }, [resetForm]);
+
+  const openEditSheet = useCallback((post) => {
+    setEditingPost(post);
+    setFormContent(post.content);
+    setFormPlatform(post.platform);
+    setFormSubreddit(post.subreddit || '');
+    setFormScheduledAt(new Date(post.scheduled_at).toISOString().slice(0, 16));
+    setFormRemindEmail(post.remind_email || false);
+    setFormRemindAt(post.remind_at ? new Date(post.remind_at).toISOString().slice(0, 16) : '');
+    setScheduleMode('custom');
+    setIsSheetOpen(true);
+  }, []);
+
+  const openScheduleNowSheet = useCallback((post) => {
+    setEditingPost(post);
+    setFormContent(post.content);
+    setFormPlatform(post.platform);
+    setFormSubreddit(post.subreddit || '');
+    setFormScheduledAt('');
+    setFormRemindEmail(post.remind_email || false);
+    setFormRemindAt(post.remind_at ? new Date(post.remind_at).toISOString().slice(0, 16) : '');
+    setScheduleMode('ai');
+    setIsSheetOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (formPlatform && !formScheduledAt && scheduleMode === 'ai') {
+      const aiTime = getAIRecommendedTime(formPlatform);
+      setFormScheduledAt(aiTime.toISOString().slice(0, 16));
+    }
+  }, [formPlatform, scheduleMode, formScheduledAt]);
+
+  const handleGenerateDraft = async () => {
+    if (!formContent.trim()) return;
+    
+    setGeneratingDraft(true);
+    try {
+      const systemPrompt = `You are a viral content strategist for ${PLATFORM_LABELS[formPlatform]}. 
+      Goal: ${sheetGoal || 'Get signups'}. 
+      Context: ${formContent}.
+      
+      Brand Brain: ${JSON.stringify(brain)}
+      
+      Return ONLY a valid JSON object:
+      {
+        "title": "...",
+        "body": "..."
+      }`;
+
+      const result = await generateAICall(systemPrompt, "Generate the post now.", null, 'post');
+      const parsed = JSON.parse(result);
+      const content = formPlatform === 'reddit' ? `${parsed.title}\n\n${parsed.body}` : parsed.body || '';
+
+      await createMutation.mutateAsync({
+        user_id: user.id,
+        content,
+        platform: formPlatform,
+        subreddit: formPlatform === 'reddit' ? formSubreddit : null,
+        scheduled_at: new Date().toISOString(),
+        status: 'draft',
+      });
+
+      setIsSheetOpen(false);
+      resetForm();
+      toast.success('Draft saved');
+      refetch();
+    } catch (err) {
+      console.error("Generation failed:", err);
+      toast.error("Failed to generate post.");
+    } finally {
+      setGeneratingDraft(false);
+    }
+  };
+
+  const handleScheduleNow = async (e) => {
+    e.preventDefault();
+    if (!formContent.trim()) {
+      toast.error('Please enter some content');
+      return;
+    }
+    if (!formScheduledAt) {
+      toast.error('Please select a time');
+      return;
+    }
+    if (formPlatform === 'reddit' && !formSubreddit.trim()) {
+      toast.error('Please enter a subreddit');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const scheduledAtISO = new Date(formScheduledAt).toISOString();
+
+    try {
+      let postId;
+      if (editingPost) {
+        const updated = await updateMutation.mutateAsync({
+          id: editingPost.id,
+          updates: {
+            content: formContent,
+            platform: formPlatform,
+            subreddit: formPlatform === 'reddit' ? formSubreddit : null,
+            scheduled_at: scheduledAtISO,
+            status: 'draft',
+            remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
+            remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
+          },
+        });
+        postId = updated.id;
+      } else {
+        const created = await createMutation.mutateAsync({
+          user_id: user.id,
+          content: formContent,
+          platform: formPlatform,
+          subreddit: formPlatform === 'reddit' ? formSubreddit : null,
+          scheduled_at: scheduledAtISO,
+          status: 'draft',
+          remind_email: formPlatform === 'reddit' ? formRemindEmail : false,
+          remind_at: formPlatform === 'reddit' && formRemindEmail && formRemindAt ? new Date(formRemindAt).toISOString() : null,
+        });
+        postId = created.id;
+      }
+
+      const result = await scheduleMutation.mutateAsync({
+        post_id: postId,
+        platform: formPlatform,
+        content: formContent,
+        scheduled_at: scheduledAtISO,
+        subreddit: formPlatform === 'reddit' ? formSubreddit : undefined,
+      });
+
+      if (result.success) {
+        toast.success('Post scheduled');
+        setIsSheetOpen(false);
+        resetForm();
+        refetch();
+      } else {
+        toast.error(result.error || 'Failed to schedule post');
+      }
+    } catch (err) {
+      console.error('Schedule error:', err);
+      toast.error('Failed to schedule post');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    await deleteMutation.mutateAsync(id);
+    setDeleteConfirmId(null);
+  };
+
+  const handleRetry = async (post) => {
+    const scheduledAtISO = new Date(post.scheduled_at).toISOString();
+    try {
+      const result = await scheduleMutation.mutateAsync({
+        post_id: post.id,
+        platform: post.platform,
+        content: post.content,
+        scheduled_at: scheduledAtISO,
+        subreddit: post.subreddit || undefined,
+      });
+
+      if (result.success) {
+        toast.success('Post rescheduled');
+        refetch();
+      } else {
+        toast.error(result.error || 'Failed to retry');
+      }
+    } catch (err) {
+      toast.error('Failed to retry');
+    }
+  };
+
+  const handleImprove = async (postId, action) => {
+    setImprovingPostId(postId);
+    setOpenMenuId(null);
+    try {
+      const rewritten = await improveMutation.mutateAsync({ id: postId, action });
+      toast.success('Post improved');
+    } catch (err) {
+      toast.error('Failed to improve post');
+    } finally {
+      setImprovingPostId(null);
+    }
+  };
+
+  const handleCopy = async (content) => {
+    await navigator.clipboard.writeText(content);
+    toast.success('Copied to clipboard');
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      scheduled: { className: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: 'Scheduled' },
+      published: { className: 'bg-green-500/10 text-green-500 border-green-500/20', label: 'Published' },
+      failed: { className: 'bg-red-500/10 text-red-500 border-red-500/20', label: 'Failed' },
+      draft: { className: 'bg-gray-500/10 text-gray-400 border-gray-500/20', label: 'Draft' },
+    };
+    const v = variants[status] || variants.draft;
+    return <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border', v.className)}>{v.label}</span>;
+  };
+
+  const renderPostCard = (post, isFailed = false) => {
+    const isReddit = post.platform === 'reddit';
+    const isImproving = improvingPostId === post.id;
+    const canEditDelete = post.status !== 'published';
+
+    return (
+      <motion.div
+        layout
+        key={post.id}
+        className={cn(
+          'rounded-xl border bg-foreground/5 p-5 space-y-3 transition-all border-foreground/10'
+        )}
+      >
+        {isFailed && (
+          <div className="flex items-start gap-2 text-red-400">
+            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-medium">{post.error_message || 'Failed to schedule'}</p>
+            </div>
+          </div>
+        )}
+
+        {isReddit && (
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 space-y-3">
+              <p className="text-xs text-amber-600">
+                Reddit doesn't support auto-publishing. Copy your post and paste it manually.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-[10px] font-bold border-orange-500/20 text-orange-500 hover:bg-orange-500/10 px-2"
+                  onClick={() => handleCopy(post.content)}
+                >
+                  <Copy className="w-3 h-3 mr-1.5" />
+                  Copy Post
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-[10px] font-bold border-orange-500/20 text-orange-500 hover:bg-orange-500/10"
+                  onClick={() => window.open(`https://reddit.com/r/${post.subreddit || ''}/submit`, '_blank')}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1.5" />
+                  Open Reddit
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
+              {getPlatformIcon(post.platform)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
+                {post.subreddit && <span className="text-[10px] text-foreground/60">r/{post.subreddit}</span>}
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Clock className="w-3 h-3 text-foreground/40" />
+                <span className="text-[10px] text-foreground/40">{formatScheduledTime(post.scheduled_at)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {getStatusBadge(post.status)}
+            {canEditDelete && (
+              <DropdownMenu open={openMenuId === post.id} onOpenChange={(open) => setOpenMenuId(open ? post.id : null)}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground/40 hover:text-foreground">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => { openEditSheet(post); setOpenMenuId(null); }}>
+                    <Pencil className="w-3.5 h-3.5 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => { setDeleteConfirmId(post.id); setOpenMenuId(null); }} className="text-red-400 focus:text-red-400">
+                    <Trash2 className="w-3.5 h-3.5 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleImprove(post.id, 'be more engaging and viral')}>
+                    <TrendingUp className="w-3.5 h-3.5 mr-2" />
+                    Improve Hook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleImprove(post.id, 'be shorter and more concise')}>
+                    <Minus className="w-3.5 h-3.5 mr-2" />
+                    Make Shorter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleImprove(post.id, 'be more engaging and include a stronger hook')}>
+                    <Sparkles className="w-3.5 h-3.5 mr-2" />
+                    More Engaging
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </div>
+
+        <div className="relative">
+          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
+            {isImproving ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-3 h-3 animate-spin text-[#F97316]" />
+                Improving...
+              </span>
+            ) : (
+              post.content
+            )}
+          </p>
+        </div>
+
+        {isFailed && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-[10px] font-bold border-red-500/30 text-red-400 hover:bg-red-500/10"
+              onClick={() => handleRetry(post)}
+            >
+              <RefreshCw className="w-3 h-3 mr-1.5" />
+              Retry
+            </Button>
+            <Button
+              size="sm"
               variant="ghost"
               className="h-8 text-[10px] font-bold text-foreground/40 hover:text-foreground"
               onClick={() => window.open('https://buffer.com', '_blank')}
@@ -848,82 +1629,35 @@ export default function AutoPoster() {
                   <h3 className="text-sm text-foreground/40">
                     Today, {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                   </h3>
-                  {postsLoading ? (
+                  {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                       <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
                     </div>
-                  ) : queuePosts.length === 0 ? (
+                  ) : filteredPosts.length === 0 ? (
                     <div className="text-center py-20">
                       <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
                       <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {queuePosts.map((post) => (
-                        <motion.div
-                          key={post.id}
-                          layout
-                          className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 space-y-3"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/60">
-                                {getPlatformIcon(post.platform)}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-bold text-foreground">{PLATFORM_LABELS[post.platform]}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                  <span className="text-[10px] text-foreground/40">{formatScheduledTime(post.scheduled_at)}</span>
-                                </div>
-                              </div>
-                            </div>
-                            {getStatusBadge(post.status)}
-                          </div>
-                          <p className="text-sm text-foreground/80 leading-relaxed line-clamp-3">
-                            {post.content.length > 120 ? post.content.slice(0, 120) + '...' : post.content}
-                          </p>
-                          <div className="flex items-center gap-2 pt-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
-                              onClick={() => openEditSheet(post)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 text-[10px] font-bold text-foreground/60 hover:text-foreground px-2"
-                              onClick={() => {
-                                navigator.clipboard.writeText(post.content);
-                                toast.success('Copied!');
-                              }}
-                            >
-                              Copy
-                            </Button>
-                          </div>
-                        </motion.div>
-                      ))}
+                      {filteredPosts.map((post) => renderPostCard(post, post.status === 'failed'))}
                     </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="drafts" className="mt-0 space-y-6">
-                  {postsLoading ? (
+                  {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                       <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
                     </div>
-                  ) : draftPosts.length === 0 ? (
+                  ) : filteredPosts.length === 0 ? (
                     <div className="text-center py-20">
                       <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
                       <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {draftPosts.map((post) => (
+                      {filteredPosts.map((post) => (
                         <motion.div
                           key={post.id}
                           layout
@@ -981,18 +1715,18 @@ export default function AutoPoster() {
                 </TabsContent>
 
                 <TabsContent value="published" className="mt-0 space-y-6">
-                  {postsLoading ? (
+                  {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                       <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
                     </div>
-                  ) : publishedPosts.length === 0 ? (
+                  ) : filteredPosts.length === 0 ? (
                     <div className="text-center py-20">
                       <CalendarClock className="w-10 h-10 text-foreground/40 mx-auto mb-4" />
                       <p className="text-sm text-foreground/40">Nothing here yet. Generate your first post.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {publishedPosts.map((post) => (
+                      {filteredPosts.map((post) => (
                         <motion.div
                           key={post.id}
                           layout
@@ -1089,19 +1823,19 @@ export default function AutoPoster() {
             <div className="space-y-3">
               <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Content</Label>
               <Textarea
-                value={sheetContent}
-                onChange={(e) => setSheetContent(e.target.value)}
+                value={formContent}
+                onChange={(e) => setFormContent(e.target.value)}
                 placeholder="What's on your mind?"
                 className="min-h-[200px] bg-foreground/5 border-foreground/10 text-foreground placeholder-foreground/40 resize-none"
               />
             </div>
 
-            {sheetPlatform === 'reddit' && (
+            {formPlatform === 'reddit' && (
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">Subreddit</Label>
                 <Input
-                  value={sheetSubreddit}
-                  onChange={(e) => setSheetSubreddit(e.target.value)}
+                  value={formSubreddit}
+                  onChange={(e) => setFormSubreddit(e.target.value)}
                   placeholder="e.g. SaaS"
                   className="bg-foreground/5 border-foreground/10 text-foreground placeholder-foreground/40 h-10"
                 />
@@ -1111,7 +1845,7 @@ export default function AutoPoster() {
             <div className="pt-4">
               <Button
                 onClick={handleGenerateDraft}
-                disabled={generatingDraft || !sheetContent.trim()}
+                disabled={generatingDraft || !formContent.trim()}
                 className="w-full h-11 text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all"
               >
                 {generatingDraft ? (
@@ -1130,14 +1864,24 @@ export default function AutoPoster() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your scheduled post draft.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDelete(deleteConfirmId)} className="bg-red-500 hover:bg-red-600 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-
-const GOALS = [
-  "Get comments",
-  "Get signups", 
-  "Get feedback",
-  "Build authority",
-  "Tell story",
-];
