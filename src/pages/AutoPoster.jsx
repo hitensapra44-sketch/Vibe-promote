@@ -24,8 +24,10 @@ import {
   Unlink,
   Link2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
+import { generateAICall } from '@/lib/ai';
 import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
@@ -120,6 +122,12 @@ function getAIRecommendedTime(platform) {
   return tomorrow;
 }
 
+function formatRecommendedTime(hour, minute) {
+  const h = hour % 12 || 12;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  return `${h}:${minute.toString().padStart(2, '0')} ${ampm}`;
+}
+
 function formatScheduledTime(dateStr) {
   const date = new Date(dateStr);
   const now = new Date();
@@ -166,6 +174,8 @@ export default function AutoPoster() {
   const [isPaid, setIsPaid] = useState(false);
   const [sheetGoal, setSheetGoal] = useState(null);
   const [generatingDraft, setGeneratingDraft] = useState(false);
+  const [brain, setBrain] = useState(null);
+  const [generatingPlaceholder, setGeneratingPlaceholder] = useState(null);
 
   useEffect(() => {
     async function fetchPlanAndPayment() {
@@ -186,6 +196,16 @@ export default function AutoPoster() {
         });
         if (planData?.plan_json) {
           setWeeklyPlan(planData.plan_json);
+        }
+
+        const { data: brainData } = await supabase
+          .from('brand_brains')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (brainData) {
+          setBrain(brainData);
         }
       } catch (err) {
         console.error("Error fetching weekly plan or payment:", err);
@@ -360,6 +380,42 @@ export default function AutoPoster() {
 
   const todayString = useMemo(() => getTodayString(), []);
 
+  const weekDays = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const dateKey = d.toISOString().slice(0, 10);
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      days.push({ date: dateKey, dayName, dateObj: d });
+    }
+    return days;
+  }, []);
+
+  const upcomingWeekPosts = useMemo(() => {
+    const activeChannels = activeChannel === 'all' ? ['reddit', 'x', 'threads'] : [activeChannel];
+    
+    return weekDays.map((day) => {
+      const dayPosts = posts.filter(p => {
+        const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
+        return postDate === day.date && p.status !== 'published';
+      });
+      
+      const slots = activeChannels.map(platform => {
+        const existingPost = dayPosts.find(p => p.platform === platform);
+        return {
+          platform,
+          post: existingPost || null,
+          isPlaceholder: !existingPost,
+        };
+      });
+      
+      return { ...day, slots };
+    });
+  }, [posts, weekDays, activeChannel]);
+
   const filteredPosts = useMemo(() => {
     let result = posts;
     
@@ -372,11 +428,6 @@ export default function AutoPoster() {
         return result.filter(p => {
           const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
           return postDate === todayString;
-        });
-      case 'upcoming':
-        return result.filter(p => {
-          const postDate = new Date(p.scheduled_at).toISOString().slice(0, 10);
-          return postDate > todayString && p.status !== 'published';
         });
       case 'drafts':
         return result.filter(p => p.status === 'draft');
@@ -614,6 +665,55 @@ export default function AutoPoster() {
   const handleCopy = async (content) => {
     await navigator.clipboard.writeText(content);
     toast.success('Copied to clipboard');
+  };
+
+  const handleGeneratePlaceholder = async (platform, dayDate) => {
+    if (!brain) {
+      toast.error('Brand Brain not loaded yet. Please refresh.');
+      return;
+    }
+
+    const placeholderKey = `${platform}-${dayDate}`;
+    setGeneratingPlaceholder(placeholderKey);
+    try {
+      const platformName = PLATFORM_LABELS[platform];
+      const dateObj = new Date(dayDate);
+      const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+      const systemPrompt = `You are a viral content strategist for ${platformName}. 
+      Posting on: ${dayName}.
+      
+      Brand Brain: ${JSON.stringify(brain)}
+      
+      Return ONLY a valid JSON object:
+      {
+        "title": "...",
+        "body": "..."
+      }`;
+
+      const result = await generateAICall(systemPrompt, "Generate the post now.", null, 'post');
+      const parsed = JSON.parse(result);
+      const content = platform === 'reddit' ? `${parsed.title}\n\n${parsed.body}` : parsed.body || '';
+
+      const time = AI_RECOMMENDED_TIMES[platform] || AI_RECOMMENDED_TIMES.x;
+      const scheduledAt = new Date(dayDate);
+      scheduledAt.setHours(time.hour, time.minute, 0, 0);
+
+      setEditingPost(null);
+      setFormContent(content);
+      setFormPlatform(platform);
+      setFormSubreddit('');
+      setFormScheduledAt(scheduledAt.toISOString().slice(0, 16));
+      setFormRemindEmail(false);
+      setFormRemindAt('');
+      setScheduleMode('custom');
+      setIsSheetOpen(true);
+    } catch (err) {
+      console.error("Generation failed:", err);
+      toast.error("Failed to generate post.");
+    } finally {
+      setGeneratingPlaceholder(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -878,6 +978,7 @@ export default function AutoPoster() {
                   <TabsTrigger value="today" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Today</TabsTrigger>
                   <TabsTrigger value="drafts" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Drafts</TabsTrigger>
                   <TabsTrigger value="published" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Published</TabsTrigger>
+                  <TabsTrigger value="upcoming" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-foreground">Upcoming</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="today" className="mt-0 space-y-6">
@@ -1006,6 +1107,82 @@ export default function AutoPoster() {
                           </p>
                         </motion.div>
                       ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="upcoming" className="mt-0 space-y-6">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                      <Loader2 className="w-6 h-6 text-[#F97316] animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {upcomingWeekPosts.map((day) => {
+                        const hasAnyPosts = day.slots.some(s => !s.isPlaceholder);
+                        return (
+                          <div key={day.date} className="bg-foreground/5 border border-foreground/10 rounded-xl p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-xs font-bold text-foreground/70 uppercase tracking-wider">{day.dayName}</h4>
+                              <span className="text-[10px] text-foreground/40">{day.date}</span>
+                            </div>
+                            <div className="space-y-2">
+                              {day.slots.map(({ platform, post, isPlaceholder }) => {
+                                if (isPlaceholder) {
+                                  const placeholderKey = `${platform}-${day.date}`;
+                                  const aiTime = AI_RECOMMENDED_TIMES[platform] || AI_RECOMMENDED_TIMES.x;
+                                  return (
+                                    <button
+                                      key={platform}
+                                      onClick={() => handleGeneratePlaceholder(platform, day.date)}
+                                      disabled={generatingPlaceholder === placeholderKey}
+                                      className="w-full flex items-center justify-between p-3 rounded-lg border border-dashed border-foreground/15 hover:border-[#F97316]/40 hover:bg-[#F97316]/5 transition-all bg-transparent text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/40">
+                                          {getPlatformIcon(platform)}
+                                        </div>
+                                        <div>
+                                          <span className="text-xs font-bold text-foreground/70">{PLATFORM_LABELS[platform]} post</span>
+                                          <div className="flex items-center gap-1.5 mt-0.5">
+                                            <Clock className="w-3 h-3 text-foreground/30" />
+                                            <span className="text-[10px] text-foreground/40">
+                                              {formatRecommendedTime(aiTime.hour, aiTime.minute)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 text-[10px] font-bold text-[#F97316] hover:text-[#F97316] hover:bg-[#F97316]/10 px-2"
+                                        disabled={generatingPlaceholder === placeholderKey}
+                                      >
+                                        {generatingPlaceholder === placeholderKey ? (
+                                          <>
+                                            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                                            Generating...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Sparkles className="w-3 h-3 mr-1.5" />
+                                            Generate
+                                          </>
+                                        )}
+                                      </Button>
+                                    </button>
+                                  );
+                                }
+                                return (
+                                  <div key={platform}>
+                                    {renderPostCard(post, post.status === 'failed')}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </TabsContent>

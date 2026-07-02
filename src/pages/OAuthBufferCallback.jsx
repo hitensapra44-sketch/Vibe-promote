@@ -109,12 +109,12 @@ export default function OAuthBufferCallback() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <h1 className="text-xl font-bold text-white">Connect Buffer Channel</h1>
-          <p className="text-xs text-[#52525B] mt-2">Select which channel to link to Auto Poster</p>
+          <h1 className="text-xl font-bold text-foreground">Connect Buffer Channel</h1>
+          <p className="text-xs text-foreground/60 mt-2">Select which channel to link to Auto Poster</p>
         </div>
 
         {relevantChannels.length === 0 ? (
-          <p className="text-xs text-center text-[#52525B]">No X or Threads channels found in your Buffer account.</p>
+          <p className="text-xs text-center text-foreground/60">No X or Threads channels found in your Buffer account.</p>
         ) : (
           <div className="space-y-2">
             {relevantChannels.map((ch) => (
@@ -125,11 +125,15 @@ export default function OAuthBufferCallback() {
                   'w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-all',
                   selectedChannel?.id === ch.id
                     ? 'border-[#F97316] bg-[#F97316]/5'
-                    : 'border-[#1F1F1F] hover:border-[#52525B]'
+                    : 'border-orange-200 hover:border-orange-400'
                 )}
               >
-                <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#A1A1AA]">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-foreground/60">
                   {ch.service === 'twitter' ? <Twitter className="w-4 h-4" /> : <AtSign className="w-4 h-4" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-foreground">{ch.service === 'twitter' ? 'X' : 'Threads'}</p>
+                  <p className="text-[10px] text-foreground/60">{ch.name}</p>
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-bold text-white">{ch.service === 'twitter' ? 'X' : 'Threads'}</p>

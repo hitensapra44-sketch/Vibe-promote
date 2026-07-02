@@ -9,10 +9,11 @@ import {
   Twitter, 
   AtSign, 
   ArrowLeft, 
-  CheckCircle2, 
+  CheckCircle2,
   AlertCircle,
   ExternalLink,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { supabase } from '../../supabaseClient';
@@ -173,13 +174,13 @@ export default function ConnectAccounts({ onConnect }) {
                   key={p.id}
                   onClick={() => !p.comingSoon && (setSelectedPlatform(p), setStep('input'))}
                   className={cn(
-                    "bg-[#111111] border border-[#1F1F1F] rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
+                    "bg-white border border-orange-200 rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
                     p.comingSoon && "opacity-40 cursor-not-allowed",
                     isConnected && "border-green-500/30 bg-green-500/5"
                   )}
                 >
                   {p.comingSoon && (
-                    <span className="absolute top-2 right-2 bg-[#111111] text-zinc-500 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+                    <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/50 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
                   )}
                   {isConnected && (
                     <div className="absolute top-2 right-2 flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full">
@@ -188,16 +189,16 @@ export default function ConnectAccounts({ onConnect }) {
                     </div>
                   )}
                   <div className={cn(
-                    "w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-1 transition-colors",
+                    "w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mb-1 transition-colors",
                     isConnected ? "bg-green-500/10" : "group-hover:bg-orange-500/10"
                   )}>
                     <p.icon size={20} className={cn(
                       "transition-colors",
-                      isConnected ? "text-green-500" : "text-zinc-400 group-hover:text-orange-500"
+                      isConnected ? "text-green-500" : "text-foreground/60 group-hover:text-orange-500"
                     )} />
                   </div>
-                  <span className="text-white text-sm font-medium">{p.name}</span>
-                  <span className="text-zinc-500 text-xs">{p.desc}</span>
+                  <span className="text-foreground text-sm font-medium">{p.name}</span>
+                  <span className="text-foreground/50 text-xs">{p.desc}</span>
                 </div>
               );
             })}
@@ -210,11 +211,11 @@ export default function ConnectAccounts({ onConnect }) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-[#111111] border border-orange-500/30 rounded-2xl p-8"
+            className="bg-white border border-orange-500/30 rounded-2xl p-8"
           >
             <button 
               onClick={() => setStep('platform-select')}
-              className="text-zinc-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-6 bg-transparent"
+              className="text-foreground/50 hover:text-foreground text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-6 bg-transparent"
             >
               <ArrowLeft size={14} /> Back to platforms
             </button>
@@ -224,27 +225,27 @@ export default function ConnectAccounts({ onConnect }) {
                 <selectedPlatform.icon size={24} className="text-orange-500" />
               </div>
               <div>
-                <h3 className="text-white text-xl font-bold">Connect {selectedPlatform.name}</h3>
-                <p className="text-zinc-400 text-sm">Enter your username to track your performance.</p>
+                <h3 className="text-foreground text-xl font-bold">Connect {selectedPlatform.name}</h3>
+                <p className="text-foreground/60 text-sm">Enter your username to track your performance.</p>
               </div>
             </div>
 
             <form onSubmit={handleStartFetch} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Username</label>
+                <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest ml-1">Username</label>
                 <input
                   type="text"
                   placeholder={`e.g. ${selectedPlatform.id === 'Reddit' ? 'spez' : 'maker_name'}`}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all"
+                  className="w-full bg-white border border-orange-200 rounded-xl px-5 py-4 text-foreground focus:outline-none focus:border-orange-500 transition-all"
                   required
                   disabled={loading}
                 />
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-400/5 border border-red-400/20 p-4 rounded-xl">
+                <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 border border-red-200 p-4 rounded-xl">
                   <AlertCircle size={16} />
                   {error}
                 </div>
@@ -267,7 +268,7 @@ export default function ConnectAccounts({ onConnect }) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: -0.95 }}
-            className="bg-[#111111] border border-green-500/30 rounded-2xl p-8"
+            className="bg-white border border-green-500/30 rounded-2xl p-8"
           >
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
@@ -275,13 +276,13 @@ export default function ConnectAccounts({ onConnect }) {
                   <CheckCircle2 size={20} className="text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-white font-bold">Found {fetchedPosts.length} posts</h3>
-                  <p className="text-zinc-400 text-xs">Previewing data for {selectedPlatform.id === 'Reddit' ? 'u/' : ''}{username}</p>
+                  <h3 className="text-foreground font-bold">Found {fetchedPosts.length} posts</h3>
+                  <p className="text-foreground/60 text-xs">Previewing data for {selectedPlatform.id === 'Reddit' ? 'u/' : ''}{username}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setStep('input')}
-                className="text-zinc-500 hover:text-white text-xs font-bold bg-transparent"
+                className="text-foreground/50 hover:text-foreground text-xs font-bold bg-transparent"
               >
                 Change User
               </button>
@@ -289,10 +290,10 @@ export default function ConnectAccounts({ onConnect }) {
 
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 mb-8 scrollbar-hide">
               {fetchedPosts.map((post, i) => (
-                <div key={i} className="bg-[#0A0A0A] border border-[#1F1F1F] rounded-xl p-4 flex items-center justify-between group">
+                <div key={i} className="bg-gray-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between group">
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-white text-sm font-medium truncate mb-1">{post.title}</h4>
-                    <div className="flex items-center gap-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <h4 className="text-foreground text-sm font-medium truncate mb-1">{post.title}</h4>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider">
                       <span className="text-orange-500">{post.subreddit}</span>
                       <span>•</span>
                       <span>{post.score} Upvotes</span>
@@ -300,7 +301,7 @@ export default function ConnectAccounts({ onConnect }) {
                       <span>{post.num_comments} Comments</span>
                     </div>
                   </div>
-                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="p-2 text-zinc-600 hover:text-white transition-colors">
+                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="p-2 text-foreground/50 hover:text-foreground transition-colors">
                     <ExternalLink size={14} />
                   </a>
                 </div>
@@ -310,7 +311,7 @@ export default function ConnectAccounts({ onConnect }) {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('input')}
-                className="flex-1 py-4 border border-[#1F1F1F] text-zinc-400 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
+                className="flex-1 py-4 border border-orange-200 text-foreground/60 font-bold rounded-xl hover:bg-orange-50 transition-all bg-transparent"
               >
                 Back
               </button>
@@ -326,7 +327,7 @@ export default function ConnectAccounts({ onConnect }) {
         )}
       </AnimatePresence>
 
-      <div className="mt-8 flex items-center justify-center gap-2 text-zinc-500 text-xs bg-[#111111] border border-[#1F1F1F] rounded-lg py-3 px-4">
+      <div className="mt-8 flex items-center justify-center gap-2 text-foreground/50 text-xs bg-white border border-orange-200 rounded-lg py-3 px-4">
         <Lock size={12} />
         <span>We only read performance data. We never post for you.</span>
       </div>
