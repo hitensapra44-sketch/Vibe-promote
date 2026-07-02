@@ -892,31 +892,31 @@ export default function AutoPoster() {
                     if (!hasAnyNonPublishedPosts && emptyPlatforms.length > 0) {
                       return (
                         <div className="space-y-3">
-                          {emptyPlatforms.map((platform) => (
-                            <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
-                                  {getPlatformIcon(platform)}
-                                </div>
-                                <div>
-                                  <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
-                                  <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
-                                    <Clock className="w-3 h-3" />
-                                    Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                                  </p>
-                                </div>
-                              </div>
-<Button
-                                 size="sm"
-                                 variant="ghost"
-                                 className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
-                                 onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
-                               >
-                                 <Sparkles className="w-3 h-3" />
-                                 Generate
-                               </Button>
-                            </div>
-                          ))}
+{emptyPlatforms.map((platform) => (
+                <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
+                      {getPlatformIcon(platform)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
+                      <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3" />
+                        Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
+                    onClick={() => handleGenerateFromPlaceholder(platform, new Date())}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Generate
+                  </Button>
+                </div>
+              ))}
                         </div>
                       );
                     }
@@ -950,21 +950,21 @@ export default function AutoPoster() {
                               return platformPosts.map(post => renderPostCard(post, post.status === 'failed'));
                             }
 
-                            return (
-                              <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
-                                    {getPlatformIcon(platform)}
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
-                                    <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
-                                      <Clock className="w-3 h-3" />
-                                      Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
-                                    </p>
-                                  </div>
+return (
+                            <div key={platform} className="flex items-center justify-between p-4 rounded-xl border border-dashed border-[#1F1F1F] bg-[#111111]/30 hover:bg-[#111111]/50 transition-all">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[#1F1F1F] flex items-center justify-center text-[#52525B]">
+                                  {getPlatformIcon(platform)}
                                 </div>
-<Button
+                                <div>
+                                  <p className="text-xs font-bold text-[#A1A1AA] capitalize">{PLATFORM_LABELS[platform]} Post</p>
+                                  <p className="text-[10px] text-[#52525B] flex items-center gap-1 mt-0.5">
+                                    <Clock className="w-3 h-3" />
+                                    Recommended: {AI_RECOMMENDED_TIMES[platform]?.hour || 9}:{(AI_RECOMMENDED_TIMES[platform]?.minute || 0) === 0 ? '00' : AI_RECOMMENDED_TIMES[platform].minute} {(AI_RECOMMENDED_TIMES[platform]?.hour || 9) >= 12 ? 'PM' : 'AM'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
                                 size="sm"
                                 variant="ghost"
                                 className="h-8 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all gap-1"
@@ -973,9 +973,9 @@ export default function AutoPoster() {
                                 <Sparkles className="w-3 h-3" />
                                 Generate
                               </Button>
-                               </div>
-                            );
-                          })}
+                            </div>
+                          );
+                        })}
                         </div>
                       </div>
                     );
