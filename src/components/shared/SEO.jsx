@@ -12,7 +12,7 @@ export default function SEO({
   description,
   canonicalUrl,
   ogType = 'website',
-  ogImage = 'https://vibepromote.tech/favicon.png',
+  ogImage = 'https://vibepromote.tech/logo.png',
   schema,
   keywords = []
 }) {
@@ -154,7 +154,7 @@ export const getArticleSchema = ({ title, description, datePublished, dateModifi
   "@type": "TechArticle",
   "headline": title,
   "description": description,
-  "image": imageUrl || "https://vibepromote.tech/favicon.png",
+  "image": imageUrl || "https://vibepromote.tech/logo.png",
   "datePublished": datePublished,
   "dateModified": dateModified || datePublished,
   "author": {
