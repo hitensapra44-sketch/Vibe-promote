@@ -27,7 +27,10 @@ import {
   CheckCircle2,
   XCircle,
   Sun,
-  Moon
+  Moon,
+  Activity,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { useTheme } from '../lib/ThemeContext';
@@ -51,6 +54,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [checkedItems, setCheckedItems] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -135,74 +139,53 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
-  const tools = [
-    { 
-      id: 'audience', 
-      icon: Search, 
-      name: 'User Finder', 
-      desc: 'Find exactly who your buyers are and where they hang out.', 
-      available: true,
-      path: '/audience-spotter'
-    },
-    { 
-      id: 'hook', 
-      icon: PenTool, 
-      name: 'Post Maker', 
-      desc: 'Generate scroll-stopping posts for Twitter, LinkedIn, and Reddit.', 
-      available: true,
-      path: '/post-maker'
-    },
-    { 
-      id: 'copilot', 
-      icon: MessageSquare, 
-      name: 'Co-Pilot', 
-      desc: 'Your AI marketing assistant for strategy and content ideas.', 
-      available: true,
-      path: '/marketing-buddy'
-    },
-    { 
-      id: 'analytics', 
-      icon: TrendingUp, 
-      name: 'Analytics', 
-      desc: 'Track performance and insights across all your marketing channels.', 
-      available: true,
-      path: '/dashboard/results-tracker'
-    },
-     { 
-      id: 'poster', 
-      icon: Calendar, 
-      name: 'Auto Poster/Scheduler', 
-      desc: 'Schedule and automate your content across all platforms.', 
-      available: false 
-    },
-  ];
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
 
-  const statCards = [
-    {
-      label: 'Post Generated',
-      value: stats.postsGenerated,
-      icon: PenTool,
-      suffix: '',
-    },
-    {
-      label: 'Audience Found',
-      value: stats.audiencesFound,
-      icon: Target,
-      suffix: '',
-    },
-    {
-      label: 'Connect Channels',
-      value: stats.connectedChannels,
-      icon: Hash,
-      suffix: '',
-    },
-    {
-      label: 'Streak',
-      value: stats.consistencyStreak,
-      icon: Flame,
-      suffix: stats.consistencyStreak === 1 ? ' day' : ' days',
-    }
-  ];
+  // Compute Marketing Health Score
+  const baseScore = 5;
+  const connectedBonus = stats.connectedChannels > 0 ? 1 : 0;
+  const streakBonus = stats.consistencyStreak > 0 ? 1 : 0;
+  const audienceBonus = stats.audiencesFound > 0 ? 1.5 : 0;
+  const postBonus = stats.postsGenerated > 0 ? 1.5 : 0;
+  const rawScore = baseScore + connectedBonus + streakBonus + audienceBonus + postBonus;
+  const healthScore = Math.min(10, Math.round(rawScore * 10) / 10);
+  const healthStatus = healthScore >= 7 ? "You're on track" : "A few things need attention";
+
+  // Generate Checklist Items
+  const checklistItems = [];
+  if (stats.audiencesFound > 0) {
+    checklistItems.push({
+      id: 'reply',
+      label: 'Reply to a founder in User Finder',
+      path: '/audience-spotter'
+    });
+  }
+  if (stats.postsGenerated < 3) {
+    checklistItems.push({
+      id: 'post',
+      label: "Generate today's post",
+      path: '/post-maker'
+    });
+  }
+  if (stats.connectedChannels === 0) {
+    checklistItems.push({
+      id: 'connect',
+      label: 'Connect a channel',
+      path: '/connected-accounts'
+    });
+  }
+
+  const toggleChecklist = (id) => {
+    setCheckedItems(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   if (loading) {
     return (
@@ -246,140 +229,198 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
+        <div className="p-6 sm:p-8 space-y-8 max-w-4xl mx-auto w-full">
 
-          <section className="rounded-2xl p-6 border border-orange-500/40 bg-foreground/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-foreground mb-1">
-                Welcome, {user?.email?.split('@')[0]}
-              </h2>
-              <p className="text-sm text-foreground/70">Your marketing co-pilot is ready.</p>
+          {/* 1. Header Greeting */}
+          <section className="space-y-1">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              {getGreeting()}, {user?.email?.split('@')[0]}
+            </h2>
+            <p className="text-sm text-foreground/60">Here is your marketing overview for today.</p>
+          </section>
+
+          {/* 2. Marketing Health Card */}
+          <section className="rounded-2xl p-6 border border-orange-500/40 bg-foreground/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="space-y-3 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="px-3 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-bold text-lg">
+                  {healthScore}/10
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Marketing Health</h3>
+                  <p className="text-xs text-foreground/60">{healthStatus}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-foreground/70">
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {stats.postsGenerated} posts generated
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {stats.audiencesFound} opportunities found
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {stats.consistencyStreak}-day streak
+                </span>
+              </div>
             </div>
             <button 
               onClick={() => navigate('/progress')}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+              className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-2 shadow-lg shadow-primary/20 whitespace-nowrap"
             >
               Track Your Progress
               <ArrowRight className="w-3 h-3" />
             </button>
           </section>
 
-          {/* New Update Section */}
-          <section className="rounded-2xl p-6 border border-orange-500/20 bg-orange-500/[0.02] space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-orange-500" />
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">New Update</h3>
-            </div>
-            <ul className="space-y-2.5 text-sm text-foreground/80 pl-1">
-              <li className="flex items-start gap-2.5">
-                <span className="text-orange-500 font-bold mt-0.5">•</span>
-                <span>Now you can add your original reply as the context to make better replies in User Finder.</span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="text-orange-500 font-bold mt-0.5">•</span>
-                <span>X and Threads search is available now!</span>
-              </li>
-            </ul>
-          </section>
-
-          {/* App Update Section */}
-          <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h3 className="text-sm font-bold text-foreground mb-1">
-                Have an app update?
-              </h3>
-              <p className="text-xs text-foreground/70">Keep your brand brain up to date with the latest features.</p>
-            </div>
-            <button 
-              onClick={() => navigate('/brand-brain')}
-              className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all flex items-center gap-2 bg-transparent"
-            >
-              Update brand brain
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </section>
-
-          <section className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-6">
+          {/* 3. Today's Opportunities (Placeholder) */}
+          <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <User className="w-4 h-4 text-foreground/70" />
-                Your Profile
+                <Search className="w-4 h-4 text-orange-500" />
+                🔥 People to talk to
               </h3>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
-                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">App Name</span>
-                <span className="text-base font-bold text-foreground truncate">{profileData?.appName}</span>
-              </div>
-              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
-                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Target Audience</span>
-                <span className="text-sm font-bold text-foreground truncate">{profileData?.targetAudience}</span>
-              </div>
-              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
-                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Platforms</span>
-                <span className="text-sm font-bold text-foreground truncate">{profileData?.platforms}</span>
-              </div>
-              <div className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
-                <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-1">Marketing Goal</span>
-                <span className="text-sm font-bold text-foreground truncate">{profileData?.marketingGoal}</span>
-              </div>
+            {/* TODO: wired in Prompt 2 with real audience_signals rows */}
+            <div className="py-6 text-center space-y-4">
+              <p className="text-sm text-foreground/60">No new opportunities loaded yet — open User Finder to scan.</p>
+              <button 
+                onClick={() => navigate('/audience-spotter')}
+                className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+              >
+                Open User Finder
+              </button>
             </div>
+          </section>
 
-            <div>
-              <p className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest mb-3">Activity Status</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {statCards.map((stat, i) => (
-                  <div key={i} className="flex flex-col p-4 rounded-xl border border-foreground/5 bg-foreground/5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <stat.icon className="w-3 h-3 text-foreground/70" />
-                      <span className="text-[10px] font-bold text-foreground/70 uppercase tracking-widest">{stat.label}</span>
-                    </div>
-                    <span className="text-xl font-bold text-foreground">
-                      {stat.value}
-                      <span className="text-xs font-medium text-foreground/70 ml-1">{stat.suffix}</span>
-                    </span>
-                  </div>
-                ))}
+          {/* 4. Content Opportunities (Placeholder) */}
+          <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <PenTool className="w-4 h-4 text-orange-500" />
+                ✍️ What to post today
+              </h3>
+            </div>
+            {/* TODO: wired in Prompt 2 with real content suggestion */}
+            <div className="py-6 text-center space-y-4">
+              <p className="text-sm text-foreground/60">Ready to write your next post?</p>
+              <button 
+                onClick={() => navigate('/post-maker')}
+                className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+              >
+                Generate today's post
+              </button>
+            </div>
+          </section>
+
+          {/* 5. Momentum Section */}
+          <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-orange-500" />
+              Momentum
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 border border-foreground/5 text-xs font-medium">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span>{stats.consistencyStreak}-day posting streak</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 border border-foreground/5 text-xs font-medium">
+                <PenTool className="w-4 h-4 text-orange-500" />
+                <span>{stats.postsGenerated} posts generated</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 border border-foreground/5 text-xs font-medium">
+                <Target className="w-4 h-4 text-orange-500" />
+                <span>{stats.audiencesFound} opportunities found</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 border border-foreground/5 text-xs font-medium">
+                <Hash className="w-4 h-4 text-orange-500" />
+                <span>{stats.connectedChannels} channels connected</span>
               </div>
             </div>
           </section>
 
-          <section className="space-y-6">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Zap className="w-4 h-4 text-foreground/70" />
-              Marketing Tools
-            </h3>
+          {/* 6. Today's Checklist */}
+          {checklistItems.length > 0 && (
+            <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-orange-500" />
+                Today's Checklist
+              </h3>
+              <div className="space-y-3">
+                {checklistItems.map((item) => {
+                  const isChecked = !!checkedItems[item.id];
+                  return (
+                    <div 
+                      key={item.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-foreground/5 border border-foreground/5 hover:border-foreground/10 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => toggleChecklist(item.id)}
+                          className="text-orange-500 hover:text-orange-600 transition-colors bg-transparent p-0"
+                        >
+                          {isChecked ? (
+                            <CheckSquare className="w-5 h-5" />
+                          ) : (
+                            <Square className="w-5 h-5 text-foreground/30" />
+                          )}
+                        </button>
+                        <span className={cn("text-sm font-medium", isChecked && "line-through text-foreground/40")}>
+                          {item.label}
+                        </span>
+                      </div>
+                      {!isChecked && (
+                        <button 
+                          onClick={() => navigate(item.path)}
+                          className="text-xs font-bold text-orange-500 hover:underline bg-transparent"
+                        >
+                          Go →
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tools.map((tool) => (
-                <div 
-                  key={tool.id} 
-                  className="group relative p-6 rounded-2xl border border-orange-500/40 bg-foreground/5 transition-all duration-300"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center mb-4 text-foreground/70">
-                    <tool.icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-bold text-foreground">{tool.name}</h4>
-                  </div>
-                  <p className="text-xs text-foreground/70 mb-6 leading-relaxed">
-                    {tool.desc}
-                  </p>
-                  <button
-                    disabled={!tool.available}
-                    onClick={() => isPaid ? navigate(tool.path) : navigate('/pricing')}
-                    className={cn(
-                      "w-full py-2.5 rounded-lg text-xs font-medium transition-all border bg-transparent",
-                      tool.available 
-                        ? "border-foreground/10 text-foreground hover:bg-foreground/5" 
-                        : "border-foreground/5 text-foreground/30 cursor-not-allowed"
-                    )}
-                  >
-                    {!tool.available ? 'Coming Soon' : (isPaid ? 'Open Tool' : 'Unlock Access')}
-                  </button>
-                </div>
-              ))}
+          {/* 7. What's New & App Update */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* New Update Section */}
+            <div className="rounded-2xl p-5 border border-orange-500/20 bg-orange-500/[0.02] space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-orange-500" />
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">New Update</h3>
+              </div>
+              <ul className="space-y-2 text-xs text-foreground/80 pl-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 font-bold">•</span>
+                  <span>Add original reply context to make better replies in User Finder.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-500 font-bold">•</span>
+                  <span>X and Threads search is available now!</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* App Update Section */}
+            <div className="bg-foreground/5 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between gap-4">
+              <div>
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                  Have an app update?
+                </h3>
+                <p className="text-xs text-foreground/70">Keep your brand brain up to date with the latest features.</p>
+              </div>
+              <button 
+                onClick={() => navigate('/brand-brain')}
+                className="w-full py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all flex items-center justify-center gap-2 bg-transparent"
+              >
+                Update brand brain
+                <ArrowRight className="w-3 h-3" />
+              </button>
             </div>
           </section>
 
