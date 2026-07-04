@@ -230,10 +230,10 @@ export default function AutoPoster() {
     queryFn: async () => {
       if (!user) return [];
       const { data } = await supabase
-.from('social_post_queue')
-         .select('*')
-         .eq('user_id', user.id)
-         .order('scheduled_at', { ascending: true });
+        .from('social_post_queue')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('scheduled_at', { ascending: true });
       return data || [];
     },
     enabled: !!user,
@@ -254,11 +254,11 @@ export default function AutoPoster() {
     enabled: !!user,
   });
 
-const createMutation = useMutation({
-     mutationFn: async (newPost) => {
-       const { data, error } = await supabase
-         .from('social_post_queue')
-         .insert([newPost])
+  const createMutation = useMutation({
+    mutationFn: async (newPost) => {
+      const { data, error } = await supabase
+        .from('social_post_queue')
+        .insert([newPost])
         .select()
         .single();
       if (error) throw error;
@@ -269,11 +269,11 @@ const createMutation = useMutation({
     },
   });
 
-const updateMutation = useMutation({
-     mutationFn: async ({ id, updates }) => {
-       const { data, error } = await supabase
-         .from('social_post_queue')
-         .update(updates)
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }) => {
+      const { data, error } = await supabase
+        .from('social_post_queue')
+        .update(updates)
         .eq('id', id)
         .eq('user_id', user.id)
         .select()
@@ -286,11 +286,11 @@ const updateMutation = useMutation({
     },
   });
 
-const deleteMutation = useMutation({
-     mutationFn: async (id) => {
-       const { error } = await supabase
-         .from('social_post_queue')
-         .delete()
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('social_post_queue')
+        .delete()
         .eq('id', id)
         .eq('user_id', user.id);
       if (error) throw error;
@@ -335,9 +335,9 @@ const deleteMutation = useMutation({
 
       const rewritten = data.choices[0].message.content;
 
-const { error: updateError } = await supabase
-         .from('social_post_queue')
-         .update({ content: rewritten })
+      const { error: updateError } = await supabase
+        .from('social_post_queue')
+        .update({ content: rewritten })
         .eq('id', id)
         .eq('user_id', user.id);
 
@@ -350,25 +350,29 @@ const { error: updateError } = await supabase
   });
 
   const handleConnectBuffer = async () => {
-    const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
-    if (!clientId) {
-      toast.error('Buffer OAuth is not configured');
-      return;
+    try {
+      const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
+      if (!clientId) {
+        toast.error('Buffer OAuth is not configured');
+        return;
+      }
+
+      const { challenge } = await generatePKCE();
+      const redirectUri = `${window.location.origin}/oauth/buffer/callback`;
+
+      const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        scope: 'read,write',
+      });
+
+      window.location.href = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
+    } catch (error) {
+      toast.error(error.message || 'Failed to connect Buffer account');
     }
-
-    const { challenge } = await generatePKCE();
-    const redirectUri = 'https://vibepromote.tech/oauth/buffer/callback';
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      code_challenge: challenge,
-      code_challenge_method: 'S256',
-      scope: 'read,write',
-    });
-
-    window.location.href = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
   };
 
   const handleDisconnectBuffer = async (accountId) => {
