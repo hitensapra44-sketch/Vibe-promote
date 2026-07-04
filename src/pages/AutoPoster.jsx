@@ -76,71 +76,14 @@ const PLATFORM_LABELS = {
 
 const AI_RECOMMENDED_TIMES = {
   x: { hour: 9, minute: 0 },
-  threads: { hour: 15, minute: 0 },
-  reddit: { hour: 20, minute: 0 },
+  threads: { icon: MessageSquare, name: 'Threads' },
+  reddit: { icon: MessageSquare, name: 'Reddit' },
 };
-
-const GOALS = [
-  "Get comments",
-  "Get signups", 
-  "Get feedback",
-  "Build authority",
-  "Tell story",
-];
-
-function generateRandomString(length) {
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  const values = crypto.getRandomValues(new Uint8Array(length));
-  return values.reduce((acc, x) => acc + possible[x % possible.length], '');
-}
-
-async function sha256(plain) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(plain);
-  return window.crypto.subtle.digest('SHA-256', data);
-}
-
-function base64urlencode(a) {
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(a)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-async function generatePKCE() {
-  const verifier = generateRandomString(64);
-  const hashed = await sha256(verifier);
-  const challenge = base64urlencode(hashed);
-  sessionStorage.setItem('buffer_code_verifier', verifier);
-  return { verifier, challenge };
-}
-
-function getAIRecommendedTime(platform) {
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const time = AI_RECOMMENDED_TIMES[platform] || AI_RECOMMENDED_TIMES.x;
-  tomorrow.setHours(time.hour, time.minute, 0, 0);
-  return tomorrow;
-}
-
-function formatRecommendedTime(hour, minute) {
-  const h = hour % 12 || 12;
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  return `${h}:${minute.toString().padStart(2, '0')} ${ampm}`;
-}
 
 function formatScheduledTime(dateStr) {
   const date = new Date(dateStr);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
   const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-
-  if (isToday) return `Today ${timeStr}`;
-  if (isTomorrow) return `Tomorrow ${timeStr}`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + `, ${timeStr}`;
+  return timeStr;
 }
 
 function getTodayString() {
@@ -350,8 +293,10 @@ export default function AutoPoster() {
   });
 
   const handleConnectBuffer = async () => {
+    console.log('handleConnectBuffer called');
     try {
       const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
+      console.log('clientId:', clientId);
       if (!clientId) {
         toast.error('Buffer OAuth is not configured');
         return;
@@ -369,8 +314,11 @@ export default function AutoPoster() {
         scope: 'read,write',
       });
 
-      window.location.href = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
+      const redirectUrl = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
+      console.log('PKCE generated, redirecting to:', redirectUrl);
+      window.location.href = redirectUrl;
     } catch (error) {
+      console.error(error);
       toast.error(error.message || 'Failed to connect Buffer account');
     }
   };
