@@ -51,6 +51,7 @@ export default function Dashboard() {
     connectedChannels: 0,
     consistencyStreak: 0,
   });
+  const [recentSignals, setRecentSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -113,6 +114,18 @@ export default function Dashboard() {
           .from('audience_signals')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id);
+
+        // Fetch 3 most recent audience signals
+        const { data: signalsData } = await supabase
+          .from('audience_signals')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (signalsData) {
+          setRecentSignals(signalsData);
+        }
 
         // Fetch streak from user_progress table to sync with Progress Page
         const { data: progressData } = await supabase
@@ -275,7 +288,7 @@ export default function Dashboard() {
             </button>
           </section>
 
-          {/* 3. Today's Opportunities (Placeholder) */}
+          {/* 3. Today's Opportunities */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -283,19 +296,61 @@ export default function Dashboard() {
                 🔥 People to talk to
               </h3>
             </div>
-            {/* TODO: wired in Prompt 2 with real audience_signals rows */}
-            <div className="py-6 text-center space-y-4">
-              <p className="text-sm text-foreground/60">No new opportunities loaded yet — open User Finder to scan.</p>
-              <button 
-                onClick={() => navigate('/audience-spotter')}
-                className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
-              >
-                Open User Finder
-              </button>
-            </div>
+            {recentSignals.length > 0 ? (
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {recentSignals.map((signal) => (
+                    <div 
+                      key={signal.id} 
+                      className="flex items-start justify-between gap-4 p-4 rounded-xl bg-foreground/5 border border-foreground/5 hover:border-foreground/10 transition-all"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-orange-500">
+                            {signal.platform === 'reddit' ? `r/${signal.subreddit}` : signal.subreddit || signal.platform || 'Community'}
+                          </span>
+                          <span className="text-[10px] text-foreground/40">•</span>
+                          <span className="text-[10px] text-foreground/50 font-medium">Score: {signal.intent_score}%</span>
+                        </div>
+                        <h4 className="text-sm font-bold text-foreground truncate">
+                          {signal.post_title}
+                        </h4>
+                        <p className="text-xs text-foreground/60 line-clamp-2 leading-relaxed">
+                          {signal.post_body}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/audience-spotter?id=${signal.id}`)}
+                        className="px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all flex-shrink-0 self-center"
+                      >
+                        Reply
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-2 text-right">
+                  <Link 
+                    to="/audience-spotter" 
+                    className="text-xs font-bold text-orange-500 hover:underline inline-flex items-center gap-1"
+                  >
+                    View all {stats.audiencesFound} opportunities →
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="py-6 text-center space-y-4">
+                <p className="text-sm text-foreground/60">No new opportunities loaded yet — open User Finder to scan.</p>
+                <button 
+                  onClick={() => navigate('/audience-spotter')}
+                  className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+                >
+                  Open User Finder
+                </button>
+              </div>
+            )}
           </section>
 
-          {/* 4. Content Opportunities (Placeholder) */}
+          {/* 4. Content Opportunities */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -303,14 +358,16 @@ export default function Dashboard() {
                 ✍️ What to post today
               </h3>
             </div>
-            {/* TODO: wired in Prompt 2 with real content suggestion */}
-            <div className="py-6 text-center space-y-4">
-              <p className="text-sm text-foreground/60">Ready to write your next post?</p>
+            <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/5 flex items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-bold text-foreground">Generate today's post</h4>
+                <p className="text-xs text-foreground/60 mt-1">Create highly engaging, platform-native posts tailored to your brand voice.</p>
+              </div>
               <button 
                 onClick={() => navigate('/post-maker')}
-                className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+                className="px-4 py-2.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all flex-shrink-0"
               >
-                Generate today's post
+                Generate
               </button>
             </div>
           </section>
