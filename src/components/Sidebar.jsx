@@ -48,7 +48,7 @@ export default function Sidebar({ isPaid }) {
     { icon: Sparkles, label: 'Co-pilot', path: '/marketing-buddy', available: true },
     { icon: Settings, label: 'Settings', path: '/settings', available: true },
     { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
-    { icon: CalendarClock, label: 'Auto Poster', path: '/auto-poster', available: true },
+    { icon: CalendarClock, label: 'Auto Poster', path: '/auto-poster', available: false },
   ];
 
   return (
@@ -109,10 +109,11 @@ export default function Sidebar({ isPaid }) {
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent border-none cursor-pointer",
+                  "w-full flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all group bg-transparent border-none",
                   location.pathname === link.path 
                     ? "bg-foreground/5 text-foreground" 
                     : "text-foreground/70 hover:text-foreground hover:bg-foreground/5",
+                  !link.available && "opacity-50 cursor-not-allowed",
                   sidebarCollapsed ? "justify-center" : "justify-between"
                 )}
               >
