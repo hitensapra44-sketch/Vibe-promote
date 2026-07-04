@@ -22,7 +22,8 @@ import {
   Minus,
   TrendingUp,
   Unlink,
-  Link2
+  Link2,
+  AtSign
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../lib/AuthContext';
@@ -76,9 +77,55 @@ const PLATFORM_LABELS = {
 
 const AI_RECOMMENDED_TIMES = {
   x: { hour: 9, minute: 0 },
-  threads: { icon: MessageSquare, name: 'Threads' },
-  reddit: { icon: MessageSquare, name: 'Reddit' },
+  threads: { hour: 10, minute: 0 },
+  reddit: { hour: 11, minute: 0 },
 };
+
+const GOALS = [
+  "Get comments",
+  "Get signups", 
+  "Get feedback",
+  "Build authority",
+  "Tell story",
+];
+
+async function generatePKCE() {
+  const array = new Uint32Array(56);
+  window.crypto.getRandomValues(array);
+  const verifier = Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
+  
+  sessionStorage.setItem('buffer_code_verifier', verifier);
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hash = await window.crypto.subtle.digest('SHA-256', data);
+  
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+
+  return { challenge: base64, verifier };
+}
+
+function getAIRecommendedTime(platform) {
+  const now = new Date();
+  const time = AI_RECOMMENDED_TIMES[platform] || { hour: 9, minute: 0 };
+  const recommended = new Date(now);
+  recommended.setHours(time.hour, time.minute, 0, 0);
+  if (recommended < now) {
+    recommended.setDate(recommended.getDate() + 1);
+  }
+  return recommended;
+}
+
+function formatRecommendedTime(hour, minute) {
+  if (hour === undefined || minute === undefined) return '';
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  const displayMinute = minute.toString().padStart(2, '0');
+  return `${displayHour}:${displayMinute} ${ampm}`;
+}
 
 function formatScheduledTime(dateStr) {
   const date = new Date(dateStr);
@@ -293,10 +340,8 @@ export default function AutoPoster() {
   });
 
   const handleConnectBuffer = async () => {
-    console.log('handleConnectBuffer called');
     try {
       const clientId = import.meta.env.VITE_BUFFER_OAUTH_CLIENT_ID;
-      console.log('clientId:', clientId);
       if (!clientId) {
         toast.error('Buffer OAuth is not configured');
         return;
@@ -315,7 +360,6 @@ export default function AutoPoster() {
       });
 
       const redirectUrl = `https://bufferapp.com/oauth2/authorize?${params.toString()}`;
-      console.log('PKCE generated, redirecting to:', redirectUrl);
       window.location.href = redirectUrl;
     } catch (error) {
       console.error(error);
@@ -688,17 +732,6 @@ export default function AutoPoster() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const variants = {
-      scheduled: { className: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: 'Scheduled' },
-      published: { className: 'bg-green-500/10 text-green-500 border-green-500/20', label: 'Published' },
-      failed: { className: 'bg-red-500/10 text-red-500 border-red-500/20', label: 'Failed' },
-      draft: { className: 'bg-gray-500/10 text-gray-400 border-gray-500/20', label: 'Draft' },
-    };
-    const v = variants[status] || variants.draft;
-    return <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border', v.className)}>{v.label}</span>;
-  };
-
   const renderPostCard = (post, isFailed = false) => {
     const isReddit = post.platform === 'reddit';
     const isImproving = improvingPostId === post.id;
@@ -850,10 +883,7 @@ export default function AutoPoster() {
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
       <Sidebar isPaid={isPaid} />
 
-      {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-        {/* Top header */}
         <header className="h-14 border-b border-foreground/5 bg-background flex items-center justify-between px-6 sticky top-0 z-30 flex-shrink-0">
           <h1 className="text-sm font-bold text-foreground">Auto Poster</h1>
           <Button size="sm" className="h-8 gap-2 text-[11px] font-bold bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all" onClick={openNewSheet}>
@@ -862,10 +892,7 @@ export default function AutoPoster() {
           </Button>
         </header>
 
-        {/* Two-column body */}
         <div className="flex flex-1 overflow-hidden">
-
-          {/* ── LEFT: Channel list (Buffer-style) ── */}
           <aside className="w-56 flex-shrink-0 border-r border-foreground/5 bg-background flex flex-col overflow-y-auto">
             <div className="px-4 pt-5 pb-2">
               <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Channels</p>
@@ -942,7 +969,6 @@ export default function AutoPoster() {
             </div>
           </aside>
 
-          {/* ── RIGHT: Queue ── */}
           <main className="flex-1 overflow-y-auto">
             <div className="p-6 max-w-2xl mx-auto w-full">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
