@@ -312,7 +312,7 @@ export default function Dashboard() {
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    exit={{ opacity: 0, y: 0 }}
                     className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20 text-red-500 text-xs font-medium"
                   >
                     <div className="flex items-center gap-2">
@@ -592,7 +592,7 @@ export default function Dashboard() {
                 No activity recorded yet.
               </p>
             )}
-          </div>
+          </section>
 
         </div>
       </main>
