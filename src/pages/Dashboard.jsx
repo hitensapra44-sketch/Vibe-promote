@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -18,13 +18,18 @@ import {
   Activity,
   Settings,
   MessageSquare,
-  Globe
+  Globe,
+  Check,
+  TrendingUp,
+  Heart,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import AppGuide from '../components/AppGuide';
 import { cn } from "@/lib/utils";
+import { markTaskComplete } from '../components/TaskWidget';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -41,9 +46,80 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [hasReplied, setHasReplied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [checkedItems, setCheckedItems] = useState({});
   const [showGuide, setShowGuide] = useState(false);
   const navigate = useNavigate();
+
+  // Checklist / Tasks state
+  const [tasks, setTasks] = useState([]);
+  const [currentDay, setCurrentDay] = useState(1);
+
+  // Analytics metrics state
+  const [analyticsMetrics, setAnalyticsMetrics] = useState({
+    upvotes: 0,
+    comments: 0,
+    engagement: 0
+  });
+
+  const fetchTasks = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('user_tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      let completedLocalKeys = [];
+      try {
+        completedLocalKeys = JSON.parse(localStorage.getItem(`vh_completed_tasks_${user.id}`) || '[]');
+      } catch (e) {}
+
+      if (!error && data && data.length > 0) {
+        // Deduplicate tasks by task_key
+        let finalTasks = Array.from(new Map(data.map(t => [t.task_key, t])).values());
+        
+        // Sync with local storage completed tasks
+        finalTasks = finalTasks.map(t => {
+          if (completedLocalKeys.includes(t.task_key)) {
+            return { ...t, status: 'completed' };
+          }
+          return t;
+        });
+
+        setTasks(finalTasks);
+
+        // Calculate current day
+        const firstTask = finalTasks[0];
+        if (firstTask && firstTask.created_at) {
+          const firstDate = new Date(firstTask.created_at);
+          firstDate.setHours(0, 0, 0, 0);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const diffTime = Math.abs(today.getTime() - firstDate.getTime());
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          setCurrentDay(Math.min(15, diffDays + 1));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user, fetchTasks]);
+
+  useEffect(() => {
+    const handleTaskCompleted = () => {
+      fetchTasks();
+    };
+    window.addEventListener('vh_task_completed', handleTaskCompleted);
+    return () => {
+      window.removeEventListener('vh_task_completed', handleTaskCompleted);
+    };
+  }, [fetchTasks]);
 
   useEffect(() => {
     async function fetchData() {
@@ -125,7 +201,28 @@ export default function Dashboard() {
           consistencyStreak: streak,
         });
 
-        // 8. Derive Recent Activity
+        // 8. Fetch social posts metrics for Analytics Summary
+        const { data: socialPosts } = await supabase
+          .from('social_posts')
+          .select('engagements, comments')
+          .eq('user_id', user.id);
+
+        if (socialPosts && socialPosts.length > 0) {
+          const totals = socialPosts.reduce(
+            (acc, p) => ({
+              upvotes: acc.upvotes + (p.engagements || 0),
+              comments: acc.comments + (p.comments || 0),
+            }),
+            { upvotes: 0, comments: 0 }
+          );
+          setAnalyticsMetrics({
+            upvotes: totals.upvotes,
+            comments: totals.comments,
+            engagement: totals.upvotes + totals.comments
+          });
+        }
+
+        // 9. Derive Recent Activity
         const activityList = [];
 
         // Latest social post
@@ -227,36 +324,8 @@ export default function Dashboard() {
   const rawScore = baseScore + connectedBonus + streakBonus + audienceBonus + postBonus;
   const healthScore = Math.min(10, Math.round(rawScore * 10) / 10);
 
-  // Checklist Items
-  const checklistItems = [];
-  if (stats.audiencesFound > 0) {
-    checklistItems.push({
-      id: 'reply',
-      label: 'Reply to a founder',
-      path: '/audience-spotter'
-    });
-  }
-  if (stats.postsGenerated < 3) {
-    checklistItems.push({
-      id: 'post',
-      label: "Generate today's post",
-      path: '/post-maker'
-    });
-  }
-  if (stats.connectedChannels === 0) {
-    checklistItems.push({
-      id: 'connect',
-      label: 'Connect a channel',
-      path: '/connected-accounts'
-    });
-  }
-
-  const toggleChecklist = (id) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
+  // Filter tasks for today
+  const todaysTasks = tasks.filter(t => t.day === currentDay);
 
   // Dynamic Alert Conditions
   const isBrainStale = brain && brain.created_at && (new Date() - new Date(brain.created_at) > 60 * 24 * 60 * 60 * 1000);
@@ -282,9 +351,10 @@ export default function Dashboard() {
           </div>
           <Link 
             to="/brand-brain" 
-            className="text-xs font-bold text-foreground/60 hover:text-foreground transition-colors"
+            className="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20"
           >
-            Update Brand Brain
+            <Sparkles className="w-3.5 h-3.5" />
+            Have an app update? Update Brand Brain
           </Link>
         </header>
 
@@ -395,30 +465,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-bold text-foreground">People to talk to</h3>
             </div>
 
-            {!isPaid ? (
-              /* Locked/Preview State for Unpaid Users */
-              <div className="relative rounded-xl overflow-hidden border border-foreground/10 p-8 text-center space-y-4 bg-foreground/5">
-                <div className="absolute inset-0 bg-background/40 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6">
-                  <Lock className="w-8 h-8 text-orange-500 mb-3" />
-                  <h4 className="text-sm font-bold text-foreground mb-1">Unlock high-intent buyer leads</h4>
-                  <p className="text-xs text-foreground/60 max-w-xs mb-4">Upgrade to Pro to view and reply to real-time opportunities scanned from communities.</p>
-                  <button 
-                    onClick={() => navigate('/pricing')}
-                    className="px-6 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all shadow-lg shadow-orange-500/20"
-                  >
-                    Unlock Access
-                  </button>
-                </div>
-                <div className="space-y-3 opacity-20 select-none pointer-events-none">
-                  <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/5 flex justify-between">
-                    <div className="text-left">
-                      <span className="text-xs font-bold text-orange-500">r/SaaS</span>
-                      <h4 className="text-sm font-bold text-foreground">Looking for a marketing tool...</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : recentSignals.length > 0 ? (
+            {recentSignals.length > 0 ? (
               <div className="space-y-4">
                 <div className="space-y-3">
                   {recentSignals.map((signal) => (
@@ -461,12 +508,12 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="py-8 text-center space-y-4">
-                <p className="text-sm text-foreground/60">No opportunities scanned yet.</p>
+                <p className="text-sm text-foreground/60">No users found.</p>
                 <button 
                   onClick={() => navigate('/audience-spotter')}
-                  className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/5 transition-all bg-transparent"
+                  className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all"
                 >
-                  Open User Finder
+                  Go to User Finder
                 </button>
               </div>
             )}
@@ -520,52 +567,80 @@ export default function Dashboard() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-background border border-foreground/10 rounded-xl p-5">
-                  <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Total Posts</span>
-                  <span className="text-2xl font-bold text-foreground">{stats.postsGenerated}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-background border border-foreground/10 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block">Total Posts</span>
+                    <span className="text-xl font-bold text-foreground">{stats.postsGenerated}</span>
+                  </div>
                 </div>
-                <div className="bg-background border border-foreground/10 rounded-xl p-5">
-                  <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block mb-1">Opportunities Found</span>
-                  <span className="text-2xl font-bold text-foreground">{stats.audiencesFound}</span>
+                <div className="bg-background border border-foreground/10 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                    <Heart className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block">Upvotes</span>
+                    <span className="text-xl font-bold text-foreground">{analyticsMetrics.upvotes}</span>
+                  </div>
+                </div>
+                <div className="bg-background border border-foreground/10 rounded-xl p-5 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-foreground/50 uppercase tracking-widest block">Comments</span>
+                    <span className="text-xl font-bold text-foreground">{analyticsMetrics.comments}</span>
+                  </div>
                 </div>
               </div>
             )}
           </section>
 
           {/* Today's Checklist */}
-          {checklistItems.length > 0 && (
+          {todaysTasks.length > 0 && (
             <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
               <h3 className="text-sm font-bold text-foreground">Today's Checklist</h3>
               <div className="space-y-3">
-                {checklistItems.map((item) => {
-                  const isChecked = !!checkedItems[item.id];
+                {todaysTasks.map((task) => {
+                  const isCompleted = task.status === 'completed';
                   return (
                     <div 
-                      key={item.id}
+                      key={task.id}
                       className="flex items-center justify-between p-3 rounded-xl bg-foreground/5 border border-foreground/5 hover:border-foreground/10 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
                         <button 
-                          onClick={() => toggleChecklist(item.id)}
-                          className="text-orange-500 hover:text-orange-600 transition-colors bg-transparent p-0"
+                          onClick={() => {
+                            if (!isCompleted) {
+                              markTaskComplete(user.id, task.task_key, supabase);
+                            }
+                          }}
+                          className="text-orange-500 hover:text-orange-600 transition-colors bg-transparent p-0 mt-0.5"
                         >
-                          {isChecked ? (
+                          {isCompleted ? (
                             <CheckSquare className="w-5 h-5" />
                           ) : (
                             <Square className="w-5 h-5 text-foreground/30" />
                           )}
                         </button>
-                        <span className={cn("text-sm font-medium", isChecked && "line-through text-foreground/40")}>
-                          {item.label}
-                        </span>
+                        <div className="min-w-0">
+                          <span className={cn("text-sm font-bold text-foreground block", isCompleted && "line-through text-foreground/40")}>
+                            {task.task_title}
+                          </span>
+                          <span className="text-xs text-foreground/60 block mt-0.5">
+                            {task.task_description}
+                          </span>
+                        </div>
                       </div>
-                      {!isChecked && (
+                      {!isCompleted && (
                         <button 
-                          onClick={() => navigate(item.path)}
-                          className="text-xs font-bold text-orange-500 hover:underline bg-transparent"
+                          onClick={() => navigate(task.route)}
+                          className="text-xs font-bold text-orange-500 hover:underline bg-transparent whitespace-nowrap ml-4"
                         >
-                          Go →
+                          Start →
                         </button>
                       )}
                     </div>
