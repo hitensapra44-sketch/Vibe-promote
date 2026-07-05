@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   PenTool, 
@@ -22,6 +23,7 @@ import {
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
+import AppGuide from '../components/AppGuide';
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -40,6 +42,7 @@ export default function Dashboard() {
   const [hasReplied, setHasReplied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [checkedItems, setCheckedItems] = useState({});
+  const [showGuide, setShowGuide] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -287,7 +290,7 @@ export default function Dashboard() {
 
         <div className="p-6 sm:p-8 space-y-8 max-w-4xl mx-auto w-full pb-24">
 
-          {/* 10. Dynamic Alerts */}
+          {/* Dynamic Alerts */}
           <AnimatePresence>
             {(isBrainStale || hasNoChannels || hasPendingReplies) && (
               <div className="space-y-3">
@@ -337,14 +340,14 @@ export default function Dashboard() {
             )}
           </AnimatePresence>
 
-          {/* 1. Greeting */}
+          {/* Greeting */}
           <section className="py-2">
             <h2 className="text-2xl font-bold text-foreground tracking-tight">
               {getGreeting()}, {user?.email?.split('@')[0]}
             </h2>
           </section>
 
-          {/* 2. Marketing Health */}
+          {/* Marketing Health */}
           <section className="rounded-2xl p-6 border border-orange-500/40 bg-foreground/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-3 flex-1">
               <div className="flex items-center gap-3">
@@ -386,7 +389,7 @@ export default function Dashboard() {
             </button>
           </section>
 
-          {/* 3. People To Talk To */}
+          {/* People To Talk To */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground">People to talk to</h3>
@@ -469,7 +472,7 @@ export default function Dashboard() {
             )}
           </section>
 
-          {/* 4. What To Post Today */}
+          {/* What To Post Today */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-foreground">What to post today</h3>
@@ -503,7 +506,7 @@ export default function Dashboard() {
             )}
           </section>
 
-          {/* 5. Analytics Summary */}
+          {/* Analytics Summary */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <h3 className="text-sm font-bold text-foreground">Analytics Summary</h3>
             {hasNoChannels ? (
@@ -530,7 +533,7 @@ export default function Dashboard() {
             )}
           </section>
 
-          {/* 6. Today's Checklist */}
+          {/* Today's Checklist */}
           {checklistItems.length > 0 && (
             <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
               <h3 className="text-sm font-bold text-foreground">Today's Checklist</h3>
@@ -572,7 +575,7 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* 7. Recent Activity */}
+          {/* Recent Activity */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <h3 className="text-sm font-bold text-foreground">Recent Activity</h3>
             {recentActivity.length > 0 ? (
@@ -585,39 +588,23 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-foreground/60 text-center py-4">
-                No activity yet. Generate your first post or run a scan to get started.
+              <p className="text-sm text-foreground/60 text-center py-20">
+                No activity recorded yet.
               </p>
             )}
-          </section>
+          </div>
 
-          {/* 8. What's New */}
-          <section className="rounded-2xl p-5 border border-orange-500/20 bg-orange-500/[0.02] space-y-2 max-w-md mx-auto sm:mx-0">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-              <h3 className="text-[10px] font-bold text-foreground uppercase tracking-wider">What's New</h3>
-            </div>
-            <ul className="space-y-1.5 text-[11px] text-foreground/80 pl-1">
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>Add original reply context to make better replies in User Finder.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>X and Threads search is available now!</span>
-              </li>
-            </ul>
-          </section>
-
-          <footer className="pt-8 pb-6 border-t border-foreground/5 flex items-center justify-between">
-            <p className="text-[10px] text-foreground/60 font-medium">
-              Vibe Promote © 2026
-            </p>
-          </footer>
         </div>
       </main>
 
-      {showGuide && <AppGuide onClose={() => setShowGuide(false)} />}
+      {/* App Guide Modal */}
+      <AnimatePresence>
+        {false && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-4 backdrop-blur-sm">
+            {/* Guide component placeholder */}
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
