@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Sparkles, Loader2 } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Loader2, Lock, ArrowRight } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { generateAICall } from '../../lib/ai';
 import { useAuth } from '../../lib/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-export default function AnalyticsBuddy({ dataContext }) {
+export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
   const [inputValue, setInputValue] = useState('');
@@ -23,6 +25,10 @@ export default function AnalyticsBuddy({ dataContext }) {
   }, []);
 
   const handleSend = async (text) => {
+    if (isLocked) {
+      setIsOpen(true);
+      return;
+    }
     const msg = text || inputValue;
     if (!msg.trim() || isTyping) return;
 
@@ -91,62 +97,83 @@ Reference the supplied numbers directly; do not fabricate any data.`;
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-orange-500" />
                 <span className="text-foreground text-xs font-bold uppercase tracking-widest">Analytics Buddy</span>
+                {isLocked && <Lock size={12} className="text-orange-500" />}
               </div>
               <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-foreground transition-colors bg-transparent">
                 <X size={16} />
               </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide min-h-[200px]">
-              {messages.map((msg, i) => (
-                <div key={i} className={cn(
-                  "max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed",
-                  msg.role === 'user' 
-                    ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-foreground" 
-                    : "mr-auto bg-foreground/5 border border-foreground/10 text-zinc-700"
-                )}>
-                  {msg.text}
+            {isLocked ? (
+              <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4 bg-background">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-orange-500" />
                 </div>
-              ))}
-              {isTyping && (
-                <div className="mr-auto bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex gap-1">
-                  <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce" />
-                  <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.4s]" />
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-foreground/10 bg-background space-y-3">
-              <div className="flex flex-col gap-1.5">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSend(s)}
-                    className="text-left px-3 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-zinc-500 text-[10px] font-medium hover:border-orange-500/50 hover:text-foreground transition-all"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Ask anything..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  className="flex-1 bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-orange-500"
-                />
-                <button 
-                  onClick={() => handleSend()}
-                  disabled={!inputValue.trim() || isTyping}
-                  className="p-2 bg-orange-500 text-white rounded-lg disabled:opacity-50"
+                <h3 className="text-sm font-bold text-foreground">Unlock AI Analytics Buddy</h3>
+                <p className="text-xs text-zinc-500 max-w-[280px] leading-relaxed">
+                  Get personalized, automated strategy suggestions and deep performance insights based on your real-time data.
+                </p>
+                <button
+                  onClick={() => navigate('/pricing')}
+                  className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
                 >
-                  <Send size={14} />
+                  Upgrade to Pro <ArrowRight size={12} />
                 </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide min-h-[200px]">
+                  {messages.map((msg, i) => (
+                    <div key={i} className={cn(
+                      "max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed",
+                      msg.role === 'user' 
+                        ? "ml-auto bg-orange-500/10 border border-orange-500/20 text-foreground" 
+                        : "mr-auto bg-foreground/5 border border-foreground/10 text-zinc-700"
+                    )}>
+                      {msg.text}
+                    </div>
+                  ))}
+                  {isTyping && (
+                    <div className="mr-auto bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 flex gap-1">
+                      <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce" />
+                      <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-foreground/10 bg-background space-y-3">
+                  <div className="flex flex-col gap-1.5">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSend(s)}
+                        className="text-left px-3 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-zinc-500 text-[10px] font-medium hover:border-orange-500/50 hover:text-foreground transition-all"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Ask anything..."
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                      className="flex-1 bg-foreground/5 border border-foreground/10 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-orange-500"
+                    />
+                    <button 
+                      onClick={() => handleSend()}
+                      disabled={!inputValue.trim() || isTyping}
+                      className="p-2 bg-orange-500 text-white rounded-lg disabled:opacity-50"
+                    >
+                      <Send size={14} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -160,7 +187,7 @@ Reference the supplied numbers directly; do not fabricate any data.`;
               exit={{ opacity: 0, y: 10, scale: 0.8 }}
               className="absolute bottom-full right-0 mb-4 bg-white text-zinc-900 text-[10px] font-bold px-4 py-2 rounded-xl shadow-2xl border border-zinc-200 w-max max-w-[180px] text-center"
             >
-              ask me anything about your analytics
+              {isLocked ? "unlock ai analytics buddy" : "ask me anything about your analytics"}
               <div className="absolute top-full right-5 w-2 h-2 bg-white border-r border-b border-zinc-200 rotate-45 -translate-y-1" />
             </motion.div>
           )}

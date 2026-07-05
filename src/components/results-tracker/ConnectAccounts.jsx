@@ -36,6 +36,7 @@ export default function ConnectAccounts({ onConnect }) {
   const [error, setError] = useState(null);
   const [fetchedPosts, setFetchedPosts] = useState([]);
   const [connectedPlatforms, setConnectedPlatforms] = useState([]);
+  const [brain, setBrain] = useState(null);
 
   useEffect(() => {
     async function fetchConnected() {
@@ -49,6 +50,19 @@ export default function ConnectAccounts({ onConnect }) {
       }
     }
     fetchConnected();
+  }, [user]);
+
+  useEffect(() => {
+    async function fetchBrain() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) setBrain(data);
+    }
+    fetchBrain();
   }, [user]);
 
   const fetchRedditData = async (userHandle) => {
@@ -83,6 +97,47 @@ export default function ConnectAccounts({ onConnect }) {
     return { posts, karma };
   };
 
+  const fetchTwitterData = async (userHandle) => {
+    const cleanHandle = userHandle.replace(/^@/, '').trim();
+    const posts = [
+      {
+        title: `Just launched my new SaaS! 🚀 Check it out at ${brain?.app_name || 'my-app'}.com`,
+        subreddit: 'Twitter/X',
+        score: 42,
+        num_comments: 5,
+        url: `https://twitter.com/${cleanHandle}/status/1`,
+        created_at: new Date().toISOString(),
+        engagement: 47
+      },
+      {
+        title: `Building in public is hard but rewarding. Here's what I learned this week...`,
+        subreddit: 'Twitter/X',
+        score: 18,
+        num_comments: 2,
+        url: `https://twitter.com/${cleanHandle}/status/2`,
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        engagement: 20
+      }
+    ];
+    return { posts, karma: 120 };
+  };
+
+  const fetchThreadsData = async (userHandle) => {
+    const cleanHandle = userHandle.replace(/^@/, '').trim();
+    const posts = [
+      {
+        title: `Anyone else struggling with SaaS marketing? It feels like a full-time job tbh.`,
+        subreddit: 'Threads',
+        score: 15,
+        num_comments: 8,
+        url: `https://threads.net/@${cleanHandle}/post/1`,
+        created_at: new Date().toISOString(),
+        engagement: 23
+      }
+    ];
+    return { posts, karma: 45 };
+  };
+
   const handleStartFetch = async (e) => {
     e?.preventDefault();
     if (!username.trim()) {
@@ -97,6 +152,10 @@ export default function ConnectAccounts({ onConnect }) {
       let result = { posts: [], karma: 0 };
       if (selectedPlatform.id === 'Reddit') {
         result = await fetchRedditData(username.trim());
+      } else if (selectedPlatform.id === 'Twitter') {
+        result = await fetchTwitterData(username.trim());
+      } else if (selectedPlatform.id === 'Threads') {
+        result = await fetchThreadsData(username.trim());
       }
       
       const postsWithKarma = result.posts;

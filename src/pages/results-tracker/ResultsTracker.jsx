@@ -385,8 +385,8 @@ export default function ResultsTracker() {
           </PlanGate>
         )}
 
-        {hasConnectedAccounts && canAccess.analyticsFull && (
-          <AnalyticsBuddy dataContext={analyticsContext} />
+        {hasConnectedAccounts && (
+          <AnalyticsBuddy dataContext={analyticsContext} isLocked={!canAccess.analyticsFull} />
         )}
       </main>
     </div>
