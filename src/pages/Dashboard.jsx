@@ -448,6 +448,10 @@ export default function Dashboard() {
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                   {stats.consistencyStreak}-day streak
                 </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {stats.audiencesFound} user found
+                </span>
               </div>
             </div>
             <button 
@@ -459,10 +463,10 @@ export default function Dashboard() {
             </button>
           </section>
 
-          {/* People To Talk To */}
+          {/* User found */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground">People to talk to</h3>
+              <h3 className="text-sm font-bold text-foreground">User found</h3>
             </div>
 
             {recentSignals.length > 0 ? (
@@ -555,7 +559,17 @@ export default function Dashboard() {
 
           {/* Analytics Summary */}
           <section className="bg-foreground/5 border border-foreground/10 rounded-2xl p-6 space-y-4">
-            <h3 className="text-sm font-bold text-foreground">Analytics Summary</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-foreground">Analytics Summary</h3>
+              {!hasNoChannels && (
+                <button 
+                  onClick={() => navigate('/connected-accounts')}
+                  className="text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer"
+                >
+                  Connect Channel +
+                </button>
+              )}
+            </div>
             {hasNoChannels ? (
               <div className="py-6 text-center space-y-4">
                 <p className="text-sm text-foreground/60">Connecting accounts unlocks performance tracking across your channels.</p>
