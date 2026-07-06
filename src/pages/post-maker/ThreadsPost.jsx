@@ -12,7 +12,9 @@ import {
   ChevronUp,
   Loader2,
   ChevronLeft,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Edit2
 } from 'lucide-react';
 import { useAuth } from '../../lib/AuthContext';
 import { supabase } from '../../supabaseClient';
@@ -49,6 +51,18 @@ export default function ThreadsPost() {
   const [currentDay, setCurrentDay] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
   const navigate = useNavigate();
+
+  // AI Decide Flow States
+  const [aiGoal, setAiGoal] = useState(null);
+  const [aiHappening, setAiHappening] = useState(null);
+  const [aiHappeningOther, setAiHappeningOther] = useState('');
+  const [aiMention, setAiMention] = useState(null);
+
+  // Editable Generated Post States
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedBody, setEditedBody] = useState('');
+  const [editedCta, setEditedCta] = useState('');
 
   useEffect(() => {
     async function fetchBrain() {
@@ -183,6 +197,10 @@ Return ONLY valid JSON, no markdown, no backticks:
     setCustomContext("");
     setSelectedTone("Authentic Founder");
     setGeneratedPost(null);
+    setAiGoal(null);
+    setAiHappening(null);
+    setAiHappeningOther('');
+    setAiMention(null);
   };
 
   return (
@@ -240,11 +258,19 @@ Return ONLY valid JSON, no markdown, no backticks:
                   <h3 className="text-foreground text-lg font-bold">Write It Yourself + AI Enhance</h3>
                   <p className="text-foreground/60 text-sm mt-2">Write your own draft and let AI improve it for Threads</p>
                 </div>
+                <div
+                  onClick={() => { setSelectedMode("ai-decide"); setStep(3); }}
+                  className="bg-foreground/5 border border-foreground/10 rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 group"
+                >
+                  <Sparkles className="w-8 h-8 text-foreground/50 group-hover:text-orange-500 mb-4 transition-colors" />
+                  <h3 className="text-foreground text-lg font-bold">Let AI Decide</h3>
+                  <p className="text-foreground/60 text-sm mt-2">Answer 3 quick questions, we'll pick the best format for you</p>
+                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Template or Write */}
+          {/* STEP 3: Template, Write, or AI Decide */}
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               {selectedMode === "template" ? (
@@ -263,7 +289,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                     ))}
                   </div>
                 </>
-              ) : (
+              ) : selectedMode === "write" ? (
                 <div className="space-y-6">
                   <h1 className="text-2xl font-semibold text-foreground">Write your draft</h1>
                   <textarea
@@ -278,6 +304,145 @@ Return ONLY valid JSON, no markdown, no backticks:
                   >
                     Continue →
                   </button>
+                </div>
+              ) : (
+                /* AI Decide Flow */
+                <div className="space-y-8 max-w-2xl">
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-semibold text-foreground">Let AI Decide</h1>
+                    <p className="text-foreground/60 text-sm">Answer 3 quick questions, we'll pick the best format for you</p>
+                  </div>
+
+                  {/* Q1: Goal */}
+                  <div className="space-y-3">
+                    <label className="text-foreground text-sm font-medium block">Q1. What's your goal? <span className="text-red-500">*</span></label>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        { id: 'Get comments', label: '💬 Get comments' },
+                        { id: 'Get signups', label: '🚀 Get signups' },
+                        { id: 'Validate an idea', label: '✅ Validate an idea' },
+                        { id: 'Get feedback', label: '📝 Get feedback' },
+                        { id: 'Build authority', label: '🧠 Build authority' },
+                        { id: 'Tell my story', label: '📖 Tell my story' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setAiGoal(opt.id)}
+                          className={cn(
+                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
+                            aiGoal === opt.id 
+                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Q2: What's happening */}
+                  <div className="space-y-3">
+                    <label className="text-foreground text-sm font-medium block">Q2. What's happening? <span className="text-red-500">*</span></label>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        "Just launched",
+                        "Shipped a new feature",
+                        "Hit a milestone",
+                        "Learned something interesting",
+                        "Looking for advice",
+                        "Sharing an experiment",
+                        "Nothing specific",
+                        "Other"
+                      ].map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAiHappening(opt)}
+                          className={cn(
+                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
+                            aiHappening === opt 
+                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+
+                    {aiHappening === "Other" && (
+                      <input
+                        type="text"
+                        placeholder="Please specify..."
+                        value={aiHappeningOther}
+                        onChange={(e) => setAiHappeningOther(e.target.value)}
+                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-orange-500 placeholder-zinc-600 mt-2"
+                      />
+                    )}
+                  </div>
+
+                  {/* Q3: Mention product */}
+                  <div className="space-y-3">
+                    <label className="text-foreground text-sm font-medium block">Q3. Should we mention your product? <span className="text-red-500">*</span></label>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        "Yes, naturally",
+                        "Only if it fits",
+                        "No, keep it value-first"
+                      ].map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setAiMention(opt)}
+                          className={cn(
+                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
+                            aiMention === opt 
+                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Continue Button */}
+                  <div className="pt-6">
+                    <button
+                      onClick={() => {
+                        if (!aiGoal || !aiHappening || !aiMention || (aiHappening === "Other" && !aiHappeningOther.trim())) {
+                          toast.error("Please answer all required questions.");
+                          return;
+                        }
+                        
+                        // Auto-select template based on mapping logic
+                        let templateId = '';
+                        if (aiGoal === 'Get comments') templateId = 'x-contrarian-take-decide';
+                        else if (aiGoal === 'Get signups') templateId = 'x-step-by-step';
+                        else if (aiGoal === 'Validate an idea') templateId = 'x-analyzed-x';
+                        else if (aiGoal === 'Get feedback') templateId = 'x-problem-solution';
+                        else if (aiGoal === 'Build authority') templateId = 'x-tactical-one-liner';
+                        else if (aiGoal === 'Tell my story') templateId = 'x-personal-transformation';
+                        else templateId = 'x-tactical-one-liner';
+
+                        const matchedTemplate = templatesData.X.find(t => t.id === templateId);
+                        setSelectedTemplate(matchedTemplate || templatesData.X[0]);
+
+                        // Pre-fill customContext with Q2 and Q3 details
+                        const happeningText = aiHappening === "Other" ? aiHappeningOther : aiHappening;
+                        setCustomContext(`What's happening: ${happeningText}. Product mention preference: ${aiMention}.`);
+
+                        setStep(4);
+                      }}
+                      disabled={!aiGoal || !aiHappening || !aiMention || (aiHappening === "Other" && !aiHappeningOther.trim())}
+                      className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all disabled:opacity-50"
+                    >
+                      Continue →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -374,18 +539,89 @@ Return ONLY valid JSON, no markdown, no backticks:
                 <span className="text-foreground/60 text-sm">Score: <span className="text-foreground">{generatedPost.score}/100</span></span>
               </div>
 
-              <div className="bg-foreground/5 border border-foreground/10 rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6">
-                <div className="flex">
+              <div className="bg-foreground/5 border border-foreground/10 rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6 relative">
+                <div className="flex justify-between items-center">
                   <span className="bg-foreground/5 text-foreground/60 text-xs font-medium rounded-full px-3 py-1">
                     Threads
                   </span>
+                  {!isEditingPost && (
+                    <button
+                      onClick={() => {
+                        setEditedTitle(generatedPost.title);
+                        setEditedBody(generatedPost.body);
+                        setEditedCta(generatedPost.cta);
+                        setIsEditingPost(true);
+                      }}
+                      className="p-1.5 hover:bg-foreground/5 rounded-md transition-all bg-transparent border-none cursor-pointer text-foreground/60 hover:text-foreground"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                <h2 className="text-lg font-semibold text-foreground">{generatedPost.title}</h2>
-                <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
-                <div className="pt-4 border-t border-foreground/10">
-                  <span className="text-foreground/50 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
-                  <p className="text-orange-400 text-sm font-medium">{generatedPost.cta}</p>
-                </div>
+
+                {isEditingPost ? (
+                  <div className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Title</label>
+                      <input
+                        type="text"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Body</label>
+                      <textarea
+                        rows={8}
+                        value={editedBody}
+                        onChange={(e) => setEditedBody(e.target.value)}
+                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500 resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Call to Action</label>
+                      <input
+                        type="text"
+                        value={editedCta}
+                        onChange={(e) => setEditedCta(e.target.value)}
+                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <button
+                        onClick={() => setIsEditingPost(false)}
+                        className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-foreground text-xs font-bold bg-transparent"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setGeneratedPost({
+                            ...generatedPost,
+                            title: editedTitle,
+                            body: editedBody,
+                            cta: editedCta
+                          });
+                          setIsEditingPost(false);
+                          toast.success("Post updated!");
+                        }}
+                        className="px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-bold"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-semibold text-foreground">{generatedPost.title}</h2>
+                    <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                    <div className="pt-4 border-t border-foreground/10">
+                      <span className="text-foreground/50 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
+                      <p className="text-orange-400 text-sm font-medium">{generatedPost.cta}</p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-3 mt-8">
