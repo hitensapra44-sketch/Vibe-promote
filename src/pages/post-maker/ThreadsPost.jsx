@@ -8,8 +8,6 @@ import {
   Copy, 
   RefreshCw, 
   Check, 
-  ChevronDown, 
-  ChevronUp,
   Loader2,
   ChevronLeft,
   ExternalLink,
@@ -42,6 +40,7 @@ export default function ThreadsPost() {
   const [step, setStep] = useState(2);
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [format, setFormat] = useState('single'); // 'single' | 'thread'
   const [customContext, setCustomContext] = useState("");
   const [selectedTone, setSelectedTone] = useState("Authentic Founder");
   const [generatedPost, setGeneratedPost] = useState(null);
@@ -62,6 +61,7 @@ export default function ThreadsPost() {
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedBody, setEditedBody] = useState('');
+  const [editedPosts, setEditedPosts] = useState([]);
   const [editedCta, setEditedCta] = useState('');
 
   useEffect(() => {
@@ -81,7 +81,6 @@ export default function ThreadsPost() {
         .maybeSingle();
       if (data) setBrain(data);
 
-      // Fetch current day
       const { data: tasksData } = await supabase
         .from('user_tasks')
         .select('created_at')
@@ -121,48 +120,43 @@ export default function ThreadsPost() {
     setIsLoading(true);
     setStep(5);
 
+    const bodyFormula = format === 'single' ? selectedTemplate?.singleFormula : JSON.stringify(selectedTemplate?.threadFormula);
+
     const prompt = `
-You are a ghostwriter for indie founders. Write short, conversational Threads posts. Sound like a real person, not a marketer.
+You are a ghostwriter for indie founders. Write conversational Threads posts. Sound like a real person, not a marketer.
 
 BRAND:
 ${JSON.stringify(brain)}
 
-TASK: Write one complete Threads post using the "${selectedTemplate?.name || 'custom'}" template.
+TASK: Write one complete Threads ${format} using the "${selectedTemplate?.name || 'custom'}" template.
 
-HARD RULES — break any of these and the post fails:
-- Under 100 words total. Keep it short and conversational.
-- Zero emojis. Zero hashtags. Zero corporate words (leverage, streamline, optimize, game-changer).
+HARD RULES:
+- Zero emojis. Zero hashtags.
+- No corporate buzzwords.
 - No exclamation marks.
-- No em-dashes.
-- Hook = first line, under 12 words. Relatable or opinionated.
-- Product name only in the CTA line, nowhere else.
-- CTA = one soft line. Never "DM me" or "link in bio".
+- Product name only in the CTA line.
 - Write lowercase where it feels natural. Short sentences only.
 
-TEMPLATE: ${selectedTemplate?.structure || 'write a short conversational Threads post that fits the brand'}
-TONE: ${selectedTone}
-EXTRA CONTEXT: ${customContext || 'None'}
+TEMPLATE SPECS:
+- FORMAT: ${format}
+- HOOK FORMULA: ${selectedTemplate?.hookFormula || 'Short and relatable'}
+- BODY FORMULA: ${bodyFormula || 'Write in brand voice'}
+- CTA FORMULA: ${selectedTemplate?.ctaFormula || 'Natural and inviting'}
+- TONE: ${selectedTone}
+- EXTRA CONTEXT: ${customContext || 'None'}
 
-SCORING:
-Score out of 100 on: hook strength, word count compliance, no rule violations (emoji/hashtag = -30), CTA quality, tone match.
-scoreLabel: 75-100 = "Great Post", 50-74 = "Decent Post", 0-49 = "Needs Work"
-scoreColor: "green" / "yellow" / "red"
-
-Return ONLY valid JSON, no markdown, no backticks:
-{
-  "title": "hook line",
-  "body": "full post body",
-  "cta": "one soft CTA line",
-  "score": 82,
-  "scoreLabel": "Great Post",
-  "scoreColor": "green"
-}
+OUTPUT FORMAT:
+Return ONLY valid JSON.
+If format is single:
+{ "title": "hook line", "body": "post body", "cta": "CTA line", "score": 82, "scoreLabel": "Great Post", "scoreColor": "green" }
+If format is thread:
+{ "title": "thread hook", "posts": ["post 1", "post 2", ...], "cta": "CTA line", "score": 82, "scoreLabel": "Great Post", "scoreColor": "green" }
 `;
 
     const attemptGeneration = async () => {
       try {
-        const result = await generateAICall(prompt, "Generate the post now.", null, 'post');
-        return JSON.parse(result);
+        const result = await generateAICall(prompt, "Generate the content now.", null, 'post');
+        return JSON.parse(result.replace(/```json|```/g, '').trim());
       } catch (e) {
         return null;
       }
@@ -177,14 +171,20 @@ Return ONLY valid JSON, no markdown, no backticks:
       setStep(6);
       await incrementUsage(supabase, user.id, 'post_maker');
     } else {
-      toast.error("Couldn't generate post. Try again.");
+      toast.error("Couldn't generate content. Try again.");
       setIsLoading(false);
       setStep(4);
     }
   };
 
   const handleCopy = () => {
-    const text = `${generatedPost.title}\n\n${generatedPost.body}\n\n${generatedPost.cta}`;
+    let text = `${generatedPost.title}\n\n`;
+    if (format === 'single') {
+      text += `${generatedPost.body}\n\n`;
+    } else {
+      text += generatedPost.posts.join('\n\n') + '\n\n';
+    }
+    text += generatedPost.cta;
     navigator.clipboard.writeText(text);
     setCopyStatus("Copied!");
     setTimeout(() => setCopyStatus("Copy Post"), 2000);
@@ -194,6 +194,7 @@ Return ONLY valid JSON, no markdown, no backticks:
     setStep(2);
     setSelectedMode(null);
     setSelectedTemplate(null);
+    setFormat('single');
     setCustomContext("");
     setSelectedTone("Authentic Founder");
     setGeneratedPost(null);
@@ -210,7 +211,6 @@ Return ONLY valid JSON, no markdown, no backticks:
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
         <div className="max-w-4xl mx-auto w-full">
           
-          {/* Progress Bar & Back Navigation */}
           {step >= 2 && step <= 4 && (
             <div className="mb-12">
               <div className="flex items-center justify-between mb-4">
@@ -236,7 +236,6 @@ Return ONLY valid JSON, no markdown, no backticks:
             </div>
           )}
 
-          {/* STEP 2: Mode Selection */}
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               <h1 className="text-2xl font-semibold text-foreground mb-8">How do you want to create your Threads post?</h1>
@@ -258,26 +257,16 @@ Return ONLY valid JSON, no markdown, no backticks:
                   <h3 className="text-foreground text-lg font-bold">Write It Yourself + AI Enhance</h3>
                   <p className="text-foreground/60 text-sm mt-2">Write your own draft and let AI improve it for Threads</p>
                 </div>
-                <div
-                  onClick={() => { setSelectedMode("ai-decide"); setStep(3); }}
-                  className="bg-foreground/5 border border-foreground/10 rounded-xl p-8 cursor-pointer transition-all hover:border-orange-500/50 group"
-                >
-                  <Sparkles className="w-8 h-8 text-foreground/50 group-hover:text-orange-500 mb-4 transition-colors" />
-                  <h3 className="text-foreground text-lg font-bold">Let AI Decide</h3>
-                  <p className="text-foreground/60 text-sm mt-2">Answer 3 quick questions, we'll pick the best format for you</p>
-                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Template, Write, or AI Decide */}
           {step === 3 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               {selectedMode === "template" ? (
                 <>
                   <div className="mb-8">
-                    <h1 className="text-2xl font-semibold text-foreground">Pick a template that's working right now</h1>
-                    <p className="text-foreground/60 text-sm">These formats are getting real traction on Threads</p>
+                    <h1 className="text-2xl font-semibold text-foreground text-center">Pick a template</h1>
                   </div>
                   <div className="space-y-8">
                     {templatesData.Threads.map((t) => (
@@ -289,14 +278,14 @@ Return ONLY valid JSON, no markdown, no backticks:
                     ))}
                   </div>
                 </>
-              ) : selectedMode === "write" ? (
+              ) : (
                 <div className="space-y-6">
                   <h1 className="text-2xl font-semibold text-foreground">Write your draft</h1>
                   <textarea
                     value={customContext}
                     onChange={(e) => setCustomContext(e.target.value)}
-                    placeholder="Write your rough draft here — AI will improve it for Threads"
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-6 text-sm text-foreground min-h-[250px] focus:outline-none focus:border-orange-500 transition-all placeholder-zinc-600"
+                    placeholder="Write your rough draft here..."
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-6 text-sm text-foreground min-h-[250px] focus:outline-none focus:border-orange-500 transition-all"
                   />
                   <button
                     onClick={() => setStep(4)}
@@ -305,166 +294,47 @@ Return ONLY valid JSON, no markdown, no backticks:
                     Continue →
                   </button>
                 </div>
-              ) : (
-                /* AI Decide Flow */
-                <div className="space-y-8 max-w-2xl">
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-foreground">Let AI Decide</h1>
-                    <p className="text-foreground/60 text-sm">Answer 3 quick questions, we'll pick the best format for you</p>
-                  </div>
-
-                  {/* Q1: Goal */}
-                  <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium block">Q1. What's your goal? <span className="text-red-500">*</span></label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        { id: 'Get comments', label: '💬 Get comments' },
-                        { id: 'Get signups', label: '🚀 Get signups' },
-                        { id: 'Validate an idea', label: '✅ Validate an idea' },
-                        { id: 'Get feedback', label: '📝 Get feedback' },
-                        { id: 'Build authority', label: '🧠 Build authority' },
-                        { id: 'Tell my story', label: '📖 Tell my story' }
-                      ].map((opt) => (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => setAiGoal(opt.id)}
-                          className={cn(
-                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
-                            aiGoal === opt.id 
-                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
-                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
-                          )}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Q2: What's happening */}
-                  <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium block">Q2. What's happening? <span className="text-red-500">*</span></label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        "Just launched",
-                        "Shipped a new feature",
-                        "Hit a milestone",
-                        "Learned something interesting",
-                        "Looking for advice",
-                        "Sharing an experiment",
-                        "Nothing specific",
-                        "Other"
-                      ].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setAiHappening(opt)}
-                          className={cn(
-                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
-                            aiHappening === opt 
-                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
-                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-
-                    {aiHappening === "Other" && (
-                      <input
-                        type="text"
-                        placeholder="Please specify..."
-                        value={aiHappeningOther}
-                        onChange={(e) => setAiHappeningOther(e.target.value)}
-                        className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-orange-500 placeholder-zinc-600 mt-2"
-                      />
-                    )}
-                  </div>
-
-                  {/* Q3: Mention product */}
-                  <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium block">Q3. Should we mention your product? <span className="text-red-500">*</span></label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        "Yes, naturally",
-                        "Only if it fits",
-                        "No, keep it value-first"
-                      ].map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setAiMention(opt)}
-                          className={cn(
-                            "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
-                            aiMention === opt 
-                              ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
-                              : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Continue Button */}
-                  <div className="pt-6">
-                    <button
-                      onClick={() => {
-                        if (!aiGoal || !aiHappening || !aiMention || (aiHappening === "Other" && !aiHappeningOther.trim())) {
-                          toast.error("Please answer all required questions.");
-                          return;
-                        }
-                        
-                        // Auto-select template based on mapping logic
-                        let templateId = '';
-                        if (aiGoal === 'Get comments') templateId = 'x-contrarian-take-decide';
-                        else if (aiGoal === 'Get signups') templateId = 'x-step-by-step';
-                        else if (aiGoal === 'Validate an idea') templateId = 'x-analyzed-x';
-                        else if (aiGoal === 'Get feedback') templateId = 'x-problem-solution';
-                        else if (aiGoal === 'Build authority') templateId = 'x-tactical-one-liner';
-                        else if (aiGoal === 'Tell my story') templateId = 'x-personal-transformation';
-                        else templateId = 'x-tactical-one-liner';
-
-                        const matchedTemplate = templatesData.X.find(t => t.id === templateId);
-                        setSelectedTemplate(matchedTemplate || templatesData.X[0]);
-
-                        // Pre-fill customContext with Q2 and Q3 details
-                        const happeningText = aiHappening === "Other" ? aiHappeningOther : aiHappening;
-                        setCustomContext(`What's happening: ${happeningText}. Product mention preference: ${aiMention}.`);
-
-                        setStep(4);
-                      }}
-                      disabled={!aiGoal || !aiHappening || !aiMention || (aiHappening === "Other" && !aiHappeningOther.trim())}
-                      className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all disabled:opacity-50"
-                    >
-                      Continue →
-                    </button>
-                  </div>
-                </div>
               )}
             </div>
           )}
 
-          {/* STEP 4: Customization */}
           {step === 4 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 max-w-2xl">
               <div className="mb-10">
-                <h1 className="text-2xl font-semibold text-foreground">Make it yours</h1>
-                <p className="text-foreground/60 text-sm">Both fields are optional — skip if you're happy</p>
+                <h1 className="text-2xl font-semibold text-foreground">Final details</h1>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-3">
+                  <label className="text-foreground text-sm font-medium block">Post Format</label>
+                  <div className="flex gap-3">
+                    {[
+                      { id: 'single', label: 'Single Post' },
+                      { id: 'thread', label: 'Thread (Multi-post)' }
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => setFormat(f.id)}
+                        className={cn(
+                          "px-5 py-2.5 rounded-full text-xs font-bold border transition-all bg-transparent",
+                          format === f.id 
+                            ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                            : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-zinc-600"
+                        )}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   <label className="text-foreground text-sm font-medium block">Anything specific to add?</label>
-                  <p className="text-foreground/50 text-xs">e.g. just hit 100 users, launching next week, got featured somewhere</p>
                   <textarea
                     value={customContext}
                     onChange={(e) => setCustomContext(e.target.value)}
-                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-4 text-sm text-foreground min-h-[100px] focus:outline-none focus:border-orange-500 transition-all"
-                    placeholder="Add extra context here..."
+                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl p-4 text-sm text-foreground min-h-[100px] focus:outline-none focus:border-orange-500"
+                    placeholder="Extra context..."
                   />
                 </div>
 
@@ -491,12 +361,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                 <div className="pt-6 flex gap-4">
                   <button
                     onClick={generatePost}
-                    className="flex-1 py-4 border border-foreground/10 text-foreground/60 font-bold rounded-xl hover:bg-white/5 transition-all bg-transparent"
-                  >
-                    Skip, just generate
-                  </button>
-                  <button
-                    onClick={generatePost}
                     className="flex-[2] py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
                   >
                     Generate My Post →
@@ -506,25 +370,16 @@ Return ONLY valid JSON, no markdown, no backticks:
             </div>
           )}
 
-          {/* STEP 5: Loading Screen */}
           {step === 5 && (
             <div className="min-h-[400px] flex flex-col items-center justify-center gap-6 animate-in fade-in duration-700">
               <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-foreground">Crafting your post...</h2>
-                <p className="text-foreground/60 text-sm">Using your brand info and the {selectedTemplate?.name || 'custom'} template</p>
-              </div>
-              <div className="w-64 bg-foreground/10 h-1 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-orange-500 rounded-full"
-                  animate={{ width: ["20%", "80%", "20%"] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
+                <h2 className="text-xl font-bold text-foreground">Writing your {format}...</h2>
+                <p className="text-foreground/60 text-sm">Matching your brand voice and Threads vibe</p>
               </div>
             </div>
           )}
 
-          {/* STEP 6: Result Screen */}
           {step === 6 && generatedPost && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto pb-20">
               <div className="flex items-center gap-4 mb-8">
@@ -541,18 +396,19 @@ Return ONLY valid JSON, no markdown, no backticks:
 
               <div className="bg-foreground/5 border border-foreground/10 rounded-xl overflow-hidden shadow-2xl flex flex-col gap-4 p-6 relative">
                 <div className="flex justify-between items-center">
-                  <span className="bg-foreground/5 text-foreground/60 text-xs font-medium rounded-full px-3 py-1">
-                    Threads
+                  <span className="bg-foreground/5 text-foreground/60 text-xs font-medium rounded-full px-3 py-1 uppercase tracking-widest">
+                    Threads {format}
                   </span>
                   {!isEditingPost && (
                     <button
                       onClick={() => {
                         setEditedTitle(generatedPost.title);
-                        setEditedBody(generatedPost.body);
+                        if (format === 'single') setEditedBody(generatedPost.body);
+                        else setEditedPosts([...generatedPost.posts]);
                         setEditedCta(generatedPost.cta);
                         setIsEditingPost(true);
                       }}
-                      className="p-1.5 hover:bg-foreground/5 rounded-md transition-all bg-transparent border-none cursor-pointer text-foreground/60 hover:text-foreground"
+                      className="p-1.5 hover:bg-foreground/5 rounded-md transition-all bg-transparent text-foreground/60 hover:text-foreground"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -562,49 +418,65 @@ Return ONLY valid JSON, no markdown, no backticks:
                 {isEditingPost ? (
                   <div className="space-y-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Title</label>
+                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Hook / Title</label>
                       <input
                         type="text"
                         value={editedTitle}
                         onChange={(e) => setEditedTitle(e.target.value)}
-                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500"
+                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Body</label>
-                      <textarea
-                        rows={8}
-                        value={editedBody}
-                        onChange={(e) => setEditedBody(e.target.value)}
-                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500 resize-none"
-                      />
-                    </div>
+                    {format === 'single' ? (
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Body</label>
+                        <textarea
+                          rows={6}
+                          value={editedBody}
+                          onChange={(e) => setEditedBody(e.target.value)}
+                          className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none resize-none"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {editedPosts.map((p, i) => (
+                          <div key={i} className="space-y-1">
+                            <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Post {i + 1}</label>
+                            <textarea
+                              rows={3}
+                              value={p}
+                              onChange={(e) => {
+                                const next = [...editedPosts];
+                                next[i] = e.target.value;
+                                setEditedPosts(next);
+                              }}
+                              className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none resize-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Call to Action</label>
                       <input
                         type="text"
                         value={editedCta}
                         onChange={(e) => setEditedCta(e.target.value)}
-                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-orange-500"
+                        className="w-full bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none"
                       />
                     </div>
                     <div className="flex gap-2 justify-end pt-2">
-                      <button
-                        onClick={() => setIsEditingPost(false)}
-                        className="px-4 py-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-foreground text-xs font-bold bg-transparent"
-                      >
-                        Cancel
-                      </button>
+                      <button onClick={() => setIsEditingPost(false)} className="px-4 py-2 rounded-lg text-xs font-bold text-foreground/60 bg-transparent">Cancel</button>
                       <button
                         onClick={() => {
                           setGeneratedPost({
                             ...generatedPost,
                             title: editedTitle,
                             body: editedBody,
+                            posts: editedPosts,
                             cta: editedCta
                           });
                           setIsEditingPost(false);
-                          toast.success("Post updated!");
+                          toast.success("Updated!");
                         }}
                         className="px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-bold"
                       >
@@ -615,7 +487,19 @@ Return ONLY valid JSON, no markdown, no backticks:
                 ) : (
                   <>
                     <h2 className="text-lg font-semibold text-foreground">{generatedPost.title}</h2>
-                    <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                    {format === 'single' ? (
+                      <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{generatedPost.body}</p>
+                    ) : (
+                      <div className="space-y-6">
+                        {generatedPost.posts?.map((p, idx) => (
+                          <div key={idx} className="relative pl-6 border-l border-foreground/10 py-1">
+                            <div className="absolute -left-1 top-2.5 w-2 h-2 rounded-full bg-orange-500" />
+                            <span className="text-[10px] font-bold text-foreground/40 uppercase mb-2 block">{idx + 1}/{generatedPost.posts.length}</span>
+                            <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{p}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="pt-4 border-t border-foreground/10">
                       <span className="text-foreground/50 text-xs uppercase tracking-wide block mb-1">Call to Action</span>
                       <p className="text-orange-400 text-sm font-medium">{generatedPost.cta}</p>
@@ -632,44 +516,17 @@ Return ONLY valid JSON, no markdown, no backticks:
                   {copyStatus === "Copied!" ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                   {copyStatus}
                 </button>
-                <a 
-                  href="https://threads.net"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-orange-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-orange-600 transition-all"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Open Threads
+                <a href="https://threads.net" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-orange-500 text-white rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-orange-600 transition-all">
+                  <ExternalLink className="w-4 h-4" /> Open Threads
                 </a>
-                <button 
-                  onClick={generatePost}
-                  className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Regenerate
+                <button onClick={generatePost} className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all">
+                  <RefreshCw className="w-4 h-4" /> Regenerate
                 </button>
-                <button 
-                  onClick={() => { setSelectedTemplate(null); setStep(3); }}
-                  className="flex items-center justify-center gap-2 bg-foreground/5 border border-foreground/10 text-foreground/60 rounded-xl px-4 py-2.5 text-sm font-medium hover:border-zinc-600 transition-all"
-                >
-                  <LayoutTemplate className="w-4 h-4" />
-                  Try Different Template
-                </button>
-                <button 
-                  onClick={resetAll}
-                  className="text-foreground/50 text-xs font-medium hover:text-foreground/80 transition-colors bg-transparent"
-                >
-                  Start Over
-                </button>
+                <button onClick={resetAll} className="text-foreground/50 text-xs font-medium hover:text-foreground/80 transition-colors bg-transparent">Start Over</button>
               </div>
 
               <div className="mt-10 bg-foreground/5 border-l-4 border-orange-500 border border-foreground/10 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-orange-500 text-xs font-medium">💡 Posting tip</span>
-                </div>
-                <p className="text-foreground/60 text-sm leading-relaxed">
-                  {postingTips.Threads}
-                </p>
+                <p className="text-foreground/60 text-sm leading-relaxed">{postingTips.Threads}</p>
               </div>
             </div>
           )}

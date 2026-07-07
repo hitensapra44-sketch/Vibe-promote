@@ -343,42 +343,236 @@ export const templatesData = {
   ],
   Threads: [
     {
-      id: 'threads-relatable-moment',
-      name: "The Relatable Moment",
-      description: "A short, highly conversational post that focuses on a shared frustration.",
-      purpose: "Build a loyal audience by sharing a relatable, human moment.",
-      bestFor: ["Solo Builders", "Indie Hackers"],
-      expectedOutcome: ["High Likes", "Reshares"],
+      id: 'threads-contrarian',
+      name: "Unpopular Opinion",
+      description: "Challenge common niche wisdom to drive high reply volume.",
+      purpose: "Spark debate and position yourself as a deep thinker.",
+      bestFor: ["Build authority", "Get comments"],
+      expectedOutcome: ["Replies", "Quotes"],
+      worksBestIn: ["Threads"],
+      difficulty: "Medium",
+      difficultyExplanation: "Requires a strong and defensible alternative perspective.",
+      promotionRisk: "Low",
+      promotionRiskExplanation: "Value-first and debate-focused, avoids direct sales pitch.",
+      formula: ["Contrarian Hook", "The Logic", "The Evidence", "CTA"],
+      hookFormula: "Unpopular opinion: [Controversial claim about niche]",
+      singleFormula: "State the claim clearly, followed by 2-3 logical reasons why common wisdom is wrong.",
+      threadFormula: [
+        "Hook: Unpopular opinion + the claim",
+        "The logic or evidence point 1",
+        "The logic or evidence point 2",
+        "The alternative approach + soft mention"
+      ],
+      ctaFormula: "Ask for disagreement or agreement to drive replies.",
+      structure: [
+        { name: "Hook", description: "Bold claim", example: "Unpopular opinion: SaaS validation is a trap." },
+        { name: "Evidence", description: "Why it fails", example: "People lie to be nice. Pre-orders are the only truth." },
+        { name: "Alternative", description: "What works", example: "Charge before you build a single line of code." }
+      ],
+      whyItWorks: "Disagreement drives replies and algorithmic reach on conversational platforms."
+    },
+    {
+      id: 'threads-transformation',
+      name: "Personal Story / Transformation",
+      description: "Build emotional connection through a relatable before/after journey.",
+      purpose: "Establish vulnerability and trust with your audience.",
+      bestFor: ["Tell my story", "Build authority"],
+      expectedOutcome: ["Shares", "Saves"],
+      worksBestIn: ["Threads"],
+      difficulty: "Medium",
+      difficultyExplanation: "Requires sharing a personal journey and a clear, meaningful lesson.",
+      promotionRisk: "Low",
+      promotionRiskExplanation: "Narrative-driven content that feels organic and non-promotional.",
+      formula: ["Then vs Now Hook", "The Struggle", "The Turning Point", "CTA"],
+      hookFormula: "[Time period] ago I was [bad]. Today [good].",
+      singleFormula: "Short narrative arc: the struggle, the realization, the result, and the core lesson.",
+      threadFormula: [
+        "Hook: The transformation (then vs now)",
+        "The lowest point or the struggle",
+        "The turning point or what changed",
+        "The big takeaway and lesson learned"
+      ],
+      ctaFormula: "Invite others to share their own journey or progress.",
+      structure: [
+        { name: "Hook", description: "Contrast", example: "8 months ago I had 0 users. Today I have 1,200." },
+        { name: "Struggle", description: "The pain", example: "I was posting reels every day and getting nothing." },
+        { name: "Insight", description: "The lesson", example: "I realized I was building for myself, not the market." }
+      ],
+      whyItWorks: "Relatable journeys get high engagement and emotional resonance."
+    },
+    {
+      id: 'threads-list',
+      name: "Numbered List / Curated Tips",
+      description: "Deliver dense, scannable value that is easy to save and share.",
+      purpose: "Position yourself as a helpful resource in your space.",
+      bestFor: ["Build authority", "Grow an audience"],
+      expectedOutcome: ["Saves", "Bookmarks"],
       worksBestIn: ["Threads"],
       difficulty: "Easy",
-      difficultyExplanation: "Requires only a simple, honest story about a common struggle.",
+      difficultyExplanation: "Requires a simple, valuable list of items or tips.",
       promotionRisk: "Low",
-      promotionRiskExplanation: "Focuses entirely on the shared experience, making the CTA feel natural.",
-      formula: ["Frustration Hook", "Relatability", "The Reframe", "CTA"],
-      structure: [
-        {
-          name: "Frustration Hook",
-          description: "A short, relatable opening about a common struggle.",
-          example: "Nothing hurts more than spending 3 weeks on a feature no one uses."
-        },
-        {
-          name: "Relatability",
-          description: "Expand on the feeling casually.",
-          example: "You think it is a game-changer, launch it, and... absolute silence. Ngl it is brutal."
-        },
-        {
-          name: "The Reframe",
-          description: "How you are handling or solving it now.",
-          example: "We started using Vibe Promote to talk to users before coding. Saved us so much time."
-        },
-        {
-          name: "CTA",
-          description: "A casual question to invite replies.",
-          example: "How do you validate features before building?"
-        }
+      promotionRiskExplanation: "Purely value-focused with a very soft product mention.",
+      formula: ["List Promise", "Item List", "The Best One", "CTA"],
+      hookFormula: "[Number] [tips/tools/lessons] for [audience goal]:",
+      singleFormula: "A compact list of items with one-sentence value for each.",
+      threadFormula: [
+        "Hook: The list promise",
+        "Point 1 with specific detail",
+        "Point 2 with specific detail",
+        "Recap and the summary item"
       ],
-      whyItWorks: "Threads is a highly conversational platform. Relatable, low-ego posts feel like a text message to a friend, which drives replies.",
-      realExampleUrl: "https://threads.net"
+      ctaFormula: "Ask which item on the list they find most useful.",
+      structure: [
+        { name: "Hook", description: "The promise", example: "5 free tools for solo founders:" },
+        { name: "Items", description: "The value", example: "1. Vibe Promote (marketing) 2. Cursor (code)..." },
+        { name: "Summary", description: "The takeaway", example: "Consistency beats intensity every time." }
+      ],
+      whyItWorks: "Lists are highly digestible and have the highest save-to-like ratio."
+    },
+    {
+      id: 'threads-data',
+      name: "Data/Stats Drop",
+      description: "Build massive credibility through original research or analysis.",
+      purpose: "Signal authority and expertise through objective numbers.",
+      bestFor: ["Validate an idea", "Build authority"],
+      expectedOutcome: ["Trust", "Profile clicks"],
+      worksBestIn: ["Threads"],
+      difficulty: "Hard",
+      difficultyExplanation: "Requires presenting findings as original research or deep analysis.",
+      promotionRisk: "Low",
+      promotionRiskExplanation: "Facts and data points build trust without sounding salesy.",
+      formula: ["Analysis Hook", "The Breakdown", "The Surprise", "CTA"],
+      hookFormula: "I analyzed [X]. Key findings:",
+      singleFormula: "Lead with the most surprising stat, followed by 2-3 other metrics and what they mean.",
+      threadFormula: [
+        "Hook: The analysis premise + top stat",
+        "Methodology or how data was gathered",
+        "Breakdown of finding 1",
+        "The actionable takeaway for the reader"
+      ],
+      ctaFormula: "Ask for their thoughts on the findings.",
+      structure: [
+        { name: "Hook", description: "Big stat", example: "I analyzed 100 SaaS launches. 90% failed here:" },
+        { name: "Data", description: "The details", example: "Only 12% had a clear positioning statement." },
+        { name: "Meaning", description: "Interpretation", example: "Features don't sell. Outcomes do." }
+      ],
+      whyItWorks: "Numbers add instant credibility and make your take feel objective."
+    },
+    {
+      id: 'threads-step-by-step',
+      name: "Step-by-Step Process",
+      description: "Provide a clear roadmap to achieving a specific outcome.",
+      purpose: "Demonstrate immediate value and helpfulness.",
+      bestFor: ["Get signups", "Build authority"],
+      expectedOutcome: ["Follows", "High reach"],
+      worksBestIn: ["Threads"],
+      difficulty: "Medium",
+      difficultyExplanation: "Requires a clear, logical progression of actionable steps.",
+      promotionRisk: "Medium",
+      promotionRiskExplanation: "Actionable value that leads naturally to the product solution.",
+      formula: ["Process Promise", "Numbered Steps", "Expected Result", "CTA"],
+      hookFormula: "The exact process I use to [result] in [time]:",
+      singleFormula: "Condensed overview of the steps required to replicate the outcome.",
+      threadFormula: [
+        "Hook: The outcome promise",
+        "Step 1: The foundation",
+        "Step 2: The execution",
+        "The result + soft product mention"
+      ],
+      ctaFormula: "Encourage them to try the first step today.",
+      structure: [
+        { name: "Hook", description: "The promise", example: "How to find 10 leads in 5 minutes:" },
+        { name: "Steps", description: "Action items", example: "1. Search Reddit 2. Copy the pain..." },
+        { name: "Outcome", description: "The win", example: "Result: 3 meetings booked." }
+      ],
+      whyItWorks: "Threads users value 'how-to' content that actually solves a problem."
+    },
+    {
+      id: 'threads-problem-solution',
+      name: "Problem-Solution Framework",
+      description: "Mirror a common audience pain point and reveal the fix.",
+      purpose: "Position your product as the obvious answer to a frustrating problem.",
+      bestFor: ["Get feedback", "Validate an idea"],
+      expectedOutcome: ["Inquiries", "Replies"],
+      worksBestIn: ["Threads"],
+      difficulty: "Easy",
+      difficultyExplanation: "Requires identifying a common frustration and explaining the fix.",
+      promotionRisk: "Medium",
+      promotionRiskExplanation: "Directly addresses a problem the product solves.",
+      formula: ["Pain Point Hook", "The Wrong Fix", "The Real Fix", "CTA"],
+      hookFormula: "The [problem] I fixed and how:",
+      singleFormula: "Define the specific pain point and show the clear before/after solution.",
+      threadFormula: [
+        "Hook: The problem and frustration",
+        "Why the standard approach fails",
+        "The actual fix discovered",
+        "The results of applying the fix"
+      ],
+      ctaFormula: "Ask if they are dealing with the same issue.",
+      structure: [
+        { name: "Hook", description: "The pain", example: "I hated writing marketing copy." },
+        { name: "Failure", description: "The wrong way", example: "I tried GPT but it sounded like a bot." },
+        { name: "Fix", description: "The solution", example: "I built Vibe Promote to write like a founder." }
+      ],
+      whyItWorks: "Directly mirrors the user's experience, making the solution feel earned."
+    },
+    {
+      id: 'threads-question',
+      name: "Question / Engagement Driver",
+      description: "Maximize comment volume and conversation with low-friction asks.",
+      purpose: "Hack the algorithm through high reply velocity.",
+      bestFor: ["Get comments", "Market research"],
+      expectedOutcome: ["High replies", "Engagement"],
+      worksBestIn: ["Threads"],
+      difficulty: "Easy",
+      difficultyExplanation: "Requires a simple, interesting, and easy-to-answer question.",
+      promotionRisk: "Very Low",
+      promotionRiskExplanation: "Conversational and non-promotional in nature.",
+      formula: ["Topic Hook", "Your Take", "The Open Ask", "CTA"],
+      hookFormula: "What's your take on [topic]?",
+      singleFormula: "Ask the main question, then share your own honest 2-sentence answer.",
+      threadFormula: [
+        "Hook: The main question",
+        "Why this question matters right now",
+        "Your personal perspective",
+        "Related sub-questions for others"
+      ],
+      ctaFormula: "Ask them to drop a reply with their answer.",
+      structure: [
+        { name: "Hook", description: "The question", example: "What's the hardest part of marketing?" },
+        { name: "Context", description: "Why ask", example: "For me it's the daily consistency." },
+        { name: "Ask", description: "Invite", example: "What is it for you?" }
+      ],
+      whyItWorks: "Low-effort participation is the easiest way to grow on Threads."
+    },
+    {
+      id: 'threads-before-after',
+      name: "Before/After (Expectation vs Reality)",
+      description: "Use clear contrast to make your progress or solution memorable.",
+      purpose: "Visualize value and efficiency gains.",
+      bestFor: ["Tell my story", "Get signups"],
+      expectedOutcome: ["Shares", "Direct interest"],
+      worksBestIn: ["Threads"],
+      difficulty: "Easy",
+      difficultyExplanation: "Requires a simple side-by-side comparison of two states.",
+      promotionRisk: "Low",
+      promotionRiskExplanation: "Focuses on the transformation rather than a hard pitch.",
+      formula: ["Contrast Hook", "The Difference", "The Insight", "CTA"],
+      hookFormula: "Before: [Status quo]. After: [New reality].",
+      singleFormula: "Direct comparison of efficiency, cost, or state before and after the solution.",
+      threadFormula: [
+        "Hook: The before and after contrast",
+        "The expectation vs reality of the shift",
+        "The single biggest insight gained",
+        "Advice for those still in the before stage"
+      ],
+      ctaFormula: "Ask where they are in their own journey.",
+      structure: [
+        { name: "Hook", description: "Contrast", example: "Before: 2 hours on X. After: 2 minutes." },
+        { name: "Difference", description: "The shift", example: "Consistency isn't hard when you have a system." },
+        { name: "Insight", description: "The 'aha'", example: "Systems beat willpower every time." }
+      ],
+      whyItWorks: "Human brains are wired to notice and remember sharp contrasts."
     }
   ],
   Reddit: [
