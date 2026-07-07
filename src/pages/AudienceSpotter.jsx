@@ -76,6 +76,7 @@ export default function AudienceSpotter() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentDay, setCurrentDay] = useState(1);
   const [copiedSignalId, setCopiedSignalId] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
   
   const [selectedPlatforms, setSelectedPlatforms] = useState(['reddit']);
@@ -109,6 +110,20 @@ export default function AudienceSpotter() {
 
   // Filter out signals that are not 'new'
   const activeSignals = useMemo(() => signals.filter(s => s.status === 'new'), [signals]);
+
+  const filteredByTab = useMemo(() => {
+    if (activeTab === 'all') return activeSignals;
+    return activeSignals.filter(s => s.platform === activeTab);
+  }, [activeTab, activeSignals]);
+
+  const availableTabs = useMemo(() => {
+    const tabs = [{ id: 'all', label: 'All' }];
+    if (selectedPlatforms.includes('reddit')) tabs.push({ id: 'reddit', label: 'Reddit' });
+    if (selectedPlatforms.includes('twitter')) tabs.push({ id: 'x', label: 'X' });
+    if (selectedPlatforms.includes('threads')) tabs.push({ id: 'threads', label: 'Threads' });
+    if (selectedPlatforms.includes('hn')) tabs.push({ id: 'hacker_news', label: 'Hacker News' });
+    return tabs;
+  }, [selectedPlatforms]);
 
   const skipSubreddits = useMemo(() => {
     return selectedPlatforms.includes('hn') && !selectedPlatforms.includes('reddit');
@@ -790,233 +805,267 @@ export default function AudienceSpotter() {
             </div>
           ) : (
             <div className="space-y-6 pb-20">
-              {activeSignals.map((signal) => (
-                <motion.div 
-                  layout
-                  key={signal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all group"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white text-xs shadow-lg",
-                          signal.platform === 'reddit' ? "bg-[#FF4500]" : "bg-[#FF6600]"
-                        )}>
-                          {signal.platform === 'reddit' ? 'r/' : 'HN'}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-foreground font-bold text-sm">{signal.subreddit}</span>
-                            {signal.author && signal.author !== 'unknown' && (
-                              <>
-                                <span className="text-foreground/40 text-xs">•</span>
-                                <span className="text-foreground/60 text-xs font-medium">by u/{signal.author}</span>
-                              </>
-                            )}
+              {/* Platform Tabs */}
+              <div className="flex gap-8 border-b border-foreground/5 mb-8">
+                {availableTabs.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id)}
+                    className={cn(
+                      "pb-4 text-sm font-bold transition-all bg-transparent relative",
+                      activeTab === t.id ? "text-primary" : "text-foreground/60 hover:text-foreground/80"
+                    )}
+                  >
+                    {t.label}
+                    {activeTab === t.id && (
+                      <motion.div 
+                        layoutId="active-signal-tab" 
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" 
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {filteredByTab.length === 0 ? (
+                <div className="py-20 text-center text-foreground/60 text-sm">
+                  No new signals found for this platform.
+                </div>
+              ) : (
+                filteredByTab.map((signal) => (
+                  <motion.div 
+                    layout
+                    key={signal.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all group"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-white text-xs shadow-lg",
+                            signal.platform === 'reddit' ? "bg-[#FF4500]" : 
+                            signal.platform === 'x' ? "bg-black" : 
+                            signal.platform === 'threads' ? "bg-black border border-white/10" : 
+                            "bg-[#FF6600]"
+                          )}>
+                            {signal.platform === 'reddit' ? 'r/' : 
+                             signal.platform === 'x' ? 'X' : 
+                             signal.platform === 'threads' ? '@' : 
+                             'HN'}
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 bg-foreground/5 border border-foreground/10 px-2.5 py-1 rounded-lg">
-                               <Target className="w-3 h-3 text-foreground" />
-                               <span className="text-foreground text-[10px] font-bold uppercase tracking-wider">Potential User Score: {signal.intent_score}%</span>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-foreground font-bold text-sm">{signal.subreddit}</span>
+                              {signal.author && signal.author !== 'unknown' && (
+                                <>
+                                  <span className="text-foreground/40 text-xs">•</span>
+                                  <span className="text-foreground/60 text-xs font-medium">by u/{signal.author}</span>
+                                </>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1.5 bg-foreground/5 border border-foreground/10 px-2.5 py-1 rounded-lg">
+                                 <Target className="w-3 h-3 text-foreground" />
+                                 <span className="text-foreground text-[10px] font-bold uppercase tracking-wider">Potential User Score: {signal.intent_score}%</span>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">{signal.post_title}</h2>
-                    <p className="text-foreground/60 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
+                      <h2 className="text-xl font-bold text-foreground mb-3 leading-tight">{signal.post_title}</h2>
+                      <p className="text-foreground/60 text-sm line-clamp-2 mb-8 leading-relaxed font-medium">{signal.post_body}</p>
 
-                    {/* Reply Mode Buttons & On-demand Generation */}
-                    <div className="mb-4 space-y-4">
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { id: 'helpful', label: 'Helpful' },
-                          { id: 'expert', label: 'Expert' },
-                          { id: 'founder_story', label: 'Founder Story' },
-                          { id: 'soft_promo', label: 'Soft Promo' }
-                        ].map((mode) => {
-                          const activeMode = replyModes[signal.id] || 'helpful';
-                          const isSelected = activeMode === mode.id;
-                          return (
-                            <button
-                              key={mode.id}
-                              onClick={() => {
-                                setReplyModes(prev => ({ ...prev, [signal.id]: mode.id }));
-                                if (generatedReplies[signal.id]) {
-                                  setGeneratedReplies(prev => {
-                                    const next = { ...prev };
-                                    delete next[signal.id];
-                                    return next;
-                                  });
-                                }
-                              }}
-                              className={cn(
-                                "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all bg-transparent",
-                                isSelected 
-                                  ? "bg-primary/10 border-primary text-primary" 
-                                  : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
-                              )}
-                            >
-                              {mode.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
-                      <button
-                        onClick={() => handleGenerateReply(signal)}
-                        disabled={generatingReply[signal.id]}
-                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/10"
-                      >
-                        {generatingReply[signal.id] ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4" />
-                            {generatedReplies[signal.id] ? "Regenerate Reply →" : "Generate Reply →"}
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {generatedReplies[signal.id] && (
-                      <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8 animate-in fade-in duration-300">
-                        <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
-                        <div className="flex items-center gap-2 mb-3">
-                          <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
+                      {/* Reply Mode Buttons & On-demand Generation */}
+                      <div className="mb-4 space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { id: 'helpful', label: 'Helpful' },
+                            { id: 'expert', label: 'Expert' },
+                            { id: 'founder_story', label: 'Founder Story' },
+                            { id: 'soft_promo', label: 'Soft Promo' }
+                          ].map((mode) => {
+                            const activeMode = replyModes[signal.id] || 'helpful';
+                            const isSelected = activeMode === mode.id;
+                            return (
+                              <button
+                                key={mode.id}
+                                onClick={() => {
+                                  setReplyModes(prev => ({ ...prev, [signal.id]: mode.id }));
+                                  if (generatedReplies[signal.id]) {
+                                    setGeneratedReplies(prev => {
+                                      const next = { ...prev };
+                                      delete next[signal.id];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                                className={cn(
+                                  "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all bg-transparent",
+                                  isSelected 
+                                    ? "bg-primary/10 border-primary text-primary" 
+                                    : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
+                                )}
+                              >
+                                {mode.label}
+                              </button>
+                            );
+                          })}
                         </div>
-                        <p className="text-foreground text-sm italic leading-relaxed font-medium">"{generatedReplies[signal.id]}"</p>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-6 border-t border-foreground/5">
-                      <div className="flex items-center gap-6">
-                        <button 
-                          onClick={() => window.open(signal.post_url, '_blank')}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background font-bold text-xs hover:scale-105 transition-all shadow-xl"
+                        
+                        <button
+                          onClick={() => handleGenerateReply(signal)}
+                          disabled={generatingReply[signal.id]}
+                          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/10"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Open Post
-                        </button>
-                        <div className="flex items-center gap-3 border-l border-foreground/10 pl-6">
-                          <button 
-                            onClick={() => {
-                              updateSignalStatus({ id: signal.id, status: 'replied' });
-                              toast.success("Marked as replied!");
-                              const replyTaskKey = `reply_posts_d${currentDay}`;
-                              markTaskComplete(user.id, replyTaskKey, supabase);
-                            }}
-                            className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDismiss(signal.id)}
-                            className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-red-400 hover:bg-red-400/10 transition-all bg-transparent"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => {
-                            if (!generatedReplies[signal.id]) {
-                              toast.error("Generate a reply first!");
-                              return;
-                            }
-                            navigator.clipboard.writeText(generatedReplies[signal.id]);
-                            setCopiedSignalId(signal.id);
-                            toast.success("Reply copied!");
-                            setTimeout(() => setCopiedSignalId(null), 2000);
-                          }}
-                          disabled={!generatedReplies[signal.id]}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          {copiedSignalId === signal.id ? (
+                          {generatingReply[signal.id] ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-green-500" />
-                              Copied!
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Generating...
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5" />
-                              Copy Reply
+                              <Sparkles className="w-4 h-4" />
+                              {generatedReplies[signal.id] ? "Regenerate Reply →" : "Generate Reply →"}
                             </>
                           )}
                         </button>
                       </div>
-                    </div>
 
-                    {/* Feedback Box for Dismissal */}
-                    <AnimatePresence>
-                      {dismissingId === signal.id && (
-                        <motion.div 
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="mt-6 pt-6 border-t border-foreground/5 overflow-hidden"
-                        >
-                          <div className="bg-background border border-foreground/10 rounded-xl p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                              <AlertCircle className="w-4 h-4 text-primary" />
-                              <h3 className="text-sm font-bold">Why didn't you like this post?</h3>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
-                              {DISMISS_REASONS.map(reason => (
-                                <button
-                                  key={reason.id}
-                                  onClick={() => setDismissReason(reason.id)}
-                                  className={cn(
-                                    "px-4 py-2.5 rounded-lg border text-xs font-medium text-left transition-all",
-                                    dismissReason === reason.id 
-                                      ? "bg-primary/10 border-primary text-primary" 
-                                      : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
-                                  )}
-                                >
-                                  {reason.label}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <button 
-                                onClick={() => setShowSettings(true)}
-                                className="text-[10px] font-bold text-foreground/60 hover:text-foreground uppercase tracking-widest bg-transparent"
-                              >
-                                Change Configuration →
-                              </button>
-                              <div className="flex gap-2">
+                      {generatedReplies[signal.id] && (
+                        <div className="bg-foreground/5 border border-foreground/10 rounded-xl p-5 mb-8 animate-in fade-in duration-300">
+                          <p className="text-[10px] text-foreground/60 italic mb-2">⚠ AI-generated — review and edit before sending</p>
+                          <div className="flex items-center gap-2 mb-3">
+                            <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Suggested Reply</span>
+                          </div>
+                          <p className="text-foreground text-sm italic leading-relaxed font-medium">"{generatedReplies[signal.id]}"</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-6 border-t border-foreground/5">
+                        <div className="flex items-center gap-6">
+                          <button 
+                            onClick={() => window.open(signal.post_url, '_blank')}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background font-bold text-xs hover:scale-105 transition-all shadow-xl"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            Open Post
+                          </button>
+                          <div className="flex items-center gap-3 border-l border-foreground/10 pl-6">
+                            <button 
+                              onClick={() => {
+                                updateSignalStatus({ id: signal.id, status: 'replied' });
+                                toast.success("Marked as replied!");
+                                const replyTaskKey = `reply_posts_d${currentDay}`;
+                                markTaskComplete(user.id, replyTaskKey, supabase);
+                              }}
+                              className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDismiss(signal.id)}
+                              className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-red-400 hover:bg-red-400/10 transition-all bg-transparent"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => {
+                              if (!generatedReplies[signal.id]) {
+                                toast.error("Generate a reply first!");
+                                return;
+                              }
+                              navigator.clipboard.writeText(generatedReplies[signal.id]);
+                              setCopiedSignalId(signal.id);
+                              toast.success("Reply copied!");
+                              setTimeout(() => setCopiedSignalId(null), 2000);
+                            }}
+                            disabled={!generatedReplies[signal.id]}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground/5 text-foreground font-bold text-xs hover:bg-foreground/10 transition-all bg-transparent border border-foreground/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {copiedSignalId === signal.id ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-green-500" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                Copy Reply
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Feedback Box for Dismissal */}
+                      <AnimatePresence>
+                        {dismissingId === signal.id && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="mt-6 pt-6 border-t border-foreground/5 overflow-hidden"
+                          >
+                            <div className="bg-background border border-foreground/10 rounded-xl p-6">
+                              <div className="flex items-center gap-2 mb-4">
+                                <AlertCircle className="w-4 h-4 text-primary" />
+                                <h3 className="text-sm font-bold">Why didn't you like this post?</h3>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
+                                {DISMISS_REASONS.map(reason => (
+                                  <button
+                                    key={reason.id}
+                                    onClick={() => setDismissReason(reason.id)}
+                                    className={cn(
+                                      "px-4 py-2.5 rounded-lg border text-xs font-medium text-left transition-all",
+                                      dismissReason === reason.id 
+                                        ? "bg-primary/10 border-primary text-primary" 
+                                        : "bg-foreground/5 border border-foreground/10 text-foreground/60 hover:border-foreground/20"
+                                    )}
+                                  >
+                                    {reason.label}
+                                  </button>
+                                ))}
+                              </div>
+                              <div className="flex items-center justify-between">
                                 <button 
-                                  onClick={() => setDismissingId(null)}
-                                  className="px-4 py-2 rounded-lg text-xs font-bold text-foreground/60 hover:text-foreground bg-transparent"
+                                  onClick={() => setShowSettings(true)}
+                                  className="text-[10px] font-bold text-foreground/60 hover:text-foreground uppercase tracking-widest bg-transparent"
                                 >
-                                  Cancel
+                                  Change Configuration →
                                 </button>
-                                <button 
-                                  onClick={confirmDismiss}
-                                  disabled={!dismissReason}
-                                  className="px-6 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all disabled:opacity-50"
-                                >
-                                  Remove Post
-                                </button>
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => setDismissingId(null)}
+                                    className="px-4 py-2 rounded-lg text-xs font-bold text-foreground/60 hover:text-foreground bg-transparent"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button 
+                                    onClick={confirmDismiss}
+                                    disabled={!dismissReason}
+                                    className="px-6 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all disabled:opacity-50"
+                                  >
+                                    Remove Post
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           )}
         </div>
