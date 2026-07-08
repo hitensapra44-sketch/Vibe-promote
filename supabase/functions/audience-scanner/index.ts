@@ -254,125 +254,124 @@ serve(async (req) => {
         const rawPosts: any[] = [];
         const twoDaysAgoLimit = Date.now() - (7 * 24 * 60 * 60 * 1000);
 
-        // REDDIT via Serper — CAPPED: max 2 keywords × 3 communities = 6 calls max
+        // REDDIT via Serper — Updated to combined query structure
         if (platforms.includes('reddit')) {
           const keywordsToScan = keywords.slice(0, 2);
           const communitiesToScan = communities.slice(0, 3);
 
           for (const keyword of keywordsToScan) {
-            for (const community of communitiesToScan) {
-              try {
-                const query = `site:reddit.com/r/${community} ${keyword}`;
-                const queryHash = await hashQuery(query);
+            try {
+              const communityFilter = communitiesToScan.map(c => `r/${c}`).join(' OR ');
+              const query = `site:reddit.com (${communityFilter}) ${keyword}`;
+              const queryHash = await hashQuery(query);
 
-                // ── CACHE CHECK ──────────────────────────────────────────
-                const CACHE_TTL_HOURS = 24;
-                const EMPTY_CACHE_TTL_HOURS = 1;
-                const cacheExpiry = new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
-                const emptyCacheExpiry = new Date(Date.now() - EMPTY_CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
+              // ── CACHE CHECK ──────────────────────────────────────────
+              const CACHE_TTL_HOURS = 72;
+              const EMPTY_CACHE_TTL_HOURS = 1;
+              const cacheExpiry = new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
+              const emptyCacheExpiry = new Date(Date.now() - EMPTY_CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString();
 
-                const { data: cached } = await supabase
-                  .from('serper_cache')
-                  .select('results, created_at')
-                  .eq('query_hash', queryHash)
-                  .gte('created_at', cacheExpiry)
-                  .maybeSingle();
+              const { data: cached } = await supabase
+                .from('serper_cache')
+                .select('results, created_at')
+                .eq('query_hash', queryHash)
+                .gte('created_at', cacheExpiry)
+                .maybeSingle();
 
-                let results: any[] = [];
-                let useCache = false;
+              let results: any[] = [];
+              let useCache = false;
 
-                if (cached) {
-                  const cachedResults = cached.results as any[];
-                  if (cachedResults.length === 0 && cached.created_at < emptyCacheExpiry) {
-                    // empty result is older than 1 hour, treat as expired, refetch
-                    useCache = false;
-                  } else {
-                    useCache = true;
-                    results = cachedResults;
-                  }
-                }
-
-                if (useCache) {
-                  console.log(`[audience-scanner] CACHE HIT: "${query}"`);
+              if (cached) {
+                const cachedResults = cached.results as any[];
+                if (cachedResults.length === 0 && cached.created_at < emptyCacheExpiry) {
+                  // empty result is older than 1 hour, treat as expired, refetch
+                  useCache = false;
                 } else {
-                  console.log(`[audience-scanner] CACHE MISS — calling Serper: "${query}"`);
-
-                  const serperRes = await fetch('https://google.serper.dev/search', {
-                    method: 'POST',
-                    headers: {
-                      'X-API-KEY': SERPER_API_KEY,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ q: query, num: 10, tbs: "qdr:7d" })
-                  });
-
-                  if (!serperRes.ok) {
-                    console.error(`[audience-scanner] Serper error: ${serperRes.status}`);
-                    continue;
-                  }
-
-                  const serperData = await serperRes.json();
-                  results = serperData.organic || [];
-                  console.log(`[audience-scanner] Serper returned ${results.length} results`);
-
-                  // Store in cache
-                  await supabase
-                    .from('serper_cache')
-                    .upsert({
-                      query_hash: queryHash,
-                      query_text: query,
-                      results: results,
-                      created_at: new Date().toISOString()
-                    }, { onConflict: 'query_hash' });
+                  useCache = true;
+                  results = cachedResults;
                 }
-                // ─────────────────────────────────────────────────────────
-
-                console.log(`[audience-scanner] Raw links for "${query}": ${results.map((r: any) => r.link).join(' | ')}`);
-                results.forEach((result: any) => {
-                  const url = result.link || '';
-                  if (!url.includes('reddit.com')) return;
-
-                  // Skip subreddit homepage/listing pages, but allow /comments/ posts
-                  // and old.reddit.com / share-link formats
-                  const pathAfterDomain = url.split('reddit.com')[1] || '';
-                  const segments = pathAfterDomain.split('/').filter(Boolean);
-                  // segments like ['r','indiehackers'] = homepage, skip
-                  // segments like ['r','indiehackers','comments','abc','title'] = real post, keep
-                  if (segments.length <= 2) return;
-
-                  const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
-                  const subreddit = subMatch ? subMatch[1] : community;
-
-                  let postDate = Date.now();
-                  if (result.date) {
-                    const parsed = Date.parse(result.date);
-                    if (!isNaN(parsed)) {
-                      postDate = parsed;
-                    }
-                  }
-
-                  // JS-level safety net filter
-                  if (postDate >= twoDaysAgoLimit) {
-                    rawPosts.push({
-                      title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
-                      body: result.snippet || '',
-                      url: url,
-                      author: 'unknown',
-                      subreddit: subreddit,
-                      upvotes: 0,
-                      comments: 0,
-                      created_at: postDate,
-                      platform: 'reddit'
-                    });
-                  }
-                });
-
-              } catch (e) {
-                console.error(`[audience-scanner] Serper failed for r/${community}:`, e);
               }
 
-              await new Promise(r => setTimeout(r, 200));
+              if (useCache) {
+                console.log(`[audience-scanner] CACHE HIT: "${query}"`);
+              } else {
+                console.log(`[audience-scanner] CACHE MISS — calling Serper: "${query}"`);
+
+                const serperRes = await fetch('https://google.serper.dev/search', {
+                  method: 'POST',
+                  headers: {
+                    'X-API-KEY': SERPER_API_KEY,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ q: query, num: 20, tbs: "qdr:7d" })
+                });
+
+                if (!serperRes.ok) {
+                  console.error(`[audience-scanner] Serper error: ${serperRes.status}`);
+                  continue;
+                }
+
+                const serperData = await serperRes.json();
+                results = serperData.organic || [];
+                console.log(`[audience-scanner] Serper returned ${results.length} results`);
+
+                // Store in cache
+                await supabase
+                  .from('serper_cache')
+                  .upsert({
+                    query_hash: queryHash,
+                    query_text: query,
+                    results: results,
+                    created_at: new Date().toISOString()
+                  }, { onConflict: 'query_hash' });
+              }
+              // ─────────────────────────────────────────────────────────
+
+              console.log(`[audience-scanner] Raw links for "${query}": ${results.map((r: any) => r.link).join(' | ')}`);
+              results.forEach((result: any) => {
+                const url = result.link || '';
+                if (!url.includes('reddit.com')) return;
+
+                // Skip subreddit homepage/listing pages, but allow /comments/ posts
+                // and old.reddit.com / share-link formats
+                const pathAfterDomain = url.split('reddit.com')[1] || '';
+                const segments = pathAfterDomain.split('/').filter(Boolean);
+                // segments like ['r','indiehackers'] = homepage, skip
+                // segments like ['r','indiehackers','comments','abc','title'] = real post, keep
+                if (segments.length <= 2) return;
+
+                const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
+                const subreddit = subMatch ? subMatch[1] : 'reddit';
+
+                let postDate = Date.now();
+                if (result.date) {
+                  const parsed = Date.parse(result.date);
+                  if (!isNaN(parsed)) {
+                    postDate = parsed;
+                  }
+                }
+
+                // JS-level safety net filter
+                if (postDate >= twoDaysAgoLimit) {
+                  rawPosts.push({
+                    title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
+                    body: result.snippet || '',
+                    url: url,
+                    author: 'unknown',
+                    subreddit: subreddit,
+                    upvotes: 0,
+                    comments: 0,
+                    created_at: postDate,
+                    platform: 'reddit'
+                  });
+                }
+              });
+
+            } catch (e) {
+              console.error(`[audience-scanner] Serper failed for query "${keyword}":`, e);
             }
+
+            await new Promise(r => setTimeout(r, 200));
           }
         }
 
