@@ -35,16 +35,16 @@ Deno.serve(async (req) => {
         // A. CHECK 2-DAY COOLDOWN
         if (lastNotifiedAt) {
           const lastNotifiedTime = new Date(lastNotifiedAt).getTime()
-          const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000
-          if (lastNotifiedTime > twoDaysAgo) {
-            console.log(`[send-lead-digest] Skipping user ${userId} due to 2-day cooldown`);
+          const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000
+          if (lastNotifiedTime > threeDaysAgo) {
+            console.log(`[send-lead-digest] Skipping user ${userId} due to 3-day cooldown`);
             continue
           }
         }
 
         // B. SET CUTOFF DATE
         const cutoff = lastNotifiedAt 
-          ?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          ?? new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
         // C. COUNT NEW LEADS
         const { count: newLeadsCount, error: leadsError } = await supabase
