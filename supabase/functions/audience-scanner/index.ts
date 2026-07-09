@@ -252,7 +252,7 @@ serve(async (req) => {
         }
 
         const rawPosts: any[] = [];
-        const twoDaysAgoLimit = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        const threeDaysAgoLimit = Date.now() - (3 * 24 * 60 * 60 * 1000);
 
         // REDDIT via Serper — Updated to combined query structure
         if (platforms.includes('reddit')) {
@@ -303,7 +303,7 @@ serve(async (req) => {
                     'X-API-KEY': SERPER_API_KEY,
                     'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ q: query, num: 20, tbs: "qdr:7d" })
+                  body: JSON.stringify({ q: query, num: 20, tbs: "qdr:3d" })
                 });
 
                 if (!serperRes.ok) {
@@ -352,7 +352,7 @@ serve(async (req) => {
                 }
 
                 // JS-level safety net filter
-                if (postDate >= twoDaysAgoLimit) {
+                  if (postDate >= threeDaysAgoLimit) {
                   rawPosts.push({
                     title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '',
                     body: result.snippet || '',
@@ -379,11 +379,11 @@ serve(async (req) => {
         // Skip overly generic keywords that pull unrelated "Show HN" / "Ask HN" noise
         const HN_SKIP_TERMS = ['how to get user', 'get user', 'how to get users'];
         if (platforms.includes('hn')) {
-          const twoDaysAgoUnix = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
+          const threeDaysAgoUnix = Math.floor(Date.now() / 1000) - (3 * 24 * 60 * 60);
           const hnKeywords = keywords.slice(0, 4).filter(k => !HN_SKIP_TERMS.includes(k.toLowerCase().trim()));
           for (const keyword of hnKeywords) {
             try {
-              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${twoDaysAgoUnix}&hitsPerPage=20`;
+              const hnUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(keyword)}&tags=story&numericFilters=created_at_i>${threeDaysAgoUnix}&hitsPerPage=20`;
               const hnRes = await fetch(hnUrl);
               if (hnRes.ok) {
                 const data = await hnRes.json();
@@ -392,7 +392,7 @@ serve(async (req) => {
                 hits.forEach((hit: any) => {
                   const postDate = hit.created_at_i * 1000;
                   // JS-level safety net filter
-                  if (postDate >= twoDaysAgoLimit) {
+                  if (postDate >= threeDaysAgoLimit) {
                     rawPosts.push({
                       title: hit.title,
                       body: hit.story_text || '',

@@ -243,7 +243,8 @@ Deno.serve(async (req) => {
             from: "Vibe Promote <hello@vibepromote.tech>",
             to: [email],
             subject: `${newLeadsCount} potential users found for ${appName}`,
-            html: emailHtml
+            html: emailHtml,
+            reply_to: "vibepromote@gmail.com"
           })
         })
 

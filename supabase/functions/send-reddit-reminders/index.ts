@@ -128,7 +128,8 @@ Deno.serve(async (req) => {
             from: "Vibe Promote <hello@vibepromote.tech>",
             to: [userData.user.email],
             subject: "Reminder: Your Reddit post is ready",
-            html: emailHtml
+            html: emailHtml,
+            reply_to: "vibepromote@gmail.com"
           })
         })
 
