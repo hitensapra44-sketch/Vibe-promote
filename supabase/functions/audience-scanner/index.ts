@@ -22,6 +22,35 @@ function getDailyLimit(plan: string): number {
   return 3; // free
 }
 
+function parseSerperDate(dateStr: string | undefined): number | null {
+  if (!dateStr) return null;
+  const now = Date.now();
+  const lower = dateStr.toLowerCase().trim();
+
+  if (lower.includes('hour')) {
+    const n = parseInt(lower) || 1;
+    return now - n * 60 * 60 * 1000;
+  }
+  if (lower.includes('minute')) {
+    const n = parseInt(lower) || 1;
+    return now - n * 60 * 1000;
+  }
+  if (lower.includes('day')) {
+    const n = parseInt(lower) || 1;
+    return now - n * 24 * 60 * 60 * 1000;
+  }
+  if (lower.includes('week')) {
+    const n = parseInt(lower) || 1;
+    return now - n * 7 * 24 * 60 * 60 * 1000;
+  }
+  if (lower.includes('month') || lower.includes('year')) {
+    return null; // too old, treat as unparseable/reject
+  }
+
+  const parsed = Date.parse(dateStr);
+  return isNaN(parsed) ? null : parsed;
+}
+
 async function searchXPosts(keywords: string[], userId: string): Promise<any[]> {
   try {
     const RAPIDAPI_KEY = Deno.env.get("RAPIDAPI_KEY");
@@ -332,24 +361,13 @@ serve(async (req) => {
                 const url = result.link || '';
                 if (!url.includes('reddit.com')) return;
 
-                // Skip subreddit homepage/listing pages, but allow /comments/ posts
-                // and old.reddit.com / share-link formats
-                const pathAfterDomain = url.split('reddit.com')[1] || '';
-                const segments = pathAfterDomain.split('/').filter(Boolean);
-                // segments like ['r','indiehackers'] = homepage, skip
-                // segments like ['r','indiehackers','comments','abc','title'] = real post, keep
-                if (segments.length <= 2) return;
+                if (!url.includes('/comments/')) return; // only real post permalinks, not search/listing/wiki/user pages
 
                 const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                 const subreddit = subMatch ? subMatch[1] : 'reddit';
 
-                let postDate = Date.now();
-                if (result.date) {
-                  const parsed = Date.parse(result.date);
-                  if (!isNaN(parsed)) {
-                    postDate = parsed;
-                  }
-                }
+                const postDate = parseSerperDate(result.date);
+                if (postDate === null) return; // can't confirm recency, skip it
 
                 // JS-level safety net filter
                   if (postDate >= threeDaysAgoLimit) {

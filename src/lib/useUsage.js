@@ -52,13 +52,18 @@ export function useUsage(feature) {
 export async function incrementUsage(supabaseClient, userId, feature) {
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  const { data: existing } = await supabaseClient
+  const { data: existing, error: fetchError } = await supabaseClient
     .from('user_usage')
     .select('count')
     .eq('user_id', userId)
     .eq('feature', feature)
     .eq('month', currentMonth)
     .maybeSingle();
+
+  if (fetchError) {
+    console.error('[incrementUsage] fetch failed:', fetchError);
+    throw fetchError;
+  }
 
   let res;
   if (existing) {
@@ -71,12 +76,12 @@ export async function incrementUsage(supabaseClient, userId, feature) {
   } else {
     res = await supabaseClient
       .from('user_usage')
-      .insert({
-        user_id: userId,
-        feature,
-        month: currentMonth,
-        count: 1
-      });
+      .insert({ user_id: userId, feature, month: currentMonth, count: 1 });
+  }
+
+  if (res.error) {
+    console.error('[incrementUsage] write failed:', res.error);
+    throw res.error;
   }
 
   window.dispatchEvent(new CustomEvent('vh_usage_incremented', { detail: { feature } }));
