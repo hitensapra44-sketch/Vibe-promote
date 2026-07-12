@@ -67,7 +67,7 @@ const DISMISS_REASONS = [
 export default function AudienceSpotter() {
   const { user, plan } = useAuth();
   const { limits } = usePlan();
-  const { used: scansUsed } = useUsage('user_finder');
+  const { used: scansUsed, refetch: refetchUsage } = useUsage('user_finder');
   const [step, setStep] = useState(1);
   const [isConfigured, setIsConfigured] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -247,7 +247,11 @@ export default function AudienceSpotter() {
     }
     setIsConfigured(true);
     startScan({ keywords, platforms: selectedPlatforms, communities });
+    
+    // Explicitly increment usage and refetch to update UI bar instantly
     await incrementUsage(supabase, user.id, 'user_finder');
+    refetchUsage();
+    
     markTaskComplete(user.id, 'run_user_finder', supabase);
   };
 
@@ -502,7 +506,7 @@ export default function AudienceSpotter() {
                         <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
                           {k}
                           <button onClick={() => setKeywords(keywords.filter((_, idx) => idx !== i))} className="hover:text-foreground transition-colors bg-transparent p-0.5">
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
@@ -537,7 +541,7 @@ export default function AudienceSpotter() {
                         <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-foreground/5 border border-foreground/10 text-foreground/80 text-xs font-bold">
                           r/{c}
                           <button onClick={() => setCommunities(communities.filter((_, idx) => idx !== i))} className="hover:text-foreground transition-colors bg-transparent p-0.5">
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
@@ -907,7 +911,7 @@ export default function AudienceSpotter() {
                                   "text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all bg-transparent",
                                   isSelected 
                                     ? "bg-primary/10 border-primary text-primary" 
-                                    : "bg-foreground/5 border-foreground/10 text-foreground/60 hover:border-foreground/20"
+                                    : "bg-foreground/5 border border-foreground/10 text-foreground/60 hover:border-foreground/20"
                                 )}
                               >
                                 {mode.label}

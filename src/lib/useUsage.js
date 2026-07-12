@@ -1,54 +1,46 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../supabaseClient';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+/**
+ * Hook to fetch and track usage for a specific feature.
+ * Uses TanStack Query for automatic caching and manual refetching.
+ */
 export function useUsage(feature) {
   const { user } = useAuth();
-  const [used, setUsed] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchUsage() {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
+  
+  const query = useQuery({
+    queryKey: ['usage', user?.id, feature],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
       const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data, error } = await supabase
+        .from('user_usage')
+        .select('count')
+        .eq('user_id', user.id)
+        .eq('feature', feature)
+        .eq('month', currentMonth)
+        .maybeSingle();
 
-      try {
-        const { data, error } = await supabase
-          .from('user_usage')
-          .select('count')
-          .eq('user_id', user.id)
-          .eq('feature', feature)
-          .eq('month', currentMonth)
-          .maybeSingle();
+      if (error) throw error;
+      return data?.count || 0;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-        if (error) throw error;
-        setUsed(data?.count || 0);
-      } catch (err) {
-        console.error('Error fetching usage:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchUsage();
-
-    const handleUpdate = () => {
-      fetchUsage();
-    };
-
-    window.addEventListener('vh_usage_incremented', handleUpdate);
-    return () => {
-      window.removeEventListener('vh_usage_incremented', handleUpdate);
-    };
-  }, [user, feature]);
-
-  return { used, isLoading };
+  return { 
+    used: query.data ?? 0, 
+    isLoading: query.isLoading,
+    refetch: query.refetch 
+  };
 }
 
+/**
+ * Global function to increment usage.
+ * Dispatches an event to alert hooks even outside of React Query context.
+ */
 export async function incrementUsage(supabaseClient, userId, feature) {
   const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -84,6 +76,8 @@ export async function incrementUsage(supabaseClient, userId, feature) {
     throw res.error;
   }
 
+  // Dispatch event for UI components that might not be using the hook
   window.dispatchEvent(new CustomEvent('vh_usage_incremented', { detail: { feature } }));
+  
   return res;
 }
