@@ -295,11 +295,136 @@ serve(async (req) => {
             } catch (e) { console.error(`[audience-scanner] Reddit search failed for "${keyword}":`, e); }
           }
         }
-        
-        // HN / X / Threads logic remains as in audit...
-        
-        // Final scoring loop...
-        // ... (truncated for brevity, preserving existing scoring logic) ...
+
+        // Call HN / X / Threads if selected (functions already defined above, just not invoked yet)
+        if (platforms.includes('hn')) {
+          try {
+            const hnKeyword = keywords[0];
+            const hnRes = await fetch(`https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent(simplifyKeyword(hnKeyword))}&tags=story&numericFilters=created_at_i>${Math.floor(threeDaysAgoLimit/1000)}`);
+            if (hnRes.ok) {
+              const hnData = await hnRes.json();
+              (hnData.hits || []).forEach((hit: any) => {
+                if (!hit.title) return;
+                rawPosts.push({
+                  title: hit.title,
+                  body: hit.story_text || hit.title,
+                  url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
+                  author: hit.author || 'unknown',
+                  subreddit: 'Hacker News',
+                  upvotes: hit.points || 0,
+                  comments: hit.num_comments || 0,
+                  created_at: hit.created_at_i * 1000,
+                  platform: 'hn'
+                });
+              });
+            }
+          } catch (e) { console.error(`[audience-scanner] HN search failed:`, e); }
+        }
+
+        if (platforms.includes('twitter')) {
+          const xPosts = await searchXPosts(keywords, currentUserId);
+          xPosts.forEach(p => {
+            const ts = new Date(p.created_at).getTime();
+            if (!isNaN(ts) && ts >= threeDaysAgoLimit) rawPosts.push(p);
+          });
+        }
+
+        if (platforms.includes('threads')) {
+          const threadsPosts = await searchThreadsPosts(keywords, currentUserId);
+          threadsPosts.forEach(p => {
+            const ts = new Date(p.created_at).getTime();
+            if (!isNaN(ts) && ts >= threeDaysAgoLimit) rawPosts.push(p);
+          });
+        }
+
+        if (rawPosts.length === 0) {
+          processedCount++;
+          continue;
+        }
+
+        // Dedup against existing signals for this user
+        const { data: existingSignals } = await supabase
+          .from('audience_signals')
+          .select('post_url')
+          .eq('user_id', currentUserId);
+        const existingUrls = new Set((existingSignals || []).map((s: any) => s.post_url));
+        const freshPosts = rawPosts.filter(p => !existingUrls.has(p.url)).slice(0, needed);
+
+        if (freshPosts.length === 0) {
+          processedCount++;
+          continue;
+        }
+
+        // Score each post with AI for intent (buying signal strength 0-100)
+        const appName = brain.app_name || 'a SaaS product';
+        const appDescription = brain.app_description || '';
+        const targetCustomer = brain.target_customer || '';
+
+        for (const post of freshPosts) {
+          try {
+            const scoringPrompt = `You are scoring Reddit/HN/X posts for buying intent relevance to a product.
+
+Product: ${appName}
+Description: ${appDescription}
+Target customer: ${targetCustomer}
+
+Post title: ${post.title}
+Post body: ${post.body?.slice(0, 500) || ''}
+
+Score this post 0-100 for how likely this person is a potential customer actively looking for a solution like this product (not just tangentially related). Also classify intent_type as one of: "pain_point", "buying_intent", "competitor_mention", "question", "discussion".
+
+Respond ONLY with valid JSON, no markdown, no explanation: {"score": <number>, "intent_type": "<type>"}`;
+
+            const aiRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'meta/llama-3.1-8b-instruct',
+                messages: [{ role: 'user', content: scoringPrompt }],
+                max_tokens: 100,
+                temperature: 0.3
+              })
+            });
+
+            let score = 50;
+            let intentType = 'discussion';
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const raw = aiData?.choices?.[0]?.message?.content || '';
+              const cleaned = raw.replace(/```json|```/g, '').trim();
+              try {
+                const parsed = JSON.parse(cleaned);
+                if (typeof parsed.score === 'number') score = Math.max(0, Math.min(100, Math.round(parsed.score)));
+                if (parsed.intent_type) intentType = parsed.intent_type;
+              } catch (_) {}
+            }
+
+            const { error: insertError } = await supabase.from('audience_signals').insert({
+              user_id: currentUserId,
+              post_title: post.title,
+              post_body: post.body,
+              post_url: post.url,
+              subreddit: post.subreddit,
+              author: post.author,
+              posted_at: new Date(post.created_at).toISOString(),
+              intent_score: score,
+              intent_type: intentType,
+              status: 'new',
+              platform: post.platform,
+              upvotes: post.upvotes || 0,
+              comment_count: post.comments || 0,
+              source: post.platform
+            });
+
+            if (!insertError) totalInserted++;
+            else console.error(`[audience-scanner] Insert failed:`, insertError);
+          } catch (e) {
+            console.error(`[audience-scanner] Scoring/insert failed for post "${post.title}":`, e);
+          }
+        }
         processedCount++;
       } catch (e) { console.error(`[audience-scanner] User processing loop failed:`, e); }
     }
