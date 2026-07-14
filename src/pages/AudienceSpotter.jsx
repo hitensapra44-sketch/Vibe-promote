@@ -209,7 +209,7 @@ export default function AudienceSpotter() {
             setKeywords(config.keywords.slice(0, maxKeywords));
             setSelectedPlatforms(config.platforms);
             setCommunities(config.communities.slice(0, maxCommunities));
-            startScan({ keywords: config.keywords.slice(0, maxKeywords), platforms: config.platforms, communities: config.communities.slice(0, maxCommunities) });
+            startScan({ keywords: config.keywords.slice(0, maxKeywords), platforms: config.platforms, communities: config.communities.slice(0, maxKeywords) });
           }
         }
 
@@ -236,6 +236,17 @@ export default function AudienceSpotter() {
     init();
   }, [user]);
 
+  const handleRescan = async () => {
+    if (isLocked) {
+      toast.error(`You've used all ${limits.userFinder} scans this month. Upgrade to get more.`);
+      navigate('/pricing');
+      return;
+    }
+    startScan({ keywords, platforms: selectedPlatforms, communities });
+    await incrementUsage(supabase, user.id, 'user_finder');
+    refetchUsage();
+  };
+
   const handleCreateSignal = async () => {
     if (limits.userFinder !== "unlimited" && scansUsed >= limits.userFinder) {
       toast.error(`You've used all ${limits.userFinder} scans this month. Upgrade to get more.`);
@@ -256,6 +267,11 @@ export default function AudienceSpotter() {
   };
 
   const handleSaveChanges = async () => {
+    if (isLocked) {
+      toast.error(`You've used all ${limits.userFinder} scans this month. Upgrade to get more.`);
+      navigate('/pricing');
+      return;
+    }
     setIsConfigured(true);
 
     try {
@@ -289,6 +305,8 @@ export default function AudienceSpotter() {
 
       toast.success("Settings saved successfully!");
       startScan({ keywords, platforms: selectedPlatforms, communities });
+      await incrementUsage(supabase, user.id, 'user_finder');
+      refetchUsage();
     } catch (err) {
       console.error("Error saving settings:", err);
       toast.error("Failed to save settings.");
@@ -666,8 +684,8 @@ export default function AudienceSpotter() {
             {!isLocked && (
               <>
                 <button 
-                  onClick={() => startScan({ keywords, platforms: selectedPlatforms, communities })}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all bg-transparent"
+                  onClick={handleRescan}
+                  className={cn("flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all bg-transparent", isLoading && "animate-spin")}
                 >
                   <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
                   Scan Now
