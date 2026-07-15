@@ -279,6 +279,9 @@ serve(async (req) => {
                   results = serperData.organic || [];
                   console.log(`[audience-scanner] Serper returned ${results.length} organic results.`);
                   await supabase.from('serper_cache').upsert({ query_hash: queryHash, query_text: query, results: results, created_at: new Date().toISOString() }, { onConflict: 'query_hash' });
+                } else {
+                  const errorBody = await serperRes.text();
+                  console.error(`[audience-scanner] Serper API FAILED - status: ${serperRes.status}, body: ${errorBody}`);
                 }
               }
 
