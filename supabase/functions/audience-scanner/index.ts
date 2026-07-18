@@ -251,50 +251,51 @@ serve(async (req) => {
 
         if (platforms.includes('reddit')) {
           const keywordsToScan = keywords.slice(0, 2);
-          const communitiesToScan = communities.slice(0, 3);
+          const communitiesToScan = communities.slice(0, 2);
 
           for (const keyword of keywordsToScan) {
             try {
               const simplified = simplifyKeyword(keyword);
-              const communityFilter = communitiesToScan.map(c => `r/${c}`).join(' OR ');
-              const query = `site:reddit.com (${communityFilter}) ${simplified}`;
-              const queryHash = await hashQuery(query);
 
-              const CACHE_TTL_HOURS = 72;
-              const { data: cached } = await supabase.from('serper_cache').select('results, created_at').eq('query_hash', queryHash).gte('created_at', new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString()).maybeSingle();
+              for (const subreddit of communitiesToScan) {
+                const query = `site:reddit.com/r/${subreddit} ${simplified}`;
+                const queryHash = await hashQuery(query);
 
-              let results: any[] = [];
-              if (cached) {
-                results = cached.results as any[];
-              } else {
-                console.log(`[audience-scanner] Calling Serper for: "${query}"`);
-                const serperRes = await fetch('https://google.serper.dev/search', {
-                  method: 'POST',
-                  headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
-                  // Changed qdr:3d to qdr:w to capture more candidates for the internal 3-day filter
-                  body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" }) 
-                });
-                if (serperRes.ok) {
-                  const serperData = await serperRes.json();
-                  results = serperData.organic || [];
-                  console.log(`[audience-scanner] Serper returned ${results.length} organic results.`);
-                  await supabase.from('serper_cache').upsert({ query_hash: queryHash, query_text: query, results: results, created_at: new Date().toISOString() }, { onConflict: 'query_hash' });
+                const CACHE_TTL_HOURS = 72;
+                const { data: cached } = await supabase.from('serper_cache').select('results, created_at').eq('query_hash', queryHash).gte('created_at', new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString()).maybeSingle();
+
+                let results: any[] = [];
+                if (cached) {
+                  results = cached.results as any[];
                 } else {
-                  const errorBody = await serperRes.text();
-                  console.error(`[audience-scanner] Serper API FAILED - status: ${serperRes.status}, body: ${errorBody}`);
+                  console.log(`[audience-scanner] Calling Serper for: "${query}"`);
+                  const serperRes = await fetch('https://google.serper.dev/search', {
+                    method: 'POST',
+                    headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" }) 
+                  });
+                  if (serperRes.ok) {
+                    const serperData = await serperRes.json();
+                    results = serperData.organic || [];
+                    console.log(`[audience-scanner] Serper returned ${results.length} organic results.`);
+                    await supabase.from('serper_cache').upsert({ query_hash: queryHash, query_text: query, results: results, created_at: new Date().toISOString() }, { onConflict: 'query_hash' });
+                  } else {
+                    const errorBody = await serperRes.text();
+                    console.error(`[audience-scanner] Serper API FAILED - status: ${serperRes.status}, body: ${errorBody}`);
+                  }
                 }
-              }
 
-              results.forEach((result: any) => {
-                const url = result.link || '';
-                if (!url.includes('reddit.com') || !url.includes('/comments/')) return;
-                const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
-                const subreddit = subMatch ? subMatch[1] : 'reddit';
-                const postDate = parseSerperDate(result.date);
-                if (postDate !== null && postDate >= threeDaysAgoLimit) {
-                  rawPosts.push({ title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '', body: result.snippet || '', url: url, author: 'unknown', subreddit: subreddit, upvotes: 0, comments: 0, created_at: postDate, platform: 'reddit' });
-                }
-              });
+                results.forEach((result: any) => {
+                  const url = result.link || '';
+                  if (!url.includes('reddit.com') || !url.includes('/comments/')) return;
+                  const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
+                  const matchedSubreddit = subMatch ? subMatch[1] : 'reddit';
+                  const postDate = parseSerperDate(result.date);
+                  if (postDate !== null && postDate >= threeDaysAgoLimit) {
+                    rawPosts.push({ title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '', body: result.snippet || '', url: url, author: 'unknown', subreddit: matchedSubreddit, upvotes: 0, comments: 0, created_at: postDate, platform: 'reddit' });
+                  }
+                });
+              }
             } catch (e) { console.error(`[audience-scanner] Reddit search failed for "${keyword}":`, e); }
           }
         }
