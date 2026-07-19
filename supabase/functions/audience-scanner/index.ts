@@ -251,13 +251,18 @@ serve(async (req) => {
 
         if (platforms.includes('reddit')) {
           const keywordsToScan = keywords.slice(0, 2);
-          const communitiesToScan = communities.slice(0, 2);
+          const communitiesToScan = communities.slice(0, 3);
+          let serperCallsUsed = 0;
+          const MAX_SERPER_CALLS = 3; // cap per user per scan
 
+          outer:
           for (const keyword of keywordsToScan) {
-            try {
-              const simplified = simplifyKeyword(keyword);
+            for (const subreddit of communitiesToScan) {
+              if (serperCallsUsed >= MAX_SERPER_CALLS) break outer;
 
-              for (const subreddit of communitiesToScan) {
+              try {
+                const simplified = simplifyKeyword(keyword);
+                // NO parens/OR — single site + single subreddit, Serper free tier allows this
                 const query = `site:reddit.com/r/${subreddit} ${simplified}`;
                 const queryHash = await hashQuery(query);
 
@@ -268,11 +273,12 @@ serve(async (req) => {
                 if (cached) {
                   results = cached.results as any[];
                 } else {
+                  serperCallsUsed++;
                   console.log(`[audience-scanner] Calling Serper for: "${query}"`);
                   const serperRes = await fetch('https://google.serper.dev/search', {
                     method: 'POST',
                     headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" }) 
+                    body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" })
                   });
                   if (serperRes.ok) {
                     const serperData = await serperRes.json();
@@ -295,8 +301,10 @@ serve(async (req) => {
                     rawPosts.push({ title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '', body: result.snippet || '', url: url, author: 'unknown', subreddit: matchedSubreddit, upvotes: 0, comments: 0, created_at: postDate, platform: 'reddit' });
                   }
                 });
-              }
-            } catch (e) { console.error(`[audience-scanner] Reddit search failed for "${keyword}":`, e); }
+
+                await new Promise(r => setTimeout(r, 300)); // small delay between calls
+              } catch (e) { console.error(`[audience-scanner] Reddit search failed for "${subreddit}/${keyword}":`, e); }
+            }
           }
         }
 
