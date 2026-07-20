@@ -263,7 +263,7 @@ serve(async (req) => {
               try {
                 const simplified = simplifyKeyword(keyword);
                 // NO parens/OR — single site + single subreddit, Serper free tier allows this
-                const query = `site:reddit.com/r/${subreddit} ${simplified}`;
+                const query = `site:reddit.com ${simplified}`;
                 const queryHash = await hashQuery(query);
 
                 const CACHE_TTL_HOURS = 72;
@@ -296,6 +296,7 @@ serve(async (req) => {
                   if (!url.includes('reddit.com') || !url.includes('/comments/')) return;
                   const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                   const matchedSubreddit = subMatch ? subMatch[1] : 'reddit';
+                  if (communitiesToScan.length > 0 && !communitiesToScan.some(c => c.toLowerCase() === matchedSubreddit.toLowerCase())) return;
                   const postDate = parseSerperDate(result.date);
                   if (postDate !== null && postDate >= threeDaysAgoLimit) {
                     rawPosts.push({ title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '', body: result.snippet || '', url: url, author: 'unknown', subreddit: matchedSubreddit, upvotes: 0, comments: 0, created_at: postDate, platform: 'reddit' });
