@@ -177,12 +177,9 @@ async function searchThreadsPosts(keywords: string[], userId: string): Promise<a
 
 async function fetchSerperWithFallback(simplified: string, communitiesToScan: string[], SERPER_API_KEY: string): Promise<{ results: any[], queryUsed: string }> {
   const patterns: string[] = [];
-  if (communitiesToScan.length > 0) {
-    const communityFilter = communitiesToScan.map(c => `r/${c}`).join(' OR ');
-    patterns.push(`site:reddit.com (${communityFilter}) ${simplified}`);
-  }
   patterns.push(`site:reddit.com ${simplified}`);
   patterns.push(`${simplified} reddit`);
+  patterns.push(simplified);
 
   for (const query of patterns) {
     try {
