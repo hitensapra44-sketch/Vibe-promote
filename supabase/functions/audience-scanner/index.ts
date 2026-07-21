@@ -175,6 +175,39 @@ async function searchThreadsPosts(keywords: string[], userId: string): Promise<a
   }
 }
 
+async function fetchSerperWithFallback(simplified: string, communitiesToScan: string[], SERPER_API_KEY: string): Promise<{ results: any[], queryUsed: string }> {
+  const patterns: string[] = [];
+  if (communitiesToScan.length > 0) {
+    const communityFilter = communitiesToScan.map(c => `r/${c}`).join(' OR ');
+    patterns.push(`site:reddit.com (${communityFilter}) ${simplified}`);
+  }
+  patterns.push(`site:reddit.com ${simplified}`);
+  patterns.push(`${simplified} reddit`);
+
+  for (const query of patterns) {
+    try {
+      console.log(`[audience-scanner] Trying Serper pattern: "${query}"`);
+      const serperRes = await fetch('https://google.serper.dev/search', {
+        method: 'POST',
+        headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" })
+      });
+      if (serperRes.ok) {
+        const data = await serperRes.json();
+        console.log(`[audience-scanner] SUCCESS with pattern: "${query}" - ${(data.organic || []).length} results`);
+        return { results: data.organic || [], queryUsed: query };
+      } else {
+        const errBody = await serperRes.text();
+        console.error(`[audience-scanner] Pattern FAILED "${query}" - status ${serperRes.status}: ${errBody}`);
+      }
+    } catch (e) {
+      console.error(`[audience-scanner] Pattern threw error "${query}":`, e);
+    }
+  }
+  console.error(`[audience-scanner] ALL Serper patterns failed for keyword base: "${simplified}"`);
+  return { results: [], queryUsed: '' };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -256,8 +289,8 @@ serve(async (req) => {
           for (const keyword of keywordsToScan) {
             try {
               const simplified = simplifyKeyword(keyword);
-              const query = `site:reddit.com ${simplified}`;
-              const queryHash = await hashQuery(query);
+              const cacheKeyBase = `${simplified}|${communitiesToScan.join(',')}`;
+              const queryHash = await hashQuery(cacheKeyBase);
 
               const CACHE_TTL_HOURS = 72;
               const { data: cached } = await supabase.from('serper_cache').select('results, created_at').eq('query_hash', queryHash).gte('created_at', new Date(Date.now() - CACHE_TTL_HOURS * 60 * 60 * 1000).toISOString()).maybeSingle();
@@ -266,20 +299,10 @@ serve(async (req) => {
               if (cached) {
                 results = cached.results as any[];
               } else {
-                console.log(`[audience-scanner] Calling Serper for: "${query}"`);
-                const serperRes = await fetch('https://google.serper.dev/search', {
-                  method: 'POST',
-                  headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ q: query, num: 20, tbs: "qdr:w" })
-                });
-                if (serperRes.ok) {
-                  const serperData = await serperRes.json();
-                  results = serperData.organic || [];
-                  console.log(`[audience-scanner] Serper returned ${results.length} organic results.`);
-                  await supabase.from('serper_cache').upsert({ query_hash: queryHash, query_text: query, results: results, created_at: new Date().toISOString() }, { onConflict: 'query_hash' });
-                } else {
-                  const errorBody = await serperRes.text();
-                  console.error(`[audience-scanner] Serper API FAILED - status: ${serperRes.status}, body: ${errorBody}`);
+                const fallbackResult = await fetchSerperWithFallback(simplified, communitiesToScan, SERPER_API_KEY);
+                results = fallbackResult.results;
+                if (results.length > 0) {
+                  await supabase.from('serper_cache').upsert({ query_hash: queryHash, query_text: fallbackResult.queryUsed, results: results, created_at: new Date().toISOString() }, { onConflict: 'query_hash' });
                 }
               }
 
@@ -290,9 +313,7 @@ serve(async (req) => {
                 const subreddit = subMatch ? subMatch[1] : 'reddit';
 
                 if (communitiesToScan.length > 0) {
-                  const matchesCommunity = communitiesToScan.some(
-                    c => c.toLowerCase() === subreddit.toLowerCase()
-                  );
+                  const matchesCommunity = communitiesToScan.some(c => c.toLowerCase() === subreddit.toLowerCase());
                   if (!matchesCommunity) return;
                 }
 
