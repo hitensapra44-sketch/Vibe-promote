@@ -685,10 +685,11 @@ export default function AudienceSpotter() {
               <>
                 <button 
                   onClick={handleRescan}
-                  className={cn("flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all bg-transparent", isLoading && "animate-spin")}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground/5 border border-foreground/10 text-foreground text-xs font-bold hover:bg-foreground/10 transition-all bg-transparent disabled:opacity-60"
                 >
                   <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
-                  Scan Now
+                  {isLoading ? "Scanning..." : "Scan Now"}
                 </button>
                 <button 
                   onClick={() => setShowSettings(true)}

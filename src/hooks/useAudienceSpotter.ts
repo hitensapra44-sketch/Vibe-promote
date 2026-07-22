@@ -62,6 +62,7 @@ export function useAudienceSpotter(userId: string) {
 
     if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
     loadingTimerRef.current = setTimeout(() => {
+      loadSignals();
       setIsLoading(false);
       const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
       localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
@@ -79,7 +80,17 @@ export function useAudienceSpotter(userId: string) {
     // Fire Edge Function — everything happens server-side now
     supabase.functions.invoke('audience-scanner', {
       body: { user_id: userId }
-    }).catch(e => console.error('Scanner invoke failed:', e));
+    }).then(() => {
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+      loadSignals();
+      setIsLoading(false);
+      const saved = JSON.parse(localStorage.getItem('vh_audience_config') || '{}');
+      localStorage.setItem('vh_audience_config', JSON.stringify({ ...saved, isScanning: false }));
+    }).catch(e => {
+      console.error('Scanner invoke failed:', e);
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+      setIsLoading(false);
+    });
   };
 
   const updateSignalStatus = async ({ id, status }: { id: string, status: string }) => {
