@@ -309,6 +309,11 @@ serve(async (req) => {
                 const subMatch = url.match(/reddit\.com\/r\/([^/]+)/);
                 const subreddit = subMatch ? subMatch[1] : 'reddit';
 
+                if (communitiesToScan.length > 0) {
+                  const matchesCommunity = communitiesToScan.some(c => c.toLowerCase() === subreddit.toLowerCase());
+                  if (!matchesCommunity) return;
+                }
+
                 const postDate = parseSerperDate(result.date);
                 if (postDate !== null && postDate >= threeDaysAgoLimit) {
                   rawPosts.push({ title: result.title?.replace(/\s*:\s*reddit$/i, '').trim() || '', body: result.snippet || '', url: url, author: 'unknown', subreddit: subreddit, upvotes: 0, comments: 0, created_at: postDate, platform: 'reddit' });
