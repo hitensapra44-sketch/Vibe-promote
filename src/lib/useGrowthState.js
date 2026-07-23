@@ -13,7 +13,7 @@ export function useGrowthState() {
     queryFn: async () => {
       if (!user) return null;
 
-      // 1. Fetch Core Progress & Tasks
+      // 1. Fetch Core Data
       const [progressRes, tasksRes, leadsRes, repliesRes, postsRes, usageRes, accountsRes] = await Promise.all([
         supabase.from('user_progress').select('*').eq('user_id', user.id).maybeSingle(),
         supabase.from('user_tasks').select('*').eq('user_id', user.id).order('day', { ascending: true }),
@@ -27,7 +27,6 @@ export function useGrowthState() {
       const progress = progressRes.data || { onboarding_complete: false };
       const rawTasks = tasksRes.data || [];
       
-      // Activity counts
       const counts = {
         leads: leadsRes.count || 0,
         replies: repliesRes.count || 0,
@@ -37,51 +36,49 @@ export function useGrowthState() {
         hasGoal: !!progress.goal_type
       };
 
-      // 2. Compute Current Day
+      // 2. Define Onboarding Checklist
+      const onboardingTasks = [
+        { id: 'goal', label: 'Set a growth goal', completed: counts.hasGoal, target: 1, current: counts.hasGoal ? 1 : 0, route: '/progress' },
+        { id: 'leads', label: 'Find your first 3 leads', completed: counts.leads >= 3, target: 3, current: counts.leads, route: '/audience-spotter' },
+        { id: 'action', label: 'Take your first action', completed: (counts.replies + counts.posts) >= 1, target: 1, current: (counts.replies + counts.posts), route: '/post-maker' },
+        { id: 'connect', label: 'Connect an account', completed: counts.accounts >= 1, target: 1, current: counts.accounts, route: '/connected-accounts', optional: true }
+      ];
+
+      // 3. Handle Auto-Completion of Onboarding
+      const requiredDone = onboardingTasks.filter(t => !t.optional).every(t => t.completed);
+      let onboardingComplete = progress.onboarding_complete;
+      let sprintStart = progress.sprint_start_date;
+
+      if (requiredDone && !onboardingComplete) {
+        onboardingComplete = true;
+        sprintStart = new Date().toISOString();
+        await supabase.from('user_progress').upsert({
+          user_id: user.id,
+          onboarding_complete: true,
+          sprint_start_date: sprintStart
+        }, { onConflict: 'user_id' });
+      }
+
+      // 4. Day Calculation (Capped at 15)
       let currentDay = 1;
-      if (progress.sprint_start_date) {
-        const start = new Date(progress.sprint_start_date);
+      if (sprintStart) {
+        const start = new Date(sprintStart);
         const now = new Date();
         const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
         currentDay = Math.min(15, diffDays + 1);
       }
 
-      // 3. Define/Compute Onboarding Tasks
-      const onboardingTasks = [
-        { id: 'goal', label: 'Set a growth goal', completed: counts.hasGoal, target: 1, current: counts.hasGoal ? 1 : 0, route: '/progress' },
-        { id: 'leads', label: 'Find 5 opportunities', completed: counts.leads >= 5, target: 5, current: counts.leads, route: '/audience-spotter' },
-        { id: 'action', label: 'Take your first action (Post or Reply)', completed: (counts.replies + counts.posts) >= 1, target: 1, current: (counts.replies + counts.posts), route: '/post-maker' },
-        { id: 'connect', label: 'Connect an account (Recommended)', completed: counts.accounts >= 1, target: 1, current: counts.accounts, route: '/connected-accounts', optional: true }
-      ];
-
-      // Auto-complete onboarding if requirements met
-      const requiredDone = onboardingTasks.filter(t => !t.optional).every(t => t.completed);
-      if (requiredDone && !progress.onboarding_complete) {
-        await supabase.from('user_progress').upsert({
-          user_id: user.id,
-          onboarding_complete: true,
-          sprint_start_date: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-        // Recalculate or wait for invalidation
-      }
-
-      // 4. Compute Dynamic Tasks for Current Day
-      // This maps static task keys to dynamic completion logic
+      // 5. Compute Dynamic Tasks for Current Day
       const getStatus = (task) => {
         const key = task.task_key;
         if (key.includes('goal_set')) return counts.hasGoal ? 'completed' : 'pending';
         if (key.includes('finder')) {
-          // Logic: "Find 10 leads" -> need 10 leads
           const target = key.includes('d1') ? 10 : 5; 
           return counts.leads >= target ? 'completed' : 'pending';
         }
-        if (key.includes('reply')) {
-          const target = 5;
-          return counts.replies >= target ? 'completed' : 'pending';
-        }
+        if (key.includes('reply')) return counts.replies >= 5 ? 'completed' : 'pending';
         if (key.includes('post')) return counts.posts >= 1 ? 'completed' : 'pending';
         if (key.includes('copilot')) return counts.copilot >= 1 ? 'completed' : 'pending';
-        if (key.includes('analytics') || key.includes('progress_check')) return 'pending'; // Manual check
         return task.status || 'pending';
       };
 
@@ -91,16 +88,20 @@ export function useGrowthState() {
       }));
 
       return {
-        onboardingComplete: progress.onboarding_complete,
+        onboardingComplete,
         currentDay,
         counts,
         onboardingTasks,
         tasks: tasks.filter(t => t.day === currentDay),
         allTasks: tasks,
-        progress
+        progress: {
+          ...progress,
+          onboarding_complete: onboardingComplete,
+          sprint_start_date: sprintStart
+        }
       };
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 60,
   });
 }
