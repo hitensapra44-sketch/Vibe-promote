@@ -8,9 +8,11 @@ import { useAuth } from '../../lib/AuthContext';
 import { toast } from 'sonner';
 import { incrementUsage } from '../../lib/useUsage';
 import { supabase } from '../../supabaseClient';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function BuddyChat() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [messages, setMessages] = useState([
     { 
       role: 'buddy', 
@@ -50,7 +52,6 @@ export default function BuddyChat() {
     Maintain a helpful, high-energy founder-to-founder vibe.`;
 
     try {
-      // The generateAICall utility automatically fetches and injects the brand brain when userId is passed
       const response = await generateAICall(systemPrompt, msgText, user?.id, 'copilot');
       
       const buddyMsg = { 
@@ -59,8 +60,8 @@ export default function BuddyChat() {
       };
       setMessages(prev => [...prev, buddyMsg]);
       
-      // Increment usage on successful message generation
       await incrementUsage(supabase, user?.id, 'copilot');
+      queryClient.invalidateQueries({ queryKey: ['growth-state'] });
     } catch (err) {
       console.error("Copilot Error:", err);
       toast.error("I hit a snag. Try again?");

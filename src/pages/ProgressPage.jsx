@@ -1,599 +1,211 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckSquare, Check, Lock, Sparkles, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { 
+  CheckCircle2, 
+  Circle, 
+  ArrowRight, 
+  Sparkles, 
+  Target, 
+  Rocket, 
+  Calendar, 
+  Check,
+  Loader2,
+  Zap
+} from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
+import { useGrowthState } from '../lib/useGrowthState';
 import { cn } from "@/lib/utils";
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 const GOAL_OPTIONS = [
   { goal_type: 'users_100', goal_label: 'Get first 100 users', goal_target: 100 },
   { goal_type: 'paying_10', goal_label: 'Get first 10 paying users', goal_target: 10 },
-  { goal_type: 'paying_50', goal_label: 'Get first 50 paying users', goal_target: 50 },
-  { goal_type: 'mrr_100', goal_label: 'Touch $100 MRR', goal_target: 100 },
-  { goal_type: 'mrr_1000', goal_label: 'Touch $1,000 MRR', goal_target: 1000 },
-  { goal_type: 'newsletter_100', goal_label: 'Get 100 newsletter subscribers', goal_target: 100 },
-  { goal_type: 'launch_ph', goal_label: 'Launch on Product Hunt', goal_target: 1 },
-  { goal_type: 'consistency', goal_label: 'Consistency in marketing', goal_target: 0, sublabel: 'Auto-fills as you complete daily tasks' }
+  { goal_type: 'mrr_100', goal_label: 'Touch $100 MRR', goal_target: 100 }
 ];
-
-const SEED_TASKS = [
-  // ── DAY 1 ──────────────────────────────────────────────────────
-  {
-    day: 1, task_key: 'goal_set_d1',
-    task_title: 'Set One Growth Goal',
-    task_description: 'Set one clear 15-day outcome for this sprint: more active users, more signups, or more conversions. Keep the goal specific so every task has a purpose.',
-    route: '/progress'
-  },
-  {
-    day: 1, task_key: 'finder_baseline_d1',
-    task_title: 'Find 10 High-Intent Leads',
-    task_description: 'Run User Finder and save 10 posts from people describing the exact pain your app solves. Prioritize recent posts, strong frustration, tool requests, and clear workflow problems.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 1, task_key: 'reply_baseline_d1',
-    task_title: 'Reply to 5 Saved Leads',
-    task_description: 'Reply to 5 saved posts inside User Finder. Be genuinely helpful, solve the problem first, and mention your product only if it fits naturally.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 1, task_key: 'copilot_positioning_d1',
-    task_title: 'Ask Co-Pilot What You Really Sell',
-    task_description: 'Share your app, your current users, and the problem they have in common. Ask Co-Pilot for the clearest one-line positioning and the strongest pain language to use.',
-    route: '/marketing-buddy'
-  },
-
-  // ── DAY 2 ──────────────────────────────────────────────────────
-  {
-    day: 2, task_key: 'finder_competitor_d2',
-    task_title: 'Find Competitor Complaint Posts',
-    task_description: 'Use User Finder to look for complaints about tools or workflows your users already use today. Save 10 posts from people who are clearly frustrated with current solutions.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 2, task_key: 'reply_competitor_d2',
-    task_title: 'Reply to 5 Competitor Complaint Posts',
-    task_description: 'Reply inside User Finder with practical help, not a pitch. Solve the immediate issue, add context, and keep your product mention soft or absent.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 2, task_key: 'post_problem_d2',
-    task_title: 'Post the Problem, Not the Product',
-    task_description: 'Create one short post that talks only about the pain, friction, or wasted time your users deal with. Keep it focused on the problem and avoid describing the tool itself.',
-    route: '/post-maker'
-  },
-  {
-    day: 2, task_key: 'analytics_baseline_d2',
-    task_title: 'Check Your Starting Metrics',
-    task_description: 'Open Analytics and note your current baseline: replies, clicks, signups, and where users seem to drop off. Write down one metric to improve first.',
-    route: '/dashboard/results-tracker'
-  },
-
-  // ── DAY 3 ──────────────────────────────────────────────────────
-  {
-    day: 3, task_key: 'finder_icp_d3',
-    task_title: 'Find Posts from Your Exact ICP',
-    task_description: 'Run User Finder for your ideal customer profile, not just the problem. Save 10 posts from people who match the type of user you want most.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 3, task_key: 'reply_icp_d3',
-    task_title: 'Reply to 5 ICP Posts',
-    task_description: 'Reply to 5 posts from your exact ICP. Focus on their workflow, tools, and pain points so your replies feel deeply relevant.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 3, task_key: 'reddit_value_d3',
-    task_title: 'Give Value on Reddit Without Pitching',
-    task_description: 'Spend a short session leaving helpful comments on 3 relevant Reddit threads. Add useful context, answer questions, and do not mention your product unless asked.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 3, task_key: 'copilot_message_d3',
-    task_title: 'Refine Your Messaging with Co-Pilot',
-    task_description: 'Share the language you saw in lead posts and ask Co-Pilot to tighten your message. Focus on the exact words users use to describe the problem.',
-    route: '/marketing-buddy'
-  },
-
-  // ── DAY 4 ──────────────────────────────────────────────────────
-  {
-    day: 4, task_key: 'finder_recommendation_d4',
-    task_title: 'Find Tool Recommendation Posts',
-    task_description: 'Use User Finder to search for posts asking for a tool, alternative, recommendation, or solution. Save 10 posts where buying intent is obvious.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 4, task_key: 'reply_recommendation_d4',
-    task_title: 'Reply to 5 Recommendation Posts',
-    task_description: 'Reply to 5 recommendation or alternative requests inside User Finder. Help first, compare options honestly, and only mention your app if it clearly fits.',
-    route: '/audience-spotter'
-  },
-  {
-    day: 4, task_key: 'post_user_voice_d4',
-    task_title: 'Create a Post Using User Language',
-    task_description: 'Write one post that uses the exact phrases users used to describe their problem. This should sound like the market, not like a founder pitch.',
-    route: '/post-maker'
-  },
-  {
-    day: 4, task_key: 'progress_check_d4',
-    task_title: 'Check Goal Progress',
-    task_description: 'Open Progress and compare what happened so far against your sprint goal. Note what is moving, what is flat, and what deserves more focus.',
-    route: '/progress'
-  }
-];
-
-const QUOTES = {
-  1: "The first step is always the hardest. You took it.",
-  2: "Two days in. Most people quit before they start.",
-  3: "Consistency is not a trait. It is a decision.",
-  4: "Four days of real work. That is more than most do in a month."
-};
 
 export default function ProgressPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isPaid, setIsPaid] = useState(false);
-  const [progress, setProgress] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [currentDay, setCurrentDay] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [selectedGoal, setSelectedGoal] = useState(null);
-  const [showUpdateInput, setShowUpdateInput] = useState(false);
-  const [updateValue, setUpdateValue] = useState('');
-  const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const updateInputRef = useRef(null);
+  const queryClient = useQueryClient();
+  const { data: state, isLoading } = useGrowthState();
+  const [isSettingGoal, setIsSettingGoal] = useState(false);
 
-  const fetchProgressAndTasks = useCallback(async () => {
-    if (!user) return;
-    try {
-      // Fetch payment status
-      const { data: paymentData } = await supabase
-        .from('user_payments')
-        .select('payment_status')
-        .eq('email', user.email)
-        .maybeSingle();
-      if (paymentData?.payment_status) setIsPaid(true);
-
-      // Fetch progress
-      const { data: progressData, error: progressError } = await supabase
-        .from('user_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (progressError) throw progressError;
-      setProgress(progressData || { user_id: user.id, goal_type: null });
-
-      // Fetch tasks
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('user_tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      let finalTasks = [];
-      let completedLocalKeys = [];
-      try {
-        completedLocalKeys = JSON.parse(localStorage.getItem(`vh_completed_tasks_${user.id}`) || '[]');
-      } catch (e) {}
-
-      if (!tasksError && tasksData && tasksData.length > 0) {
-        finalTasks = Array.from(new Map(tasksData.map(t => [t.task_key, t])).values());
-      } else {
-        // Fallback to local seed tasks
-        finalTasks = SEED_TASKS.map(t => ({
-          ...t,
-          id: t.task_key,
-          user_id: user.id,
-          status: completedLocalKeys.includes(t.task_key) ? 'completed' : 'pending'
-        }));
-      }
-
-      // Sync with local storage completed tasks
-      finalTasks = finalTasks.map(t => {
-        if (completedLocalKeys.includes(t.task_key)) {
-          return { ...t, status: 'completed' };
-        }
-        return t;
-      });
-
-      setTasks(finalTasks);
-
-      if (finalTasks.length > 0) {
-        const firstTask = finalTasks[0];
-        if (firstTask && firstTask.created_at) {
-          const firstDate = new Date(firstTask.created_at);
-          firstDate.setHours(0, 0, 0, 0);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const diffTime = Math.abs(today.getTime() - firstDate.getTime());
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          setCurrentDay(Math.min(4, diffDays + 1));
-        } else {
-          setCurrentDay(1);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching progress/tasks:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchProgressAndTasks();
-    }
-  }, [user, fetchProgressAndTasks]);
-
-  const todaysTasks = tasks.filter(t => t.day === currentDay);
-  const tomorrowsTasks = tasks.filter(t => t.day === currentDay + 1);
-
-  // Day complete modal trigger
-  useEffect(() => {
-    const triggerModal = async () => {
-      if (todaysTasks.length > 0 && todaysTasks.every(t => t.status === 'completed')) {
-        const todayStr = new Date().toISOString().slice(0, 10);
-        if (progress && progress.last_completed_date !== todayStr) {
-          const newStreak = (progress.streak || 0) + 1;
-          const { error } = await supabase
-            .from('user_progress')
-            .upsert({
-              user_id: user.id,
-              streak: newStreak,
-              last_completed_date: todayStr
-            }, { onConflict: 'user_id' });
-
-          if (!error) {
-            setProgress(prev => ({
-              ...prev,
-              streak: newStreak,
-              last_completed_date: todayStr
-            }));
-            setShowCompleteModal(true);
-          }
-        }
-      }
-    };
-    if (progress && tasks.length > 0) {
-      triggerModal();
-    }
-  }, [tasks, progress, todaysTasks, user]);
-
-  const handleSetGoal = async () => {
-    if (!selectedGoal) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('user_progress')
-        .upsert({
-          user_id: user.id,
-          goal_type: selectedGoal.goal_type,
-          goal_label: selectedGoal.goal_label,
-          goal_target: selectedGoal.goal_target,
-          current_value: 0,
-          streak: progress?.streak || 0
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-      await fetchProgressAndTasks();
-    } catch (err) {
-      console.error('Error setting goal:', err);
-    } finally {
-      setLoading(false);
-    }
+  const handleSetGoal = async (goal) => {
+    await supabase.from('user_progress').upsert({
+      user_id: user.id,
+      goal_type: goal.goal_type,
+      goal_label: goal.goal_label,
+      goal_target: goal.goal_target
+    }, { onConflict: 'user_id' });
+    
+    queryClient.invalidateQueries({ queryKey: ['growth-state'] });
+    setIsSettingGoal(false);
   };
 
-  const handleChangeGoal = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase
-        .from('user_progress')
-        .update({
-          goal_type: null,
-          goal_label: null,
-          goal_target: null,
-          current_value: 0
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setProgress(prev => ({
-        ...prev,
-        goal_type: null,
-        goal_label: null,
-        goal_target: null,
-        current_value: 0
-      }));
-      setSelectedGoal(null);
-    } catch (err) {
-      console.error('Error resetting goal:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdateProgress = async () => {
-    const val = parseInt(updateValue, 10);
-    if (isNaN(val)) return;
-    setLoading(true);
-    try {
-      const newValue = (progress.current_value || 0) + val;
-      const { error } = await supabase
-        .from('user_progress')
-        .update({ current_value: newValue })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setProgress(prev => ({ ...prev, current_value: newValue }));
-      setShowUpdateInput(false);
-      setUpdateValue('');
-    } catch (err) {
-      console.error('Error updating progress:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading && !progress) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-      </div>
-    );
-  }
-
-  const isGoalCompleted = progress?.goal_type && progress?.goal_type !== 'consistency' && (progress?.current_value || 0) >= (progress?.goal_target || 1);
+  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
-      <Sidebar isPaid={isPaid} />
+      <Sidebar isPaid={true} />
+      <main className="flex-1 min-w-0 overflow-y-auto p-8 sm:p-12">
+        <div className="max-w-3xl mx-auto w-full">
+          
+          {/* HEADER */}
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h1 className="text-3xl font-bold">Growth Sprints</h1>
+              <p className="text-foreground/60 text-sm mt-1">
+                {state?.onboardingComplete ? `Day ${state.currentDay} of 15` : 'Complete your setup to start the sprint.'}
+              </p>
+            </div>
+            {state?.onboardingComplete && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs font-bold uppercase tracking-widest">
+                <Rocket className="w-3.5 h-3.5" />
+                Active Sprint
+              </div>
+            )}
+          </div>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="h-14 border-b border-foreground/5 bg-background flex items-center px-6 sticky top-0 z-30">
-          <h1 className="text-sm font-bold text-foreground">My Progress</h1>
-        </header>
-
-        <div className="p-6 sm:p-8 max-w-3xl mx-auto w-full space-y-8 pb-24">
-          {!progress || !progress.goal_type ? (
-            /* Goal Selection Screen */
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-xl font-bold text-foreground mb-2">What are you working toward?</h2>
-              <p className="text-sm text-foreground/60 mb-8">Pick one. Your daily tasks are built around it.</p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {GOAL_OPTIONS.map((opt) => {
-                  const isSelected = selectedGoal?.goal_type === opt.goal_type;
-                  return (
-                    <div
-                      key={opt.goal_type}
-                      onClick={() => setSelectedGoal(opt)}
+          {/* ONBOARDING STATE */}
+          {!state?.onboardingComplete ? (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <section className="p-8 rounded-2xl bg-foreground/5 border border-foreground/10 space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-bold">Finish Setup</h2>
+                </div>
+                
+                <div className="space-y-3">
+                  {state?.onboardingTasks.map((task) => (
+                    <div 
+                      key={task.id}
+                      onClick={() => !task.completed && navigate(task.route)}
                       className={cn(
-                        "bg-foreground/5 border rounded-2xl p-6 cursor-pointer transition-all flex flex-col justify-between min-h-[120px]",
-                        isSelected ? "border-orange-500 bg-orange-500/5" : "border-foreground/5 hover:border-orange-500/40"
+                        "flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer",
+                        task.completed ? "bg-green-500/5 border-green-500/20" : "bg-background border-foreground/5 hover:border-primary/30"
                       )}
                     >
-                      <span className="text-sm font-bold text-foreground">{opt.goal_label}</span>
-                      {opt.sublabel && (
-                        <span className="text-[10px] text-foreground/60 mt-2">{opt.sublabel}</span>
-                      )}
+                      <div className="flex items-center gap-4">
+                        {task.completed ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Circle className="w-5 h-5 text-foreground/20" />}
+                        <span className={cn("text-sm font-medium", task.completed ? "text-green-600 line-through opacity-60" : "text-foreground")}>
+                          {task.label}
+                        </span>
+                      </div>
+                      {!task.completed && <ArrowRight className="w-4 h-4 text-foreground/20" />}
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </section>
 
-              <button
-                onClick={handleSetGoal}
-                disabled={!selectedGoal}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
-              >
-                Set My Goal
-              </button>
+              <div className="p-6 rounded-xl border border-orange-500/30 bg-orange-500/[0.02] flex items-start gap-4">
+                <Zap className="w-5 h-5 text-orange-500 mt-1" />
+                <div>
+                  <h4 className="text-sm font-bold text-foreground">Why complete setup?</h4>
+                  <p className="text-xs text-foreground/60 leading-relaxed mt-1">
+                    We only start your 15-day sprint once you've set a goal and found your first leads. This ensures every day has high-impact tasks waiting for you.
+                  </p>
+                </div>
+              </div>
             </div>
           ) : (
-            /* Main Progress Page */
-            <div className="space-y-8 animate-in fade-in duration-500">
-              {/* Section 1: Goal Card */}
-              <div className="bg-foreground/5 border border-orange-500/40 rounded-2xl p-6 space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block mb-1">Current Goal</span>
-                    <h2 className="text-xl font-bold text-foreground">
-                      {isGoalCompleted ? "Congratulations, you did it! 🎉" : progress?.goal_label}
-                    </h2>
+            /* SPRINT STATE */
+            <div className="space-y-12 animate-in fade-in duration-500">
+              {/* GOAL WIDGET */}
+              <div className="p-8 rounded-2xl bg-foreground/5 border border-foreground/10 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Target className="w-6 h-6 text-primary" />
+                    <h2 className="text-xl font-bold">{state.progress.goal_label}</h2>
                   </div>
-                  <button
-                    onClick={handleChangeGoal}
-                    className="text-xs text-foreground/60 hover:text-foreground bg-transparent border border-foreground/10 rounded-lg px-3 py-1.5 transition-all"
-                  >
+                  <button onClick={() => setIsSettingGoal(true)} className="text-[10px] font-bold text-foreground/40 hover:text-foreground uppercase tracking-widest bg-transparent">
                     Change Goal
                   </button>
                 </div>
-
-                {progress?.goal_type !== 'consistency' ? (
-                  <div className="space-y-3">
-                    <div className="w-full bg-foreground/5 h-1.5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-orange-500 transition-all duration-300"
-                        style={{ width: `${Math.min(100, ((progress?.current_value || 0) / (progress?.goal_target || 1)) * 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-foreground/60">{progress?.current_value} / {progress?.goal_target}</span>
-                      <button
-                        onClick={() => {
-                          setShowUpdateInput(!showUpdateInput);
-                          setTimeout(() => updateInputRef.current?.focus(), 100);
-                        }}
-                        className="border border-foreground/10 text-xs text-foreground bg-transparent hover:bg-foreground/5 rounded-lg px-3 py-1.5 transition-all"
-                      >
-                        Update Progress
-                      </button>
-                    </div>
-
-                    <AnimatePresence>
-                      {showUpdateInput && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden pt-2"
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              ref={updateInputRef}
-                              type="number"
-                              placeholder="How many today?"
-                              value={updateValue}
-                              onChange={(e) => setUpdateValue(e.target.value)}
-                              className="bg-background border border-foreground/10 rounded-lg px-3 py-2 text-sm text-foreground w-40 focus:outline-none focus:border-orange-500"
-                            />
-                            <button
-                              onClick={handleUpdateProgress}
-                              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs"
-                            >
-                              Confirm
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-foreground/40">
+                    <span>Progress</span>
+                    <span>{state.progress.current_value || 0} / {state.progress.goal_target}</span>
                   </div>
-                ) : (
-                  <div>
-                    <span className="text-3xl font-bold text-foreground">{progress?.streak || 0}</span>
-                    <span className="text-xs text-foreground/60 ml-2">day streak</span>
+                  <div className="h-2 w-full bg-foreground/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, ((state.progress.current_value || 0) / state.progress.goal_target) * 100)}%` }}
+                    />
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Section 2: Streak (only for non-consistency goals) */}
-              {progress?.goal_type !== 'consistency' && (
-                <div>
-                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block mb-1">Streak</span>
-                  <span className="text-2xl font-bold text-foreground">{progress?.streak || 0} days</span>
+              {/* DAILY TASKS */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 px-2">
+                  <Calendar className="w-4 h-4 text-foreground/40" />
+                  <h3 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Day {state.currentDay} Focus</h3>
                 </div>
-              )}
 
-              {/* Section 3: Today's Tasks */}
-              <div className="space-y-4">
-                <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block">Today's Tasks</span>
                 <div className="space-y-3">
-                  {todaysTasks.map((task) => {
-                    const isCompleted = task.status === 'completed';
+                  {state.tasks.map((task) => {
+                    const isDone = task.status === 'completed';
                     return (
-                      <div key={task.id} className="bg-foreground/5 border border-foreground/5 rounded-xl p-5 flex items-center justify-between gap-4">
-                        <div className="flex items-start gap-4 min-w-0">
+                      <div 
+                        key={task.id}
+                        className={cn(
+                          "flex items-center justify-between p-6 rounded-2xl border transition-all",
+                          isDone ? "bg-green-500/5 border-green-500/20" : "bg-foreground/5 border-foreground/5"
+                        )}
+                      >
+                        <div className="flex items-start gap-4">
                           <div className={cn(
-                            "w-5 h-5 rounded-sm flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
-                            isCompleted ? "bg-orange-500" : "border border-foreground/10 bg-transparent"
+                            "w-6 h-6 rounded-lg flex items-center justify-center mt-0.5",
+                            isDone ? "bg-green-500 text-white" : "border border-foreground/10"
                           )}>
-                            {isCompleted && <Check className="w-3.5 h-3.5 text-white" />}
+                            {isDone && <Check className="w-4 h-4" />}
                           </div>
-                          <div className="min-w-0">
-                            <h4 className={cn(
-                              "text-sm font-bold text-foreground",
-                              isCompleted && "text-foreground/60 line-through"
-                            )}>
-                              {task.task_title}
-                            </h4>
-                            <p className="text-xs text-foreground/60 mt-1 leading-relaxed">{task.task_description}</p>
+                          <div>
+                            <h4 className={cn("text-base font-bold", isDone && "opacity-40 line-through")}>{task.task_title}</h4>
+                            <p className="text-xs text-foreground/50 mt-1 leading-relaxed max-w-md">{task.task_description}</p>
                           </div>
                         </div>
-                        <div>
-                          {!isCompleted ? (
-                            <button
-                              onClick={() => navigate(task.route)}
-                              className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs whitespace-nowrap"
-                            >
-                              Start Now
-                            </button>
-                          ) : (
-                            <span className="text-xs text-foreground/60 font-medium">Done</span>
-                          )}
-                        </div>
+                        {!isDone && (
+                          <button 
+                            onClick={() => navigate(task.route)}
+                            className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all shadow-lg shadow-primary/10 whitespace-nowrap ml-4"
+                          >
+                            Go to Action
+                          </button>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Section 4: Tomorrow's Tasks (locked) */}
-              {currentDay < 4 && tomorrowsTasks.length > 0 && (
-                <div className="space-y-4">
-                  <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest block">Tomorrow</span>
-                  <div className="space-y-3 opacity-40">
-                    {tomorrowsTasks.map((task) => (
-                      <div key={task.id} className="bg-foreground/5 border border-foreground/5 rounded-xl p-5 flex items-center justify-between gap-4">
-                        <div className="flex items-start gap-4 min-w-0">
-                          <div className="w-5 h-5 rounded-sm border border-foreground/10 bg-transparent flex-shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-bold text-foreground">{task.task_title}</h4>
-                            <p className="text-xs text-foreground/60 mt-1 leading-relaxed">{task.task_description}</p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] text-foreground/60 font-bold uppercase tracking-widest whitespace-nowrap">Available tomorrow</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
       </main>
 
-      {/* Day Complete Modal */}
+      {/* Goal Modal */}
       <AnimatePresence>
-        {showCompleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-foreground/5 border border-foreground/5 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                  <CheckSquare className="w-5 h-5 text-orange-500" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mt-4">Day {currentDay} complete</h3>
-                <span className="text-sm text-foreground/60 mt-1">{progress?.streak || 0} day streak</span>
-                <p className="text-sm text-foreground/60 italic mt-6 leading-relaxed">
-                  "{QUOTES[currentDay] || "Consistency is the key to growth."}"
-                </p>
-
-                {progress?.goal_type !== 'consistency' ? (
-                  <button
-                    onClick={() => {
-                      setShowCompleteModal(false);
-                      setShowUpdateInput(true);
-                      setTimeout(() => updateInputRef.current?.focus(), 300);
-                    }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm mt-8 shadow-lg shadow-orange-500/20"
-                  >
-                    Update your progress
+        {isSettingGoal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-6">
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-background border border-foreground/10 p-8 rounded-2xl max-w-md w-full shadow-2xl space-y-6">
+              <h2 className="text-2xl font-bold">Pick your 15-day goal</h2>
+              <div className="space-y-3">
+                {GOAL_OPTIONS.map(g => (
+                  <button key={g.goal_type} onClick={() => handleSetGoal(g)} className="w-full text-left p-4 rounded-xl border border-foreground/5 hover:border-primary/50 transition-all font-bold text-sm bg-foreground/5">
+                    {g.goal_label}
                   </button>
-                ) : (
-                  <button
-                    onClick={() => setShowCompleteModal(false)}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm mt-8 shadow-lg shadow-orange-500/20"
-                  >
-                    Awesome
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setShowCompleteModal(false)}
-                  className="text-xs text-foreground/60 text-center mt-4 cursor-pointer hover:text-foreground/80 bg-transparent border-none"
-                >
-                  Come back tomorrow
-                </button>
+                ))}
               </div>
+              <button onClick={() => setIsSettingGoal(false)} className="w-full py-3 text-foreground/40 text-xs font-bold uppercase tracking-widest bg-transparent">Cancel</button>
             </motion.div>
           </div>
         )}

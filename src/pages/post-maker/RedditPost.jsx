@@ -27,7 +27,7 @@ import Sidebar from '../../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { usePlan } from '../../lib/usePlan';
 import { useUsage, incrementUsage } from '../../lib/useUsage';
-import { markTaskComplete } from '../../components/TaskWidget';
+import { useQueryClient } from '@tanstack/react-query';
 import TemplateDetailCard from '../../components/post-maker/TemplateDetailCard';
 import { templatesData, subredditTemplates } from '../../components/post-maker/templatesData';
 
@@ -82,6 +82,7 @@ const postingTips = {
 
 export default function RedditPost() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { limits } = usePlan();
   const { used: postsUsed } = useUsage('post_maker');
   const [step, setStep] = useState(2);
@@ -94,7 +95,6 @@ export default function RedditPost() {
   const [isLoading, setIsLoading] = useState(false);
   const [brain, setBrain] = useState(null);
   const [copyStatus, setCopyStatus] = useState("Copy Post");
-  const [currentDay, setCurrentDay] = useState(1);
   const [isPaid, setIsPaid] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,7 +122,7 @@ export default function RedditPost() {
         .maybeSingle();
       if (paymentData?.payment_status) setIsPaid(true);
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('brand_brains')
         .select('*')
         .eq('user_id', user.id)
@@ -141,23 +141,6 @@ export default function RedditPost() {
           setCustomContext(planEntry.hook || "");
           setStep(4);
         }
-      }
-
-      // Fetch current day
-      const { data: tasksData } = await supabase
-        .from('user_tasks')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true })
-        .limit(1);
-      if (tasksData && tasksData[0]) {
-        const firstDate = new Date(tasksData[0].created_at);
-        firstDate.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffTime = Math.abs(today.getTime() - firstDate.getTime());
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        setCurrentDay(Math.min(4, diffDays + 1));
       }
     }
     fetchBrain();
@@ -279,8 +262,16 @@ Return ONLY valid JSON, no markdown, no backticks:
       setGeneratedPost(parsed);
       setIsLoading(false);
       setStep(6);
+      
+      // Log to social_posts so it's countable for tasks
+      await supabase.from('social_posts').insert({
+        user_id: user.id,
+        platform: 'Reddit',
+        title: parsed.title
+      });
+
       await incrementUsage(supabase, user.id, 'post_maker');
-      markTaskComplete(user.id, `reddit_post_d${currentDay}`, supabase);
+      queryClient.invalidateQueries({ queryKey: ['growth-state'] });
     } else {
       toast.error("Couldn't generate post. Try again.");
       setIsLoading(false);
@@ -384,7 +375,6 @@ Return ONLY valid JSON, no markdown, no backticks:
               {selectedMode === "template" ? (
                 <>
                   {!selectedSubreddit ? (
-                    /* Subreddit Selection List */
                     <div className="space-y-6">
                       <div className="mb-8">
                         <h1 className="text-2xl font-semibold text-foreground">Select a Subreddit</h1>
@@ -409,7 +399,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                       </div>
                     </div>
                   ) : (
-                    /* Formats for Selected Subreddit */
                     <>
                       <div className="mb-8">
                         <button
@@ -454,14 +443,12 @@ Return ONLY valid JSON, no markdown, no backticks:
                   </button>
                 </div>
               ) : (
-                /* AI Decide Flow */
                 <div className="space-y-8 max-w-2xl">
                   <div className="mb-6">
                     <h1 className="text-2xl font-semibold text-foreground">Let AI Decide</h1>
                     <p className="text-foreground/60 text-sm">Answer 3 quick questions, we'll pick the best format for you</p>
                   </div>
 
-                  {/* Q1: Goal */}
                   <div className="space-y-3">
                     <label className="text-foreground text-sm font-medium block">Q1. What's your goal? <span className="text-red-500">*</span></label>
                     <div className="flex flex-wrap gap-3">
@@ -491,7 +478,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                     </div>
                   </div>
 
-                  {/* Q2: What's happening */}
                   <div className="space-y-3">
                     <label className="text-foreground text-sm font-medium block">Q2. What's happening? <span className="text-red-500">*</span></label>
                     <div className="flex flex-wrap gap-3">
@@ -532,7 +518,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                     )}
                   </div>
 
-                  {/* Q3: Mention product */}
                   <div className="space-y-3">
                     <label className="text-foreground text-sm font-medium block">Q3. Should we mention your product? <span className="text-red-500">*</span></label>
                     <div className="flex flex-wrap gap-3">
@@ -558,7 +543,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                     </div>
                   </div>
 
-                  {/* Continue Button */}
                   <div className="pt-6">
                     <button
                       onClick={() => {
@@ -567,7 +551,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                           return;
                         }
                         
-                        // Auto-select template based on mapping logic
                         let templateId = '';
                         if (aiGoal === 'Get comments') templateId = 'reddit-discussion-starter';
                         else if (aiGoal === 'Get signups') templateId = 'reddit-beta-callout';
@@ -580,7 +563,6 @@ Return ONLY valid JSON, no markdown, no backticks:
                         const matchedTemplate = templatesData.Reddit.find(t => t.id === templateId);
                         setSelectedTemplate(matchedTemplate || templatesData.Reddit[0]);
 
-                        // Pre-fill customContext with Q2 and Q3 details
                         const happeningText = aiHappening === "Other" ? aiHappeningOther : aiHappening;
                         setCustomContext(`What's happening: ${happeningText}. Product mention preference: ${aiMention}.`);
 
