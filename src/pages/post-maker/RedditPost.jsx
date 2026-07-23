@@ -30,6 +30,7 @@ import { useUsage, incrementUsage } from '../../lib/useUsage';
 import { useQueryClient } from '@tanstack/react-query';
 import TemplateDetailCard from '../../components/post-maker/TemplateDetailCard';
 import { templatesData, subredditTemplates } from '../../components/post-maker/templatesData';
+import { markTaskComplete } from '../../components/TaskWidget';
 
 const selectedPlatform = "Reddit";
 
@@ -96,6 +97,7 @@ export default function RedditPost() {
   const [brain, setBrain] = useState(null);
   const [copyStatus, setCopyStatus] = useState("Copy Post");
   const [isPaid, setIsPaid] = useState(false);
+  const [currentDay, setCurrentDay] = useState(1);
   const navigate = useNavigate();
   const location = useLocation();
   const planEntry = location.state?.planEntry || null;
@@ -141,6 +143,21 @@ export default function RedditPost() {
           setCustomContext(planEntry.hook || "");
           setStep(4);
         }
+      }
+
+      const { data: tasksData } = await supabase
+        .from('user_tasks')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1);
+      if (tasksData && tasksData[0]) {
+        const startDate = new Date(tasksData[0].created_at);
+        startDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+        setCurrentDay(Math.min(15, diffDays));
       }
     }
     fetchBrain();
@@ -271,6 +288,11 @@ Return ONLY valid JSON, no markdown, no backticks:
       });
 
       await incrementUsage(supabase, user.id, 'post_maker');
+      
+      // Mark Reddit post task complete
+      const taskKey = `reddit_post_d${currentDay}`;
+      markTaskComplete(user.id, taskKey, supabase);
+      
       queryClient.invalidateQueries({ queryKey: ['growth-state'] });
     } else {
       toast.error("Couldn't generate post. Try again.");

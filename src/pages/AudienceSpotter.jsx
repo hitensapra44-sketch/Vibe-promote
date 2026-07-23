@@ -227,7 +227,7 @@ export default function AudienceSpotter() {
           today.setHours(0, 0, 0, 0);
           const diffTime = Math.abs(today.getTime() - firstDate.getTime());
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          setCurrentDay(Math.min(4, diffDays + 1));
+          setCurrentDay(Math.min(15, diffDays + 1));
         }
       } finally {
         setIsInitialLoading(false);
@@ -259,11 +259,13 @@ export default function AudienceSpotter() {
     setIsConfigured(true);
     startScan({ keywords, platforms: selectedPlatforms, communities });
     
+    // Detect day for markTaskComplete
+    const taskKey = `user_finder_d${currentDay}`;
+    markTaskComplete(user.id, taskKey, supabase);
+    
     // Explicitly increment usage and refetch to update UI bar instantly
     await incrementUsage(supabase, user.id, 'user_finder');
     refetchUsage();
-    
-    markTaskComplete(user.id, 'run_user_finder', supabase);
   };
 
   const handleSaveChanges = async () => {
@@ -310,8 +312,6 @@ export default function AudienceSpotter() {
     } catch (err) {
       console.error("Error saving settings:", err);
       toast.error("Failed to save settings.");
-    } finally {
-      // no-op, isLoading is managed by useAudienceSpotter hook
     }
   };
 
@@ -724,7 +724,7 @@ export default function AudienceSpotter() {
           </div>
 
           {isLocked ? (
-            /* TASK 3 — Audience Spotter Upgrade Section */
+            /* Audience Spotter Upgrade Section */
             <div className="animate-in fade-in duration-500 max-w-3xl mx-auto text-center py-12 space-y-12">
               <div className="space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
@@ -983,7 +983,7 @@ export default function AudienceSpotter() {
                               onClick={() => {
                                 updateSignalStatus({ id: signal.id, status: 'replied' });
                                 toast.success("Marked as replied!");
-                                const replyTaskKey = `reply_posts_d${currentDay}`;
+                                const replyTaskKey = `reply_leads_d${currentDay}`;
                                 markTaskComplete(user.id, replyTaskKey, supabase);
                               }}
                               className="p-2 rounded-lg border border-foreground/10 text-foreground/60 hover:text-green-500 hover:bg-green-500/10 transition-all bg-transparent"

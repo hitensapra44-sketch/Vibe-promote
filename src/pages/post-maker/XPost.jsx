@@ -95,7 +95,7 @@ export default function XPost() {
         today.setHours(0, 0, 0, 0);
         const diffTime = Math.abs(today.getTime() - firstDate.getTime());
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        setCurrentDay(Math.min(4, diffDays + 1));
+        setCurrentDay(Math.min(15, diffDays + 1));
       }
     }
     fetchBrain();
@@ -176,7 +176,10 @@ Return ONLY valid JSON, no markdown, no backticks:
       setIsLoading(false);
       setStep(6);
       await incrementUsage(supabase, user.id, 'post_maker');
-      markTaskComplete(user.id, `x_post_d${currentDay}`, supabase);
+      
+      // Mark X post task complete
+      const taskKey = `x_post_d${currentDay}`;
+      markTaskComplete(user.id, taskKey, supabase);
     } else {
       toast.error("Couldn't generate post. Try again.");
       setIsLoading(false);
@@ -322,6 +325,7 @@ Return ONLY valid JSON, no markdown, no backticks:
                         { id: 'Get comments', label: '💬 Get comments' },
                         { id: 'Get signups', label: '🚀 Get signups' },
                         { id: 'Validate an idea', label: '✅ Validate an idea' },
+                        { id: 'Get beta users', label: '👥 Get beta users' },
                         { id: 'Get feedback', label: '📝 Get feedback' },
                         { id: 'Build authority', label: '🧠 Build authority' },
                         { id: 'Tell my story', label: '📖 Tell my story' }
