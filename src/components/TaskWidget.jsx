@@ -1,87 +1,94 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Circle, ChevronUp, ChevronDown, Rocket, Target, Zap, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../lib/AuthContext';
 import { useGrowthState } from '../lib/useGrowthState';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, ChevronUp, ChevronDown, ListTodo, Sparkles } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+
+/**
+ * Utility function to mark a task as complete in the database.
+ * Exported so other components can trigger completion upon user actions.
+ */
+export const markTaskComplete = async (userId, taskKey, supabaseClient) => {
+  try {
+    const { error } = await supabaseClient
+      .from('user_tasks')
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('task_key', taskKey);
+    
+    if (error) throw error;
+    
+    // Dispatch custom event to notify components to refresh state
+    window.dispatchEvent(new CustomEvent('growth-task-completed'));
+  } catch (err) {
+    console.error('Error marking task complete:', err);
+  }
+};
 
 export default function TaskWidget() {
-  const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: state, isLoading } = useGrowthState();
+  const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  if (isLoading || !state) return null;
+  useEffect(() => {
+    const handleUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['growth-state', user?.id] });
+    };
+    window.addEventListener('growth-task-completed', handleUpdate);
+    return () => window.removeEventListener('growth-task-completed', handleUpdate);
+  }, [queryClient, user?.id]);
 
-  const tasks = state.onboardingComplete ? state.tasks : state.onboardingTasks;
-  const completedCount = tasks.filter(t => t.completed || t.status === 'completed').length;
-  const progressPercent = (completedCount / tasks.length) * 100;
+  if (!user || isLoading || !state?.onboardingComplete) return null;
+
+  const tasks = state.tasks || [];
+  const completedCount = tasks.filter(t => t.status === 'completed').length;
+  const totalCount = tasks.length;
+
+  if (totalCount === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100] flex flex-col items-start gap-4">
+    <div className="fixed bottom-6 left-6 z-50">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="w-[300px] bg-background border border-foreground/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="mb-4 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
           >
-            <header className="px-5 py-4 border-b border-foreground/5 bg-foreground/5 flex items-center justify-between">
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {state.onboardingComplete ? <Rocket className="w-4 h-4 text-orange-500" /> : <Zap className="w-4 h-4 text-orange-500" />}
-                <span className="text-[10px] font-bold uppercase tracking-widest">
-                  {state.onboardingComplete ? `Day ${state.currentDay} Sprint` : 'Onboarding'}
-                </span>
+                <ListTodo className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">Day {state.currentDay} Focus</span>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-foreground/40 hover:text-foreground bg-transparent border-none">
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </header>
-
-            <div className="p-2 max-h-[320px] overflow-y-auto scrollbar-hide">
-              {tasks.map((task, i) => {
-                const isDone = task.completed || task.status === 'completed';
-                return (
-                  <button
-                    key={task.id || i}
-                    onClick={() => {
-                      if (!isDone) navigate(task.route || '/dashboard');
-                    }}
-                    className={cn(
-                      "w-full flex items-start gap-3 p-3 rounded-xl transition-all text-left bg-transparent border-none",
-                      isDone ? "opacity-40" : "hover:bg-foreground/5"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
-                      isDone ? "bg-green-500 text-white" : "border-2 border-foreground/10"
-                    )}>
-                      {isDone && <Check className="w-3 h-3" />}
-                    </div>
-                    <div>
-                      <p className={cn("text-xs font-bold leading-tight", isDone && "line-through")}>
-                        {task.label || task.task_title}
-                      </p>
-                      {!isDone && task.target > 1 && (
-                        <p className="text-[9px] text-foreground/40 font-bold uppercase mt-1">
-                          Progress: {task.current || 0}/{task.target}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+              <span className="text-[10px] font-bold text-slate-400">{completedCount}/{totalCount} Done</span>
             </div>
-
-            <div className="p-4 border-t border-foreground/5 bg-foreground/[0.02]">
-               <button 
-                 onClick={() => { navigate('/progress'); setIsOpen(false); }}
-                 className="w-full py-2.5 rounded-lg bg-orange-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
-               >
-                 View My Progress
-               </button>
+            
+            <div className="p-4 space-y-3 max-h-60 overflow-y-auto">
+              {tasks.map((task) => (
+                <div key={task.id} className="flex items-start gap-3">
+                  <div className={cn(
+                    "mt-0.5 w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 border",
+                    task.status === 'completed' ? "bg-green-500 border-green-500" : "border-slate-300"
+                  )}>
+                    {task.status === 'completed' && <CheckCircle2 className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className={cn(
+                      "text-xs font-medium leading-tight",
+                      task.status === 'completed' ? "text-slate-400 line-through" : "text-slate-700"
+                    )}>
+                      {task.task_title}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}
@@ -90,23 +97,22 @@ export default function TaskWidget() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "h-12 flex items-center gap-3 px-4 rounded-full shadow-2xl transition-all duration-300 border-none group",
-          isOpen ? "bg-background text-foreground border border-foreground/10" : "bg-orange-500 text-white"
+          "flex items-center gap-3 px-4 py-2.5 rounded-full shadow-lg border transition-all duration-300",
+          isOpen 
+            ? "bg-slate-900 border-slate-800 text-white" 
+            : "bg-white border-slate-200 text-slate-700 hover:border-orange-500/50 hover:bg-orange-50/50"
         )}
       >
         <div className="relative">
-          <Target className={cn("w-5 h-5", isOpen ? "text-orange-500" : "text-white")} />
-          {completedCount < tasks.length && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full border-2 border-orange-500" />
+          <Sparkles className={cn("w-4 h-4", completedCount === totalCount ? "text-green-500" : "text-orange-500")} />
+          {completedCount < totalCount && (
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
           )}
         </div>
-        {!isOpen && (
-          <div className="flex flex-col items-start">
-            <span className="text-[10px] font-bold uppercase tracking-tighter leading-none">Your Tasks</span>
-            <span className="text-[9px] opacity-80 font-medium">{completedCount}/{tasks.length} done</span>
-          </div>
-        )}
-        {isOpen ? <ChevronDown className="w-4 h-4 ml-1" /> : <ChevronUp className="w-4 h-4 ml-1 group-hover:-translate-y-0.5 transition-transform" />}
+        <span className="text-xs font-bold uppercase tracking-wider">
+          {isOpen ? 'Close Tasks' : `Today's Sprint (${completedCount}/${totalCount})`}
+        </span>
+        {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
       </button>
     </div>
   );
