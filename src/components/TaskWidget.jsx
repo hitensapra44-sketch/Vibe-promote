@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Circle, ChevronUp, ChevronDown, Rocket, Target, ListTodo, ArrowRight, Check } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronUp, ChevronDown, Rocket, Target, ListTodo, ArrowRight, Check, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
