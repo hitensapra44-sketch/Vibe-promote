@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Brain, AlertCircle, Plus, X, Target, Zap } from 'lucide-react';
+import { Sparkles, ArrowRight, Brain, AlertCircle, Plus, X, Target, Zap, RefreshCw } from 'lucide-react';
 import { generateAICall } from '../lib/ai';
 import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
