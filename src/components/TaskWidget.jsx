@@ -1,221 +1,206 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle2, 
   Circle, 
-  ChevronUp, 
-  ChevronDown, 
+  ChevronRight, 
+  X, 
   Sparkles, 
-  Zap, 
-  ArrowRight,
-  Target
+  LayoutList, 
+  CheckSquare,
+  Target,
+  Search,
+  PenLine,
+  Zap
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useGrowthState } from '../lib/useGrowthState';
+import { supabase } from '../supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { cn } from "@/lib/utils";
-import { supabase } from '../supabaseClient';
-import { toast } from 'sonner';
+
+// Static Setup Tasks
+const SETUP_TASKS = [
+  { id: 'onboarding', label: 'Complete Onboarding', route: '/onboarding' },
+  { id: 'connect_reddit', label: 'Connect Reddit Account', route: '/connected-accounts' },
+  { id: 'run_user_finder', label: 'Run User Finder & find first lead', route: '/audience-spotter' },
+  { id: 'setup_goal', label: 'Make a goal & track progress', route: '/progress' },
+];
 
 /**
- * Global helper to mark a task as complete.
+ * Utility to mark a setup task as complete in user_meta or similar.
+ * Since we don't have a dedicated table for setup tasks, we'll use a local storage
+ * key tied to user ID and ideally a metadata column if it existed.
  */
-export async function markTaskComplete(userId, taskKey, supabaseClient) {
-  try {
-    const { error } = await supabaseClient
-      .from('user_tasks')
-      .update({ status: 'completed', completed_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .eq('task_key', taskKey);
-
-    if (error) throw error;
-    
-    // Dispatch event to trigger local UI updates if needed
-    window.dispatchEvent(new CustomEvent('vh_task_completed', { detail: { taskKey } }));
-  } catch (err) {
-    console.error('[markTaskComplete] Error:', err);
+export const markTaskComplete = async (userId, taskId, supabaseClient) => {
+  if (!userId) return;
+  const storageKey = `vh_setup_tasks_${userId}`;
+  const completed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  if (!completed.includes(taskId)) {
+    const updated = [...completed, taskId];
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+    // Trigger custom event to refresh widget
+    window.dispatchEvent(new CustomEvent('vh_task_completed', { detail: { taskId } }));
   }
-}
+};
 
 export default function TaskWidget() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const { data: growth, isLoading, refetch } = useGrowthState();
+  const [completedTasks, setCompletedTasks] = useState([]);
+  const [hasShownTooltip, setHasShownTooltip] = useState(false);
 
-  // Listen for external task completion events or usage increments
+  // Hidden on onboarding screen
+  if (location.pathname === '/onboarding') return null;
+
   useEffect(() => {
-    const handleRefresh = () => refetch();
-    window.addEventListener('vh_task_completed', handleRefresh);
-    window.addEventListener('vh_usage_incremented', handleRefresh);
-    return () => {
-      window.removeEventListener('vh_task_completed', handleRefresh);
-      window.removeEventListener('vh_usage_incremented', handleRefresh);
-    };
-  }, [refetch]);
+    if (!user) return;
+    const storageKey = `vh_setup_tasks_${user.id}`;
+    const completed = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    setCompletedTasks(completed);
 
-  // ONBOARDING (GET STARTED) TASKS
-  const getStartedTasks = useMemo(() => {
-    if (!growth?.allTasks) return [];
+    // If onboarding is done (we are in dashboard), it's auto-complete
+    if (!completed.includes('onboarding') && location.pathname !== '/onboarding') {
+      markTaskComplete(user.id, 'onboarding', supabase);
+    }
+
+    const handleTaskEvent = (e) => {
+      setCompletedTasks(prev => {
+        if (prev.includes(e.detail.taskId)) return prev;
+        return [...prev, e.detail.taskId];
+      });
+    };
+
+    window.addEventListener('vh_task_completed', handleTaskEvent);
     
-    const setupBrain = growth.allTasks.find(t => t.task_key === 'setup_brain') || {
-      task_title: 'Setup Brand Brain',
-      task_description: 'Complete your initial product profile.',
-      status: 'completed', // If they see this widget, brain is usually done
-      route: '/brand-brain'
+    // Tooltip timer
+    const timer = setTimeout(() => setHasShownTooltip(true), 5000);
+
+    return () => {
+      window.removeEventListener('vh_task_completed', handleTaskEvent);
+      clearTimeout(timer);
     };
+  }, [user, location.pathname]);
 
-    const connectAccount = growth.allTasks.find(t => t.task_key === 'connect_reddit') || {
-      task_title: 'Connect Reddit Account',
-      task_description: 'Link your Reddit to track performance.',
-      status: 'pending',
-      route: '/connected-accounts'
-    };
+  const progress = Math.round((completedTasks.length / SETUP_TASKS.length) * 100);
+  const isAllDone = completedTasks.length === SETUP_TASKS.length;
 
-    // This is the renamed task
-    const firstPost = growth.allTasks.find(t => t.task_key === 'growth_action' || t.task_key === 'first_post') || {
-      task_title: 'Make your first post',
-      task_description: 'Use the Post Maker to create content for any platform.',
-      status: growth?.counts?.postMaker >= 1 ? 'completed' : 'pending',
-      route: '/post-maker'
-    };
-
-    return [
-      { ...setupBrain, task_title: 'Setup Brand Brain' },
-      { ...connectAccount, task_title: 'Connect Reddit Account' },
-      { ...firstPost, task_title: 'Make your first post' }
-    ];
-  }, [growth]);
-
-  const isGettingStartedDone = useMemo(() => {
-    return getStartedTasks.every(t => t.status === 'completed');
-  }, [getStartedTasks]);
-
-  // Decide which tasks to show: Onboarding or Day X
-  const activeTasks = isGettingStartedDone ? (growth?.tasks || []) : getStartedTasks;
-  const completedCount = activeTasks.filter(t => t.status === 'completed').length;
-  const totalCount = activeTasks.length;
-
-  if (isLoading || activeTasks.length === 0) return null;
-
-  // Don't show on specific paths
-  const hiddenPaths = ['/onboarding', '/', '/auth', '/pricing'];
-  if (hiddenPaths.includes(location.pathname)) return null;
+  if (isAllDone && !isOpen) return null;
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100] w-72 sm:w-80 font-poppins">
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-3">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="bg-white border-2 border-slate-100 rounded-3xl shadow-2xl overflow-hidden mb-4"
+            className="w-[320px] bg-background border border-foreground/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col mb-2"
           >
-            <header className="px-6 py-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-black text-zinc-900">
-                  {isGettingStartedDone ? `Day ${growth?.currentDay} Progress` : "Get Started"}
-                </h3>
-                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mt-0.5">
-                  {completedCount} of {totalCount} tasks done
-                </p>
+            <header className="px-5 py-4 border-b border-foreground/5 bg-foreground/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckSquare size={16} className="text-orange-500" />
+                <span className="text-sm font-bold text-foreground">Setup Checklist</span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center">
-                 <Target className="w-5 h-5 text-zinc-300" />
-              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-foreground/5 rounded-lg text-zinc-400 transition-all bg-transparent"
+              >
+                <X size={16} />
+              </button>
             </header>
 
-            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
-              {activeTasks.map((task, idx) => {
-                const isDone = task.status === 'completed';
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => !isDone && navigate(task.route)}
-                    className={cn(
-                      "w-full flex items-start gap-4 p-4 rounded-2xl transition-all border-2 text-left group",
-                      isDone 
-                        ? "bg-slate-50 border-transparent opacity-60" 
-                        : "bg-white border-slate-100 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/5"
-                    )}
-                  >
-                    <div className={cn(
-                      "mt-1 w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all",
-                      isDone ? "bg-orange-500 text-white" : "border-2 border-slate-200 text-transparent"
-                    )}>
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className={cn(
-                        "text-xs font-bold leading-tight",
-                        isDone ? "text-zinc-400 line-through" : "text-zinc-900"
-                      )}>
-                        {task.task_title}
-                      </p>
-                      {!isDone && (
-                        <p className="text-[10px] text-zinc-500 mt-1 line-clamp-2 leading-relaxed">
-                          {task.task_description}
-                        </p>
+            <div className="p-5 space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                  <span>{completedTasks.length} of {SETUP_TASKS.length} complete</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-foreground/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-orange-500" 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.8, ease: "circOut" }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1 pt-2">
+                {SETUP_TASKS.map((task) => {
+                  const isDone = completedTasks.includes(task.id);
+                  return (
+                    <button
+                      key={task.id}
+                      onClick={() => !isDone && navigate(task.route)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-xl transition-all border-none bg-transparent text-left group",
+                        isDone ? "opacity-60" : "hover:bg-foreground/5"
                       )}
-                    </div>
-                  </button>
-                );
-              })}
+                    >
+                      <div className={cn(
+                        "w-5 h-5 rounded-md flex items-center justify-center transition-all",
+                        isDone ? "bg-green-500 text-white" : "border-2 border-foreground/10 text-transparent group-hover:border-orange-500/50"
+                      )}>
+                        <Check size={12} strokeWidth={4} />
+                      </div>
+                      <span className={cn(
+                        "text-xs font-medium transition-all",
+                        isDone ? "text-zinc-400 line-through" : "text-foreground"
+                      )}>
+                        {task.label}
+                      </span>
+                      {!isDone && <ChevronRight size={14} className="ml-auto text-zinc-300 opacity-0 group-hover:opacity-100 transition-all" />}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="p-4 border-t border-slate-50 bg-white">
-              <button 
-                onClick={() => navigate('/progress')}
-                className="w-full py-3 bg-zinc-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
-              >
-                View Full Roadmap <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
+            {isAllDone && (
+              <div className="p-5 bg-orange-500/5 border-t border-orange-500/10 text-center">
+                <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  <Sparkles size={12} /> Setup Complete! You're ready to grow.
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "w-full h-14 rounded-2xl flex items-center px-5 justify-between shadow-2xl transition-all border-2",
-          isOpen ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-900 border-slate-100"
+      <div className="relative group">
+        {!isOpen && !hasShownTooltip && !isAllDone && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-zinc-900 text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-xl whitespace-nowrap"
+          >
+            Get started with setup
+            <div className="absolute left-full top-1/2 -translate-y-1/2 w-2 h-2 bg-zinc-900 rotate-45 -translate-x-1" />
+          </motion.div>
         )}
-      >
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "w-8 h-8 rounded-xl flex items-center justify-center transition-colors",
-            isOpen ? "bg-white/10" : "bg-orange-500 text-white"
-          )}>
-            <Zap className="w-4 h-4 fill-current" />
-          </div>
-          <div className="text-left">
-            <p className="text-xs font-black uppercase tracking-widest">
-              {isGettingStartedDone ? `Day ${growth?.currentDay}` : "Setup"}
-            </p>
-            <p className={cn("text-[10px] font-bold", isOpen ? "text-white/60" : "text-zinc-400")}>
-              {completedCount}/{totalCount} Tasks
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${(completedCount / totalCount) * 100}%` }}
-                className="h-full bg-orange-500"
-              />
-           </div>
-           {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-        </div>
-      </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn(
+            "w-12 h-12 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 relative border-none cursor-pointer",
+            isOpen ? "bg-zinc-100 text-zinc-900" : "bg-orange-500 text-white shadow-orange-500/20"
+          )}
+        >
+          {isOpen ? <X size={20} /> : <LayoutList size={20} />}
+          
+          {!isOpen && !isAllDone && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-background flex items-center justify-center text-[8px] font-bold">
+              {SETUP_TASKS.length - completedTasks.length}
+            </span>
+          )}
+        </motion.button>
+      </div>
     </div>
   );
 }

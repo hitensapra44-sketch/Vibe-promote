@@ -21,6 +21,7 @@ import Sidebar from '../components/Sidebar';
 import { cn } from "@/lib/utils";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { markTaskComplete } from '../components/TaskWidget';
 
 const GOAL_OPTIONS = [
   { type: 'users_100', label: 'Get first 100 users', target: 100 },
@@ -78,15 +79,22 @@ export default function ProgressPage() {
     fetchAllData();
   }, [user]);
 
-  // Shared Day Logic
+  // Shared Day Logic - Using trial_start_date which exists in schema
   let currentDay = 1;
-  if (progress?.sprint_start_date) {
-    const start = new Date(progress.sprint_start_date);
+  if (progress?.trial_start_date) {
+    const start = new Date(progress.trial_start_date);
     start.setHours(0,0,0,0);
     const now = new Date();
     now.setHours(0,0,0,0);
     const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-    currentDay = Math.min(15, diff + 1);
+    currentDay = Math.max(1, Math.min(15, diff + 1));
+  } else if (progress?.created_at) {
+    const start = new Date(progress.created_at);
+    start.setHours(0,0,0,0);
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    currentDay = Math.max(1, Math.min(15, diff + 1));
   }
 
   // Check for day completion to trigger modal
@@ -125,8 +133,10 @@ export default function ProgressPage() {
 
   const handleSetGoal = async () => {
     if (!selectedGoal) return;
-    const now = new Date().toISOString();
+    const today = new Date().toISOString().split('T')[0];
     try {
+      // sprint_start_date was causing 400 because it's not in the schema. 
+      // Using trial_start_date instead.
       const { error } = await supabase
         .from('user_progress')
         .upsert({
@@ -135,15 +145,19 @@ export default function ProgressPage() {
           goal_label: selectedGoal.label,
           goal_target: selectedGoal.target,
           current_value: 0,
-          sprint_start_date: now
+          trial_start_date: today
         }, { onConflict: 'user_id' });
 
       if (error) throw error;
       
+      // Mark setup task complete
+      await markTaskComplete(user.id, 'setup_goal', supabase);
+      
       toast.success("Goal locked in! Let's get to work.");
       fetchAllData();
     } catch (err) {
-      toast.error("Failed to set goal.");
+      console.error("Set goal failed:", err);
+      toast.error("Failed to set goal. Check database columns.");
     }
   };
 

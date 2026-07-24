@@ -243,6 +243,10 @@ export default function AudienceSpotter() {
       return;
     }
     startScan({ keywords, platforms: selectedPlatforms, communities });
+    
+    // Mark setup task complete
+    await markTaskComplete(user.id, 'run_user_finder', supabase);
+    
     await incrementUsage(supabase, user.id, 'user_finder');
     refetchUsage();
   };
@@ -262,6 +266,9 @@ export default function AudienceSpotter() {
     // Detect day for markTaskComplete
     const taskKey = `user_finder_d${currentDay}`;
     markTaskComplete(user.id, taskKey, supabase);
+    
+    // Mark setup task complete
+    await markTaskComplete(user.id, 'run_user_finder', supabase);
     
     // Explicitly increment usage and refetch to update UI bar instantly
     await incrementUsage(supabase, user.id, 'user_finder');
@@ -307,6 +314,10 @@ export default function AudienceSpotter() {
 
       toast.success("Settings saved successfully!");
       startScan({ keywords, platforms: selectedPlatforms, communities });
+      
+      // Mark setup task complete
+      await markTaskComplete(user.id, 'run_user_finder', supabase);
+      
       await incrementUsage(supabase, user.id, 'user_finder');
       refetchUsage();
     } catch (err) {
