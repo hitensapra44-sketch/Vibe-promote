@@ -13,14 +13,15 @@ export function useGrowthState() {
       if (!user) return null;
 
       // 1. Fetch all necessary data in parallel
-      const [progressRes, tasksRes, leadsRes, repliesRes, postsRes, usageRes, brainRes] = await Promise.all([
+      const [progressRes, tasksRes, leadsRes, repliesRes, postsRes, usageRes, brainRes, connectedRes] = await Promise.all([
         supabase.from('user_progress').select('*').eq('user_id', user.id).maybeSingle(),
         supabase.from('user_tasks').select('*').eq('user_id', user.id).order('day', { ascending: true }),
         supabase.from('audience_signals').select('id', { count: 'exact' }).eq('user_id', user.id),
         supabase.from('audience_signals').select('id', { count: 'exact' }).eq('user_id', user.id).eq('status', 'replied'),
         supabase.from('social_posts').select('id', { count: 'exact' }).eq('user_id', user.id),
         supabase.from('user_usage').select('count, feature').eq('user_id', user.id),
-        supabase.from('brand_brains').select('audience_communities, audience_keywords').eq('user_id', user.id).maybeSingle()
+        supabase.from('brand_brains').select('audience_communities, audience_keywords').eq('user_id', user.id).maybeSingle(),
+        supabase.from('social_accounts').select('id', { count: 'exact' }).eq('user_id', user.id)
       ]);
 
       const progress = progressRes.data || {};
@@ -33,13 +34,15 @@ export function useGrowthState() {
         replies: repliesRes.count || 0,
         posts: postsRes.count || 0,
         copilot: usageList.find(u => u.feature === 'copilot')?.count || 0,
-        postMaker: usageList.find(u => u.feature === 'post_maker')?.count || 0
+        postMaker: usageList.find(u => u.feature === 'post_maker')?.count || 0,
+        accounts: connectedRes.count || 0
       };
 
-      // 2. Compute current day from sprint_start_date
+      // 2. Compute current day from sprint_start_date or trial_start_date
       let currentDay = 1;
-      if (progress.sprint_start_date) {
-        const start = new Date(progress.sprint_start_date);
+      const startRef = progress.trial_start_date || progress.created_at;
+      if (startRef) {
+        const start = new Date(startRef);
         start.setHours(0, 0, 0, 0);
         const now = new Date();
         now.setHours(0, 0, 0, 0);
@@ -62,12 +65,15 @@ export function useGrowthState() {
         const key = t.task_key;
 
         // Auto-completion logic based on real activity
-        if (key.includes('finder')) {
-          if (counts.leads >= (key.includes('d1') ? 10 : 5)) status = 'completed';
+        if (key === 'setup_goal') {
+          if (progress.goal_type) status = 'completed';
+        } else if (key === 'connect_reddit' || key === 'connect_accounts') {
+          if (counts.accounts >= 1) status = 'completed';
+        } else if (key.includes('finder')) {
+          if (counts.leads >= (key.includes('d1') ? 5 : 3)) status = 'completed';
         } else if (key.includes('reply')) {
-          if (counts.replies >= 3) status = 'completed';
+          if (counts.replies >= 1) status = 'completed';
         } else if (key.includes('post')) {
-          // If they've made at least one post through the post maker, it's done
           if (counts.postMaker >= 1 || counts.posts >= 1) status = 'completed';
         } else if (key.includes('copilot') || key.includes('brain')) {
           if (counts.copilot >= 1) status = 'completed';
@@ -94,6 +100,6 @@ export function useGrowthState() {
       };
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 30, // Refetch more often to catch post events
+    staleTime: 0, // Ensure real-time updates when usage changes
   });
 }
