@@ -2,175 +2,256 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle2, 
-  ChevronUp, 
-  ChevronDown, 
-  LayoutList, 
-  ArrowRight,
-  Check,
-  Circle,
-  Sparkles,
-  Zap
-} from 'lucide-react';
+import { CheckCircle2, Circle, ChevronUp, ChevronDown, Rocket, Target, ListTodo, ArrowRight, Check } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useGrowthState } from '../lib/useGrowthState';
-import { cn } from "@/lib/utils";
 import { supabase } from '../supabaseClient';
-import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../lib/AuthContext';
+import { cn } from "@/lib/utils";
 
-/**
- * Global utility to mark a task as complete from anywhere in the app.
- */
-export async function markTaskComplete(userId, taskKey, supabaseClient) {
+// Utility to mark tasks as complete across the app
+export const markTaskComplete = async (userId, taskKey, supabaseClient) => {
   if (!userId || !taskKey) return;
   
   try {
     const { error } = await supabaseClient
       .from('user_tasks')
       .update({ 
-        status: 'completed',
-        completed_at: new Date().toISOString()
+        status: 'completed', 
+        completed_at: new Date().toISOString() 
       })
       .eq('user_id', userId)
-      .eq('task_key', taskKey);
-
+      .eq('task_key', taskKey)
+      .eq('status', 'pending');
+      
     if (error) throw error;
     
-    // Dispatch event to refresh growth state across the app
-    window.dispatchEvent(new CustomEvent('vh_task_completed', { detail: { taskKey } }));
+    // Dispatch event to refresh widget
+    window.dispatchEvent(new CustomEvent('task_completed', { detail: { taskKey } }));
   } catch (err) {
-    console.error(`[markTaskComplete] Failed for ${taskKey}:`, err);
+    console.error('Error marking task complete:', err);
   }
-}
+};
+
+const INITIAL_TASKS = [
+  { key: 'run_user_finder', title: 'Run user finder and find your first user', route: '/audience-spotter' },
+  { key: 'make_first_post', title: 'Make your first post', route: '/post-maker' },
+  { key: 'connect_social', title: 'Connect your social account', route: '/connected-accounts' },
+  { key: 'setup_goal', title: 'Choose a growth goal', route: '/progress' },
+];
 
 export default function TaskWidget() {
-  const [isOpen, setIsOpen] = useState(false);
-  const { data: growth, isLoading } = useGrowthState();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [currentDay, setCurrentDay] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [isSetupPhase, setIsSetupPhase] = useState(true);
 
-  // Refresh data when a task is completed anywhere
+  const fetchTasks = async () => {
+    if (!user) return;
+    
+    try {
+      // 1. Check for initial setup tasks
+      const { data: setupTasks, error: setupError } = await supabase
+        .from('user_tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('task_key', INITIAL_TASKS.map(t => t.key));
+
+      if (setupError) throw setupError;
+
+      // If no setup tasks exist, create them
+      if (!setupTasks || setupTasks.length === 0) {
+        const toInsert = INITIAL_TASKS.map(t => ({
+          user_id: user.id,
+          day: 0,
+          task_key: t.key,
+          task_title: t.title,
+          task_description: t.title,
+          task_time: '5m',
+          route: t.route,
+          status: 'pending'
+        }));
+        await supabase.from('user_tasks').insert(toInsert);
+        setTasks(toInsert);
+        setIsSetupPhase(true);
+      } else {
+        const allSetupDone = setupTasks.every(t => t.status === 'completed');
+        
+        if (!allSetupDone) {
+          setTasks(setupTasks);
+          setIsSetupPhase(true);
+        } else {
+          // Setup phase done, fetch daily tasks
+          setIsSetupPhase(false);
+          
+          // Determine current day from user_progress
+          const { data: progress } = await supabase
+            .from('user_progress')
+            .select('trial_start_date, created_at')
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          let dayNum = 1;
+          if (progress?.trial_start_date) {
+            const start = new Date(progress.trial_start_date);
+            const now = new Date();
+            const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            dayNum = Math.max(1, Math.min(15, diff + 1));
+          }
+          setCurrentDay(dayNum);
+
+          const { data: dailyTasks } = await supabase
+            .from('user_tasks')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('day', dayNum);
+            
+          setTasks(dailyTasks || []);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching widget tasks:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const handleTaskUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['growth-state'] });
-    };
-    window.addEventListener('vh_task_completed', handleTaskUpdate);
-    window.addEventListener('vh_usage_incremented', handleTaskUpdate);
+    fetchTasks();
+    
+    // Listen for completion events from other pages
+    const handleRefresh = () => fetchTasks();
+    window.addEventListener('task_completed', handleRefresh);
+    window.addEventListener('vh_usage_incremented', handleRefresh);
+    
     return () => {
-      window.removeEventListener('vh_task_completed', handleTaskUpdate);
-      window.removeEventListener('vh_usage_incremented', handleTaskUpdate);
+      window.removeEventListener('task_completed', handleRefresh);
+      window.removeEventListener('vh_usage_incremented', handleRefresh);
     };
-  }, [queryClient]);
+  }, [user, location.pathname]);
 
-  if (isLoading || !growth || growth.tasks.length === 0) return null;
+  if (!user || loading || tasks.length === 0) return null;
 
-  const completedCount = growth.tasks.filter(t => t.status === 'completed').length;
-  const totalCount = growth.tasks.length;
-  const allDone = completedCount === totalCount;
+  const completedCount = tasks.filter(t => t.status === 'completed').length;
+  const progressPercent = Math.round((completedCount / tasks.length) * 100);
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[100] font-poppins">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="mb-4 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden"
+            className="mb-4 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col"
           >
-            <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Day {growth.currentDay} Focus</p>
-                <h3 className="text-sm font-bold text-slate-900">Today's Growth Tasks</h3>
+            {/* Header */}
+            <div className="bg-orange-500 p-5 text-white">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  {isSetupPhase ? <Rocket className="w-5 h-5" /> : <Target className="w-5 h-5" />}
+                  <span className="font-bold text-sm uppercase tracking-widest">
+                    {isSetupPhase ? 'Get Started' : `Growth Day ${currentDay}`}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/20 rounded-md transition-colors bg-transparent border-none cursor-pointer text-white"
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
               </div>
-              <div className="text-right">
-                <span className="text-xs font-bold text-orange-500">{completedCount}/{totalCount}</span>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase">
+                  <span>Progress</span>
+                  <span>{completedCount}/{tasks.length} Done</span>
+                </div>
+                <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercent}%` }}
+                    className="h-full bg-white"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="max-h-80 overflow-y-auto p-2">
-              {growth.tasks.map((task) => {
+            {/* Task List */}
+            <div className="p-2 bg-white max-h-[400px] overflow-y-auto">
+              {tasks.map((task) => {
                 const isDone = task.status === 'completed';
                 return (
-                  <div 
-                    key={task.id}
-                    onClick={() => !isDone && navigate(task.route)}
+                  <button
+                    key={task.id || task.key}
+                    disabled={isDone}
+                    onClick={() => {
+                      if (task.route) navigate(task.route);
+                      setIsOpen(false);
+                    }}
                     className={cn(
-                      "group flex items-start gap-3 p-3 rounded-xl transition-all cursor-pointer",
-                      isDone ? "opacity-60" : "hover:bg-slate-50"
+                      "w-full flex items-start gap-4 p-4 rounded-xl transition-all text-left group bg-transparent border-none",
+                      isDone ? "opacity-60" : "hover:bg-slate-50 cursor-pointer"
                     )}
                   >
                     <div className={cn(
-                      "mt-0.5 w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all",
-                      isDone ? "bg-green-500 text-white" : "border-2 border-slate-200 text-transparent group-hover:border-orange-300"
+                      "w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
+                      isDone ? "bg-orange-500 text-white" : "border-2 border-slate-200 text-transparent group-hover:border-orange-300"
                     )}>
-                      {isDone ? <Check className="w-3 h-3" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />}
+                      <Check className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn(
-                        "text-xs font-bold leading-tight",
-                        isDone ? "text-slate-400 line-through" : "text-slate-800"
+                        "text-sm font-bold leading-tight",
+                        isDone ? "text-slate-400 line-through" : "text-slate-900"
                       )}>
                         {task.task_title}
                       </p>
                       {!isDone && (
-                        <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">
-                          {task.task_description}
-                        </p>
+                        <div className="flex items-center gap-1 mt-1 text-orange-500 text-[10px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                          Start Task <ArrowRight className="w-3 h-3" />
+                        </div>
                       )}
                     </div>
-                    {!isDone && <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-orange-500 transition-colors self-center" />}
-                  </div>
+                  </button>
                 );
               })}
             </div>
-
-            {allDone ? (
-              <div className="p-4 bg-green-50 border-t border-green-100 text-center">
-                <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center justify-center gap-1">
-                  <Sparkles className="w-3 h-3" /> Day {growth.currentDay} Complete
-                </p>
+            
+            {progressPercent === 100 && (
+              <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <p className="text-xs font-bold text-slate-500">🔥 Day Complete! See you tomorrow.</p>
               </div>
-            ) : (
-              <button 
-                onClick={() => navigate('/progress')}
-                className="w-full p-3 bg-white border-t border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-orange-500 transition-colors"
-              >
-                View full progress map
-              </button>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Floating Action Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl transition-all duration-300 border-none cursor-pointer",
-          allDone 
-            ? "bg-green-500 text-white shadow-green-500/20" 
-            : "bg-slate-900 text-white shadow-slate-900/20"
+          "w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-none cursor-pointer",
+          isOpen ? "bg-white text-orange-500" : "bg-orange-500 text-white"
         )}
       >
-        {allDone ? (
-          <CheckCircle2 className="w-5 h-5" />
+        {isOpen ? (
+          <X className="w-6 h-6" />
         ) : (
           <div className="relative">
-            <LayoutList className="w-5 h-5" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full border-2 border-slate-900" />
+            <ListTodo className="w-6 h-6" />
+            {completedCount < tasks.length && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+              </span>
+            )}
           </div>
         )}
-        <div className="text-left">
-          <p className="text-[10px] font-bold uppercase tracking-wider leading-none opacity-60">Tasks</p>
-          <p className="text-xs font-bold leading-none mt-1">
-            {allDone ? "Done for today" : `${completedCount}/${totalCount} complete`}
-          </p>
-        </div>
-        {isOpen ? <ChevronDown className="w-4 h-4 opacity-40" /> : <ChevronUp className="w-4 h-4 opacity-40" />}
       </motion.button>
     </div>
   );
