@@ -19,19 +19,21 @@ export function useGrowthState() {
         supabase.from('audience_signals').select('id', { count: 'exact' }).eq('user_id', user.id),
         supabase.from('audience_signals').select('id', { count: 'exact' }).eq('user_id', user.id).eq('status', 'replied'),
         supabase.from('social_posts').select('id', { count: 'exact' }).eq('user_id', user.id),
-        supabase.from('user_usage').select('count').eq('user_id', user.id).eq('feature', 'copilot').maybeSingle(),
+        supabase.from('user_usage').select('count, feature').eq('user_id', user.id),
         supabase.from('brand_brains').select('audience_communities, audience_keywords').eq('user_id', user.id).maybeSingle()
       ]);
 
       const progress = progressRes.data || {};
       const rawTasks = tasksRes.data || [];
       const brain = brainRes.data || {};
+      const usageList = usageRes.data || [];
       
       const counts = {
         leads: leadsRes.count || 0,
         replies: repliesRes.count || 0,
         posts: postsRes.count || 0,
-        copilot: usageRes.data?.count || 0,
+        copilot: usageList.find(u => u.feature === 'copilot')?.count || 0,
+        postMaker: usageList.find(u => u.feature === 'post_maker')?.count || 0
       };
 
       // 2. Compute current day from sprint_start_date
@@ -65,7 +67,8 @@ export function useGrowthState() {
         } else if (key.includes('reply')) {
           if (counts.replies >= 3) status = 'completed';
         } else if (key.includes('post')) {
-          if (counts.posts >= 1) status = 'completed';
+          // If they've made at least one post through the post maker, it's done
+          if (counts.postMaker >= 1 || counts.posts >= 1) status = 'completed';
         } else if (key.includes('copilot') || key.includes('brain')) {
           if (counts.copilot >= 1) status = 'completed';
         }
@@ -91,6 +94,6 @@ export function useGrowthState() {
       };
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 30, // Refetch more often to catch post events
   });
 }

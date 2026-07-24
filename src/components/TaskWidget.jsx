@@ -1,235 +1,180 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle2, 
   Circle, 
   ChevronUp, 
   ChevronDown, 
-  ArrowRight, 
+  Sparkles, 
   Zap, 
-  Target,
-  Search,
-  PenLine,
-  Link2,
-  Check
+  ArrowRight,
+  Target
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useGrowthState } from '../lib/useGrowthState';
 import { useAuth } from '../lib/AuthContext';
 import { cn } from "@/lib/utils";
+import { supabase } from '../supabaseClient';
+import { toast } from 'sonner';
 
-export const markTaskComplete = async (userId, taskKey, supabaseClient) => {
-  const { error } = await supabaseClient
-    .from('user_tasks')
-    .update({ status: 'completed', completed_at: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('task_key', taskKey);
-  
-  if (!error) {
+/**
+ * Global helper to mark a task as complete.
+ */
+export async function markTaskComplete(userId, taskKey, supabaseClient) {
+  try {
+    const { error } = await supabaseClient
+      .from('user_tasks')
+      .update({ status: 'completed', completed_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('task_key', taskKey);
+
+    if (error) throw error;
+    
+    // Dispatch event to trigger local UI updates if needed
     window.dispatchEvent(new CustomEvent('vh_task_completed', { detail: { taskKey } }));
+  } catch (err) {
+    console.error('[markTaskComplete] Error:', err);
   }
-  return { error };
-};
+}
 
 export default function TaskWidget() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [getStartedState, setGetStartedState] = useState({
-    hasGoal: false,
-    hasLeads: false,
-    hasAction: false,
-    hasAccount: false
-  });
+  const { data: growth, isLoading, refetch } = useGrowthState();
 
-  const fetchData = async () => {
-    if (!user) return;
-    
-    try {
-      const [progressRes, tasksRes, leadsRes, postsRes, accountsRes] = await Promise.all([
-        supabase.from('user_progress').select('*').eq('user_id', user.id).maybeSingle(),
-        supabase.from('user_tasks').select('*').eq('user_id', user.id).order('day', { ascending: true }),
-        supabase.from('audience_signals').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('social_posts').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('social_accounts').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-      ]);
-
-      const prog = progressRes.data;
-      setProgress(prog);
-      setTasks(tasksRes.data || []);
-
-      setGetStartedState({
-        hasGoal: !!prog?.goal_type,
-        hasLeads: (leadsRes.count || 0) >= 3,
-        hasAction: (postsRes.count || 0) >= 1,
-        hasAccount: (accountsRes.count || 0) >= 1
-      });
-
-      // Auto-open for new users
-      if (!prog?.goal_type && !localStorage.getItem('vh_widget_closed')) {
-        setIsOpen(true);
-      }
-    } catch (err) {
-      console.error('Widget data fetch failed', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Listen for external task completion events or usage increments
   useEffect(() => {
-    fetchData();
-    window.addEventListener('vh_task_completed', fetchData);
-    return () => window.removeEventListener('vh_task_completed', fetchData);
-  }, [user]);
+    const handleRefresh = () => refetch();
+    window.addEventListener('vh_task_completed', handleRefresh);
+    window.addEventListener('vh_usage_incremented', handleRefresh);
+    return () => {
+      window.removeEventListener('vh_task_completed', handleRefresh);
+      window.removeEventListener('vh_usage_incremented', handleRefresh);
+    };
+  }, [refetch]);
 
-  const isGetStartedComplete = getStartedState.hasGoal && getStartedState.hasLeads && getStartedState.hasAction && getStartedState.hasAccount;
+  // ONBOARDING (GET STARTED) TASKS
+  const getStartedTasks = useMemo(() => {
+    if (!growth?.allTasks) return [];
+    
+    const setupBrain = growth.allTasks.find(t => t.task_key === 'setup_brain') || {
+      task_title: 'Setup Brand Brain',
+      task_description: 'Complete your initial product profile.',
+      status: 'completed', // If they see this widget, brain is usually done
+      route: '/brand-brain'
+    };
 
-  // Day Calculation
-  let currentDay = 1;
-  if (progress?.sprint_start_date) {
-    const start = new Date(progress.sprint_start_date);
-    start.setHours(0,0,0,0);
-    const now = new Date();
-    now.setHours(0,0,0,0);
-    const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-    currentDay = Math.min(15, diff + 1);
-  }
+    const connectAccount = growth.allTasks.find(t => t.task_key === 'connect_reddit') || {
+      task_title: 'Connect Reddit Account',
+      task_description: 'Link your Reddit to track performance.',
+      status: 'pending',
+      route: '/connected-accounts'
+    };
 
-  const todayTasks = tasks.filter(t => t.day === currentDay);
-  const completedToday = todayTasks.filter(t => t.status === 'completed').length;
+    // This is the renamed task
+    const firstPost = growth.allTasks.find(t => t.task_key === 'growth_action' || t.task_key === 'first_post') || {
+      task_title: 'Make your first post',
+      task_description: 'Use the Post Maker to create content for any platform.',
+      status: growth?.counts?.postMaker >= 1 ? 'completed' : 'pending',
+      route: '/post-maker'
+    };
 
-  const getStartedItems = [
-    { id: 'goal', title: 'Set a growth goal', desc: 'What are we aiming for?', icon: Target, done: getStartedState.hasGoal, path: '/progress' },
-    { id: 'leads', title: 'Find opportunities', desc: 'Find 3+ potential users', icon: Search, done: getStartedState.hasLeads, path: '/audience-spotter' },
-    { id: 'action', title: 'Take growth action', desc: 'Write your first post or reply', icon: PenLine, done: getStartedState.hasAction, path: '/post-maker' },
-    { id: 'account', title: 'Connect an account', desc: 'Link Reddit or X for tracking', icon: Link2, done: getStartedState.hasAccount, path: '/connected-accounts' },
-  ];
+    return [
+      { ...setupBrain, task_title: 'Setup Brand Brain' },
+      { ...connectAccount, task_title: 'Connect Reddit Account' },
+      { ...firstPost, task_title: 'Make your first post' }
+    ];
+  }, [growth]);
 
-  if (loading || !user) return null;
+  const isGettingStartedDone = useMemo(() => {
+    return getStartedTasks.every(t => t.status === 'completed');
+  }, [getStartedTasks]);
+
+  // Decide which tasks to show: Onboarding or Day X
+  const activeTasks = isGettingStartedDone ? (growth?.tasks || []) : getStartedTasks;
+  const completedCount = activeTasks.filter(t => t.status === 'completed').length;
+  const totalCount = activeTasks.length;
+
+  if (isLoading || activeTasks.length === 0) return null;
+
+  // Don't show on specific paths
+  const hiddenPaths = ['/onboarding', '/', '/auth', '/pricing'];
+  if (hiddenPaths.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-3 font-poppins">
+    <div className="fixed bottom-6 left-6 z-[100] w-72 sm:w-80 font-poppins">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="w-[340px] bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[520px]"
+            className="bg-white border-2 border-slate-100 rounded-3xl shadow-2xl overflow-hidden mb-4"
           >
-            {/* Header */}
-            <header className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <header className="px-6 py-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
               <div>
-                {!isGetStartedComplete ? (
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-orange-500 fill-orange-500" />
-                    <span className="text-zinc-900 text-sm font-bold">Get Started</span>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <span className="text-zinc-900 text-sm font-bold block">Day {currentDay} of 15</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-orange-500 transition-all duration-500" 
-                          style={{ width: `${(completedToday / (todayTasks.length || 1)) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] font-bold text-zinc-400 uppercase">{completedToday}/{todayTasks.length} Done</span>
-                    </div>
-                  </div>
-                )}
+                <h3 className="text-sm font-black text-zinc-900">
+                  {isGettingStartedDone ? `Day ${growth?.currentDay} Progress` : "Get Started"}
+                </h3>
+                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mt-0.5">
+                  {completedCount} of {totalCount} tasks done
+                </p>
               </div>
-              <button 
-                onClick={() => { setIsOpen(false); localStorage.setItem('vh_widget_closed', 'true'); }}
-                className="text-zinc-400 hover:text-zinc-600 transition-colors p-1 bg-transparent border-none cursor-pointer"
-              >
-                <ChevronDown className="w-5 h-5" />
-              </button>
+              <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center">
+                 <Target className="w-5 h-5 text-zinc-300" />
+              </div>
             </header>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-              {!isGetStartedComplete ? (
-                // GET STARTED VIEW
-                getStartedItems.map((item) => (
-                  <div key={item.id} className="p-4 rounded-xl border border-slate-100 bg-white flex items-center justify-between group">
-                    <div className="flex gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
-                        item.done ? "bg-orange-50 text-orange-500" : "bg-slate-50 text-slate-400"
-                      )}>
-                        {item.done ? <Check className="w-5 h-5" /> : <item.icon className="w-5 h-5" />}
-                      </div>
-                      <div className="min-w-0">
-                        <p className={cn("text-sm font-bold leading-tight", item.done ? "text-zinc-400" : "text-zinc-900")}>{item.title}</p>
-                        <p className="text-[11px] text-zinc-500 mt-1 line-clamp-1">{item.desc}</p>
-                      </div>
-                    </div>
-                    {!item.done && (
-                      <button 
-                        onClick={() => { navigate(item.path); setIsOpen(false); }}
-                        className="p-2 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all flex items-center justify-center flex-shrink-0 bg-transparent border-none cursor-pointer"
-                      >
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
+            <div className="p-4 space-y-2 max-h-[300px] overflow-y-auto">
+              {activeTasks.map((task, idx) => {
+                const isDone = task.status === 'completed';
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => !isDone && navigate(task.route)}
+                    className={cn(
+                      "w-full flex items-start gap-4 p-4 rounded-2xl transition-all border-2 text-left group",
+                      isDone 
+                        ? "bg-slate-50 border-transparent opacity-60" 
+                        : "bg-white border-slate-100 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-500/5"
                     )}
-                  </div>
-                ))
-              ) : (
-                // DAILY TASKS VIEW
-                todayTasks.length > 0 ? (
-                  todayTasks.map((task) => {
-                    const isDone = task.status === 'completed';
-                    return (
-                      <div key={task.id} className="p-4 rounded-xl border border-slate-100 bg-white flex items-center justify-between hover:border-orange-200 transition-all">
-                        <div className="flex gap-3 min-w-0">
-                          <div className={cn(
-                            "w-5 h-5 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 transition-all",
-                            isDone ? "bg-orange-500" : "border-2 border-slate-200"
-                          )}>
-                            {isDone && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className={cn("text-sm font-bold leading-tight", isDone ? "text-zinc-400 line-through" : "text-zinc-900")}>{task.task_title}</p>
-                            <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2 leading-relaxed">{task.task_description}</p>
-                          </div>
-                        </div>
-                        {!isDone && (
-                          <button 
-                            onClick={() => { navigate(task.route); setIsOpen(false); }}
-                            className="text-[10px] font-bold text-orange-600 px-3 py-1.5 rounded-lg hover:bg-orange-50 transition-all bg-transparent border-none cursor-pointer whitespace-nowrap ml-2"
-                          >
-                            Start
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="py-12 text-center space-y-3">
-                    <CheckCircle2 className="w-10 h-10 text-orange-500 mx-auto" />
-                    <p className="text-sm font-bold text-zinc-900">All tasks clear for today!</p>
-                    <p className="text-xs text-zinc-500 px-8">Great work. Your next set of growth tasks arrives tomorrow.</p>
-                  </div>
-                )
-              )}
+                  >
+                    <div className={cn(
+                      "mt-1 w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all",
+                      isDone ? "bg-orange-500 text-white" : "border-2 border-slate-200 text-transparent"
+                    )}>
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className={cn(
+                        "text-xs font-bold leading-tight",
+                        isDone ? "text-zinc-400 line-through" : "text-zinc-900"
+                      )}>
+                        {task.task_title}
+                      </p>
+                      {!isDone && (
+                        <p className="text-[10px] text-zinc-500 mt-1 line-clamp-2 leading-relaxed">
+                          {task.task_description}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Footer */}
-            <footer className="p-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
+            <div className="p-4 border-t border-slate-50 bg-white">
               <button 
-                onClick={() => { navigate('/progress'); setIsOpen(false); }}
-                className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest hover:text-orange-500 transition-colors bg-transparent border-none cursor-pointer"
+                onClick={() => navigate('/progress')}
+                className="w-full py-3 bg-zinc-900 text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-800 transition-all flex items-center justify-center gap-2"
               >
-                View Full Progress →
+                View Full Roadmap <ArrowRight className="w-3 h-3" />
               </button>
-            </footer>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -238,12 +183,38 @@ export default function TaskWidget() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-xl flex items-center justify-center text-orange-500 hover:border-orange-500 transition-all cursor-pointer relative"
-      >
-        {!isGetStartedComplete && !isOpen && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-bounce">!</span>
+        className={cn(
+          "w-full h-14 rounded-2xl flex items-center px-5 justify-between shadow-2xl transition-all border-2",
+          isOpen ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-900 border-slate-100"
         )}
-        {isOpen ? <ChevronDown className="w-6 h-6" /> : <CheckCircle2 className="w-6 h-6" />}
+      >
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-8 h-8 rounded-xl flex items-center justify-center transition-colors",
+            isOpen ? "bg-white/10" : "bg-orange-500 text-white"
+          )}>
+            <Zap className="w-4 h-4 fill-current" />
+          </div>
+          <div className="text-left">
+            <p className="text-xs font-black uppercase tracking-widest">
+              {isGettingStartedDone ? `Day ${growth?.currentDay}` : "Setup"}
+            </p>
+            <p className={cn("text-[10px] font-bold", isOpen ? "text-white/60" : "text-zinc-400")}>
+              {completedCount}/{totalCount} Tasks
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${(completedCount / totalCount) * 100}%` }}
+                className="h-full bg-orange-500"
+              />
+           </div>
+           {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+        </div>
       </motion.button>
     </div>
   );

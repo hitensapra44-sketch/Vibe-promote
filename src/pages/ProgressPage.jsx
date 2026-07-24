@@ -12,7 +12,8 @@ import {
   Check, 
   Sparkles,
   Lock,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../supabaseClient';
@@ -146,6 +147,29 @@ export default function ProgressPage() {
     }
   };
 
+  const handleResetGoal = async () => {
+    if (!window.confirm("Are you sure you want to change your goal? Your current progress on this goal will be reset.")) return;
+    
+    try {
+      const { error } = await supabase
+        .from('user_progress')
+        .update({ 
+          goal_type: null, 
+          goal_label: null, 
+          goal_target: null, 
+          current_value: 0 
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      setProgress(prev => ({ ...prev, goal_type: null }));
+      toast.success("Goal cleared. Choose a new destination.");
+    } catch (err) {
+      toast.error("Failed to reset goal.");
+    }
+  };
+
   const handleUpdateValue = async () => {
     const val = parseInt(updateValue);
     if (isNaN(val)) return;
@@ -262,14 +286,23 @@ export default function ProgressPage() {
                       <span className="text-sm font-bold text-zinc-900">{progress.streak || 0} day streak</span>
                     </div>
                     
-                    <div className="relative">
+                    <div className="flex items-center gap-3">
                       {!isUpdating ? (
-                        <button 
-                          onClick={() => setIsUpdating(true)}
-                          className="px-5 py-2 rounded-xl border-2 border-slate-100 text-xs font-bold text-zinc-600 hover:border-orange-500 hover:text-orange-500 transition-all bg-transparent"
-                        >
-                          Update Progress
-                        </button>
+                        <>
+                          <button 
+                            onClick={handleResetGoal}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-bold text-zinc-400 hover:text-red-500 hover:border-red-200 transition-all bg-transparent flex items-center gap-1.5"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            Change Goal
+                          </button>
+                          <button 
+                            onClick={() => setIsUpdating(true)}
+                            className="px-5 py-2 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-800 transition-all border-none cursor-pointer"
+                          >
+                            Update Progress
+                          </button>
+                        </>
                       ) : (
                         <div className="flex gap-2 items-center animate-in slide-in-from-right-2 duration-300">
                           <input 
