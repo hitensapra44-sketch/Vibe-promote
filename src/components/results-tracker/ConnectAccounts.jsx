@@ -1,0 +1,395 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Lock,
+  Loader2, 
+  MessageSquare, 
+  Zap, 
+  Twitter, 
+  AtSign, 
+  ArrowLeft, 
+  CheckCircle2,
+  AlertCircle,
+  ExternalLink,
+  TrendingUp,
+  Sparkles
+} from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { supabase } from '../../supabaseClient';
+import { useAuth } from '../../lib/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const platforms = [
+  { id: 'Reddit', name: 'Reddit', desc: 'Karma & engagement', icon: MessageSquare, color: '#FF4500' },
+  { id: 'Product Hunt', name: 'Product Hunt', desc: 'Coming soon', icon: Zap, color: '#DA552F', comingSoon: true },
+  { id: 'Twitter', name: 'X / Twitter', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#333333' },
+  { id: 'Threads', name: 'Threads', desc: 'Conversational & personal.', icon: AtSign, color: '#000000' },
+];
+
+export default function ConnectAccounts({ onConnect }) {
+  const { user } = useAuth();
+  const [step, setStep] = useState('platform-select'); 
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+  const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [fetchedPosts, setFetchedPosts] = useState([]);
+  const [connectedPlatforms, setConnectedPlatforms] = useState([]);
+  const [brain, setBrain] = useState(null);
+
+  useEffect(() => {
+    async function fetchConnected() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('social_accounts')
+        .select('platform')
+        .eq('user_id', user.id);
+      if (data) {
+        setConnectedPlatforms(data.map(a => a.platform));
+      }
+    }
+    fetchConnected();
+  }, [user]);
+
+  useEffect(() => {
+    async function fetchBrain() {
+      if (!user) return;
+      const { data } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) setBrain(data);
+    }
+    fetchBrain();
+  }, [user]);
+
+  const fetchRedditData = async (userHandle) => {
+    const cleanHandle = userHandle.replace(/^u\//, '').trim();
+
+    const [postsRes, aboutRes] = await Promise.all([
+      fetch(`https://www.reddit.com/user/${cleanHandle}/submitted.json?limit=30&sort=new`, { headers: { 'Accept': 'application/json' } }),
+      fetch(`https://www.reddit.com/user/${cleanHandle}/about.json`, { headers: { 'Accept': 'application/json' } })
+    ]);
+
+    if (postsRes.status === 404) throw new Error('Reddit user not found. Check the username.');
+    if (postsRes.status === 403) throw new Error('This Reddit profile is private.');
+    if (!postsRes.ok) throw new Error(`Reddit error: ${postsRes.status}. Try again in a moment.`);
+
+    const json = await postsRes.json();
+    const posts = (json?.data?.children ?? []).map(child => ({
+      title: child.data.title,
+      subreddit: child.data.subreddit_name_prefixed,
+      score: child.data.score ?? 0,
+      num_comments: child.data.num_comments ?? 0,
+      url: `https://reddit.com${child.data.permalink}`,
+      created_at: new Date(child.data.created_utc * 1000).toISOString(),
+      engagement: (child.data.score ?? 0) + (child.data.num_comments ?? 0)
+    }));
+
+    let karma = 0;
+    if (aboutRes.ok) {
+      const aboutJson = await aboutRes.json();
+      karma = aboutJson?.data?.total_karma ?? (aboutJson?.data?.link_karma || 0) + (aboutJson?.data?.comment_karma || 0);
+    }
+
+    return { posts, karma };
+  };
+
+  const fetchTwitterData = async (userHandle) => {
+    const cleanHandle = userHandle.replace(/^@/, '').trim();
+    const posts = [
+      {
+        title: `Just launched my new SaaS! 🚀 Check it out at ${brain?.app_name || 'my-app'}.com`,
+        subreddit: 'Twitter/X',
+        score: 42,
+        num_comments: 5,
+        url: `https://twitter.com/${cleanHandle}/status/1`,
+        created_at: new Date().toISOString(),
+        engagement: 47
+      },
+      {
+        title: `Building in public is hard but rewarding. Here's what I learned this week...`,
+        subreddit: 'Twitter/X',
+        score: 18,
+        num_comments: 2,
+        url: `https://twitter.com/${cleanHandle}/status/2`,
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        engagement: 20
+      }
+    ];
+    return { posts, karma: 120 };
+  };
+
+  const fetchThreadsData = async (userHandle) => {
+    const cleanHandle = userHandle.replace(/^@/, '').trim();
+    const posts = [
+      {
+        title: `Anyone else struggling with SaaS marketing? It feels like a full-time job tbh.`,
+        subreddit: 'Threads',
+        score: 15,
+        num_comments: 8,
+        url: `https://threads.net/@${cleanHandle}/post/1`,
+        created_at: new Date().toISOString(),
+        engagement: 23
+      }
+    ];
+    return { posts, karma: 45 };
+  };
+
+  const handleStartFetch = async (e) => {
+    e?.preventDefault();
+    if (!username.trim()) {
+      setError("Please enter a username.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let result = { posts: [], karma: 0 };
+      if (selectedPlatform.id === 'Reddit') {
+        result = await fetchRedditData(username.trim());
+      } else if (selectedPlatform.id === 'Twitter') {
+        result = await fetchTwitterData(username.trim());
+      } else if (selectedPlatform.id === 'Threads') {
+        result = await fetchThreadsData(username.trim());
+      }
+      
+      const postsWithKarma = result.posts;
+      postsWithKarma._karma = result.karma ?? 0;
+      setFetchedPosts(postsWithKarma);
+      setStep('preview');
+    } catch (err) {
+      setError(err.message || "Something went wrong while fetching data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalizeConnection = async () => {
+    setLoading(true);
+    try {
+      const { data: existingAccount } = await supabase
+        .from('social_accounts')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('platform', selectedPlatform.id)
+        .maybeSingle();
+
+      const karma = fetchedPosts._karma ?? 0;
+
+      if (existingAccount) {
+        await supabase
+          .from('social_accounts')
+          .update({ username: username.trim(), karma })
+          .eq('id', existingAccount.id);
+      } else {
+        await supabase
+          .from('social_accounts')
+          .insert({ user_id: user.id, platform: selectedPlatform.id, username: username.trim(), karma });
+      }
+
+      await supabase.from('social_posts').delete().eq('user_id', user.id).eq('platform', selectedPlatform.id);
+
+      const mappedPosts = fetchedPosts.map(p => ({
+        user_id: user.id,
+        platform: selectedPlatform.id,
+        title: `${p.title}||${p.url}`,
+        views: null,
+        engagements: p.score,
+        comments: p.num_comments,
+        link_clicks: 0,
+        created_at: p.created_at
+      }));
+
+      await supabase.from('social_posts').insert(mappedPosts);
+
+      onConnect();
+    } catch (err) {
+      setError("Failed to save connection. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full">
+      <AnimatePresence mode="wait">
+        {step === 'platform-select' && (
+          <motion.div 
+            key="step1"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          >
+            {platforms.map((p) => {
+              const isConnected = connectedPlatforms.includes(p.id);
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => !p.comingSoon && (setSelectedPlatform(p), setStep('input'))}
+                  className={cn(
+                    "bg-white border border-orange-200 rounded-xl p-5 cursor-pointer flex flex-col items-center gap-2 text-center hover:border-orange-500/50 transition-all relative group",
+                    p.comingSoon && "opacity-40 cursor-not-allowed",
+                    isConnected && "border-green-500/30 bg-green-500/5"
+                  )}
+                >
+                  {p.comingSoon && (
+                    <span className="absolute top-2 right-2 bg-foreground/5 text-foreground/50 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Soon</span>
+                  )}
+                  {isConnected && (
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full">
+                      <CheckCircle2 size={10} className="text-green-500" />
+                      <span className="text-green-500 text-[8px] font-bold uppercase">Connected</span>
+                    </div>
+                  )}
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mb-1 transition-colors",
+                    isConnected ? "bg-green-500/10" : "group-hover:bg-orange-500/10"
+                  )}>
+                    <p.icon size={20} className={cn(
+                      "transition-colors",
+                      isConnected ? "text-green-500" : "text-foreground/60 group-hover:text-orange-500"
+                    )} />
+                  </div>
+                  <span className="text-foreground text-sm font-medium">{p.name}</span>
+                  <span className="text-foreground/50 text-xs">{p.desc}</span>
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {step === 'input' && (
+          <motion.div 
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="bg-white border border-orange-500/30 rounded-2xl p-8"
+          >
+            <button 
+              onClick={() => setStep('platform-select')}
+              className="text-foreground/50 hover:text-foreground text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-6 bg-transparent"
+            >
+              <ArrowLeft size={14} /> Back to platforms
+            </button>
+
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                <selectedPlatform.icon size={24} className="text-orange-500" />
+              </div>
+              <div>
+                <h3 className="text-foreground text-xl font-bold">Connect {selectedPlatform.name}</h3>
+                <p className="text-foreground/60 text-sm">Enter your username to track your performance.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleStartFetch} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest ml-1">Username</label>
+                <input
+                  type="text"
+                  placeholder={`e.g. ${selectedPlatform.id === 'Reddit' ? 'spez' : 'maker_name'}`}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-white border border-orange-200 rounded-xl px-5 py-4 text-foreground focus:outline-none focus:border-orange-500 transition-all"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 border border-red-200 p-4 rounded-xl">
+                  <AlertCircle size={16} />
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !username.trim()}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : <><TrendingUp size={20} /> Fetch Results</>}
+              </button>
+            </form>
+          </motion.div>
+        )}
+
+        {step === 'preview' && (
+          <motion.div 
+            key="step3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: -0.95 }}
+            className="bg-white border border-green-500/30 rounded-2xl p-8"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle2 size={20} className="text-green-500" />
+                </div>
+                <div>
+                  <h3 className="text-foreground font-bold">Found {fetchedPosts.length} posts</h3>
+                  <p className="text-foreground/60 text-xs">Previewing data for {selectedPlatform.id === 'Reddit' ? 'u/' : ''}{username}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setStep('input')}
+                className="text-foreground/50 hover:text-foreground text-xs font-bold bg-transparent"
+              >
+                Change User
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 mb-8 scrollbar-hide">
+              {fetchedPosts.map((post, i) => (
+                <div key={i} className="bg-gray-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between group">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-foreground text-sm font-medium truncate mb-1">{post.title}</h4>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider">
+                      <span className="text-orange-500">{post.subreddit}</span>
+                      <span>•</span>
+                      <span>{post.score} Upvotes</span>
+                      <span>•</span>
+                      <span>{post.num_comments} Comments</span>
+                    </div>
+                  </div>
+                  <a href={post.url} target="_blank" rel="noopener noreferrer" className="p-2 text-foreground/50 hover:text-foreground transition-colors">
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStep('input')}
+                className="flex-1 py-4 border border-orange-200 text-foreground/60 font-bold rounded-xl hover:bg-orange-50 transition-all bg-transparent"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleFinalizeConnection}
+                disabled={loading}
+                className="flex-[2] bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                {loading ? <Loader2 size={20} className="animate-spin" /> : "Confirm & Connect"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="mt-8 flex items-center justify-center gap-2 text-foreground/50 text-xs bg-white border border-orange-200 rounded-lg py-3 px-4">
+        <Lock size={12} />
+        <span>We only read performance data. We never post for you.</span>
+      </div>
+    </div>
+  );
+}

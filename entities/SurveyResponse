@@ -1,0 +1,68 @@
+{
+  "name": "SurveyResponse",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "What best describes your role"
+    },
+    "role_other": {
+      "type": "string",
+      "description": "Other role text if selected Other"
+    },
+    "age_group": {
+      "type": "string",
+      "enum": [
+        "18-24",
+        "25-34",
+        "35-44",
+        "45+"
+      ],
+      "description": "Age group"
+    },
+    "marketing_channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Where they market currently"
+    },
+    "marketing_channels_other": {
+      "type": "string",
+      "description": "Other marketing channel"
+    },
+    "product_type": {
+      "type": "string",
+      "description": "Product type"
+    },
+    "product_type_other": {
+      "type": "string",
+      "description": "Other product type"
+    },
+    "focus_stage": {
+      "type": "string",
+      "description": "Current focus stage"
+    },
+    "biggest_headache": {
+      "type": "string",
+      "description": "Biggest marketing headache"
+    },
+    "best_feature": {
+      "type": "string",
+      "description": "Best feature they think will help"
+    },
+    "best_feature_other": {
+      "type": "string",
+      "description": "Other best feature text"
+    },
+    "dream_features": {
+      "type": "string",
+      "description": "Dream features they want"
+    },
+    "email": {
+      "type": "string",
+      "description": "User email for waitlist"
+    }
+  },
+  "required": []
+}

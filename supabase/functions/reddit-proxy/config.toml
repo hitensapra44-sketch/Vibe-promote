@@ -1,0 +1,2 @@
+[functions.reddit-proxy]
+verify_jwt = false

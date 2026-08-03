@@ -1,0 +1,17 @@
+{
+  "name": "WaitlistSignup",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the signup came from"
+    }
+  },
+  "required": [
+    "email"
+  ]
+}

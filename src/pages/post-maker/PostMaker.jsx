@@ -1,0 +1,808 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  PenTool, 
+  Loader2, 
+  Zap,
+  Copy, 
+  Check, 
+  AlertTriangle,
+  Lightbulb,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  MessageSquare,
+  Twitter,
+  Globe,
+  Layout,
+  Calendar,
+  Target,
+  Award,
+  Compass
+} from 'lucide-react';
+import { useAuth } from '../../lib/AuthContext';
+import { supabase } from '../../supabaseClient';
+import { useNavigate, Link } from 'react-router-dom';
+import { generateAICall } from '../../lib/ai';
+import { toast } from 'sonner';
+import Sidebar from '../../components/Sidebar';
+import { cn } from "@/lib/utils";
+
+const platforms = [
+  { id: 'reddit', name: 'Reddit', desc: 'Value-first. Lead with insight.', icon: MessageSquare, color: '#FF4500', available: true },
+  { id: 'twitter', name: 'X (Twitter)', desc: 'Short, viral, high-energy.', icon: Twitter, color: '#FFFFFF', available: true },
+  { id: 'threads', name: 'Threads', desc: 'Conversational & personal.', icon: MessageSquare, color: '#FFFFFF', available: true },
+  { id: 'ih', name: 'Indie Hackers', desc: 'Founder stories win here.', icon: Globe, color: '#0073b1', available: true },
+];
+
+const formats = [
+  { 
+    id: 'struggle', 
+    name: 'The Relatable Struggle', 
+    desc: 'I was X, until I did Y', 
+    traction: 'High', 
+    engagement: 78,
+    why: 'People comment because they\'ve been there too'
+  },
+  { 
+    id: 'hot-take', 
+    name: 'Hot Take + Proof', 
+    desc: 'Unpopular opinion: [your insight]', 
+    traction: 'High', 
+    engagement: 85,
+    why: 'Controversial hooks drive 3x more replies'
+  },
+  { 
+    id: 'learned', 
+    name: 'What I Learned After Z', 
+    desc: 'After [milestone], here\'s what actually worked', 
+    traction: 'Medium', 
+    engagement: 62,
+    why: 'Authority + story = shares'
+  },
+];
+
+export default function PostMaker() {
+  const { user, plan } = useAuth();
+  const [brain, setBrain] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState('platform'); // 'platform', 'format', 'output'
+  const [selectedPlatform, setSelectedPlatform] = useState(null);
+  const [selectedFormat, setSelectedFormat] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [post, setPost] = useState(null);
+  const [tone, setTone] = useState('Authentic Founder');
+  const [context, setContext] = useState('');
+  const [isPaid, setIsPaid] = useState(false);
+
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [wizardStep, setWizardStep] = useState(0); // 0=goal, 1=comfort, 2=frequency, 3=platforms, 4=subreddits
+  const [planAnswers, setPlanAnswers] = useState({ goal: null, comfort_level: null, posting_frequency: null, platforms: [], selected_subreddits: [] });
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!user) return;
+
+      const { data: paymentData } = await supabase
+        .from('user_payments')
+        .select('payment_status')
+        .eq('email', user.email)
+        .maybeSingle();
+      
+      if (paymentData?.payment_status) {
+        setIsPaid(true);
+      }
+
+      const { data } = await supabase
+        .from('brand_brains')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) setBrain(data);
+
+      try {
+        const { data: planData, error: planError } = await supabase.functions.invoke('generate-content-plan', {
+          method: 'GET'
+        });
+        if (planData?.plan_json) {
+          setWeeklyPlan(planData.plan_json);
+        }
+      } catch (err) {
+        console.error("Error fetching weekly plan:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+
+      setLoading(false);
+    }
+    fetchData();
+  }, [user]);
+
+  async function generateWeeklyPlan() {
+    setGeneratingPlan(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-content-plan', {
+        method: 'POST',
+        body: planAnswers
+      });
+      if (error) throw error;
+      setWeeklyPlan(data.plan_json);
+      setStep('platform');
+      toast.success("Your weekly plan is ready!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate your plan.");
+    } finally {
+      setGeneratingPlan(false);
+    }
+  }
+
+  const generatePost = async () => {
+    setStep('output');
+    setGenerating(true);
+    
+    const systemPrompt = `You are a viral content strategist for ${selectedPlatform.name}. 
+    Format: ${selectedFormat.name}. Tone: ${tone}.
+    Context: ${context}.
+    
+    Brand Brain: ${JSON.stringify(brain)}
+    
+    Return ONLY a valid JSON object:
+    {
+      "title": "...",
+      "body": "..."
+    }`;
+
+    try {
+      const result = await generateAICall(systemPrompt, "Generate the post now.", null, 'post');
+      const parsed = JSON.parse(result);
+      setPost(parsed);
+      supabase.rpc('increment_posts_generated', { user_uuid: user.id });
+    } catch (err) {
+      console.error("Generation failed:", err);
+      toast.error("Failed to generate post.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const renderContentCard = (dayEntry) => {
+    if (!dayEntry || !dayEntry.active) return null;
+
+    const formatDescription = dayEntry.format_description || dayEntry.angle || "A custom format tailored to your audience.";
+    const goalText = dayEntry.goal || "Build trust and drive organic engagement.";
+    const outcomeTypes = dayEntry.outcome_types || [dayEntry.expected_outcome || 'Engagement'];
+    const whyThisPost = dayEntry.why_this_post || "This post is scheduled to build consistent momentum and trust with your audience.";
+    const whyThisFormat = dayEntry.why_this_format || "This format is chosen because it encourages authentic discussion and avoids promotional filters.";
+    
+    let whyThisPlatform = dayEntry.why_this_platform;
+    if (!whyThisPlatform) {
+      if (dayEntry.platform === 'reddit') {
+        whyThisPlatform = `r/${dayEntry.subreddit || 'SaaS'} responds well to founder experiences and lessons learned.`;
+      } else if (dayEntry.platform === 'twitter') {
+        whyThisPlatform = "X performs well for short founder insights and contrarian observations.";
+      } else if (dayEntry.platform === 'threads') {
+        whyThisPlatform = "Threads rewards relatable founder experiences and conversation starters.";
+      } else {
+        whyThisPlatform = `${dayEntry.platform} is a great channel to reach builders and founders organically.`;
+      }
+    }
+
+    return (
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Day</span>
+            <p className="text-lg font-bold text-slate-900">{dayEntry.day}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-900 capitalize">{dayEntry.platform === 'twitter' ? 'X' : dayEntry.platform}</span>
+            {dayEntry.subreddit && (
+              <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 text-[10px] font-bold">r/{dayEntry.subreddit}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Proposed Topic</span>
+            <p className="text-base font-bold text-orange-600">{dayEntry.format_name}</p>
+            <p className="text-slate-600 text-sm mt-1 leading-relaxed">{formatDescription}</p>
+          </div>
+
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Strategic Goal</span>
+            <p className="text-slate-700 text-sm leading-relaxed">{goalText}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {outcomeTypes.map((type, idx) => (
+              <span key={idx} className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                {type}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Strategy Note</span>
+            <p className="text-slate-500 text-xs leading-relaxed">{whyThisPost}</p>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Format Logic</span>
+            <p className="text-slate-500 text-xs leading-relaxed">{whyThisFormat}</p>
+          </div>
+        </div>
+
+        <div className="pt-4">
+          <button
+            onClick={() => {
+              if (dayEntry.platform === 'reddit') {
+                navigate('/post-maker/reddit', { state: { planEntry: dayEntry } });
+              } else if (dayEntry.platform === 'twitter') {
+                navigate('/post-maker/x');
+              } else if (dayEntry.platform === 'ih') {
+                navigate('/post-maker/indiehackers');
+              } else if (dayEntry.platform === 'threads') {
+                navigate('/post-maker/threads');
+              }
+            }}
+            className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 cursor-pointer border-none"
+          >
+            <Sparkles className="w-4 h-4" /> Generate Post
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-6 h-6 text-orange-500 animate-spin" /></div>;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground font-poppins flex relative overflow-hidden">
+      <Sidebar isPaid={isPaid} />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto p-8">
+        <div className="max-w-[720px] mx-auto w-full">
+          
+          {step === 'platform' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+              {/* Weekly Plan Section */}
+              {!planLoading && (
+                <div className="space-y-6">
+                  {weeklyPlan === null ? (
+                    <button
+                      onClick={() => setStep('weeklyPlanQuestions')}
+                      className="w-full p-6 rounded-xl border border-slate-200 bg-white hover:border-orange-500/30 text-left transition-all flex items-center justify-between group shadow-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+                          <Calendar className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors">Get Your Weekly Content Plan</h3>
+                          <p className="text-slate-500 text-xs mt-1">Tell us your goals, get 7 days of content ideas — done.</p>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
+                    </button>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Weekly Strategy Section */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-3 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900">This Week's Strategy</h2>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] block mb-1">Overall Strategy</span>
+                          {weeklyPlan.week_overview || "Build consistent momentum and trust with your target audience."}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between px-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-orange-500" />
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today's Post Plan</span>
+                        </div>
+                        <button
+                          onClick={() => setStep('weeklyPlanFull')}
+                          className="text-xs font-bold text-orange-600 hover:underline bg-transparent border-none cursor-pointer"
+                        >
+                          View Full Week →
+                        </button>
+                      </div>
+
+                      {(() => {
+                        const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                        const todayEntry = weeklyPlan.days?.find(d => d.day === todayName);
+                        if (todayEntry && todayEntry.active) {
+                          return renderContentCard(todayEntry);
+                        } else {
+                          return (
+                            <div className="bg-white border border-slate-200 border-dashed rounded-2xl p-8 text-center">
+                              <p className="text-sm text-slate-400">No post scheduled today — check your full week plan</p>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="pt-6 border-t border-slate-100">
+                <div className="mb-8">
+                  <h1 className="text-2xl font-semibold text-slate-900">Post Maker</h1>
+                  <p className="text-slate-500 text-sm">Where are you posting today?</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                  {platforms.map((p) => (
+                    <button
+                      key={p.id}
+                      disabled={p.comingSoon}
+                      onClick={() => {
+                        if (p.id === 'reddit') {
+                          navigate('/post-maker/reddit');
+                        } else if (p.id === 'twitter') {
+                          navigate('/post-maker/x');
+                        } else if (p.id === 'threads') {
+                          navigate('/post-maker/threads');
+                        } else if (p.id === 'ih') {
+                          navigate('/post-maker/indiehackers');
+                        }
+                      }}
+                      className={cn(
+                        "relative p-8 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-4 min-h-[160px] cursor-pointer",
+                        p.comingSoon ? "opacity-40 cursor-not-allowed bg-slate-50 border-slate-100" : 
+                        "bg-white border-slate-200 hover:border-orange-500/30 hover:shadow-md shadow-sm"
+                      )}
+                    >
+                      <p.icon className="w-8 h-8 text-slate-700" />
+                      <div>
+                        <p className="text-base font-bold text-slate-900">{p.name}</p>
+                        <p className="text-slate-500 text-xs mt-1.5">{p.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 'weeklyPlanQuestions' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
+              {wizardStep === 0 && (
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-slate-900">What's your main goal right now?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Get first users",
+                      "Get more signups",
+                      "Get product feedback",
+                      "Validate my idea",
+                      "Build authority",
+                      "Grow an audience"
+                    ].map((goal) => (
+                      <button
+                        key={goal}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, goal });
+                          setWizardStep(1);
+                        }}
+                        className="p-5 rounded-xl border border-slate-200 bg-white hover:border-orange-500 text-left text-sm font-bold text-slate-700 transition-all cursor-pointer"
+                      >
+                        {goal}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 1 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(0)}
+                    className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-slate-900">How comfortable are you sharing your journey publicly?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Very comfortable",
+                      "Somewhat comfortable",
+                      "Prefer educational content",
+                      "Prefer product-focused content"
+                    ].map((comfort) => (
+                      <button
+                        key={comfort}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, comfort_level: comfort });
+                          setWizardStep(2);
+                        }}
+                        className="p-5 rounded-xl border border-slate-200 bg-white hover:border-orange-500 text-left text-sm font-bold text-slate-700 transition-all cursor-pointer"
+                      >
+                        {comfort}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 2 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(1)}
+                    className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-slate-900">How much can you realistically post?</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      "Daily",
+                      "3-5 times per week",
+                      "1-2 times per week"
+                    ].map((freq) => (
+                      <button
+                        key={freq}
+                        onClick={() => {
+                          setPlanAnswers({ ...planAnswers, posting_frequency: freq });
+                          setWizardStep(3);
+                        }}
+                        className="p-5 rounded-xl border border-slate-200 bg-white hover:border-orange-500 text-left text-sm font-bold text-slate-700 transition-all cursor-pointer"
+                      >
+                        {freq}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {wizardStep === 3 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(2)}
+                    className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-slate-900">Which platforms?</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    {platforms.map((p) => {
+                      const isSelected = planAnswers.platforms.includes(p.id);
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            const nextPlatforms = isSelected
+                              ? planAnswers.platforms.filter(id => id !== p.id)
+                              : [...planAnswers.platforms, p.id];
+                            setPlanAnswers({ ...planAnswers, platforms: nextPlatforms });
+                          }}
+                          className={cn(
+                            "p-6 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-3 bg-white cursor-pointer",
+                            isSelected ? "bg-orange-50 border-orange-500 shadow-sm" : "border-slate-200 hover:border-orange-500/30"
+                          )}
+                        >
+                          <p.icon className={cn("w-6 h-6", isSelected ? "text-orange-600" : "text-slate-400")} />
+                          <p className={cn("text-sm font-bold", isSelected ? "text-orange-600" : "text-slate-700")}>{p.name}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (planAnswers.platforms.includes('reddit')) {
+                        setWizardStep(4);
+                      } else {
+                        generateWeeklyPlan();
+                      }
+                    }}
+                    disabled={planAnswers.platforms.length === 0 || generatingPlan}
+                    className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none cursor-pointer mt-4"
+                  >
+                    {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Next →"}
+                  </button>
+                </div>
+              )}
+
+              {wizardStep === 4 && (
+                <div className="space-y-6">
+                  <button
+                    onClick={() => setWizardStep(3)}
+                    className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  <h2 className="text-xl font-bold text-slate-900">Which subreddits?</h2>
+                  {(() => {
+                    let communities = [];
+                    if (brain?.audience_communities) {
+                      try {
+                        communities = JSON.parse(brain.audience_communities);
+                      } catch (e) {
+                        if (typeof brain.audience_communities === 'string') {
+                          communities = brain.audience_communities.split(',').map(c => c.trim()).filter(Boolean);
+                        }
+                      }
+                    }
+                    if (!Array.isArray(communities)) {
+                      communities = [];
+                    }
+                    return (
+                      <div className="space-y-6">
+                        <div className="flex flex-wrap gap-2">
+                          {communities.map((sub) => {
+                            const isSelected = planAnswers.selected_subreddits.includes(sub);
+                            return (
+                              <button
+                                key={sub}
+                                onClick={() => {
+                                  const nextSubs = isSelected
+                                    ? planAnswers.selected_subreddits.filter(s => s !== sub)
+                                    : [...planAnswers.selected_subreddits, sub];
+                                  setPlanAnswers({ ...planAnswers, selected_subreddits: nextSubs });
+                                }}
+                                className={cn(
+                                  "px-4 py-2 rounded-full text-xs font-bold border transition-all bg-white cursor-pointer",
+                                  isSelected ? "bg-orange-50 border-orange-500 text-orange-600" : "border-slate-200 text-slate-600 hover:border-orange-500/50"
+                                )}
+                              >
+                                r/{sub}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={generateWeeklyPlan}
+                          disabled={generatingPlan}
+                          className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 border-none cursor-pointer"
+                        >
+                          {generatingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate My Plan"}
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 'weeklyPlanFull' && weeklyPlan && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+              <button
+                onClick={() => setStep('platform')}
+                className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              
+              {/* Weekly Strategy Section */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-3 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-900">This Week's Strategy</h2>
+                <p className="text-slate-600 text-sm leading-relaxed">
+                  <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px] block mb-1">Strategy Goal</span>
+                  {weeklyPlan.week_overview || "Build consistent momentum and trust with your target audience."}
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {weeklyPlan.days?.map((dayEntry, idx) => (
+                  <div key={idx} className={cn(!dayEntry.active && "opacity-40")}>
+                    {dayEntry.active ? (
+                      renderContentCard(dayEntry)
+                    ) : (
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex items-center justify-between">
+                        <span className="text-sm font-bold text-slate-400">{dayEntry.day}</span>
+                        <span className="text-xs text-slate-300 font-medium italic">No post scheduled</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 'format' && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+              <button onClick={() => setStep('platform')} className="text-slate-400 text-sm flex items-center gap-2 hover:text-slate-600 bg-transparent border-none cursor-pointer mb-8">
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+              
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-slate-900">What's working on {selectedPlatform.name} right now</h2>
+                <p className="text-slate-500 text-sm">Formats getting traction in your niche</p>
+              </div>
+
+              <div className="space-y-4 mb-12">
+                {formats.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFormat(f)}
+                    className={cn(
+                      "w-full p-6 rounded-2xl border text-left transition-all flex flex-col lg:flex-row justify-between gap-6 bg-white cursor-pointer shadow-sm",
+                      selectedFormat?.id === f.id ? "border-orange-500 ring-1 ring-orange-500 shadow-md" : "border-slate-200 hover:border-orange-500/30"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-base font-bold text-slate-900">{f.name}</h3>
+                        <span className={cn(
+                          "text-[10px] font-bold px-2 py-0.5 rounded-md border",
+                          f.traction === 'High' ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-slate-50 text-slate-500 border-slate-100"
+                        )}>
+                          {f.traction === 'High' ? '🔥 High Traction' : '👀 Medium'}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-sm mb-4">{f.why}</p>
+                      
+                      {/* Skeleton Preview */}
+                      <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-100">
+                        <div className="h-1.5 bg-slate-200 rounded w-3/4" />
+                        <div className="h-1.5 bg-slate-200 rounded w-full" />
+                        <div className="h-1.5 bg-slate-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                    
+                    <div className="lg:w-32 flex flex-col justify-center">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Engagement Rate</p>
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
+                        <div className="h-full bg-orange-500" style={{ width: `${f.engagement}%` }} />
+                      </div>
+                      <p className="text-xs font-bold text-slate-900">{f.engagement}%</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {selectedFormat && (
+                <button
+                  onClick={generatePost}
+                  className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 border-none cursor-pointer shadow-lg shadow-orange-500/20"
+                >
+                  Generate My Post →
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'output' && (
+            <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* Left Column - Controls */}
+              <div className="lg:w-[280px] space-y-8">
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-3">Brand Context</p>
+                  <p className="text-slate-900 text-xs font-bold truncate">{brain?.app_name}</p>
+                  <p className="text-slate-500 text-[10px] mt-1 line-clamp-2">{brain?.core_problem}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Writing Tone</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Authentic Founder', 'Educational', 'Punchy / Bold', 'Conversational'].map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setTone(t)}
+                        className={cn(
+                          "py-2.5 text-[10px] font-bold rounded-lg border transition-all cursor-pointer bg-white",
+                          tone === t ? "border-orange-500 text-orange-600 bg-orange-50" : "border-slate-200 text-slate-500 hover:border-slate-400"
+                        )}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Anything to highlight?</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 'just hit 100 users'..."
+                    value={context}
+                    onChange={(e) => setContext(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-orange-500 placeholder-slate-300 transition-all"
+                  />
+                </div>
+
+                <button
+                  onClick={generatePost}
+                  disabled={generating}
+                  className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 border-none cursor-pointer shadow-lg shadow-orange-500/20"
+                >
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  Generate Post
+                </button>
+              </div>
+
+              {/* Right Column - Output */}
+              <div className="flex-1 space-y-6">
+                <AnimatePresence mode="wait">
+                  {generating ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="bg-white border border-slate-200 rounded-xl p-12 flex flex-col items-center justify-center text-center min-h-[400px] shadow-sm"
+                    >
+                      <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
+                      <h3 className="text-lg font-bold text-slate-900">Writing your post...</h3>
+                      <p className="text-slate-500 text-sm">Matching your brand voice and {selectedPlatform.name} vibe.</p>
+                    </motion.div>
+                  ) : post ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      {/* Platform Preview Card */}
+                      <div className={cn(
+                        "bg-white border border-slate-200 rounded-xl overflow-hidden border-l-4 shadow-sm",
+                        selectedPlatform.id === 'reddit' ? "border-l-[#FF4500]" : 
+                        selectedPlatform.id === 'ih' ? "border-l-[#0073b1]" : "border-l-slate-900"
+                      )}>
+                        <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/30">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center">
+                            <selectedPlatform.icon className="w-3 h-3 text-slate-500" />
+                          </div>
+                          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                            {selectedPlatform.id === 'reddit' ? 'r/SaaS' : selectedPlatform.name} • Posted by u/you
+                          </span>
+                        </div>
+                        <div className="p-6 space-y-4">
+                          <h3 className="text-lg font-bold text-slate-900">{post.title}</h3>
+                          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
+                        </div>
+                        <div className="px-6 py-3 bg-slate-50/50 flex items-center gap-4 text-slate-400 text-[10px] font-bold border-t border-slate-100">
+                          <span>▲ 0</span>
+                          <span>💬 0 comments</span>
+                          <span>🔗 Share</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{post.body.length} chars</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-orange-50 border border-orange-100 border-l-4 border-l-orange-500 p-4 rounded-lg">
+                        <p className="text-slate-700 text-xs leading-relaxed">
+                          <span className="text-orange-600 font-bold uppercase tracking-wider text-[10px] block mb-1">Pro Tip</span>
+                          Post between 9–11AM EST Tuesday for best reach. Don't add your link in the post — put it in the first comment after posting.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${post.title}\n\n${post.body}`);
+                            toast.success("Post copied!");
+                          }}
+                          className="flex-1 h-12 bg-orange-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer border-none shadow-lg shadow-orange-500/20"
+                        >
+                          <Copy className="w-4 h-4" /> Copy Post
+                        </button>
+                        <button onClick={generatePost} className="flex-1 h-12 border border-slate-200 bg-white text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 cursor-pointer transition-all">
+                          Regenerate ↺
+                        </button>
+                        <button onClick={() => setStep('format')} className="flex-1 h-12 border border-slate-200 bg-white text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-50 cursor-pointer transition-all">
+                          Try Different Format
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}

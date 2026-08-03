@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-geist: 'Geist', 'Inter', system-ui, sans-serif;
+    --background: #ffffff;
+    --foreground: #111111;
+    --foreground-rgb: 17, 17, 17;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --primary: 24.9 91.7% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #111111;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --accent: 24.9 91.7% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: rgba(0, 0, 0, 0.08);
+    --input: rgba(0, 0, 0, 0.08);
+    --ring: 24.9 91.7% 50%;
+    --radius: 0.5rem;
+  }
+
+  .light, .dark {
+    --background: #ffffff;
+    --foreground: #111111;
+    --foreground-rgb: 17, 17, 17;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #111111;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --border: rgba(0, 0, 0, 0.08);
+    --input: rgba(0, 0, 0, 0.08);
+  }
+
+  html, body {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  #root {
+    background-color: #ffffff !important;
+    min-height: 100vh;
+  }
+
+  * {
+    border-color: rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .gradient-glow {
+    position: relative;
+    z-index: 0;
+  }
+
+  .gradient-glow::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: linear-gradient(to right, #f97316, #ef4444);
+    -webkit-mask: 
+       linear-gradient(#fff 0 0) content-box, 
+       linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+  }
+}

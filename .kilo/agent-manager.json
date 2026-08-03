@@ -1,0 +1,20 @@
+{
+  "worktrees": {
+    "wt-1778068482729-1": {
+      "branch": "chain-spear",
+      "path": "c:\\Users\\HP\\dyad-apps\\vibe\\.kilo\\worktrees\\chain-spear",
+      "parentBranch": "main",
+      "createdAt": "2026-05-06T11:54:42.729Z",
+      "remote": "origin"
+    }
+  },
+  "sessions": {},
+  "tabOrder": {
+    "local": [
+      "pending:1"
+    ]
+  },
+  "worktreeOrder": [
+    "wt-1778068482729-1"
+  ]
+}
