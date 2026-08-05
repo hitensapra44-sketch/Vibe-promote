@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -21,60 +22,49 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      console.log('[buffer-oauth-callback] Missing authorization header')
-      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      console.error('[buffer-oauth-callback] Missing authorization header')
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
 
     const token = authHeader.replace('Bearer ', '')
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      console.log('[buffer-oauth-callback] Invalid token:', authError?.message)
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      console.error('[buffer-oauth-callback] Auth error:', authError)
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
-
-    console.log('[buffer-oauth-callback] User authenticated:', user.id)
 
     const { code, code_verifier, redirect_uri } = await req.json()
 
     if (!code || !code_verifier || !redirect_uri) {
-      console.log('[buffer-oauth-callback] Missing required fields')
-      return new Response(JSON.stringify({ error: 'Missing required fields: code, code_verifier, redirect_uri' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      console.error('[buffer-oauth-callback] Missing required parameters')
+      return new Response(JSON.stringify({ error: 'Missing code, code_verifier or redirect_uri' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
 
     const clientId = Deno.env.get('BUFFER_OAUTH_CLIENT_ID')
     const clientSecret = Deno.env.get('BUFFER_OAUTH_CLIENT_SECRET')
 
-    if (!clientId || !clientSecret) {
-      console.error('[buffer-oauth-callback] Buffer OAuth credentials not configured')
-      return new Response(JSON.stringify({ error: 'Buffer OAuth credentials not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    console.log('[buffer-oauth-callback] Exchanging code for tokens...')
 
-    console.log('[buffer-oauth-callback] Exchanging code for tokens')
-
-    const tokenRes = await fetch('https://auth.buffer.com/token', {
+    const tokenResponse = await fetch('https://auth.buffer.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
+        client_id: clientId || '',
+        client_secret: clientSecret || '',
         grant_type: 'authorization_code',
         code,
         redirect_uri,
@@ -82,26 +72,22 @@ serve(async (req) => {
       }),
     })
 
-    if (!tokenRes.ok) {
-      const errText = await tokenRes.text()
-      console.error('[buffer-oauth-callback] Token exchange failed:', tokenRes.status, errText)
-      return new Response(JSON.stringify({ error: errText }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json()
+      console.error('[buffer-oauth-callback] Token exchange failed:', errorData)
+      return new Response(JSON.stringify({ error: errorData.error_description || 'Token exchange failed' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
 
-    const tokenData = await tokenRes.json()
-    const accessToken = tokenData.access_token
-    const refreshToken = tokenData.refresh_token
-    const expiresIn = tokenData.expires_in
+    const { access_token, refresh_token, expires_in } = await tokenResponse.json()
+    console.log('[buffer-oauth-callback] Token exchange successful. Fetching channels...')
 
-    console.log('[buffer-oauth-callback] Token exchange successful')
-
-    const graphqlRes = await fetch('https://api.buffer.com/graphql', {
+    const graphqlResponse = await fetch('https://api.buffer.com/graphql', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${access_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -109,73 +95,67 @@ serve(async (req) => {
       }),
     })
 
-    if (!graphqlRes.ok) {
-      const errText = await graphqlRes.text()
-      console.error('[buffer-oauth-callback] Failed to fetch channels:', graphqlRes.status, errText)
-      return new Response(JSON.stringify({ error: 'Failed to fetch channels', detail: errText }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!graphqlResponse.ok) {
+      console.error('[buffer-oauth-callback] Failed to fetch channels')
+      return new Response(JSON.stringify({ error: 'Failed to fetch Buffer channels' }), { 
+        status: 400, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       })
     }
 
-    const graphqlData = await graphqlRes.json()
-    const organizations = graphqlData?.data?.organizations || []
-
-    let channelsConnected = 0
+    const { data: gqlData } = await graphqlResponse.json()
+    const organizations = gqlData?.organizations || []
+    
+    let connectedCount = 0
+    const tokenExpiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString()
 
     for (const org of organizations) {
-      const channels = org.channels || []
-      for (const channel of channels) {
+      for (const channel of org.channels || []) {
         const serviceName = channel.service?.name?.toLowerCase()
         let platform = null
 
-        if (serviceName === 'twitter' || serviceName === 'x') {
-          platform = 'x'
-        } else if (serviceName === 'threads') {
-          platform = 'threads'
-        } else {
-          console.log(`[buffer-oauth-callback] Skipping channel ${channel.id} with service: ${serviceName}`)
-          continue
-        }
+        if (serviceName === 'twitter' || serviceName === 'x') platform = 'x'
+        else if (serviceName === 'threads') platform = 'threads'
 
-        const tokenExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
+        if (!platform) continue
 
-        console.log(`[buffer-oauth-callback] Upserting channel ${channel.id} for platform ${platform}`)
+        console.log(`[buffer-oauth-callback] Connecting ${platform} channel: ${channel.displayName}`)
 
         const { error: upsertError } = await supabase
           .from('social_accounts')
           .upsert({
             user_id: user.id,
             platform,
-            buffer_access_token: accessToken,
-            buffer_refresh_token: refreshToken,
+            buffer_access_token: access_token,
+            buffer_refresh_token: refresh_token,
             buffer_channel_id: channel.id,
             buffer_channel_name: channel.displayName,
             token_expires_at: tokenExpiresAt,
             is_active: true,
-          }, { onConflict: 'user_id,buffer_channel_id' })
+            connected_at: new Date().toISOString()
+          }, { 
+            onConflict: 'user_id,buffer_channel_id' 
+          })
 
         if (upsertError) {
-          console.error('[buffer-oauth-callback] Upsert error for channel', channel.id, upsertError.message)
+          console.error('[buffer-oauth-callback] Upsert error:', upsertError)
         } else {
-          channelsConnected++
-          console.log(`[buffer-oauth-callback] Successfully connected channel ${channel.id}`)
+          connectedCount++
         }
       }
     }
 
-    console.log(`[buffer-oauth-callback] Total channels connected: ${channelsConnected}`)
-
-    return new Response(JSON.stringify({ success: true, channels_connected: channelsConnected }), {
+    console.log(`[buffer-oauth-callback] Success. Connected ${connectedCount} channels.`)
+    return new Response(JSON.stringify({ success: true, channels_connected: connectedCount }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
+      status: 200
     })
 
   } catch (error: any) {
     console.error('[buffer-oauth-callback] Global error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+      status: 500
     })
   }
 })
