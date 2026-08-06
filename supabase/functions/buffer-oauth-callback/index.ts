@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -103,7 +103,12 @@ serve(async (req) => {
       })
     }
 
+    const rawText = await graphqlResponse.clone().text()
+    console.log('[buffer-oauth-callback] RAW RESPONSE TEXT:', rawText)
+
     const { data: gqlData } = await graphqlResponse.json()
+    console.log('[buffer-oauth-callback] RAW GQL RESPONSE:', JSON.stringify(gqlData, null, 2))
+    
     const organizations = gqlData?.organizations || []
     
     let connectedCount = 0
