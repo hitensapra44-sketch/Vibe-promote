@@ -93,20 +93,36 @@ serve(async (req) => {
       body: JSON.stringify({
         query: `
           query {
-            __schema {
-              queryType {
-                fields {
+            accountType: __type(name: "Account") {
+              name
+              fields {
+                name
+                type {
                   name
-                  args {
-                    name
-                    type {
-                      name
-                      kind
-                      ofType {
-                        name
-                      }
-                    }
-                  }
+                  kind
+                  ofType { name kind }
+                }
+              }
+            }
+            channelsInputType: __type(name: "ChannelsInput") {
+              name
+              inputFields {
+                name
+                type {
+                  name
+                  kind
+                  ofType { name kind }
+                }
+              }
+            }
+            channelType: __type(name: "Channel") {
+              name
+              fields {
+                name
+                type {
+                  name
+                  kind
+                  ofType { name kind }
                 }
               }
             }
