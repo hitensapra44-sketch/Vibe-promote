@@ -91,7 +91,18 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: '{ organizations { id channels { id displayName service { name } } } }',
+        query: `
+          query {
+            organizations(input: {}) {
+              id
+              channels {
+                id
+                displayName
+                service
+              }
+            }
+          }
+        `,
       }),
     })
 
@@ -103,20 +114,24 @@ serve(async (req) => {
       })
     }
 
-    const rawText = await graphqlResponse.clone().text()
-    console.log('[buffer-oauth-callback] RAW RESPONSE TEXT:', rawText)
+    const rawText = await graphqlResponse.text()
+    const gqlJson = JSON.parse(rawText)
 
-    const { data: gqlData } = await graphqlResponse.json()
-    console.log('[buffer-oauth-callback] RAW GQL RESPONSE:', JSON.stringify(gqlData, null, 2))
+    if (gqlJson.errors) {
+      console.error('[buffer-oauth-callback] GraphQL errors:', JSON.stringify(gqlJson.errors))
+      return new Response(JSON.stringify({ error: 'Buffer GraphQL error: ' + gqlJson.errors[0]?.message }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
     
-    const organizations = gqlData?.organizations || []
-    
+    const organizations = gqlJson.data?.organizations || []
     let connectedCount = 0
     const tokenExpiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString()
 
     for (const org of organizations) {
       for (const channel of org.channels || []) {
-        const serviceName = channel.service?.name?.toLowerCase()
+        const serviceName = channel.service?.toLowerCase()
         let platform = null
 
         if (serviceName === 'twitter' || serviceName === 'x') platform = 'x'
