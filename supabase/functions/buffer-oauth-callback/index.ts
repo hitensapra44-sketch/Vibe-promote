@@ -82,7 +82,7 @@ serve(async (req) => {
     }
 
     const { access_token, refresh_token, expires_in } = await tokenResponse.json()
-    console.log('[buffer-oauth-callback] Token exchange successful. Fetching channels...')
+    console.log('[buffer-oauth-callback] Token exchange successful. Fetching schema introspection...')
 
     const graphqlResponse = await fetch('https://api.buffer.com/graphql', {
       method: 'POST',
@@ -93,12 +93,21 @@ serve(async (req) => {
       body: JSON.stringify({
         query: `
           query {
-            organizations(input: {}) {
-              id
-              channels {
-                id
-                displayName
-                service
+            __schema {
+              queryType {
+                fields {
+                  name
+                  args {
+                    name
+                    type {
+                      name
+                      kind
+                      ofType {
+                        name
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -115,6 +124,7 @@ serve(async (req) => {
     }
 
     const rawText = await graphqlResponse.text()
+    console.log('[buffer-oauth-callback] GraphQL Response:', rawText)
     const gqlJson = JSON.parse(rawText)
 
     if (gqlJson.errors) {
