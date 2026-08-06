@@ -47,7 +47,6 @@ export default function Sidebar({ isPaid }) {
     { icon: BarChart2, label: 'Analytics', path: '/dashboard/results-tracker', available: true },
     { icon: Sparkles, label: 'Co-pilot', path: '/marketing-buddy', available: true },
     { icon: Settings, label: 'Settings', path: '/settings', available: true },
-    { icon: TrendingUp, label: 'Virality Finder', path: '#', available: false, comingSoon: true },
     { icon: CalendarClock, label: 'Auto Poster', path: '/auto-poster', available: true },
   ];
 
