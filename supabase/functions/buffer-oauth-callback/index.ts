@@ -82,9 +82,10 @@ serve(async (req) => {
     }
 
     const { access_token, refresh_token, expires_in } = await tokenResponse.json()
-    console.log('[buffer-oauth-callback] Token exchange successful. Fetching schema introspection...')
+    console.log('[buffer-oauth-callback] Token exchange successful. Fetching organization IDs...')
 
-    const graphqlResponse = await fetch('https://api.buffer.com/graphql', {
+    // Step 1: Get the user's organization IDs
+    const accountResponse = await fetch('https://api.buffer.com/graphql', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -93,37 +94,10 @@ serve(async (req) => {
       body: JSON.stringify({
         query: `
           query {
-            accountType: __type(name: "Account") {
-              name
-              fields {
-                name
-                type {
-                  name
-                  kind
-                  ofType { name kind }
-                }
-              }
-            }
-            channelsInputType: __type(name: "ChannelsInput") {
-              name
-              inputFields {
-                name
-                type {
-                  name
-                  kind
-                  ofType { name kind }
-                }
-              }
-            }
-            channelType: __type(name: "Channel") {
-              name
-              fields {
-                name
-                type {
-                  name
-                  kind
-                  ofType { name kind }
-                }
+            account {
+              id
+              organizations {
+                id
               }
             }
           }
@@ -131,63 +105,93 @@ serve(async (req) => {
       }),
     })
 
-    if (!graphqlResponse.ok) {
-      console.error('[buffer-oauth-callback] Failed to fetch channels')
-      return new Response(JSON.stringify({ error: 'Failed to fetch Buffer channels' }), { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
-    }
+    const accountText = await accountResponse.text()
+    console.log('[buffer-oauth-callback] Account Response:', accountText)
+    const accountJson = JSON.parse(accountText)
 
-    const rawText = await graphqlResponse.text()
-    console.log('[buffer-oauth-callback] GraphQL Response:', rawText)
-    const gqlJson = JSON.parse(rawText)
-
-    if (gqlJson.errors) {
-      console.error('[buffer-oauth-callback] GraphQL errors:', JSON.stringify(gqlJson.errors))
-      return new Response(JSON.stringify({ error: 'Buffer GraphQL error: ' + gqlJson.errors[0]?.message }), {
+    if (accountJson.errors) {
+      console.error('[buffer-oauth-callback] Account GraphQL errors:', JSON.stringify(accountJson.errors))
+      return new Response(JSON.stringify({ error: 'Buffer GraphQL error: ' + accountJson.errors[0]?.message }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    const orgIds = (accountJson.data?.account?.organizations || []).map((o: any) => o.id)
+    console.log('[buffer-oauth-callback] Found org IDs:', JSON.stringify(orgIds))
+
+    // Step 2: Fetch channels for each organization
+    let allChannels: any[] = []
+    for (const orgId of orgIds) {
+      const channelsResponse = await fetch('https://api.buffer.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            query GetChannels($input: ChannelsInput!) {
+              channels(input: $input) {
+                id
+                displayName
+                service
+              }
+            }
+          `,
+          variables: {
+            input: { organizationId: orgId }
+          }
+        }),
+      })
+
+      const channelsText = await channelsResponse.text()
+      console.log(`[buffer-oauth-callback] Channels for org ${orgId}:`, channelsText)
+      const channelsJson = JSON.parse(channelsText)
+
+      if (channelsJson.errors) {
+        console.error(`[buffer-oauth-callback] Channels GraphQL errors for org ${orgId}:`, JSON.stringify(channelsJson.errors))
+        continue
+      }
+
+      const channels = channelsJson.data?.channels || []
+      allChannels = allChannels.concat(channels)
+    }
     
-    const organizations = gqlJson.data?.organizations || []
     let connectedCount = 0
     const tokenExpiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString()
 
-    for (const org of organizations) {
-      for (const channel of org.channels || []) {
-        const serviceName = channel.service?.toLowerCase()
-        let platform = null
+    for (const channel of allChannels) {
+      const serviceName = channel.service?.toLowerCase()
+      let platform = null
 
-        if (serviceName === 'twitter' || serviceName === 'x') platform = 'x'
-        else if (serviceName === 'threads') platform = 'threads'
+      if (serviceName === 'twitter' || serviceName === 'x') platform = 'x'
+      else if (serviceName === 'threads') platform = 'threads'
 
-        if (!platform) continue
+      if (!platform) continue
 
-        console.log(`[buffer-oauth-callback] Connecting ${platform} channel: ${channel.displayName}`)
+      console.log(`[buffer-oauth-callback] Connecting ${platform} channel: ${channel.displayName}`)
 
-        const { error: upsertError } = await supabase
-          .from('social_accounts')
-          .upsert({
-            user_id: user.id,
-            platform,
-            buffer_access_token: access_token,
-            buffer_refresh_token: refresh_token,
-            buffer_channel_id: channel.id,
-            buffer_channel_name: channel.displayName,
-            token_expires_at: tokenExpiresAt,
-            is_active: true,
-            connected_at: new Date().toISOString()
-          }, { 
-            onConflict: 'user_id,buffer_channel_id' 
-          })
+      const { error: upsertError } = await supabase
+        .from('social_accounts')
+        .upsert({
+          user_id: user.id,
+          platform,
+          buffer_access_token: access_token,
+          buffer_refresh_token: refresh_token,
+          buffer_channel_id: channel.id,
+          buffer_channel_name: channel.displayName,
+          token_expires_at: tokenExpiresAt,
+          is_active: true,
+          connected_at: new Date().toISOString()
+        }, { 
+          onConflict: 'user_id,buffer_channel_id' 
+        })
 
-        if (upsertError) {
-          console.error('[buffer-oauth-callback] Upsert error:', upsertError)
-        } else {
-          connectedCount++
-        }
+      if (upsertError) {
+        console.error('[buffer-oauth-callback] Upsert error:', upsertError)
+      } else {
+        connectedCount++
       }
     }
 
