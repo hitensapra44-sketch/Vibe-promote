@@ -82,7 +82,7 @@ serve(async (req) => {
     }
 
     let apiKey = KEYS.FALLBACK;
-    let model = 'nvidia/nemotron-mini-4b-instruct';
+    let model = 'deepseek-ai/deepseek-v4-pro-0813';
 
     if (feature === 'onboarding') {
       apiKey = KEYS.MISTRAL_1;
