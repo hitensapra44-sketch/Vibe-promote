@@ -23,9 +23,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from '../../lib/AuthContext';
 import { usePlan } from '../../lib/usePlan';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabaseClient';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   Sheet,
   SheetContent,
@@ -36,10 +37,12 @@ import {
 export default function ResultsTracker() {
   const { user, plan } = useAuth();
   const { limits } = usePlan();
+  const queryClient = useQueryClient();
   const [selectedPeriod, setSelectedPeriod] = useState("This Week");
   const [activePlatform, setActivePlatform] = useState("All Platforms");
   const [showTopPosts, setShowTopPosts] = useState(false);
   const [showBottomPosts, setShowBottomPosts] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const { data: rawPosts = [], isLoading } = useQuery({
     queryKey: ['tracker-posts', user?.id, selectedPeriod],
@@ -87,6 +90,28 @@ export default function ResultsTracker() {
     };
   }, [rawPosts, activePlatform]);
 
+  const handleSyncBuffer = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-buffer-posts');
+      if (error) throw error;
+      
+      const synced = data?.synced ?? 0;
+      toast.success(synced === 1 ? "Synced 1 post" : `Synced ${synced} posts`);
+      
+      if (data?.errors && data.errors.length > 0) {
+        toast.error(`${data.errors.length} errors occurred during sync`);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['tracker-posts', user?.id, selectedPeriod] });
+    } catch (err) {
+      console.error('[ResultsTracker] Sync failed:', err);
+      toast.error(err.message || 'Failed to sync from Buffer');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -119,6 +144,15 @@ export default function ResultsTracker() {
                 <option>Last Week</option>
                 <option>This Month</option>
               </select>
+              
+              <button
+                onClick={handleSyncBuffer}
+                disabled={isSyncing}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20 border-none cursor-pointer"
+              >
+                <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+                {isSyncing ? "Syncing..." : "Sync from Buffer"}
+              </button>
             </div>
           )}
         </header>
@@ -180,7 +214,7 @@ export default function ResultsTracker() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Growth Coach explains what worked and what didn’t</span>
+                      <span>Growth Coach explains what worked and what didn't</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
