@@ -4,21 +4,19 @@ import React, { useState, useMemo } from 'react';
 import Sidebar from '../../components/Sidebar';
 import MetricCards from '../../components/results-tracker/MetricCards';
 import PostPerformanceTable from '../../components/results-tracker/PostPerformanceTable';
-import StrategyBuddyPanel from '../../components/results-tracker/StrategyBuddyPanel';
 import AnalyticsBuddy from '../../components/results-tracker/AnalyticsBuddy';
 import { 
   Sparkles, 
   TrendingUp, 
-  ChevronDown, 
   RefreshCw, 
-  MessageSquare,
-  Trophy,
-  AlertTriangle,
-  ArrowRight,
-  Info,
-  Lock,
-  XCircle,
-  CheckCircle2
+  ArrowRight, 
+  Lock, 
+  XCircle, 
+  CheckCircle2,
+  Calendar,
+  Send,
+  ExternalLink,
+  Layers
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useAuth } from '../../lib/AuthContext';
@@ -38,21 +36,42 @@ export default function ResultsTracker() {
   const { user, plan } = useAuth();
   const { limits } = usePlan();
   const queryClient = useQueryClient();
-  const [selectedPeriod, setSelectedPeriod] = useState("This Week");
+  const [selectedPeriod, setSelectedPeriod] = useState("All Time");
   const [activePlatform, setActivePlatform] = useState("All Platforms");
-  const [showTopPosts, setShowTopPosts] = useState(false);
-  const [showBottomPosts, setShowBottomPosts] = useState(false);
+  const [showRecentPosts, setShowRecentPosts] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const { data: rawPosts = [], isLoading } = useQuery({
+  const { data: rawPosts = [], isLoading, refetch } = useQuery({
     queryKey: ['tracker-posts', user?.id, selectedPeriod],
     queryFn: async () => {
       if (!user) return [];
-      const { data } = await supabase
+      let query = supabase
         .from('social_posts')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      if (selectedPeriod === 'This Week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        query = query.gte('created_at', weekAgo.toISOString());
+      } else if (selectedPeriod === 'Last Week') {
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        query = query.gte('created_at', twoWeeksAgo.toISOString()).lte('created_at', oneWeekAgo.toISOString());
+      } else if (selectedPeriod === 'This Month') {
+        const monthAgo = new Date();
+        monthAgo.setDate(monthAgo.getDate() - 30);
+        query = query.gte('created_at', monthAgo.toISOString());
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error fetching social_posts:', error);
+        return [];
+      }
       return data || [];
     },
     enabled: !!user
@@ -61,32 +80,57 @@ export default function ResultsTracker() {
   const processedData = useMemo(() => {
     const filtered = activePlatform === "All Platforms" 
       ? rawPosts 
-      : rawPosts.filter(p => p.platform === activePlatform);
-    
-    const views = filtered.reduce((acc, p) => acc + (p.views || 0), 0);
-    const engagements = filtered.reduce((acc, p) => acc + (p.engagements || 0), 0);
-    const comments = filtered.reduce((acc, p) => acc + (p.comments || 0), 0);
-    const linkTaps = filtered.reduce((acc, p) => acc + (p.link_clicks || 0), 0);
+      : rawPosts.filter(p => (p.platform || '').toLowerCase() === activePlatform.toLowerCase());
 
-    const sortedByEngagement = [...filtered].sort((a, b) => (b.engagements || 0) - (a.engagements || 0));
+    const totalSynced = rawPosts.length;
+    const filteredCount = filtered.length;
+
+    // Platform distribution from real posts
+    const platformCounts = rawPosts.reduce((acc, p) => {
+      const plat = p.platform ? (p.platform.charAt(0).toUpperCase() + p.platform.slice(1)) : 'Other';
+      acc[plat] = (acc[plat] || 0) + 1;
+      return acc;
+    }, {});
+
+    const platformColors = {
+      'Reddit': '#FF4500',
+      'X': '#111111',
+      'Twitter': '#111111',
+      'Threads': '#000000',
+      'Linkedin': '#0A66C2',
+      'Other': '#71717A'
+    };
+
+    const breakdown = Object.entries(platformCounts).map(([platform, count]) => ({
+      platform,
+      percentage: totalSynced > 0 ? Math.round((count / totalSynced) * 100) : 0,
+      color: platformColors[platform] || '#F97316'
+    }));
+
+    // Status breakdown from real posts
+    const statusCounts = rawPosts.reduce((acc, p) => {
+      const st = (p.status || 'published').toLowerCase();
+      acc[st] = (acc[st] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Metrics format required by MetricCards (change = 0 to prevent displaying fake percentage gains)
+    const metrics = {
+      views: { label: 'Synced Posts', value: filteredCount, change: 0 },
+      engagements: { label: 'Active Platforms', value: Object.keys(platformCounts).length, change: 0 },
+      comments: { label: 'Published Posts', value: statusCounts['published'] || filteredCount, change: 0 },
+      linkTaps: { label: 'External Links Tracked', value: filtered.filter(p => Boolean(p.external_link)).length, change: 0 },
+    };
 
     return {
       filtered,
-      metrics: {
-        views: { label: 'Total Views', value: views, change: 12 },
-        engagements: { label: 'Engagement', value: engagements, change: 5 },
-        comments: { label: 'Comments', value: comments, change: -2 },
-        linkTaps: { label: 'Link Clicks', value: linkTaps, change: 8 },
-      },
-      bestPost: sortedByEngagement[0],
-      worstPost: sortedByEngagement[sortedByEngagement.length - 1],
-      growthScore: Math.min(100, Math.floor((engagements / (views || 1)) * 500) + 40),
-      breakdown: [
-        { platform: 'Reddit', percentage: 65, color: '#FF4500' },
-        { platform: 'X', percentage: 25, color: '#333333' },
-        { platform: 'LinkedIn', percentage: 10, color: '#0A66C2' },
-      ],
-      zeroEngagementCount: filtered.filter(p => (p.engagements || 0) === 0).length
+      totalSynced,
+      filteredCount,
+      metrics,
+      breakdown,
+      statusCounts,
+      platformCounts,
+      growthScore: totalSynced > 0 ? Math.min(100, totalSynced * 10) : 0
     };
   }, [rawPosts, activePlatform]);
 
@@ -104,6 +148,7 @@ export default function ResultsTracker() {
       }
       
       queryClient.invalidateQueries({ queryKey: ['tracker-posts', user?.id, selectedPeriod] });
+      refetch();
     } catch (err) {
       console.error('[ResultsTracker] Sync failed:', err);
       toast.error(err.message || 'Failed to sync from Buffer');
@@ -121,6 +166,7 @@ export default function ResultsTracker() {
   }
 
   const isFree = plan === 'free';
+  const availablePlatforms = ['All Platforms', ...new Set(rawPosts.map(p => p.platform ? (p.platform.charAt(0).toUpperCase() + p.platform.slice(1)) : 'Other'))];
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 font-poppins flex relative overflow-hidden">
@@ -140,6 +186,7 @@ export default function ResultsTracker() {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="bg-slate-100 border-none rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 outline-none cursor-pointer"
               >
+                <option>All Time</option>
                 <option>This Week</option>
                 <option>Last Week</option>
                 <option>This Month</option>
@@ -193,7 +240,7 @@ export default function ResultsTracker() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-red-500/60 mt-0.5">•</span>
-                      <span>Switching between 5 different platform apps</span>
+                      <span>Switching between multiple channel platforms</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-red-500/60 mt-0.5">•</span>
@@ -210,15 +257,15 @@ export default function ResultsTracker() {
                   <ul className="space-y-3 text-sm text-slate-700">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>All your metrics in one unified dashboard</span>
+                      <span>All your posts in one unified dashboard</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Growth Coach explains what worked and what didn't</span>
+                      <span>Real platform distribution and publishing counts</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Strategy suggestions based on your data</span>
+                      <span>Direct external post links & timestamp audit</span>
                     </li>
                   </ul>
                 </div>
@@ -226,119 +273,113 @@ export default function ResultsTracker() {
             </div>
           ) : (
             <>
-              {/* 1. ANALYTICS HEALTH */}
-              <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col md:flex-row gap-12 items-center">
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative w-40 h-40 flex items-center justify-center">
-                    <svg className="w-full h-full -rotate-90">
-                      <circle cx="80" cy="80" r="70" fill="transparent" stroke="#f1f5f9" strokeWidth="12" />
-                      <circle 
-                        cx="80" cy="80" r="70" fill="transparent" stroke="#f97316" strokeWidth="12" 
-                        strokeDasharray={440}
-                        strokeDashoffset={440 - (440 * processedData.growthScore) / 100}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    </svg>
-                    <div className="absolute flex flex-col items-center">
-                      <span className="text-4xl font-black text-slate-900">{processedData.growthScore}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Growth Score</span>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm font-bold text-slate-700">Your account is growing steadily.</p>
+              {/* PLATFORM FILTER PILLS */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  {availablePlatforms.map(plat => (
+                    <button
+                      key={plat}
+                      onClick={() => setActivePlatform(plat)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-full text-xs font-bold transition-all border",
+                        activePlatform === plat
+                          ? "bg-slate-900 text-white border-slate-900"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                      )}
+                    >
+                      {plat}
+                    </button>
+                  ))}
                 </div>
 
-                <div className="flex-1 space-y-6">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium">
+                  <span>ℹ️ Engagement counts unavailable — Buffer API limitation</span>
+                </div>
+              </div>
+
+              {/* 1. SYNC HEALTH & OVERVIEW */}
+              <section className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col md:flex-row gap-8 items-center">
+                <div className="flex flex-col items-center text-center w-full md:w-56 flex-shrink-0">
+                  <div className="w-24 h-24 rounded-2xl bg-orange-50 border border-orange-100 flex flex-col items-center justify-center text-orange-600 shadow-sm">
+                    <Send className="w-6 h-6 mb-1" />
+                    <span className="text-2xl font-black">{processedData.filteredCount}</span>
+                  </div>
+                  <h3 className="mt-3 text-sm font-bold text-slate-900">Synced Posts</h3>
+                  <p className="text-xs text-slate-400">Total in this view</p>
+                </div>
+
+                <div className="flex-1 space-y-4 w-full">
                   <div>
-                    <h3 className="text-xs font-bold text-orange-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" /> Insights
+                    <h3 className="text-xs font-bold text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Real Platform Breakdown
                     </h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3 text-sm text-slate-600 leading-relaxed">
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 flex-shrink-0" />
-                        <span>Your Reddit posts are driving 3x more engagement than X this week.</span>
-                      </li>
-                      <li className="flex items-start gap-3 text-sm text-slate-600 leading-relaxed">
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 flex-shrink-0" />
-                        <span>"Builder Story" format is your highest converter for link clicks.</span>
-                      </li>
-                      <li className="flex items-start gap-3 text-sm text-slate-600 leading-relaxed">
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 flex-shrink-0" />
-                        <span>Engagement peaks between 9 AM and 11 AM EST.</span>
-                      </li>
-                    </ul>
+
+                    {processedData.breakdown.length === 0 ? (
+                      <p className="text-sm text-slate-500">No synced posts found for this period. Click "Sync from Buffer" to import your channel activity.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="w-full h-3 bg-slate-100 rounded-full flex overflow-hidden">
+                          {processedData.breakdown.map((item, i) => (
+                            <div 
+                              key={i}
+                              style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
+                              className="h-full transition-all duration-500"
+                            />
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-xs">
+                          {processedData.breakdown.map((item, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span className="font-bold text-slate-700">{item.platform}:</span>
+                              <span className="text-slate-500">{processedData.platformCounts[item.platform] || 0} ({item.percentage}%)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex gap-3">
-                    <button className="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2 border-none cursor-pointer">
-                      <RefreshCw className="w-3.5 h-3.5" /> Refresh Analysis
+                  <div className="flex gap-3 pt-2">
+                    <button 
+                      onClick={handleSyncBuffer}
+                      disabled={isSyncing}
+                      className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 border-none cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw className={cn("w-3.5 h-3.5", isSyncing && "animate-spin")} />
+                      Refresh Data
                     </button>
-                    <button className="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-2 border-none cursor-pointer">
-                      <MessageSquare className="w-3.5 h-3.5" /> Ask Advisor
+                    <button 
+                      onClick={() => setShowRecentPosts(true)}
+                      className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-2 border-none cursor-pointer"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      View Recent Posts Drawer
                     </button>
                   </div>
                 </div>
               </section>
 
-              {/* 2. KEY ANALYTICS */}
-              <section className="space-y-6">
+              {/* 2. KEY AUDIT CARDS */}
+              <section className="space-y-4">
                 <MetricCards metrics={processedData.metrics} />
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => setShowTopPosts(true)}
-                    className="flex-1 bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between hover:border-orange-500/30 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-                        <Trophy className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-bold text-slate-700">Best Performing Posts</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-orange-500 transition-colors" />
-                  </button>
-                  
-                  <button 
-                    onClick={() => setShowBottomPosts(true)}
-                    className="flex-1 bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between hover:border-orange-500/30 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
-                        <AlertTriangle className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-bold text-slate-700">Worst Performing Posts</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-orange-500 transition-colors" />
-                  </button>
-                </div>
               </section>
 
-              {/* 3. POST PERFORMANCE */}
+              {/* 3. POST PERFORMANCE TABLE */}
               <section className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                    Post Performance
-                    <div className="group relative">
-                      <Info className="w-3.5 h-3.5 text-slate-300 cursor-help" />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                        Calculated based on engagement relative to views.
-                      </div>
-                    </div>
-                  </h3>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Synced Post Log</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Click any post to inspect details and open original links</p>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                    {processedData.filtered.length} posts
+                  </span>
                 </div>
                 <PostPerformanceTable 
                   posts={processedData.filtered} 
                   platform={activePlatform}
                 />
-              </section>
-
-              {/* 4. GROWTH COACH */}
-              <StrategyBuddyPanel analysis={null} />
-
-              {/* 5. WEEKLY SUMMARY */}
-              <section className="bg-orange-50/50 border border-orange-100 rounded-2xl p-8 text-center">
-                <p className="text-slate-600 italic text-sm leading-relaxed max-w-2xl mx-auto">
-                  "This week showed a strong pivot toward community-led growth. Your transparency in r/SaaS is building significant authority, while your tactical tips on X are driving the majority of your new landing page traffic. Keep doubling down on vulnerability-based hooks—they are outperforming feature-based posts by 4x."
-                </p>
               </section>
             </>
           )}
@@ -348,79 +389,56 @@ export default function ResultsTracker() {
       {!isFree && (
         <AnalyticsBuddy 
           dataContext={{
-            ...processedData,
             selectedPeriod,
             activePlatform,
-            posts: rawPosts
+            totalSynced: processedData.totalSynced,
+            filteredCount: processedData.filteredCount,
+            breakdown: processedData.breakdown,
+            posts: rawPosts,
+            metrics: processedData.metrics
           }} 
           isLocked={false} 
         />
       )}
 
-      {/* Detail Drawers for Best/Worst */}
-      <Sheet open={showTopPosts} onOpenChange={setShowTopPosts}>
-        <SheetContent side="right" className="w-full sm:max-w-md bg-white">
+      {/* RECENT POSTS DRAWER */}
+      <Sheet open={showRecentPosts} onOpenChange={setShowRecentPosts}>
+        <SheetContent side="right" className="w-full sm:max-w-md bg-white overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2 font-black">
-              <Trophy className="w-5 h-5 text-green-600" />
-              Top Performers
+              <Calendar className="w-5 h-5 text-orange-500" />
+              Recent Synced Posts
             </SheetTitle>
           </SheetHeader>
-          <div className="mt-8 space-y-6">
-            {processedData.filtered.slice(0, 3).map((post, i) => (
-              <div key={i} className="p-4 rounded-2xl border border-slate-100 bg-slate-50 space-y-4">
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{post.platform}</span>
-                  <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Score: 92</span>
-                </div>
-                <p className="text-sm font-bold text-slate-800 line-clamp-2">{post.title}</p>
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4">
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold">Why it worked</span>
-                    <p className="text-xs text-slate-600 mt-1">High relatability hook + clear takeaway.</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold">Keep doing</span>
-                    <p className="text-xs text-slate-600 mt-1">Using first-person narrative openers.</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={showBottomPosts} onOpenChange={setShowBottomPosts}>
-        <SheetContent side="right" className="w-full sm:max-w-md bg-white">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 font-black">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              Underperformers
-            </SheetTitle>
-          </SheetHeader>
-          <div className="mt-8 space-y-6">
+          <div className="mt-8 space-y-4">
             {processedData.filtered.length > 0 ? (
-              processedData.filtered.slice(-3).reverse().map((post, i) => (
-                <div key={i} className="p-4 rounded-2xl border border-slate-100 bg-slate-50 space-y-4">
+              processedData.filtered.slice(0, 15).map((post, i) => (
+                <div key={i} className="p-4 rounded-2xl border border-slate-100 bg-slate-50 space-y-2">
                   <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">{post.platform}</span>
-                    <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">Score: 24</span>
+                    <span className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">{post.platform}</span>
+                    <span className="text-[11px] text-slate-400">
+                      {new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                   </div>
-                  <p className="text-sm font-bold text-slate-800 line-clamp-2">{post.title}</p>
-                  <div className="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4">
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">The issue</span>
-                      <p className="text-xs text-slate-600 mt-1">Too promotional / lacked early context.</p>
+                  <p className="text-xs font-medium text-slate-800 line-clamp-3 leading-relaxed">
+                    {post.title}
+                  </p>
+                  {post.external_link && (
+                    <div className="pt-2">
+                      <a 
+                        href={post.external_link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 hover:underline"
+                      >
+                        Open original post <ExternalLink size={12} />
+                      </a>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold">How to improve</span>
-                      <p className="text-xs text-slate-600 mt-1">Lead with a specific pain phrase.</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-400 text-center py-12">No data yet.</p>
+              <p className="text-sm text-slate-400 text-center py-12">No posts available to display.</p>
             )}
           </div>
         </SheetContent>
