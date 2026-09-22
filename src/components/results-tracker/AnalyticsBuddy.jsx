@@ -15,7 +15,7 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
   const [showTooltip, setShowTooltip] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'buddy', text: "Hey! I've analyzed your data. What would you like to know about your performance or strategy?" }
+    { role: 'buddy', text: "Hey! I've reviewed your marketing progression across People Found, Posts Created, Scheduled, and Published. What would you like to review or optimize in your workflow?" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -36,16 +36,25 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
     setInputValue('');
     setIsTyping(true);
 
-    const systemPrompt = `You are an expert growth strategist. Analyzed your app data: 
-    Score: ${dataContext.growthScore}/100.
-    Metric Highlights: ${JSON.stringify(dataContext.metrics)}.
-    Context: Use the raw post data to give specific advice.`;
+    const systemPrompt = `You are an internal marketing execution advisor for founders.
+You review what the founder has ACTUALLY DONE inside Vibe Promote:
+- Selected Period: ${dataContext.selectedPeriod}
+- People Found (Leads discovered): ${dataContext.stages?.peopleFound || 0}
+- Posts Created (Drafted in app): ${dataContext.stages?.postsCreated || 0}
+- Posts Scheduled (Queued): ${dataContext.stages?.postsScheduled || 0}
+- Posts Published (Live shipped): ${dataContext.stages?.postsPublished || 0}
+- Platforms active: ${JSON.stringify(dataContext.platformRows || [])}
+
+RULES:
+1. Do NOT invent or discuss external views, click-through rates, impressions, or external likes/upvotes because external engagement analytics are not tracked.
+2. Focus strictly on funnel execution, output consistency, conversion drop-off between finding leads and publishing posts, and actionable daily marketing momentum.
+3. Keep replies sharp, founder-to-founder, 2-4 sentences max.`;
 
     try {
       const response = await generateAICall(systemPrompt, msg, user?.id, 'analytics');
       setMessages(prev => [...prev, { role: 'buddy', text: response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'buddy', text: "I hit a snag. Try again?" }]);
+      setMessages(prev => [...prev, { role: 'buddy', text: "I hit a snag. Let's try again." }]);
     } finally {
       setIsTyping(false);
     }
@@ -67,8 +76,8 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
                   <Sparkles size={16} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900">Growth Coach</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Online Analysis</p>
+                  <h3 className="text-sm font-black text-slate-900">Growth Advisor</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Execution Workflow</p>
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-none p-1 cursor-pointer">
@@ -82,9 +91,9 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
                   <Lock size={32} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Unlock Strategy Insights</h3>
+                  <h3 className="text-lg font-black text-slate-900">Unlock Workflow Guidance</h3>
                   <p className="text-xs text-slate-500 leading-relaxed mt-2">
-                    Get detailed strategy suggestions and deep analysis of your performance patterns.
+                    Get tailored suggestions on improving your discovery-to-publish throughput.
                   </p>
                 </div>
                 <button
@@ -120,7 +129,7 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Ask anything about your metrics..."
+                      placeholder="Ask about your marketing output..."
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -150,7 +159,7 @@ export default function AnalyticsBuddy({ dataContext, isLocked = false }) {
               exit={{ opacity: 0, x: 20 }}
               className="absolute bottom-1/2 right-full mr-4 translate-y-1/2 whitespace-nowrap bg-slate-900 text-white text-[10px] font-bold px-4 py-2 rounded-xl shadow-xl"
             >
-              Ask me anything about your growth
+              Ask about your marketing output
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45" />
             </motion.div>
           )}
