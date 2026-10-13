@@ -7,7 +7,7 @@ const corsHeaders = {
 
 const KEYS = {
   MINIMAX: Deno.env.get('NVIDIA_KEY_MINIMAX') ?? '',
-  MISTRAL_1: Deno.env.get('NVIDIA_KEY_MISTRAL_1') ?? '',
+  MISTRAL_1: Deno.env.get('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') ?? '',
   MISTRAL_2: Deno.env.get('NVIDIA_KEY_MISTRAL_2') ?? '',
   FALLBACK: Deno.env.get('NVIDIA_KEY_FALLBACK') ?? '',
 };
@@ -124,7 +124,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.log(`[ai-service] Secondary key failed, trying global fallback...`);
-      response = await tryCall(KEYS.FALLBACK, 'nvidia/nemotron-mini-4b-instruct');
+      response = await tryCall(KEYS.FALLBACK, 'deepseek-ai/deepseek-v4-pro-0813');
     }
 
     const data = await response.json();
