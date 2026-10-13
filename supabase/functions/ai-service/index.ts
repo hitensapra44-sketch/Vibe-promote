@@ -86,16 +86,16 @@ serve(async (req) => {
 
     if (feature === 'onboarding') {
       apiKey = KEYS.MISTRAL_1;
-      model = 'meta/llama-3.1-8b-instruct';
+      model = 'deepseek-ai/deepseek-v4-pro-0813';
     } else if (['post', 'copilot', 'analytics'].includes(feature)) {
       apiKey = KEYS.MISTRAL_1;
-      model = 'meta/llama-3.1-8b-instruct';
+      model = 'deepseek-ai/deepseek-v4-pro-0813';
     } else if (feature === 'content_plan') {
       apiKey = KEYS.MISTRAL_2;
-      model = 'meta/llama-3.1-8b-instruct';
+      model = 'deepseek-ai/deepseek-v4-pro-0813';
     } else if (feature === 'userfinder') {
       apiKey = KEYS.MISTRAL_2;
-      model = 'meta/llama-3.3-70b-instruct';
+      model = 'deepseek-ai/deepseek-v4-pro-0813';
     }
 
     const tryCall = async (key: string, modelName: string) => {
