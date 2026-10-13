@@ -6,10 +6,10 @@ const corsHeaders = {
 }
 
 const KEYS = {
-  MINIMAX: Deno.env.get('NVIDIA_KEY_MINIMAX') ?? '',
+  MINIMAX: Deno.env.get('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') ?? '',
   MISTRAL_1: Deno.env.get('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') ?? '',
-  MISTRAL_2: Deno.env.get('NVIDIA_KEY_MISTRAL_2') ?? '',
-  FALLBACK: Deno.env.get('NVIDIA_KEY_FALLBACK') ?? '',
+  MISTRAL_2: Deno.env.get('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') ?? '',
+  FALLBACK: Deno.env.get('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') ?? '',
 };
 
 serve(async (req) => {
