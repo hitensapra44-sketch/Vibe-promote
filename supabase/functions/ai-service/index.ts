@@ -5,24 +5,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const KEYS = {
-  MINIMAX: Deno.env.get('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') ?? '',
-  MISTRAL_1: Deno.env.get('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') ?? '',
-  MISTRAL_2: Deno.env.get('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') ?? '',
-  FALLBACK: Deno.env.get('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') ?? '',
-};
+const FAST_MODEL = 'deepseek-ai/deepseek-v4-flash'
+const PRO_MODEL  = 'deepseek-ai/deepseek-v4-pro-0813'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  if (!KEYS.FALLBACK) {
-    return new Response(JSON.stringify({ error: 'API keys not configured' }), {
+  const rawKeys = [
+    Deno.env.get('NVIDIA_API_KEY_1') ?? '',
+    Deno.env.get('NVIDIA_API_KEY_2') ?? '',
+    Deno.env.get('NVIDIA_API_KEY') ?? '',
+  ];
+
+  // Filter out empty keys and remove duplicates
+  const configuredKeys = Array.from(new Set(rawKeys.map(k => k.trim()).filter(Boolean)));
+
+  if (configuredKeys.length === 0) {
+    return new Response(JSON.stringify({ error: 'No API keys configured' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }
+
+  const key1 = configuredKeys[0];
+  const key2 = configuredKeys[1] || configuredKeys[0];
+  const fallbackKey = configuredKeys[configuredKeys.length - 1];
 
   try {
     const bodyJson = await req.json();
@@ -81,54 +90,89 @@ serve(async (req) => {
       }
     }
 
-    let apiKey = KEYS.FALLBACK;
-    let model = 'deepseek-ai/deepseek-v4-pro-0813';
-
-    if (feature === 'onboarding') {
-      apiKey = KEYS.MISTRAL_1;
-      model = 'deepseek-ai/deepseek-v4-pro-0813';
-    } else if (['post', 'copilot', 'analytics'].includes(feature)) {
-      apiKey = KEYS.MISTRAL_1;
-      model = 'deepseek-ai/deepseek-v4-pro-0813';
-    } else if (feature === 'content_plan') {
-      apiKey = KEYS.MISTRAL_2;
-      model = 'deepseek-ai/deepseek-v4-pro-0813';
+    // Default target model
+    let targetModel = PRO_MODEL;
+    if (feature === 'onboarding' || feature === 'content_plan') {
+      targetModel = PRO_MODEL;
     } else if (feature === 'userfinder') {
-      apiKey = KEYS.MISTRAL_2;
-      model = 'deepseek-ai/deepseek-v4-pro-0813';
+      targetModel = FAST_MODEL;
     }
 
     const tryCall = async (key: string, modelName: string) => {
-      return await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${key}`,
-        },
-        body: JSON.stringify({
-          model: modelName,
-          messages,
-          temperature: temperature || 0.7,
-          max_tokens: max_tokens || 1024,
-        }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+      try {
+        const res = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages,
+            temperature: typeof temperature === 'number' ? temperature : 0.7,
+            max_tokens: max_tokens || 2048,
+          }),
+        });
+
+        if (!res.ok) {
+          const bodyText = await res.text();
+          const preview = bodyText.slice(0, 300);
+          console.log(`[ai-service] Call failed: feature=${feature} model=${modelName} status=${res.status} detail=${preview}`);
+          return { ok: false, status: res.status, errorDetail: preview, data: null };
+        }
+
+        const data = await res.json();
+
+        if (!data?.choices?.[0]?.message?.content) {
+          console.log(`[ai-service] Empty content response for feature=${feature} model=${modelName}:`, JSON.stringify(data?.choices?.[0]?.message ?? data));
+        }
+
+        return { ok: true, status: res.status, errorDetail: null, data };
+      } catch (err: any) {
+        const isAbort = err.name === 'AbortError';
+        const msg = isAbort ? 'Request timed out after 25s' : err.message;
+        console.log(`[ai-service] Network/timeout error: feature=${feature} model=${modelName} error=${msg}`);
+        return { ok: false, status: isAbort ? 504 : 502, errorDetail: msg, data: null };
+      } finally {
+        clearTimeout(timeoutId);
+      }
     };
 
-    let response = await tryCall(apiKey, model);
+    // Step 1: Key 1 with targetModel
+    let callResult = await tryCall(key1, targetModel);
 
-    if (!response.ok && feature !== 'onboarding') {
-      const secondaryKey = apiKey === KEYS.MISTRAL_2 ? KEYS.MISTRAL_1 : KEYS.MISTRAL_2;
-      console.log(`[ai-service] Primary key failed for ${feature}, trying secondary key...`);
-      response = await tryCall(secondaryKey, model);
+    // Skip retries on client errors (400, 404)
+    const isFatalClientError = callResult.status === 400 || callResult.status === 404;
+
+    // Step 2: Key 2 with targetModel
+    if (!callResult.ok && !isFatalClientError && key2 !== key1) {
+      console.log(`[ai-service] Attempting retry with Key 2 for ${feature}...`);
+      callResult = await tryCall(key2, targetModel);
     }
 
-    if (!response.ok) {
-      console.log(`[ai-service] Secondary key failed, trying global fallback...`);
-      response = await tryCall(KEYS.FALLBACK, 'deepseek-ai/deepseek-v4-pro-0813');
+    // Step 3: PRO_MODEL with fallbackKey
+    if (!callResult.ok && !isFatalClientError) {
+      console.log(`[ai-service] Attempting final fallback with PRO_MODEL (${PRO_MODEL})...`);
+      callResult = await tryCall(fallbackKey, PRO_MODEL);
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
+    if (!callResult.ok) {
+      const responseStatus = (callResult.status >= 400 && callResult.status < 600) ? callResult.status : 502;
+      return new Response(JSON.stringify({
+        error: 'Upstream AI request failed',
+        status: callResult.status,
+        detail: callResult.errorDetail
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: responseStatus,
+      });
+    }
+
+    return new Response(JSON.stringify(callResult.data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
